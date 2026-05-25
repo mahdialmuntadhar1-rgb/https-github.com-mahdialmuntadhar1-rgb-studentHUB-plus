@@ -1,14 +1,16 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   ArrowLeft, Share2, MapPin, Users, BookOpen, 
   Calendar, Briefcase, Image as ImageIcon, CheckCircle2,
   ExternalLink, GraduationCap, Award, Info, Search,
-  Play, Plus, Globe, Phone, Building
+  Play, Plus, Globe, Phone, Building, RefreshCw
 } from 'lucide-react';
 import { Institution, Post, Opportunity } from '../types';
 import { SAMPLE_POSTS, SAMPLE_OPPORTUNITIES } from '../constants';
 import PostCard from '../components/PostCard';
+import { supabase } from '../lib/supabase';
+import { PostSkeleton } from '../components/Skeletons';
 
 interface InstitutionProfileProps {
   institution: Institution;
@@ -19,6 +21,60 @@ export default function InstitutionProfile({ institution, onBack }: InstitutionP
   const [activeTab, setActiveTab] = useState('posts');
   const [programSearch, setProgramSearch] = useState('');
   const [isFollowing, setIsFollowing] = useState(false);
+  const [posts, setPosts] = useState<Post[]>([]);
+  const [isLoadingPosts, setIsLoadingPosts] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (activeTab === 'posts') {
+      fetchInstitutionPosts();
+    }
+  }, [activeTab, institution.name]);
+
+  const fetchInstitutionPosts = async () => {
+    setIsLoadingPosts(true);
+    setError(null);
+    try {
+      const { data, error } = await supabase
+        .from('posts')
+        .select(`
+          *,
+          profiles:author_id (
+            full_name,
+            avatar_url
+          )
+        `)
+        .eq('institution', institution.name)
+        .order('created_at', { ascending: false });
+
+      if (error) throw error;
+
+      const transformedPosts: Post[] = (data || []).map(p => ({
+        id: p.id,
+        type: p.type,
+        institutionName: p.institution,
+        institutionLogo: institution.logo,
+        governorate: p.governorate as any,
+        content: p.content,
+        title: p.title,
+        image: p.image_url,
+        likes: p.likes_count,
+        comments: p.comments_count,
+        views: p.views_count,
+        timestamp: new Date(p.created_at).toLocaleDateString('ar-IQ'),
+        isVerified: p.is_verified,
+        authorName: p.profiles?.full_name,
+        authorAvatar: p.profiles?.avatar_url,
+        ...(p.metadata || {})
+      }));
+
+      setPosts(transformedPosts);
+    } catch (err: any) {
+      setError(err.message);
+    } finally {
+      setIsLoadingPosts(false);
+    }
+  };
 
   const tabs = [
     { id: 'posts', label: 'المنشورات', icon: BookOpen },
@@ -29,7 +85,6 @@ export default function InstitutionProfile({ institution, onBack }: InstitutionP
     { id: 'media', label: 'الوسائط', icon: ImageIcon },
   ];
 
-  const institutionPosts = SAMPLE_POSTS.filter(p => p.institutionName === institution.name);
   const institutionOpps = SAMPLE_OPPORTUNITIES.filter(o => o.institutionName === institution.name);
 
   // Sample data for extra sections
@@ -201,11 +256,27 @@ export default function InstitutionProfile({ institution, onBack }: InstitutionP
                 >
                     {activeTab === 'posts' && (
                         <div className="space-y-4">
-                            {institutionPosts.map(post => <PostCard key={post.id} post={post} />)}
-                            {institutionPosts.length === 0 && (
+                            {isLoadingPosts ? (
+                                <div className="space-y-6">
+                                    {[1, 2, 3].map(i => <PostSkeleton key={i} />)}
+                                </div>
+                            ) : error ? (
+                                <div className="bg-white p-12 rounded-[3.5rem] text-center border border-gray-100">
+                                    <h4 className="text-xl font-black text-secondary mb-4">حدث خطأ أثناء جلب المنشورات</h4>
+                                    <button 
+                                        onClick={fetchInstitutionPosts}
+                                        className="px-6 py-3 bg-primary text-secondary rounded-2xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 mx-auto"
+                                    >
+                                        <RefreshCw size={16} />
+                                        <span>إعادة المحاولة</span>
+                                    </button>
+                                </div>
+                            ) : posts.length > 0 ? (
+                                posts.map(post => <PostCard key={post.id} post={post} />)
+                            ) : (
                                 <div className="bg-white p-20 rounded-[3rem] text-center border border-gray-100">
                                     <BookOpen size={48} className="mx-auto text-gray-200 mb-4" />
-                                    <p className="text-gray-400 font-black">لا توجد منشورات حالياً</p>
+                                    <p className="text-gray-400 font-black">لا توجد منشورات لهذه المؤسسة حالياً</p>
                                 </div>
                             )}
                         </div>
@@ -330,10 +401,10 @@ export default function InstitutionProfile({ institution, onBack }: InstitutionP
 
                     {activeTab === 'events' && (
                         <div className="space-y-4">
-                            {institutionPosts.filter(p => p.type === 'event').map(post => (
+                            {posts.filter(p => p.type === 'event').map(post => (
                                 <PostCard key={post.id} post={post} />
                             ))}
-                            {institutionPosts.filter(p => p.type === 'event').length === 0 && (
+                            {posts.filter(p => p.type === 'event').length === 0 && (
                                 <div className="bg-white p-20 rounded-[3rem] text-center border border-gray-100">
                                     <Calendar size={48} className="mx-auto text-gray-200 mb-4" />
                                     <p className="text-gray-400 font-black">لا توجد فعاليات قادمة حالياً</p>

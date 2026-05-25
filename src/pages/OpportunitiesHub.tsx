@@ -1,38 +1,28 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Briefcase, GraduationCap,
-  Bookmark, Search,
-  BarChart3, Filter,
-  Zap, BrainCircuit
+  Briefcase, GraduationCap, Calendar, Clock, 
+  MapPin, ChevronLeft, Bookmark, Search,
+  TrendingUp, BarChart3, Filter, Star, 
+  Zap, Save, BookOpen, BrainCircuit
 } from 'lucide-react';
-import { SAMPLE_INSIGHTS } from '../constants';
+import { SAMPLE_OPPORTUNITIES, SAMPLE_INSIGHTS } from '../constants';
 import PostCard from '../components/PostCard';
-import { Post } from '../types';
+import { Post, Opportunity } from '../types';
 import { PostSkeleton } from '../components/Skeletons';
-import { getOpportunities } from '../lib/api';
 
 export default function OpportunitiesHub() {
   const [activeTab, setActiveTab] = useState<'all' | 'insights' | 'saved'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
-  const [opportunities, setOpportunities] = useState<any[]>([]);
 
+  // Transition loading simulation
   useEffect(() => {
-    const fetchOpps = async () => {
-      setIsLoading(true);
-      try {
-        const data = await getOpportunities(activeCategory || undefined);
-        setOpportunities(data);
-      } catch {
-        setOpportunities([]);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchOpps();
-  }, [activeCategory]);
+    setIsLoading(true);
+    const timer = setTimeout(() => setIsLoading(false), 700);
+    return () => clearTimeout(timer);
+  }, [activeTab, activeCategory]);
 
   const categories = [
     { id: 'job', label: 'وظائف', icon: Briefcase, color: 'text-blue-500', bg: 'bg-blue-50' },
@@ -41,8 +31,9 @@ export default function OpportunitiesHub() {
     { id: 'training', label: 'برامج تطوير', icon: BrainCircuit, color: 'text-green-500', bg: 'bg-green-50' },
   ];
 
-  const filteredOpps = opportunities.filter((o: any) =>
-    o.title?.includes(searchQuery) || o.institution_name?.includes(searchQuery)
+  const filteredOpps = SAMPLE_OPPORTUNITIES.filter(o => 
+    (!activeCategory || o.type === activeCategory) &&
+    (o.title.includes(searchQuery) || o.institutionName.includes(searchQuery))
   );
 
   return (
@@ -146,23 +137,20 @@ export default function OpportunitiesHub() {
                                  <span>Advanced Filter</span>
                              </div>
                         </div>
-                        {filteredOpps.map((opp: any) => {
-                            const tags = typeof opp.tags === 'string'
-                              ? JSON.parse(opp.tags || '[]')
-                              : (opp.tags || []);
+                        {filteredOpps.map(opp => {
                             const postConverted: Post = {
                                 id: opp.id,
                                 type: 'opportunity',
-                                institutionName: opp.institution_name,
-                                institutionLogo: opp.institution_logo || `https://picsum.photos/seed/${opp.id}/100/100`,
-                                governorate: opp.governorate as any,
+                                institutionName: opp.institutionName,
+                                institutionLogo: opp.institutionLogo,
+                                governorate: opp.governorate,
                                 content: opp.title,
                                 title: opp.title,
-                                likes: 0,
-                                comments: 0,
-                                timestamp: new Date(opp.created_at).toLocaleDateString('ar-IQ'),
+                                likes: Math.floor(Math.random() * 500),
+                                comments: Math.floor(Math.random() * 50),
+                                timestamp: 'منشور منذ قليل',
                                 deadline: opp.deadline,
-                                tags,
+                                tags: opp.tags,
                                 isVerified: true
                             };
                             return <PostCard key={opp.id} post={postConverted} />;

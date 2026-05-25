@@ -1,39 +1,59 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
-  Settings, Edit3, MapPin,
-  Grid, Bookmark, Landmark,
-  CheckCircle2,
-  Share2, LogOut, Camera
+  Settings, Edit3, MapPin, GraduationCap, 
+  Grid, Bookmark, Landmark, Heart, 
+  Calendar, CheckCircle2, ChevronLeft,
+  Share2, MoreVertical, LogOut, Camera, Shield
 } from 'lucide-react';
-import { SAMPLE_INSTITUTIONS } from '../constants';
+import { SAMPLE_POSTS, SAMPLE_INSTITUTIONS } from '../constants';
 import PostCard from '../components/PostCard';
 import { useAuth } from '../contexts/AuthContext';
+import { supabase } from '../lib/supabase';
+import AdminPanel from './AdminPanel';
 
 export default function Profile() {
-  const { profile, signOut } = useAuth();
+  const { profile, user: authUser } = useAuth();
   const [activeTab, setActiveTab] = useState<'posts' | 'saved' | 'followed'>('posts');
+  const [isLoggingOut, setIsLoggingOut] = useState(false);
+  const [showAdminPanel, setShowAdminPanel] = useState(false);
 
-  const interests: string[] = Array.isArray(profile?.interests)
-    ? profile.interests
-    : (typeof profile?.interests === 'string' && profile.interests
-        ? JSON.parse(profile.interests)
-        : []);
+  const handleLogout = async () => {
+    setIsLoggingOut(true);
+    await supabase.auth.signOut();
+    window.location.reload(); // Refresh to clear state and redirect
+  };
+
+  const user = {
+    name: profile?.full_name || 'مستخدم رافد',
+    handle: `@${authUser?.email?.split('@')[0] || 'user'}`,
+    institution: profile?.institution || 'مؤسسة أكاديمية',
+    governorate: profile?.governorate || 'محافظة',
+    year: profile?.stage || 'طالب',
+    avatar: profile?.avatar_url || `https://picsum.photos/seed/${authUser?.id}/200/200`,
+    cover: `https://picsum.photos/seed/${profile?.institution_id || 'cover'}/800/400`,
+    bio: profile?.bio || 'لا يوجد نبذة شخصية حالياً. شاركنا اهتماماتك وطموحاتك الأكاديمية! ✨',
+    interests: profile?.interests || ['الدراسة'],
+    stats: {
+      posts: 0,
+      followers: 0,
+      following: 0
+    }
+  };
 
   const followedInstitutions = SAMPLE_INSTITUTIONS.slice(0, 3);
-  const myPosts: any[] = [];
-  const savedItems: any[] = [];
+  const myPosts = SAMPLE_POSTS.filter(p => p.type === 'student' && p.authorName === user.name);
+  const savedItems = SAMPLE_POSTS.filter(p => p.type === 'opportunity' || p.type === 'event').slice(0, 3);
+
+  if (showAdminPanel) {
+    return <AdminPanel onBack={() => setShowAdminPanel(false)} />;
+  }
 
   return (
     <div className="min-h-screen bg-surface pb-32">
       {/* 1. Header & Cover */}
       <div className="relative h-64 overflow-hidden">
-        <img
-          src={`https://picsum.photos/seed/${profile?.institution_id || 'cover'}/800/400`}
-          className="w-full h-full object-cover"
-          alt=""
-          referrerPolicy="no-referrer"
-        />
+        <img src={user.cover} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" />
         <div className="absolute inset-0 bg-gradient-to-t from-black/60 to-transparent" />
         
         <div className="absolute top-6 left-6 flex gap-2">
@@ -51,13 +71,7 @@ export default function Profile() {
         <div className="bg-white rounded-[2.5rem] p-8 shadow-xl shadow-secondary/5 border border-gray-100 flex flex-col items-center text-center space-y-6">
             <div className="relative group">
                 <div className="w-32 h-32 rounded-[2.5rem] p-1 bg-primary shadow-lg ring-8 ring-white">
-                    {profile?.avatar_url ? (
-                      <img src={profile.avatar_url} className="w-full h-full object-cover rounded-[2.2rem]" alt="" referrerPolicy="no-referrer" />
-                    ) : (
-                      <div className="w-full h-full rounded-[2.2rem] bg-primary/20 flex items-center justify-center text-3xl font-black text-secondary">
-                        {(profile?.full_name || '?')[0]}
-                      </div>
-                    )}
+                    <img src={user.avatar} className="w-full h-full object-cover rounded-[2.2rem]" alt="" referrerPolicy="no-referrer" />
                 </div>
                 <button className="absolute bottom-0 right-0 p-3 bg-secondary text-white rounded-2xl border-4 border-white shadow-lg active:scale-90 transition-all">
                     <Camera size={16} />
@@ -66,55 +80,69 @@ export default function Profile() {
 
             <div className="space-y-1">
                 <div className="flex items-center justify-center gap-2">
-                    <h1 className="text-2xl font-black text-secondary">{profile?.full_name || 'مستخدم رافد'}</h1>
+                    <h1 className="text-2xl font-black text-secondary">{user.name}</h1>
                     <CheckCircle2 size={20} className="text-primary fill-primary/10" />
                 </div>
                 <div className="flex items-center justify-center gap-3 text-xs font-black text-gray-300 uppercase tracking-widest">
-                    <span>{profile?.stage || ''}</span>
+                    <span>{user.handle}</span>
+                    <span className="w-1 h-1 bg-gray-200 rounded-full" />
+                    <span>{user.year}</span>
                 </div>
             </div>
 
             <div className="flex items-center justify-center gap-4 text-sm font-bold text-gray-500 bg-surface px-6 py-3 rounded-2xl w-full">
                 <div className="flex items-center gap-2">
                     <Landmark size={16} className="text-accent" />
-                    <span>{profile?.institution || '—'}</span>
+                    <span>{user.institution}</span>
                 </div>
                 <div className="w-px h-4 bg-gray-200" />
                 <div className="flex items-center gap-2">
                     <MapPin size={16} className="text-primary" />
-                    <span>{profile?.governorate || '—'}</span>
+                    <span>{user.governorate}</span>
                 </div>
             </div>
 
-            {profile?.bio && (
-              <p className="text-sm font-medium text-gray-600 leading-relaxed max-w-sm">
-                  {profile.bio}
-              </p>
-            )}
+            <p className="text-sm font-medium text-gray-600 leading-relaxed max-w-sm">
+                {user.bio}
+            </p>
 
             {/* Interest Tags */}
-            {interests.length > 0 && (
-              <div className="flex flex-wrap justify-center gap-2">
-                  {interests.map((tag: string) => (
-                      <span key={tag} className="px-5 py-2 bg-primary/5 text-primary text-[10px] font-black rounded-xl border border-primary/10 tracking-widest uppercase">
-                          #{tag}
-                      </span>
-                  ))}
-              </div>
-            )}
+            <div className="flex flex-wrap justify-center gap-2">
+                {user.interests.map(tag => (
+                    <span key={tag} className="px-5 py-2 bg-primary/5 text-primary text-[10px] font-black rounded-xl border border-primary/10 tracking-widest uppercase">
+                        #{tag}
+                    </span>
+                ))}
+            </div>
 
             <div className="grid grid-cols-2 gap-4 w-full pt-4">
                 <button className="flex-1 bg-secondary text-white py-4 rounded-3xl font-black text-xs uppercase tracking-widest shadow-xl shadow-secondary/20 flex items-center justify-center gap-2 active:scale-95 transition-all">
                     <Edit3 size={16} />
                     <span>تعديل الحساب</span>
                 </button>
-                <button
-                    onClick={signOut}
-                    className="flex-1 bg-surface text-secondary py-4 rounded-3xl font-black text-xs uppercase tracking-widest border border-gray-100 flex items-center justify-center gap-2 active:scale-95 transition-all"
+                <button 
+                    onClick={handleLogout}
+                    disabled={isLoggingOut}
+                    className="flex-1 bg-surface text-secondary py-4 rounded-3xl font-black text-xs uppercase tracking-widest border border-gray-100 flex items-center justify-center gap-2 active:scale-95 transition-all disabled:opacity-50"
                 >
-                    <LogOut size={16} className="text-red-400" />
-                    <span>تسجيل الخروج</span>
+                    {isLoggingOut ? (
+                        <div className="w-4 h-4 border-2 border-secondary border-t-transparent rounded-full animate-spin" />
+                    ) : (
+                        <LogOut size={16} className="text-red-400" />
+                    )}
+                    <span>{isLoggingOut ? 'جاري الخروج...' : 'تسجيل الخروج'}</span>
                 </button>
+            </div>
+
+            {/* Admin Quick Entry Button (Explicit support for administrative test controls) */}
+            <div className="w-full">
+              <button 
+                onClick={() => setShowAdminPanel(true)}
+                className="w-full bg-primary/10 text-primary border border-primary/20 hover:bg-primary hover:text-white py-4 rounded-3xl font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 active:scale-95 transition-all shadow-md shadow-primary/5"
+              >
+                <Shield size={16} />
+                <span>لوحة التحكم الإدارية (Admin Control Panel)</span>
+              </button>
             </div>
         </div>
 

@@ -1,68 +1,68 @@
-import React, { createContext, useCallback, useContext, useEffect, useState } from 'react';
-import * as api from '../lib/api';
-import type { RafidUser } from '../lib/api';
-
-interface SimpleUser {
-  id: string;
-  email: string;
-}
+import React, { createContext, useContext, useEffect, useState } from 'react';
+import { Session, User } from '@supabase/supabase-js';
+import { supabase } from '../lib/supabase';
 
 interface AuthContextType {
-  session: { access_token: string } | null;
-  user: SimpleUser | null;
-  profile: RafidUser | null;
+  session: Session | null;
+  user: User | null;
+  profile: any | null;
   isLoading: boolean;
   signOut: () => Promise<void>;
   refreshProfile: () => Promise<void>;
-  setAuthData: (token: string, user: RafidUser) => void;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [user, setUser] = useState<SimpleUser | null>(null);
-  const [profile, setProfile] = useState<RafidUser | null>(null);
+  const [session, setSession] = useState<Session | null>(null);
+  const [user, setUser] = useState<User | null>(null);
+  const [profile, setProfile] = useState<any | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
-    const token = api.getToken();
-    const stored = api.getStoredUser();
-    if (token && stored) {
-      setUser({ id: stored.id, email: stored.email });
-      setProfile(stored);
-    }
-    setIsLoading(false);
-  }, []);
+  const fetchProfile = async (uid: string) => {
+    const { data, error } = await supabase
+      .from('profiles')
+      .select('*')
+      .eq('id', uid)
+      .single();
 
-  const setAuthData = useCallback((token: string, userData: RafidUser) => {
-    localStorage.setItem('rafid_token', token);
-    localStorage.setItem('rafid_user', JSON.stringify(userData));
-    setUser({ id: userData.id, email: userData.email });
-    setProfile(userData);
+    if (!error) {
+      setProfile(data);
+    }
+  };
+
+  useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) fetchProfile(session.user.id);
+      setIsLoading(false);
+    });
+
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      setUser(session?.user ?? null);
+      if (session?.user) {
+        fetchProfile(session.user.id);
+      } else {
+        setProfile(null);
+      }
+      setIsLoading(false);
+    });
+
+    return () => subscription.unsubscribe();
   }, []);
 
   const signOut = async () => {
-    api.clearAuth();
-    setUser(null);
-    setProfile(null);
+    await supabase.auth.signOut();
   };
 
   const refreshProfile = async () => {
-    try {
-      const fresh = await api.getMe();
-      setProfile(fresh);
-      setUser({ id: fresh.id, email: fresh.email });
-      localStorage.setItem('rafid_user', JSON.stringify(fresh));
-    } catch {
-      await signOut();
-    }
+    if (user) await fetchProfile(user.id);
   };
 
-  const token = api.getToken();
-  const session = token ? { access_token: token } : null;
-
   return (
-    <AuthContext.Provider value={{ session, user, profile, isLoading, signOut, refreshProfile, setAuthData }}>
+    <AuthContext.Provider value={{ session, user, profile, isLoading, signOut, refreshProfile }}>
       {children}
     </AuthContext.Provider>
   );
