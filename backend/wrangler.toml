@@ -6,12 +6,14 @@ compatibility_flags = ["nodejs_compat"]
 [[d1_databases]]
 binding = "DB"
 database_name = "rafid-db"
-database_id = "YOUR_D1_DATABASE_ID"
+database_id = "30febf83-135b-4888-8e5a-461105bb590a"
 
-[[r2_buckets]]
-binding = "BUCKET"
-bucket_name = "rafid-uploads"
+# R2 is disabled until the bucket is created in Cloudflare Dashboard.
+# Uncomment the block below after enabling R2 and creating the "rafid-uploads" bucket.
+# [[r2_buckets]]
+# binding = "BUCKET"
+# bucket_name = "rafid-uploads"
 
 [vars]
-JWT_SECRET = "change-this-to-a-long-random-secret-minimum-32-chars"
+JWT_SECRET = "rafid-super-secret-jwt-key-minimum-32-characters-long"
 R2_PUBLIC_URL = "https://pub-REPLACE_WITH_ACCOUNT_HASH.r2.dev/rafid-uploads"

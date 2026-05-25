@@ -385,6 +385,10 @@ app.post('/api/opportunities', authMiddleware, async (c) => {
 // ─── UPLOAD (R2) ─────────────────────────────────────────────────────────────
 
 app.post('/api/upload', authMiddleware, async (c) => {
+  if (!c.env.BUCKET) {
+    return c.json({ error: 'Image upload is not configured yet. Enable R2 in Cloudflare Dashboard.' }, 503);
+  }
+
   const formData = await c.req.formData();
   const file = formData.get('file') as File;
 
