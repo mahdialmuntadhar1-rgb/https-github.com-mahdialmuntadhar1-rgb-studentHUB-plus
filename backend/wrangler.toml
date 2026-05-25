@@ -8,12 +8,16 @@ binding = "DB"
 database_name = "rafid-db"
 database_id = "30febf83-135b-4888-8e5a-461105bb590a"
 
-# R2 is disabled until the bucket is created in Cloudflare Dashboard.
-# Uncomment the block below after enabling R2 and creating the "rafid-uploads" bucket.
+# ── R2 IMAGE STORAGE ──────────────────────────────────────────────────────────
+# TO ENABLE: Go to dash.cloudflare.com → R2 → Get started → create bucket "rafid-uploads"
+#            then enable Public Access on the bucket, copy the r2.dev URL below,
+#            uncomment the [[r2_buckets]] block, and run: wrangler deploy
+# ──────────────────────────────────────────────────────────────────────────────
 # [[r2_buckets]]
 # binding = "BUCKET"
 # bucket_name = "rafid-uploads"
 
 [vars]
 JWT_SECRET = "rafid-super-secret-jwt-key-minimum-32-characters-long"
-R2_PUBLIC_URL = "https://pub-REPLACE_WITH_ACCOUNT_HASH.r2.dev/rafid-uploads"
+# Replace the URL below with your actual R2 public bucket URL after enabling R2:
+R2_PUBLIC_URL = "https://pub-REPLACE_WITH_YOUR_R2_PUBLIC_URL.r2.dev"
