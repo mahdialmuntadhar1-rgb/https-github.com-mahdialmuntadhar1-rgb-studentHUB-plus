@@ -79,22 +79,22 @@ export default function App() {
     );
   }
 
+  // Show Auth page (must be checked BEFORE the !user guard)
+  if (activeTab === 'auth' && !user) {
+    return <Auth />;
+  }
+
+  // After login: redirect away from auth tab
+  if (activeTab === 'auth' && user) {
+    if (profile?.institution) setActiveTab('home');
+  }
+
   // Not logged in
   if (!user) {
     if (selectedInst) {
       return <InstitutionProfile institution={selectedInst} onBack={() => setSelectedInst(null)} />;
     }
     return <Home onStart={() => setActiveTab('auth')} onSelectInstitution={setSelectedInst} />;
-  }
-
-  // Handle Login process (Show Auth page)
-  if (user && activeTab === 'auth') {
-      // User just logged in, if they have a profile, go home, otherwise they'll hit onboarding
-      if (profile?.institution) setActiveTab('home');
-  }
-
-  if (activeTab === 'auth') {
-      return <Auth />;
   }
 
   // Logged in but profile incomplete
