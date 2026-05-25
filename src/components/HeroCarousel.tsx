@@ -26,10 +26,11 @@ export default function HeroCarousel({ posts }: HeroCarouselProps) {
 
   return (
     <div
-      className="relative overflow-hidden rounded-[2.5rem] mb-6 shadow-xl"
-      style={{ height: '220px' }}
+      className="relative overflow-hidden rounded-[2.5rem] mb-6 shadow-xl aspect-square md:aspect-[21/9] md:h-[220px]"
       onMouseEnter={() => setPaused(true)}
       onMouseLeave={() => setPaused(false)}
+      onTouchStart={() => setPaused(true)}
+      onTouchEnd={() => setPaused(false)}
     >
       <AnimatePresence mode="wait">
         <motion.div

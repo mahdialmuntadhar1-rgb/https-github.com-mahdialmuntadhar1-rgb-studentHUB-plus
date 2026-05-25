@@ -52,7 +52,7 @@ export default function PostCard({ post, delay = 0, onComment, onImageClick }: P
     <motion.button
       whileTap={{ scale: 1.25 }}
       onClick={handleLike}
-      className={`flex items-center gap-2 transition-colors ${isLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+      className={`flex items-center gap-2 transition-colors touch-manipulation ${isLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
     >
       <Heart size={size} fill={isLiked ? 'currentColor' : 'none'} />
       <span className="text-xs font-inter font-bold">{likesCount}</span>
@@ -62,7 +62,7 @@ export default function PostCard({ post, delay = 0, onComment, onImageClick }: P
   const CommentButton = ({ size = 20 }: { size?: number }) => (
     <button
       onClick={() => onComment?.(post)}
-      className="flex items-center gap-2 text-gray-400 hover:text-secondary transition-colors"
+      className="flex items-center gap-2 text-gray-400 hover:text-secondary transition-colors touch-manipulation"
     >
       <MessageCircle size={size} />
       <span className="text-xs font-inter font-bold">{post.comments}</span>
@@ -71,7 +71,7 @@ export default function PostCard({ post, delay = 0, onComment, onImageClick }: P
 
   const ShareButton = ({ size = 20 }: { size?: number }) => (
     <div className="relative">
-      <button onClick={handleShare} className="text-gray-400 hover:text-primary transition-colors">
+      <button onClick={handleShare} className="text-gray-400 hover:text-primary transition-colors touch-manipulation">
         <Share2 size={size} />
       </button>
       <AnimatePresence>
@@ -137,7 +137,7 @@ export default function PostCard({ post, delay = 0, onComment, onImageClick }: P
 
         {post.image && (
           <div
-            className="relative aspect-video mx-4 rounded-3xl overflow-hidden mb-4 cursor-pointer"
+            className="relative aspect-square md:aspect-video mx-4 rounded-3xl overflow-hidden mb-4 cursor-pointer"
             onClick={() => onImageClick?.(post)}
           >
             <img src={post.image} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" alt="" referrerPolicy="no-referrer" />
@@ -202,9 +202,9 @@ export default function PostCard({ post, delay = 0, onComment, onImageClick }: P
             onClick={() => onImageClick?.(post)}
           >
             {post.video ? (
-              <video src={post.video} controls className="w-full max-h-80 object-cover rounded-[2rem]" onClick={e => e.stopPropagation()} />
+              <video src={post.video} controls className="w-full aspect-square md:max-h-80 object-cover rounded-[2rem]" onClick={e => e.stopPropagation()} />
             ) : (
-              <img src={post.image} className="w-full h-80 object-cover rounded-[2rem] hover:brightness-95 transition-all" alt="" referrerPolicy="no-referrer" />
+              <img src={post.image} className="w-full aspect-square md:h-80 object-cover rounded-[2rem] hover:brightness-95 transition-all" alt="" referrerPolicy="no-referrer" />
             )}
           </div>
         )}

@@ -86,39 +86,39 @@ export default function PostModal({ post, onClose }: PostModalProps) {
           animate={{ y: 0, opacity: 1 }}
           exit={{ y: 100, opacity: 0 }}
           transition={{ type: 'spring', damping: 25, stiffness: 300 }}
-          className="relative bg-white w-full sm:max-w-lg rounded-t-[2.5rem] sm:rounded-[2.5rem] overflow-hidden max-h-[90vh] flex flex-col"
+          className="relative bg-white w-full sm:max-w-lg rounded-t-[2rem] sm:rounded-[2.5rem] overflow-hidden max-h-[95vh] sm:max-h-[90vh] flex flex-col"
           onClick={e => e.stopPropagation()}
         >
           {/* Header */}
-          <div className="flex items-center justify-between p-5 border-b border-gray-100 flex-shrink-0">
-            <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between p-4 sm:p-5 border-b border-gray-100 flex-shrink-0">
+            <div className="flex items-center gap-2 sm:gap-3">
               <div className="relative">
                 <img
                   src={post.authorAvatar || post.institutionLogo}
-                  className="w-10 h-10 rounded-2xl object-cover"
+                  className="w-9 h-9 sm:w-10 sm:h-10 rounded-2xl object-cover"
                   alt=""
                   referrerPolicy="no-referrer"
                 />
                 {post.isVerified && (
                   <div className="absolute -bottom-1 -left-1 bg-white p-0.5 rounded-full">
-                    <CheckCircle2 size={12} className="text-primary fill-primary" />
+                    <CheckCircle2 size={10} className="text-primary fill-primary" />
                   </div>
                 )}
               </div>
               <div>
-                <p className="font-black text-secondary text-sm leading-none mb-0.5">
+                <p className="font-black text-secondary text-xs sm:text-sm leading-none mb-0.5">
                   {post.authorName || post.institutionName}
                 </p>
-                <p className="text-[10px] text-gray-400 font-bold">{post.governorate} · {post.timestamp}</p>
+                <p className="text-[9px] sm:text-[10px] text-gray-400 font-bold">{post.governorate} · {post.timestamp}</p>
               </div>
             </div>
-            <div className="flex items-center gap-2">
-              <button className="text-gray-300 hover:text-gray-500"><MoreHorizontal size={20} /></button>
+            <div className="flex items-center gap-1 sm:gap-2">
+              <button className="text-gray-300 hover:text-gray-500 p-1"><MoreHorizontal size={18} /></button>
               <button
                 onClick={onClose}
-                className="bg-surface text-gray-500 hover:text-secondary p-2 rounded-full transition-colors"
+                className="bg-surface text-gray-500 hover:text-secondary p-1.5 sm:p-2 rounded-full transition-colors touch-manipulation"
               >
-                <X size={18} />
+                <X size={16} />
               </button>
             </div>
           </div>
@@ -127,19 +127,19 @@ export default function PostModal({ post, onClose }: PostModalProps) {
           <div className="overflow-y-auto flex-1">
             {/* Post media */}
             {post.video ? (
-              <video src={post.video} controls className="w-full max-h-72 object-cover" />
+              <video src={post.video} controls className="w-full aspect-square sm:max-h-72 object-cover" />
             ) : post.image ? (
               <img
                 src={post.image}
-                className="w-full max-h-72 object-cover"
+                className="w-full aspect-square sm:max-h-72 object-cover"
                 alt=""
                 referrerPolicy="no-referrer"
               />
             ) : null}
 
             {/* Post content */}
-            <div className="p-5">
-              {post.title && <h3 className="font-black text-secondary text-base mb-2">{post.title}</h3>}
+            <div className="p-4 sm:p-5">
+              {post.title && <h3 className="font-black text-secondary text-sm sm:text-base mb-2">{post.title}</h3>}
               <p className="text-gray-700 text-sm leading-relaxed">{post.content}</p>
               {post.tags && (
                 <div className="flex flex-wrap gap-1.5 mt-3">
@@ -151,11 +151,11 @@ export default function PostModal({ post, onClose }: PostModalProps) {
             </div>
 
             {/* Divider */}
-            <div className="mx-5 border-t border-gray-100" />
+            <div className="mx-4 sm:mx-5 border-t border-gray-100" />
 
             {/* Comments */}
-            <div className="p-5 space-y-4">
-              <p className="text-xs font-black text-secondary uppercase tracking-widest">
+            <div className="p-4 sm:p-5 space-y-3 sm:space-y-4">
+              <p className="text-[11px] sm:text-xs font-black text-secondary uppercase tracking-widest">
                 التعليقات ({comments.length})
               </p>
               {comments.length === 0 ? (
@@ -166,11 +166,11 @@ export default function PostModal({ post, onClose }: PostModalProps) {
                     key={comment.id}
                     initial={{ opacity: 0, y: 8 }}
                     animate={{ opacity: 1, y: 0 }}
-                    className="flex items-start gap-3"
+                    className="flex items-start gap-2 sm:gap-3"
                   >
                     <img
                       src={comment.authorAvatar}
-                      className="w-8 h-8 rounded-full object-cover flex-shrink-0"
+                      className="w-7 h-7 sm:w-8 sm:h-8 rounded-full object-cover flex-shrink-0"
                       alt=""
                       referrerPolicy="no-referrer"
                     />
@@ -200,14 +200,14 @@ export default function PostModal({ post, onClose }: PostModalProps) {
 
           {/* Comment input */}
           {user ? (
-            <div className="flex items-center gap-3 p-4 border-t border-gray-100 flex-shrink-0 bg-white">
+            <div className="flex items-center gap-2 sm:gap-3 p-3 sm:p-4 border-t border-gray-100 flex-shrink-0 bg-white">
               <img
                 src={profile?.avatar_url || `https://picsum.photos/seed/${user.id}/100/100`}
-                className="w-9 h-9 rounded-full object-cover flex-shrink-0"
+                className="w-8 h-8 sm:w-9 sm:h-9 rounded-full object-cover flex-shrink-0"
                 alt=""
                 referrerPolicy="no-referrer"
               />
-              <div className="flex-1 flex items-center bg-surface rounded-2xl px-4 py-2.5 gap-2">
+              <div className="flex-1 flex items-center bg-surface rounded-2xl px-3 sm:px-4 py-2 sm:py-2.5 gap-2">
                 <input
                   ref={inputRef}
                   type="text"
@@ -221,15 +221,15 @@ export default function PostModal({ post, onClose }: PostModalProps) {
                 <button
                   onClick={handleAddComment}
                   disabled={!newComment.trim() || isPosting}
-                  className="text-primary disabled:text-gray-300 transition-colors active:scale-90"
+                  className="text-primary disabled:text-gray-300 transition-colors active:scale-90 touch-manipulation p-1"
                 >
-                  <Send size={18} />
+                  <Send size={16} />
                 </button>
               </div>
             </div>
           ) : (
-            <div className="p-4 border-t border-gray-100 text-center">
-              <p className="text-sm text-gray-400 font-bold">سجّل الدخول للتعليق</p>
+            <div className="p-3 sm:p-4 border-t border-gray-100 text-center">
+              <p className="text-xs sm:text-sm text-gray-400 font-bold">سجّل الدخول للتعليق</p>
             </div>
           )}
         </motion.div>

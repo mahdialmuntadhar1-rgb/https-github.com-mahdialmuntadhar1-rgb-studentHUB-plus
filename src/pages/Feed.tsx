@@ -175,9 +175,9 @@ export default function Feed() {
     <>
     <PostModal post={selectedPost} onClose={() => setSelectedPost(null)} />
 
-    <div className="pb-32 pt-24 px-4 overflow-x-hidden">
+    <div className="pb-32 pt-20 px-3 md:px-4 overflow-x-hidden">
         {/* Filter Bar */}
-        <div className="fixed top-20 left-0 right-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-gray-100 px-4 py-2.5">
+        <div className="fixed top-16 md:top-20 left-0 right-0 z-40 bg-surface/95 backdrop-blur-xl border-b border-gray-100 px-3 md:px-4 py-2">
           <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar">
             {[
               { id: 'all', label: 'كل العراق', icon: Sparkles },
@@ -187,14 +187,15 @@ export default function Feed() {
               <button
                 key={f.id}
                 onClick={() => { setActiveFilter(f.label); setUniFilter(''); }}
-                className={`relative flex items-center gap-1.5 px-4 py-2.5 rounded-2xl whitespace-nowrap transition-all font-black text-[10px] uppercase tracking-widest ${
+                className={`relative flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 rounded-2xl whitespace-nowrap transition-all font-black text-[9px] md:text-[10px] uppercase tracking-widest touch-manipulation ${
                   activeFilter === f.label && !uniFilter
                     ? 'bg-secondary text-white shadow-md'
                     : 'bg-white border border-gray-100 text-gray-400 hover:border-primary/30'
                 }`}
               >
-                <f.icon size={13} />
-                {f.label}
+                <f.icon size={12} />
+                <span className="hidden sm:inline">{f.label}</span>
+                <span className="sm:hidden">{f.label.replace('العراق', 'الكل')}</span>
               </button>
             ))}
 
@@ -203,33 +204,32 @@ export default function Feed() {
               <select
                 value={uniFilter}
                 onChange={e => { setUniFilter(e.target.value); setActiveFilter('جامعة'); }}
-                className={`appearance-none pl-7 pr-4 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest border outline-none transition-all cursor-pointer ${
+                className={`appearance-none pl-6 md:pl-7 pr-3 md:pr-4 py-2 md:py-2.5 rounded-2xl font-black text-[9px] md:text-[10px] uppercase tracking-widest border outline-none transition-all cursor-pointer touch-manipulation ${
                   uniFilter
                     ? 'bg-secondary text-white border-secondary'
                     : 'bg-white border-gray-100 text-gray-400 hover:border-primary/30'
                 }`}
                 dir="rtl"
               >
-                <option value="">🎓 فلتر بالجامعة</option>
+                <option value="">🎓</option>
                 {SAMPLE_INSTITUTIONS.map(i => (
                   <option key={i.id} value={i.name}>{i.name}</option>
                 ))}
               </select>
-              <ChevronDown size={12} className={`absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none ${uniFilter ? 'text-white' : 'text-gray-400'}`} />
+              <ChevronDown size={11} className={`absolute left-1.5 md:left-2 top-1/2 -translate-y-1/2 pointer-events-none ${uniFilter ? 'text-white' : 'text-gray-400'}`} />
             </div>
 
             <button
               onClick={() => setFeedMode(m => m === 'classic' ? 'cursor' : 'classic')}
-              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-100 rounded-2xl text-gray-400 text-[10px] font-black uppercase tracking-widest hover:border-primary/30 transition-all flex-shrink-0"
+              className="flex items-center gap-1.5 px-3 md:px-4 py-2 md:py-2.5 bg-white border border-gray-100 rounded-2xl text-gray-400 text-[9px] md:text-[10px] font-black uppercase tracking-widest hover:border-primary/30 transition-all flex-shrink-0 touch-manipulation"
             >
-              <ArrowRightLeft size={13} />
-              {feedMode === 'classic' ? 'Cursor' : 'Infinite'}
+              <ArrowRightLeft size={12} />
             </button>
           </div>
         </div>
 
         {/* Feed Content */}
-        <div className="mt-16">
+        <div className="mt-14 md:mt-16">
           {/* Hero Carousel */}
           <HeroCarousel posts={HERO_POSTS} />
 
