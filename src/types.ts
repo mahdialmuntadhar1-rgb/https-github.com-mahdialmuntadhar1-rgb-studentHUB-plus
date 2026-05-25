@@ -36,6 +36,7 @@ export interface Post {
   content: string;
   title?: string;
   image?: string;
+  video?: string;
   likes: number;
   comments: number;
   views?: number;
@@ -50,6 +51,16 @@ export interface Post {
   authorAvatar?: string;
   isVerified?: boolean;
   chartData?: { name: string; value: number }[];
+}
+
+export interface Comment {
+  id: string;
+  postId: string;
+  authorName: string;
+  authorAvatar: string;
+  content: string;
+  timestamp: string;
+  likes: number;
 }
 
 export interface Institution {

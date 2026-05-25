@@ -164,6 +164,22 @@ export async function likePost(postId: string): Promise<{ liked: boolean; likes_
   return handleResponse<{ liked: boolean; likes_count: number }>(res);
 }
 
+// ─── Comments ─────────────────────────────────────────────────────────────────
+
+export async function getComments(postId: string): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/api/posts/${postId}/comments`);
+  return handleResponse<any[]>(res);
+}
+
+export async function addComment(postId: string, content: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/posts/${postId}/comments`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ content }),
+  });
+  return handleResponse<any>(res);
+}
+
 // ─── Opportunities ────────────────────────────────────────────────────────────
 
 export async function getOpportunities(type?: string): Promise<any[]> {
@@ -205,6 +221,13 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
 }
 
 // ─── Admin Panel simulation types ─────────────────────────────────────────────
+
+// Paginated response wrapper
+export interface PaginatedResponse<T> {
+  data: T[];
+  hasMore: boolean;
+  nextCursor?: string;
+}
 
 // Type definitions matching database schema
 export interface AdminUser {

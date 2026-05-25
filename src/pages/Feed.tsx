@@ -1,18 +1,33 @@
-import React, { useState, useEffect, useRef, useCallback } from 'react';
+import React, { useState, useEffect, useRef, useCallback, useMemo } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import PostCard from '../components/PostCard';
-import { GOVERNORATES, SAMPLE_POSTS } from '../constants';
-import { Filter, Sparkles, TrendingUp, Users, Map as MapIcon, GraduationCap, ChevronLeft, RefreshCw, Plus, ArrowRightLeft } from 'lucide-react';
+import HeroCarousel from '../components/HeroCarousel';
+import PostModal from '../components/PostModal';
+import { ALL_POSTS, HERO_POSTS, SAMPLE_INSTITUTIONS } from '../constants';
+import { Sparkles, TrendingUp, GraduationCap, RefreshCw, ArrowRightLeft, ChevronDown } from 'lucide-react';
 import { PostSkeleton } from '../components/Skeletons';
 import { getPosts } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Post } from '../types';
 import { usePaginatedQuery } from '../hooks/usePaginatedQuery';
 
+function filterMockPosts(all: Post[], activeFilter: string, uniFilter: string, userUni?: string | null): Post[] {
+  let result = all;
+  if (uniFilter) result = result.filter(p => p.institutionName === uniFilter);
+  if (activeFilter === 'تريند') return result.filter(p => (p.likes || 0) > 500).sort((a, b) => b.likes - a.likes);
+  if (activeFilter === 'مؤسستي' && userUni) return result.filter(p => p.institutionName === userUni);
+  if (activeFilter !== 'كل العراق' && activeFilter !== 'مؤسستي' && activeFilter !== 'تريند') {
+    result = result.filter(p => p.governorate === activeFilter);
+  }
+  return result;
+}
+
 export default function Feed() {
   const { profile } = useAuth();
   const [feedMode, setFeedMode] = useState<'classic' | 'cursor'>('classic');
   const [activeFilter, setActiveFilter] = useState('كل العراق');
+  const [uniFilter, setUniFilter] = useState(profile?.institution || '');
+  const [selectedPost, setSelectedPost] = useState<Post | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
@@ -62,8 +77,13 @@ export default function Feed() {
       }
 
       setHasMore(transformedPosts.length === POSTS_PER_PAGE);
-    } catch (err: any) {
-      setError(err.message);
+    } catch {
+      // Fall back to rich mock data
+      const filtered = filterMockPosts(ALL_POSTS, activeFilter, uniFilter, profile?.institution);
+      const paginated = filtered.slice(currentPage * POSTS_PER_PAGE, (currentPage + 1) * POSTS_PER_PAGE);
+      if (append) setPosts(prev => [...prev, ...paginated]);
+      else setPosts(paginated);
+      setHasMore(paginated.length === POSTS_PER_PAGE);
     } finally {
       setIsLoading(false);
       setIsFetchingMore(false);
@@ -104,9 +124,12 @@ export default function Feed() {
         nextCursor: hasMore ? String(start + limit) : undefined
       };
     } catch {
-      return { data: [], hasMore: false, nextCursor: undefined };
+      const filtered = filterMockPosts(ALL_POSTS, activeFilter, uniFilter, profile?.institution);
+      const paginated = filtered.slice(start, start + limit);
+      const hasMore = start + limit < filtered.length;
+      return { data: paginated, hasMore, nextCursor: hasMore ? String(start + limit) : undefined };
     }
-  }, [activeFilter, profile]);
+  }, [activeFilter, uniFilter, profile]);
 
   const {
     data: cursorPosts,
@@ -148,205 +171,134 @@ export default function Feed() {
   }, [hasMore, isLoading, isFetchingMore, page]);
 
 
-  const filters = [
-    { id: 'all', label: 'كل العراق', icon: Sparkles },
-    { id: 'uni', label: 'مؤسستي', icon: GraduationCap },
-    { id: 'trending', label: 'تريند', icon: TrendingUp },
-    ...GOVERNORATES.map(gov => ({ id: gov, label: gov, icon: MapIcon }))
-  ];
-
-  const filteredPosts = posts.filter(post => {
-    if (activeFilter === 'تريند') return (post.likes || 0) > 10;
-    return true;
-  });
-
   return (
+    <>
+    <PostModal post={selectedPost} onClose={() => setSelectedPost(null)} />
+
     <div className="pb-32 pt-24 px-4 overflow-x-hidden">
-        {/* Smart Filter Bar - Fixed below Main Header */}
-        <div className="fixed top-20 left-0 right-0 z-40 bg-surface/80 backdrop-blur-xl border-b border-gray-100 px-4 py-3">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar relative">
-              {filters.map((filter) => (
-                  <button
-                      key={filter.id}
-                      onClick={() => setActiveFilter(filter.label)}
-                      className={`flex items-center gap-2 px-6 py-3.5 rounded-[1.25rem] whitespace-nowrap transition-all font-black text-[10px] border-2 uppercase tracking-widest relative ${
-                          activeFilter === filter.label 
-                          ? 'border-secondary z-10 scale-105' 
-                          : 'bg-white border-gray-50 text-gray-400 hover:border-primary/30'
-                      }`}
-                  >
-                      <span className="relative z-10 flex items-center gap-2 transition-colors duration-300" style={{ color: activeFilter === filter.label ? 'white' : 'inherit' }}>
-                        <filter.icon size={14} />
-                        <span>{filter.label}</span>
-                      </span>
-                      {activeFilter === filter.label && (
-                        <motion.div 
-                          layoutId="feedFilter"
-                          className="absolute inset-0 bg-secondary rounded-[1.1rem]"
-                          transition={{ type: 'spring', bounce: 0.2, duration: 0.6 }}
-                        />
-                      )}
-                  </button>
-              ))}
+        {/* Filter Bar */}
+        <div className="fixed top-20 left-0 right-0 z-40 bg-surface/90 backdrop-blur-xl border-b border-gray-100 px-4 py-2.5">
+          <div className="flex items-center gap-2 overflow-x-auto pb-1 hide-scrollbar">
+            {[
+              { id: 'all', label: 'كل العراق', icon: Sparkles },
+              { id: 'uni', label: 'مؤسستي', icon: GraduationCap },
+              { id: 'trending', label: 'تريند', icon: TrendingUp },
+            ].map(f => (
+              <button
+                key={f.id}
+                onClick={() => { setActiveFilter(f.label); setUniFilter(''); }}
+                className={`relative flex items-center gap-1.5 px-4 py-2.5 rounded-2xl whitespace-nowrap transition-all font-black text-[10px] uppercase tracking-widest ${
+                  activeFilter === f.label && !uniFilter
+                    ? 'bg-secondary text-white shadow-md'
+                    : 'bg-white border border-gray-100 text-gray-400 hover:border-primary/30'
+                }`}
+              >
+                <f.icon size={13} />
+                {f.label}
+              </button>
+            ))}
+
+            {/* University dropdown filter */}
+            <div className="relative flex-shrink-0">
+              <select
+                value={uniFilter}
+                onChange={e => { setUniFilter(e.target.value); setActiveFilter('جامعة'); }}
+                className={`appearance-none pl-7 pr-4 py-2.5 rounded-2xl font-black text-[10px] uppercase tracking-widest border outline-none transition-all cursor-pointer ${
+                  uniFilter
+                    ? 'bg-secondary text-white border-secondary'
+                    : 'bg-white border-gray-100 text-gray-400 hover:border-primary/30'
+                }`}
+                dir="rtl"
+              >
+                <option value="">🎓 فلتر بالجامعة</option>
+                {SAMPLE_INSTITUTIONS.map(i => (
+                  <option key={i.id} value={i.name}>{i.name}</option>
+                ))}
+              </select>
+              <ChevronDown size={12} className={`absolute left-2 top-1/2 -translate-y-1/2 pointer-events-none ${uniFilter ? 'text-white' : 'text-gray-400'}`} />
+            </div>
+
+            <button
+              onClick={() => setFeedMode(m => m === 'classic' ? 'cursor' : 'classic')}
+              className="flex items-center gap-1.5 px-4 py-2.5 bg-white border border-gray-100 rounded-2xl text-gray-400 text-[10px] font-black uppercase tracking-widest hover:border-primary/30 transition-all flex-shrink-0"
+            >
+              <ArrowRightLeft size={13} />
+              {feedMode === 'classic' ? 'Cursor' : 'Infinite'}
+            </button>
           </div>
         </div>
 
         {/* Feed Content */}
-        <div className="mt-20">
-          {/* Feed Mode Switcher */}
-          <div className="bg-white rounded-3xl p-2 border border-gray-100 shadow-sm flex items-center gap-2 mb-6">
-            <button
-              onClick={() => setFeedMode('classic')}
-              className={`flex-1 py-3.5 rounded-2xl text-[10px] font-black tracking-widest uppercase transition-all flex items-center justify-center gap-2 ${
-                feedMode === 'classic'
-                  ? 'bg-secondary text-white shadow-md shadow-secondary/10'
-                  : 'text-gray-400 hover:text-secondary'
-              }`}
-            >
-              <Sparkles size={14} />
-              <span>السحب اللانهائي المباشر</span>
-            </button>
-            <button
-              onClick={() => setFeedMode('cursor')}
-              className={`flex-1 py-3.5 rounded-2xl text-[10px] font-black tracking-widest uppercase transition-all flex items-center justify-center gap-2 ${
-                feedMode === 'cursor'
-                  ? 'bg-secondary text-white shadow-md shadow-secondary/10'
-                  : 'text-gray-400 hover:text-secondary'
-              }`}
-            >
-              <ArrowRightLeft size={14} />
-              <span>نمط المؤشر (Cursor Mode)</span>
-            </button>
-          </div>
+        <div className="mt-16">
+          {/* Hero Carousel */}
+          <HeroCarousel posts={HERO_POSTS} />
 
           <AnimatePresence mode="wait">
             {feedMode === 'classic' ? (
-              error ? (
-                <motion.div 
-                    key="classic-error"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    className="py-24 text-center px-10"
-                >
-                    <div className="w-20 h-20 bg-red-50 rounded-[2.5rem] flex items-center justify-center mx-auto text-red-500 mb-6 font-black text-2xl">!</div>
-                    <h3 className="text-xl font-black text-secondary mb-2">عذراً، حدث خطأ ما</h3>
-                    <p className="text-sm text-gray-400 font-bold mb-8">{error}</p>
-                    <button 
-                        onClick={() => fetchPosts(0)}
-                        className="px-8 py-4 bg-secondary text-white font-black text-xs uppercase tracking-widest rounded-3xl shadow-lg shadow-secondary/20 flex items-center gap-2 mx-auto active:scale-95 transition-all"
-                    >
-                        <RefreshCw size={16} />
-                        <span>حاول مرة أخرى</span>
-                    </button>
-                </motion.div>
-              ) : isLoading ? (
-                <motion.div 
-                    key="skeleton"
-                    initial={{ opacity: 0 }}
-                    animate={{ opacity: 1 }}
-                    exit={{ opacity: 0 }}
-                    className="space-y-8"
-                >
+              isLoading ? (
+                <motion.div key="skeleton" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-8">
                   {[1, 2, 3].map(i => <PostSkeleton key={i} />)}
                 </motion.div>
               ) : (
-                <motion.div
-                  key="posts"
-                  initial={{ opacity: 0 }}
-                  animate={{ opacity: 1 }}
-                  className="space-y-6"
-                >
-                  {filteredPosts.length > 0 ? (
+                <motion.div key="posts" initial={{ opacity: 0 }} animate={{ opacity: 1 }} className="space-y-6">
+                  {posts.length > 0 ? (
                     <>
-                      {filteredPosts.map((post, index) => (
-                        <PostCard key={post.id} post={post} delay={index * 0.1} />
+                      {posts.map((post, index) => (
+                        <PostCard
+                          key={post.id}
+                          post={post}
+                          delay={index * 0.07}
+                          onComment={p => setSelectedPost(p)}
+                          onImageClick={p => setSelectedPost(p)}
+                        />
                       ))}
-                      
-                      {/* Infinite Scroll Trigger */}
-                      <div ref={observerTarget} className="py-12 flex flex-col items-center gap-4 min-h-[100px]">
-                         {hasMore ? (
-                             <div className="flex flex-col items-center gap-3">
-                                 <div className="flex gap-1.5">
-                                    <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" />
-                                    <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
-                                    <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
-                                 </div>
-                                 <span className="text-[9px] font-black uppercase text-gray-300 tracking-[0.3em]">جاري جلب المزيد</span>
-                             </div>
-                         ) : (
-                          <div className="py-8 text-center space-y-2 opacity-40">
-                               <p className="text-[9px] font-black uppercase text-gray-300 tracking-[0.5em]">وصلت إلى النهاية</p>
-                               <div className="w-1 h-1 bg-primary rounded-full mx-auto" />
+                      <div ref={observerTarget} className="py-8 flex flex-col items-center gap-3 min-h-[80px]">
+                        {isFetchingMore && (
+                          <div className="flex gap-1.5">
+                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce" />
+                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.2s]" />
+                            <div className="w-1.5 h-1.5 bg-primary rounded-full animate-bounce [animation-delay:0.4s]" />
                           </div>
-                         )}
+                        )}
+                        {!hasMore && (
+                          <p className="text-[9px] font-black uppercase text-gray-300 tracking-[0.5em]">وصلت إلى النهاية ✓</p>
+                        )}
                       </div>
                     </>
                   ) : (
-                  <div className="py-24 text-center px-10">
-                      <div className="w-24 h-24 bg-white rounded-[3rem] shadow-xl shadow-secondary/5 border border-gray-100 flex items-center justify-center mx-auto text-primary mb-8 animate-bounce">
-                          <Sparkles size={40} />
+                    <div className="py-20 text-center px-10">
+                      <div className="w-20 h-20 bg-surface rounded-[2rem] flex items-center justify-center mx-auto text-primary mb-6">
+                        <Sparkles size={36} />
                       </div>
-                      <div className="space-y-4">
-                          <h3 className="text-xl font-black text-secondary">الخلاصة فارغة حالياً</h3>
-                          <p className="text-sm text-gray-400 font-bold leading-relaxed">
-                              لم نجد منشورات تطابق هذا الفلتر. ابدأ بمتابعة جامعات جديدة أو كن أول من ينشر!
-                          </p>
-                          <div className="flex flex-col gap-3 pt-4">
-                               <button 
-                                  onClick={() => window.dispatchEvent(new CustomEvent('changeTab', { detail: 'discover' }))}
-                                  className="px-8 py-5 bg-primary text-secondary font-black text-xs uppercase tracking-widest rounded-[2rem] shadow-lg shadow-primary/20 flex items-center justify-center gap-2 active:scale-95 transition-all"
-                              >
-                                  <span>اكتشف المؤسسات</span>
-                                  <ChevronLeft size={16} />
-                              </button>
-                              <button 
-                                  onClick={() => window.dispatchEvent(new CustomEvent('openPostOverlay'))}
-                                  className="px-8 py-5 bg-secondary text-white font-black text-xs uppercase tracking-widest rounded-[2rem] shadow-lg shadow-secondary/20 flex items-center justify-center gap-2 active:scale-95 transition-all"
-                              >
-                                  <span>انشر أول قصة</span>
-                                  <Plus size={16} className="text-primary" />
-                              </button>
-                          </div>
-                      </div>
-                  </div>
-                )}
+                      <h3 className="text-xl font-black text-secondary mb-2">لا توجد منشورات</h3>
+                      <p className="text-sm text-gray-400 font-bold">جرب فلتراً مختلفاً أو كن أول من ينشر!</p>
+                    </div>
+                  )}
                 </motion.div>
               )
             ) : (
-              // Cursor Feed Mode using usePaginatedQuery
-              <motion.div
-                key="cursor-posts-container"
-                initial={{ opacity: 0 }}
-                animate={{ opacity: 1 }}
-                exit={{ opacity: 0 }}
-                className="space-y-6"
-              >
-                {cursorError && (
-                  <div className="p-4 bg-red-50 text-red-500 rounded-2xl text-xs font-bold leading-relaxed">
-                    حدث خطأ عند جلب المنشورات: {cursorError.message}
-                  </div>
-                )}
-
+              <motion.div key="cursor-posts" initial={{ opacity: 0 }} animate={{ opacity: 1 }} exit={{ opacity: 0 }} className="space-y-6">
                 {cursorPosts.map((post, index) => (
-                  <PostCard key={`cursor-${post.id}-${index}`} post={post} delay={index * 0.05} />
+                  <PostCard
+                    key={`c-${post.id}-${index}`}
+                    post={post}
+                    delay={index * 0.05}
+                    onComment={p => setSelectedPost(p)}
+                    onImageClick={p => setSelectedPost(p)}
+                  />
                 ))}
-
                 {cursorLoading && (
-                  <div className="space-y-6 py-6 font-bold text-center text-gray-400">
-                    <div className="flex flex-col items-center gap-3">
-                       <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
-                       <span className="text-xs">جاري تحميل منشورات المؤشر...</span>
-                    </div>
+                  <div className="py-6 flex justify-center">
+                    <div className="w-8 h-8 border-4 border-primary border-t-transparent rounded-full animate-spin" />
                   </div>
                 )}
-
                 {!cursorLoading && cursorHasMore && (
                   <button
                     onClick={() => cursorFetchNext(false)}
-                    className="w-full py-5 bg-white text-secondary hover:bg-secondary hover:text-white rounded-[2rem] border border-gray-100 transition-all font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm active:scale-95"
+                    className="w-full py-4 bg-white text-secondary hover:bg-secondary hover:text-white rounded-[2rem] border border-gray-100 transition-all font-black text-xs uppercase tracking-widest flex items-center justify-center gap-2 shadow-sm active:scale-95"
                   >
-                    <RefreshCw size={14} className={cursorLoading ? 'animate-spin' : ''} />
-                    <span>تحميل المزيد من المنشورات (Load More)</span>
+                    <RefreshCw size={14} />
+                    <span>تحميل المزيد</span>
                   </button>
                 )}
 
@@ -366,6 +318,7 @@ export default function Feed() {
             )}
           </AnimatePresence>
         </div>
-    </div>
+      </div>
+    </>
   );
 }

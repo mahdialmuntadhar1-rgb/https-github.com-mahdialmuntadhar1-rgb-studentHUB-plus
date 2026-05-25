@@ -331,6 +331,50 @@ app.post('/api/posts/:id/like', authMiddleware, async (c) => {
   return c.json({ liked: !existing, likes_count: (post as any)?.likes_count ?? 0 });
 });
 
+// ─── COMMENTS ROUTES ─────────────────────────────────────────────────────────
+
+app.get('/api/posts/:id/comments', async (c) => {
+  const postId = c.req.param('id');
+  const comments = await c.env.DB.prepare(
+    `SELECT c.*, pr.full_name AS author_name, pr.avatar_url AS author_avatar
+     FROM comments c LEFT JOIN profiles pr ON c.author_id = pr.id
+     WHERE c.post_id = ? ORDER BY c.created_at DESC LIMIT 50`
+  )
+    .bind(postId)
+    .all();
+  return c.json(comments.results);
+});
+
+app.post('/api/posts/:id/comments', authMiddleware, async (c) => {
+  const postId = c.req.param('id');
+  const userId = c.get('userId');
+  const { content } = await c.req.json();
+
+  if (!content?.trim()) {
+    return c.json({ error: 'محتوى التعليق مطلوب' }, 400);
+  }
+
+  const id = crypto.randomUUID();
+  await c.env.DB.prepare(
+    `INSERT INTO comments (id, post_id, author_id, content) VALUES (?, ?, ?, ?)`
+  )
+    .bind(id, postId, userId, content.trim())
+    .run();
+
+  await c.env.DB.prepare('UPDATE posts SET comments_count = comments_count + 1 WHERE id = ?')
+    .bind(postId)
+    .run();
+
+  const comment = await c.env.DB.prepare(
+    `SELECT c.*, pr.full_name AS author_name, pr.avatar_url AS author_avatar
+     FROM comments c LEFT JOIN profiles pr ON c.author_id = pr.id WHERE c.id = ?`
+  )
+    .bind(id)
+    .first();
+
+  return c.json(comment, 201);
+});
+
 // ─── OPPORTUNITIES ROUTES ────────────────────────────────────────────────────
 
 app.get('/api/opportunities', async (c) => {

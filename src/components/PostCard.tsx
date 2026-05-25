@@ -1,19 +1,96 @@
-import React from 'react';
-import { motion } from 'motion/react';
+import React, { useState } from 'react';
+import { motion, AnimatePresence } from 'motion/react';
 import { Post } from '../types';
-import { Heart, MessageCircle, Share2, Bookmark, CheckCircle2, MoreHorizontal, Eye, Calendar, Clock, MapPin, ExternalLink, BarChart3, TrendingUp, ArrowRight } from 'lucide-react';
+import { Heart, MessageCircle, Share2, Bookmark, CheckCircle2, MoreHorizontal, Eye, Calendar, Clock, MapPin, ExternalLink, BarChart3, TrendingUp, ArrowRight, Link2 } from 'lucide-react';
 import { 
     BarChart as ReBarChart, Bar, XAxis, YAxis, 
     CartesianGrid, Tooltip, ResponsiveContainer, Cell 
 } from 'recharts';
+import { likePost, getToken } from '../lib/api';
 
 interface PostCardProps {
   post: Post;
   delay?: number;
-  key?: React.Key;
+  onComment?: (post: Post) => void;
+  onImageClick?: (post: Post) => void;
 }
 
-export default function PostCard({ post, delay = 0 }: PostCardProps) {
+export default function PostCard({ post, delay = 0, onComment, onImageClick }: PostCardProps) {
+  const [isLiked, setIsLiked] = useState(false);
+  const [likesCount, setLikesCount] = useState(post.likes || 0);
+  const [shareToast, setShareToast] = useState(false);
+
+  const handleLike = () => {
+    const next = !isLiked;
+    setIsLiked(next);
+    setLikesCount(c => next ? c + 1 : c - 1);
+    if (getToken()) {
+      likePost(post.id).then(res => {
+        setLikesCount(res.likes_count);
+        setIsLiked(res.liked);
+      }).catch(() => {
+        setIsLiked(isLiked);
+        setLikesCount(likesCount);
+      });
+    }
+  };
+
+  const handleShare = async () => {
+    const text = post.title || post.content.substring(0, 100);
+    try {
+      if (navigator.share) {
+        await navigator.share({ title: text, text, url: window.location.href });
+      } else {
+        await navigator.clipboard.writeText(window.location.href);
+        setShareToast(true);
+        setTimeout(() => setShareToast(false), 2500);
+      }
+    } catch { /* user dismissed */ }
+  };
+
+  const LikeButton = ({ size = 20 }: { size?: number }) => (
+    <motion.button
+      whileTap={{ scale: 1.25 }}
+      onClick={handleLike}
+      className={`flex items-center gap-2 transition-colors ${isLiked ? 'text-red-500' : 'text-gray-400 hover:text-red-500'}`}
+    >
+      <Heart size={size} fill={isLiked ? 'currentColor' : 'none'} />
+      <span className="text-xs font-inter font-bold">{likesCount}</span>
+    </motion.button>
+  );
+
+  const CommentButton = ({ size = 20 }: { size?: number }) => (
+    <button
+      onClick={() => onComment?.(post)}
+      className="flex items-center gap-2 text-gray-400 hover:text-secondary transition-colors"
+    >
+      <MessageCircle size={size} />
+      <span className="text-xs font-inter font-bold">{post.comments}</span>
+    </button>
+  );
+
+  const ShareButton = ({ size = 20 }: { size?: number }) => (
+    <div className="relative">
+      <button onClick={handleShare} className="text-gray-400 hover:text-primary transition-colors">
+        <Share2 size={size} />
+      </button>
+      <AnimatePresence>
+        {shareToast && (
+          <motion.div
+            initial={{ opacity: 0, y: 6, scale: 0.9 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            exit={{ opacity: 0, y: 6, scale: 0.9 }}
+            className="absolute bottom-8 left-1/2 -translate-x-1/2 bg-secondary text-white text-[10px] font-black px-3 py-1.5 rounded-xl whitespace-nowrap flex items-center gap-1.5 z-50"
+          >
+            <Link2 size={10} />
+            تم نسخ الرابط
+          </motion.div>
+        )}
+      </AnimatePresence>
+    </div>
+  );
+
+
   // 1. Institution Announcement / Urgent Card
   if (post.type === 'announcement' || post.type === 'urgent') {
     return (
@@ -59,32 +136,20 @@ export default function PostCard({ post, delay = 0 }: PostCardProps) {
         </div>
 
         {post.image && (
-          <div className="relative aspect-video mx-4 rounded-3xl overflow-hidden mb-4">
-            <img src={post.image} className="w-full h-full object-cover" alt="" referrerPolicy="no-referrer" />
+          <div
+            className="relative aspect-video mx-4 rounded-3xl overflow-hidden mb-4 cursor-pointer"
+            onClick={() => onImageClick?.(post)}
+          >
+            <img src={post.image} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" alt="" referrerPolicy="no-referrer" />
           </div>
         )}
 
         <div className="px-5 pb-5">
           <div className="flex items-center justify-between pt-4 border-t border-gray-50">
             <div className="flex items-center gap-6">
-              <button className="group flex items-center gap-2 text-gray-400 hover:text-red-500 transition-colors">
-                <motion.div 
-                  whileTap={{ 
-                    scale: [1, 1.3, 1],
-                    transition: { duration: 0.2 }
-                  }}
-                >
-                  <Heart size={20} className="group-active:scale-125 transition-transform" />
-                </motion.div>
-                <span className="text-xs font-inter font-bold">{post.likes}</span>
-              </button>
-              <button className="flex items-center gap-2 text-gray-400 hover:text-secondary transition-colors">
-                <MessageCircle size={20} />
-                <span className="text-xs font-inter font-bold">{post.comments}</span>
-              </button>
-              <button className="text-gray-400 hover:text-primary transition-colors">
-                <Share2 size={20} />
-              </button>
+              <LikeButton />
+              <CommentButton />
+              <ShareButton />
             </div>
             <div className="flex items-center gap-4">
               <div className="flex items-center gap-1 text-[10px] text-gray-300 font-bold">
@@ -131,28 +196,25 @@ export default function PostCard({ post, delay = 0 }: PostCardProps) {
           <p className="text-gray-700 text-sm leading-relaxed mb-4">{post.content}</p>
         </div>
 
-        {post.image && (
-          <div className="px-3 pb-3">
-             <img src={post.image} className="w-full h-80 object-cover rounded-[2rem]" alt="" referrerPolicy="no-referrer" />
+        {(post.image || post.video) && (
+          <div
+            className="px-3 pb-3 cursor-pointer"
+            onClick={() => onImageClick?.(post)}
+          >
+            {post.video ? (
+              <video src={post.video} controls className="w-full max-h-80 object-cover rounded-[2rem]" onClick={e => e.stopPropagation()} />
+            ) : (
+              <img src={post.image} className="w-full h-80 object-cover rounded-[2rem] hover:brightness-95 transition-all" alt="" referrerPolicy="no-referrer" />
+            )}
           </div>
         )}
 
         <div className="p-5 flex items-center justify-between border-t border-gray-50">
           <div className="flex items-center gap-6">
-            <button className="flex items-center gap-2 text-gray-500">
-              <motion.div 
-                whileTap={{ 
-                  scale: [1, 1.3, 1],
-                  transition: { duration: 0.2 }
-                }}
-              >
-                <Heart size={20} /> 
-              </motion.div>
-              <span className="text-xs font-bold font-inter">{post.likes}</span>
-            </button>
-            <button className="flex items-center gap-2 text-gray-500"><MessageCircle size={20} /> <span className="text-xs font-bold font-inter">{post.comments}</span></button>
+            <LikeButton />
+            <CommentButton />
           </div>
-          <button className="text-gray-500"><Share2 size={20} /></button>
+          <ShareButton />
         </div>
       </motion.div>
     );
@@ -258,13 +320,17 @@ export default function PostCard({ post, delay = 0 }: PostCardProps) {
         </div>
 
         <div className="p-6 flex items-center justify-between">
-          <button className="bg-primary/10 text-primary font-black px-8 py-3 rounded-2xl text-xs hover:bg-primary hover:text-secondary transition-all">
-            سأحضر (مهتم)
-          </button>
-          <div className="flex items-center gap-4">
-             <button className="p-3 bg-surface rounded-2xl text-gray-400 hover:text-primary transition-colors">
-                <Share2 size={20} />
-             </button>
+          <div className="flex items-center gap-3">
+            <LikeButton />
+            <button
+              onClick={() => onComment?.(post)}
+              className="bg-primary/10 text-primary font-black px-6 py-3 rounded-2xl text-xs hover:bg-primary hover:text-secondary transition-all"
+            >
+              سأحضر (مهتم)
+            </button>
+          </div>
+          <div className="flex items-center gap-3">
+             <div className="relative"><ShareButton /></div>
              <button className="p-3 bg-surface rounded-2xl text-gray-400 hover:text-secondary transition-colors">
                 <Bookmark size={20} />
              </button>
@@ -332,20 +398,9 @@ export default function PostCard({ post, delay = 0 }: PostCardProps) {
 
           <div className="flex items-center justify-between pt-5 border-t border-gray-50">
               <div className="flex gap-6">
-                  <button className="flex items-center gap-2 text-gray-400 hover:text-red-500 transition-all">
-                      <motion.div 
-                        whileTap={{ 
-                          scale: [1, 1.3, 1],
-                          transition: { duration: 0.2 }
-                        }}
-                      >
-                        <Heart size={20} />
-                      </motion.div>
-                      <span className="text-xs font-black font-inter">{post.likes}</span>
-                  </button>
-                  <button className="flex items-center gap-2 text-gray-400 hover:text-primary transition-all">
-                      <Share2 size={20} />
-                  </button>
+                  <LikeButton />
+                  <CommentButton />
+                  <ShareButton />
               </div>
               <button className="flex items-center gap-2 text-primary font-black text-xs uppercase tracking-widest group-hover:gap-3 transition-all hover:underline">
                   <span>Full Report</span>

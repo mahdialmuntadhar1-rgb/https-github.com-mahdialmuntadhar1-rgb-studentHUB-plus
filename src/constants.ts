@@ -1,4 +1,4 @@
-import { Governorate, Institution, Post, Opportunity, Notification } from './types';
+import { Governorate, Institution, Post, Opportunity, Notification, Comment } from './types';
 
 export const GOVERNORATES: Governorate[] = [
   'بغداد', 'البصرة', 'الموصل', 'أربيل', 'السليمانية', 'دهوك',
@@ -471,6 +471,376 @@ export const SAMPLE_POSTS: Post[] = [
     timestamp: 'منذ ١٨ ساعة'
   }
 ];
+
+// Additional 22 posts to reach 30 total
+export const EXTRA_POSTS: Post[] = [
+  {
+    id: 'p7',
+    type: 'student',
+    authorName: 'محمد الجابري',
+    authorAvatar: 'https://picsum.photos/seed/student3/100/100',
+    institutionName: 'جامعة النهرين',
+    institutionLogo: 'https://picsum.photos/seed/nahrain/100/100',
+    governorate: 'بغداد',
+    content: 'أخيراً أنهيت مشروع تخرجي في هندسة الحاسوب! أربع سنوات من الجهد والتعب تتوج بهذا اليوم. شكراً لكل أستاذ وزميل ساندني 🎓',
+    image: 'https://picsum.photos/seed/grad1/800/500',
+    likes: 450,
+    comments: 32,
+    timestamp: 'منذ ساعة'
+  },
+  {
+    id: 'p8',
+    type: 'announcement',
+    title: 'قبول طلبات منح التفوق الدراسي',
+    institutionName: 'جامعة البصرة',
+    institutionLogo: 'https://picsum.photos/seed/basrah/100/100',
+    governorate: 'البصرة',
+    content: 'تعلن الجامعة عن فتح باب التقديم لمنح التفوق الدراسي للعام الأكاديمي الجديد. يشترط معدل لا يقل عن 80٪ واستيفاء شروط القبول.',
+    image: 'https://picsum.photos/seed/basra_ann/800/500',
+    likes: 730,
+    comments: 56,
+    views: 3400,
+    timestamp: 'منذ ساعتين',
+    isVerified: true
+  },
+  {
+    id: 'p9',
+    type: 'event',
+    title: 'يوم التوظيف والشركات ٢٠٢٤',
+    institutionName: 'جامعة الكوفة',
+    institutionLogo: 'https://picsum.photos/seed/kufa/100/100',
+    governorate: 'النجف',
+    content: 'تستضيف الجامعة أكثر من 40 شركة عراقية وإقليمية في يوم التوظيف السنوي. فرصة ذهبية للتواصل مع أصحاب العمل وتقديم سيرتك الذاتية.',
+    image: 'https://picsum.photos/seed/career_fair/800/500',
+    likes: 1100,
+    comments: 88,
+    eventDate: { day: '١٥', month: 'يونيو' },
+    timestamp: 'منذ ٣ ساعات',
+    isVerified: true
+  },
+  {
+    id: 'p10',
+    type: 'student',
+    authorName: 'نور الهاشمي',
+    authorAvatar: 'https://picsum.photos/seed/student4/100/100',
+    institutionName: 'جامعة كربلاء',
+    institutionLogo: 'https://picsum.photos/seed/karbala/100/100',
+    governorate: 'كربلاء',
+    content: 'المكتبة المركزية في الجامعة مصدر إلهام حقيقي. قضيت ٦ ساعات متواصلة في البحث لأطروحتي. الجهد يستحق 📚',
+    image: 'https://picsum.photos/seed/library1/800/500',
+    likes: 280,
+    comments: 19,
+    timestamp: 'منذ ٤ ساعات'
+  },
+  {
+    id: 'p11',
+    type: 'urgent',
+    title: 'تحويل الامتحانات إلى الإلكترونية',
+    institutionName: 'جامعة بغداد',
+    institutionLogo: 'https://picsum.photos/seed/uob_logo/100/100',
+    governorate: 'بغداد',
+    content: 'قررت كلية الهندسة تحويل جميع امتحانات الفصل الأول إلى النظام الإلكتروني. يرجى التأكد من وجود حساب إلكتروني مفعّل قبل الامتحان.',
+    likes: 3200,
+    comments: 560,
+    views: 18000,
+    timestamp: 'منذ ٣٠ دقيقة',
+    isVerified: true
+  },
+  {
+    id: 'p12',
+    type: 'student',
+    authorName: 'علي العامري',
+    authorAvatar: 'https://picsum.photos/seed/student5/100/100',
+    institutionName: 'جامعة بابل',
+    institutionLogo: 'https://picsum.photos/seed/babil/100/100',
+    governorate: 'بابل',
+    content: 'فريقنا في كلية تقنية المعلومات فاز بالمركز الأول في هاكاثون جامعة بابل السنوي. نحن نعمل على تطبيق لإدارة الجدول الدراسي بالذكاء الاصطناعي!',
+    image: 'https://picsum.photos/seed/hackathon/800/500',
+    likes: 890,
+    comments: 71,
+    timestamp: 'منذ ٦ ساعات'
+  },
+  {
+    id: 'p13',
+    type: 'announcement',
+    title: 'تعديل الجدول الدراسي الفصل الثاني',
+    institutionName: 'الجامعة المستنصرية',
+    institutionLogo: 'https://picsum.photos/seed/must/100/100',
+    governorate: 'بغداد',
+    content: 'تُعلن رئاسة الجامعة عن تعديل في جدول المحاضرات الأسبوعي ابتداءً من الأسبوع القادم. يرجى متابعة الموقع الإلكتروني للاطلاع على الجدول المحدّث.',
+    likes: 540,
+    comments: 44,
+    views: 2200,
+    timestamp: 'منذ ٧ ساعات',
+    isVerified: true
+  },
+  {
+    id: 'p14',
+    type: 'opportunity',
+    title: 'مصمم جرافيك متدرب',
+    institutionName: 'مؤسسة الإبداع الرقمي',
+    institutionLogo: 'https://picsum.photos/seed/creative/100/100',
+    governorate: 'البصرة',
+    content: 'نبحث عن مصمم جرافيك مبدع لانضمام لفريقنا التسويقي. أدوات Adobe مطلوبة والاهتمام بالتصميم العربي ميزة إضافية.',
+    deadline: '٣٠ يونيو',
+    tags: ['تصميم', 'البصرة', 'تدريب', 'إبداع'],
+    likes: 320,
+    comments: 28,
+    timestamp: 'منذ ١٠ ساعات'
+  },
+  {
+    id: 'p15',
+    type: 'student',
+    authorName: 'رنا الصالح',
+    authorAvatar: 'https://picsum.photos/seed/student6/100/100',
+    institutionName: 'جامعة صلاح الدين',
+    institutionLogo: 'https://picsum.photos/seed/salah/100/100',
+    governorate: 'أربيل',
+    content: 'اليوم آخر يوم من محاضراتي في الجامعة قبل الامتحانات. لا أصدق أن هذه السنة انتهت بهذه السرعة. حظاً موفقاً للجميع 🍀',
+    image: 'https://picsum.photos/seed/campus_life/800/500',
+    likes: 610,
+    comments: 47,
+    timestamp: 'منذ ١٢ ساعة'
+  },
+  {
+    id: 'p16',
+    type: 'event',
+    title: 'مؤتمر الذكاء الاصطناعي وتطبيقاته',
+    institutionName: 'جامعة بغداد',
+    institutionLogo: 'https://picsum.photos/seed/uob_logo/100/100',
+    governorate: 'بغداد',
+    content: 'يستضيف معهد التقنيات المتقدمة المؤتمر الدولي الثالث للذكاء الاصطناعي. نخبة من الباحثين العراقيين والدوليين سيشاركون بأبحاثهم.',
+    image: 'https://picsum.photos/seed/ai_conf/800/500',
+    likes: 1450,
+    comments: 103,
+    eventDate: { day: '٢٠', month: 'يونيو' },
+    timestamp: 'منذ يوم',
+    isVerified: true
+  },
+  {
+    id: 'p17',
+    type: 'student',
+    authorName: 'حسين الزيدي',
+    authorAvatar: 'https://picsum.photos/seed/student7/100/100',
+    institutionName: 'جامعة الموصل',
+    institutionLogo: 'https://picsum.photos/seed/mosul/100/100',
+    governorate: 'الموصل',
+    content: 'نتائج قبولي في برنامج ماجستير علم البيانات بجامعة الموصل 🎉 ثلاث سنوات من التحضير وأخيراً تحقق الحلم!',
+    image: 'https://picsum.photos/seed/acceptance/800/500',
+    likes: 2100,
+    comments: 198,
+    timestamp: 'منذ ١٥ ساعة'
+  },
+  {
+    id: 'p18',
+    type: 'announcement',
+    title: 'افتتاح المختبر التقني المتكامل',
+    institutionName: 'جامعة النهرين',
+    institutionLogo: 'https://picsum.photos/seed/nahrain/100/100',
+    governorate: 'بغداد',
+    content: 'تفتتح جامعة النهرين مختبراً تقنياً متكاملاً بتجهيزات من الجيل الجديد لدعم الأبحاث في الهندسة والحاسوب. متاح لطلبة الدراسات العليا والباحثين.',
+    image: 'https://picsum.photos/seed/lab_open/800/500',
+    likes: 870,
+    comments: 63,
+    views: 4100,
+    timestamp: 'منذ يوم',
+    isVerified: true
+  },
+  {
+    id: 'p19',
+    type: 'opportunity',
+    title: 'منحة حكومية للدراسة في ألمانيا',
+    institutionName: 'وزارة التعليم العالي',
+    institutionLogo: 'https://picsum.photos/seed/mohe/100/100',
+    governorate: 'بغداد',
+    content: 'تتيح وزارة التعليم العالي ٥٠ منحة دراسية لإكمال الدراسات العليا في الجامعات الألمانية. المتطلبات: معدل عالٍ وإجادة اللغة الإنجليزية.',
+    deadline: '١ يوليو',
+    tags: ['منحة', 'ألمانيا', 'دراسات عليا', 'وزارة'],
+    likes: 5600,
+    comments: 892,
+    timestamp: 'منذ يومين'
+  },
+  {
+    id: 'p20',
+    type: 'student',
+    authorName: 'زينب المحمدي',
+    authorAvatar: 'https://picsum.photos/seed/student8/100/100',
+    institutionName: 'جامعة كربلاء',
+    institutionLogo: 'https://picsum.photos/seed/karbala/100/100',
+    governorate: 'كربلاء',
+    content: 'جلسة تصوير لمشروع التخرج كانت تجربة استثنائية. الفريق أبدع في كل شيء من التصميم إلى التنفيذ. فخورة بكل واحد منكم 📸',
+    image: 'https://picsum.photos/seed/team_photo/800/500',
+    likes: 760,
+    comments: 55,
+    timestamp: 'منذ يومين'
+  },
+  {
+    id: 'p21',
+    type: 'event',
+    title: 'معرض لوحات الفن التشكيلي الطلابي',
+    institutionName: 'جامعة بابل',
+    institutionLogo: 'https://picsum.photos/seed/babil/100/100',
+    governorate: 'بابل',
+    content: 'معرض الفن التشكيلي السنوي لطلبة كلية الفنون الجميلة. أكثر من ١٢٠ لوحة تعكس إبداع الشباب العراقي وموهبتهم الفريدة.',
+    image: 'https://picsum.photos/seed/art_exhibit/800/500',
+    likes: 430,
+    comments: 37,
+    eventDate: { day: '٢٨', month: 'مايو' },
+    timestamp: 'منذ يومين',
+    isVerified: false
+  },
+  {
+    id: 'p22',
+    type: 'urgent',
+    title: 'إعادة جدولة امتحانات الدور الثاني',
+    institutionName: 'جامعة الأنبار',
+    institutionLogo: 'https://picsum.photos/seed/anbar/100/100',
+    governorate: 'الأنبار',
+    content: 'تُعلن الجامعة عن إعادة جدولة امتحانات الدور الثاني لبعض الأقسام. يرجى مراجعة جدول الامتحانات المنشور على البوابة الرسمية.',
+    likes: 1800,
+    comments: 310,
+    views: 9000,
+    timestamp: 'منذ ٥ ساعات',
+    isVerified: true
+  },
+  {
+    id: 'p23',
+    type: 'student',
+    authorName: 'عمر الشمري',
+    authorAvatar: 'https://picsum.photos/seed/student9/100/100',
+    institutionName: 'جامعة الأنبار',
+    institutionLogo: 'https://picsum.photos/seed/anbar/100/100',
+    governorate: 'الأنبار',
+    content: 'بعد ١٨ شهراً من العمل المتواصل، نشرنا بحثنا في مجلة دولية محكّمة في مجال معالجة الإشارات. أول نشر علمي لي وما راح يكون الأخير 💪',
+    image: 'https://picsum.photos/seed/research/800/500',
+    likes: 3400,
+    comments: 234,
+    timestamp: 'منذ ٣ أيام'
+  },
+  {
+    id: 'p24',
+    type: 'announcement',
+    title: 'تفعيل بوابة الخدمات الطلابية الجديدة',
+    institutionName: 'جامعة ديالى',
+    institutionLogo: 'https://picsum.photos/seed/diyala/100/100',
+    governorate: 'ديالى',
+    content: 'أعلنت الجامعة عن تفعيل بوابة الخدمات الطلابية الإلكترونية الجديدة التي تتيح معاملات الاستمارات والمصادقة ودفع الرسوم عبر الإنترنت.',
+    likes: 690,
+    comments: 48,
+    views: 3100,
+    timestamp: 'منذ ٣ أيام',
+    isVerified: true
+  },
+  {
+    id: 'p25',
+    type: 'opportunity',
+    title: 'مهندس شبكات - شركة زين العراق',
+    institutionName: 'شركة زين العراق',
+    institutionLogo: 'https://picsum.photos/seed/zain/100/100',
+    governorate: 'البصرة',
+    content: 'زين العراق تفتح باب التوظيف لمهندسي الشبكات في مكتب البصرة. خبرة سنتين على الأقل في إدارة شبكات Cisco أو Huawei.',
+    deadline: '٢٠ يونيو',
+    tags: ['شبكات', 'زين', 'البصرة', 'وظيفة'],
+    likes: 1200,
+    comments: 95,
+    timestamp: 'منذ ٤ أيام'
+  },
+  {
+    id: 'p26',
+    type: 'student',
+    authorName: 'لينا عبد الرحمن',
+    authorAvatar: 'https://picsum.photos/seed/student10/100/100',
+    institutionName: 'جامعة السليمانية',
+    institutionLogo: 'https://picsum.photos/seed/sul/100/100',
+    governorate: 'السليمانية',
+    content: 'يوم التخرج أخيراً! ٥ سنوات في كلية طب الأسنان وها أنا طبيبة الآن. الرحلة كانت شاقة لكن كل لحظة تعب كانت تستحق 🦷👩‍⚕️',
+    image: 'https://picsum.photos/seed/dentist_grad/800/500',
+    likes: 4200,
+    comments: 387,
+    timestamp: 'منذ أسبوع'
+  },
+  {
+    id: 'p27',
+    type: 'event',
+    title: 'البطولة الرياضية بين الجامعات',
+    institutionName: 'جامعة بغداد',
+    institutionLogo: 'https://picsum.photos/seed/uob_logo/100/100',
+    governorate: 'بغداد',
+    content: 'تستضيف الجامعة البطولة الرياضية الطلابية بين جامعات العاصمة في كرة القدم وكرة السلة والكرة الطائرة. ادعم منتخب جامعتك!',
+    image: 'https://picsum.photos/seed/sports_day/800/500',
+    likes: 2800,
+    comments: 211,
+    eventDate: { day: '١٠', month: 'يونيو' },
+    timestamp: 'منذ أسبوع',
+    isVerified: true
+  },
+  {
+    id: 'p28',
+    type: 'student',
+    authorName: 'كرار الموسوي',
+    authorAvatar: 'https://picsum.photos/seed/student11/100/100',
+    institutionName: 'جامعة الكوفة',
+    institutionLogo: 'https://picsum.photos/seed/kufa/100/100',
+    governorate: 'النجف',
+    content: 'تعلمت اليوم في المختبر كيفية برمجة الميكروكنترولر Arduino لمشروع المنزل الذكي. مستوى تقني ممتاز في كلية الهندسة الكهربائية هذا العام 🔌',
+    image: 'https://picsum.photos/seed/lab_work/800/500',
+    likes: 520,
+    comments: 41,
+    timestamp: 'منذ أسبوع'
+  },
+  {
+    id: 'p29',
+    type: 'announcement',
+    title: 'منح أكاديمية من جامعة كربلاء للتميز',
+    institutionName: 'جامعة كربلاء',
+    institutionLogo: 'https://picsum.photos/seed/karbala/100/100',
+    governorate: 'كربلاء',
+    content: 'تمنح جامعة كربلاء ١٠ منح أكاديمية كاملة للطلبة المتميزين لمتابعة الدراسات العليا داخل الجامعة. يُشترط الحصول على معدل امتياز.',
+    image: 'https://picsum.photos/seed/karbala_ann/800/500',
+    likes: 1780,
+    comments: 142,
+    views: 7800,
+    timestamp: 'منذ أسبوعين',
+    isVerified: true
+  },
+  {
+    id: 'p30',
+    type: 'student',
+    authorName: 'آية الكريم',
+    authorAvatar: 'https://picsum.photos/seed/student12/100/100',
+    institutionName: 'جامعة بغداد',
+    institutionLogo: 'https://picsum.photos/seed/uob_logo/100/100',
+    governorate: 'بغداد',
+    content: 'اليوم درسنا في كلية العلوم موضوع الطيف الكهرومغناطيسي وطبيقاته في التشخيص الطبي. المادة رائعة وأستاذنا يشرح بطريقة مبدعة جداً 🔬',
+    image: 'https://picsum.photos/seed/science_class/800/500',
+    likes: 340,
+    comments: 28,
+    timestamp: 'منذ أسبوعين'
+  }
+];
+
+export const ALL_POSTS: Post[] = [...SAMPLE_POSTS, ...EXTRA_POSTS];
+
+export const HERO_POSTS: Post[] = ALL_POSTS.filter(
+  p => (p.type === 'announcement' || p.type === 'event' || p.type === 'urgent') && p.image
+).slice(0, 5);
+
+export const SAMPLE_COMMENTS: Record<string, Comment[]> = {
+  'p1': [
+    { id: 'c1', postId: 'p1', authorName: 'أحمد علي', authorAvatar: 'https://picsum.photos/seed/c1/100/100', content: 'شكراً على هذا الإعلان المهم! متى آخر موعد للتقديم؟', timestamp: 'منذ ٣٠ دقيقة', likes: 12 },
+    { id: 'c2', postId: 'p1', authorName: 'سارة حسن', authorAvatar: 'https://picsum.photos/seed/c2/100/100', content: 'هل التقديم متاح لجميع التخصصات؟', timestamp: 'منذ ساعة', likes: 5 },
+    { id: 'c3', postId: 'p1', authorName: 'محمد كريم', authorAvatar: 'https://picsum.photos/seed/c3/100/100', content: 'أخيراً! كنا ننتظر هذا الإعلان منذ زمن', timestamp: 'منذ ساعتين', likes: 18 },
+  ],
+  'p3': [
+    { id: 'c4', postId: 'p3', authorName: 'حيدر الصادق', authorAvatar: 'https://picsum.photos/seed/c4/100/100', content: 'بالتوفيق لك يا صديق! امتحاناتنا غداً أيضاً 💪', timestamp: 'منذ ٢ ساعة', likes: 8 },
+    { id: 'c5', postId: 'p3', authorName: 'نور محمد', authorAvatar: 'https://picsum.photos/seed/c5/100/100', content: 'جو رائع في مكتبة الجامعة! المكان مليء بالطاقة الإيجابية', timestamp: 'منذ ٣ ساعات', likes: 14 },
+  ],
+  'p6': [
+    { id: 'c6', postId: 'p6', authorName: 'علي الجبوري', authorAvatar: 'https://picsum.photos/seed/c6/100/100', content: 'ألف مبروك سارة! جهدك واضح في كل تفصيل', timestamp: 'منذ ساعة', likes: 22 },
+    { id: 'c7', postId: 'p6', authorName: 'رنا الكريم', authorAvatar: 'https://picsum.photos/seed/c7/100/100', content: 'مشروع رائع جداً! من أي كلية أنتِ؟', timestamp: 'منذ ٥ ساعات', likes: 9 },
+    { id: 'c8', postId: 'p6', authorName: 'حسن العلي', authorAvatar: 'https://picsum.photos/seed/c8/100/100', content: 'تبارك الله، استمري بهذا الإبداع', timestamp: 'منذ ٧ ساعات', likes: 31 },
+  ],
+};
 
 export const SAMPLE_OPPORTUNITIES: Opportunity[] = [
   {
