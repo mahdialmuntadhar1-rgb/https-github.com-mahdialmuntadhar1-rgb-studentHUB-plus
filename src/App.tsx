@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Plus, X, HelpCircle, Sparkles, Bell, 
-  MessageCircle, Image, MapPin, AtSign 
+  MessageCircle, Image, Video, MapPin, AtSign, Loader2
 } from 'lucide-react';
 import Navbar, { Header } from './components/Navigation';
 import Feed from './pages/Feed';
@@ -19,7 +19,7 @@ import ResetPassword from './pages/ResetPassword';
 
 import { useAuth } from './contexts/AuthContext';
 import Auth from './pages/Auth';
-import { createPost } from './lib/api';
+import { createPost, uploadImage } from './lib/api';
 
 export default function App() {
   const { user, profile, isLoading } = useAuth();
@@ -29,12 +29,29 @@ export default function App() {
   const [newPostContent, setNewPostContent] = useState('');
   const [newPostType, setNewPostType] = useState('student');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [mediaFile, setMediaFile] = useState<File | null>(null);
+  const [mediaPreview, setMediaPreview] = useState<string | null>(null);
+  const [isUploading, setIsUploading] = useState(false);
+  const fileInputRef = React.useRef<HTMLInputElement>(null);
+
+  const handleMediaSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setMediaFile(file);
+    setMediaPreview(URL.createObjectURL(file));
+  };
 
   const handleCreatePost = async () => {
     if (!profile || !newPostContent.trim()) return;
     setIsSubmitting(true);
-    
+    let image_url: string | undefined;
     try {
+      if (mediaFile) {
+        setIsUploading(true);
+        const { url } = await uploadImage(mediaFile);
+        image_url = url;
+        setIsUploading(false);
+      }
       await createPost({
         type: newPostType,
         content: newPostContent,
@@ -42,15 +59,18 @@ export default function App() {
         institution_id: profile.institution_id || 'manual',
         governorate: profile.governorate || '',
         is_verified: profile.role === 'institution_rep',
+        image_url,
       });
-      
       setNewPostContent('');
+      setMediaFile(null);
+      setMediaPreview(null);
       setShowPostOverlay(false);
     } catch (err) {
       console.error('Error creating post:', err);
       alert('خطأ أثناء النشر');
     } finally {
       setIsSubmitting(false);
+      setIsUploading(false);
     }
   };
 
@@ -236,9 +256,26 @@ export default function App() {
                                     onChange={(e) => setNewPostContent(e.target.value)}
                                     className="w-full bg-transparent border-none focus:ring-0 outline-none font-bold text-gray-600 min-h-[120px] resize-none"
                                 />
+                                {mediaPreview && (
+                                    <div className="relative mt-3">
+                                      {mediaFile?.type.startsWith('video/') ? (
+                                        <video src={mediaPreview} controls className="w-full rounded-2xl max-h-48 object-cover" />
+                                      ) : (
+                                        <img src={mediaPreview} alt="preview" className="w-full rounded-2xl max-h-48 object-cover" />
+                                      )}
+                                      <button
+                                        onClick={() => { setMediaFile(null); setMediaPreview(null); }}
+                                        className="absolute top-2 right-2 bg-black/60 text-white rounded-full p-1 hover:bg-black transition-colors"
+                                      >
+                                        <X size={14} />
+                                      </button>
+                                    </div>
+                                )}
                                 <div className="flex items-center justify-between pt-4 border-t border-gray-50 mt-4">
                                     <div className="flex gap-4 text-gray-400">
-                                        <button className="hover:text-primary transition-colors"><Image size={20} /></button>
+                                        <input ref={fileInputRef} type="file" accept="image/*,video/*" className="hidden" onChange={handleMediaSelect} />
+                                        <button type="button" onClick={() => fileInputRef.current?.click()} className="hover:text-primary transition-colors" title="إرفاق صورة"><Image size={20} /></button>
+                                        <button type="button" onClick={() => fileInputRef.current?.click()} className="hover:text-primary transition-colors" title="إرفاق فيديو"><Video size={20} /></button>
                                         <button className="hover:text-primary transition-colors text-xs font-black px-3 py-1 bg-surface rounded-lg"># {profile?.institution}</button>
                                     </div>
                                     <span className="text-[10px] font-black text-gray-200">{280 - newPostContent.length} حرف متبقي</span>
@@ -250,7 +287,9 @@ export default function App() {
                                 disabled={isSubmitting || !newPostContent.trim()}
                                 className="w-full bg-secondary text-white py-5 rounded-3xl font-black text-sm uppercase tracking-widest shadow-xl shadow-secondary/20 hover:bg-primary hover:text-secondary transition-all active:scale-95 disabled:opacity-50 flex items-center justify-center gap-3"
                             >
-                                {isSubmitting ? (
+                                {isUploading ? (
+                                    <><Loader2 size={18} className="animate-spin" /><span>جاري رفع الملف...</span></>
+                                ) : isSubmitting ? (
                                     <div className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin" />
                                 ) : (
                                     'نشر في رافد'
