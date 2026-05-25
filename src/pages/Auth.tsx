@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { supabase } from '../lib/supabase';
-import { Mail, Lock, User, ArrowLeft, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
+import * as api from '../lib/api';
+import { useAuth } from '../contexts/AuthContext';
+import { Mail, Lock, User, ArrowLeft, Sparkles, CheckCircle2 } from 'lucide-react';
 
 export default function Auth() {
+  const { setAuthData } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
@@ -18,26 +20,11 @@ export default function Auth() {
 
     try {
       if (isLogin) {
-        const { error } = await supabase.auth.signInWithPassword({ email, password });
-        if (error) throw error;
+        const { token, user } = await api.login(email, password);
+        setAuthData(token, user);
       } else {
-        const { data: { user }, error: signUpError } = await supabase.auth.signUp({ 
-          email, 
-          password,
-          options: {
-            data: { full_name: fullName }
-          }
-         });
-        if (signUpError) throw signUpError;
-        
-        // Profiles are updated via Onboarding, but we can set the Initial name
-        if (user) {
-          await supabase.from('profiles').upsert({
-            id: user.id,
-            full_name: fullName,
-            updated_at: new Date().toISOString(),
-          });
-        }
+        const { token, user } = await api.register({ email, password, full_name: fullName });
+        setAuthData(token, user);
       }
     } catch (err: any) {
       setError(err.message);

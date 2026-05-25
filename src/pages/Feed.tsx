@@ -2,9 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import PostCard from '../components/PostCard';
 import { GOVERNORATES } from '../constants';
-import { Filter, Sparkles, TrendingUp, Users, Map as MapIcon, GraduationCap, ChevronLeft, RefreshCw } from 'lucide-react';
+import { Sparkles, TrendingUp, Map as MapIcon, GraduationCap, ChevronLeft } from 'lucide-react';
 import { PostSkeleton } from '../components/Skeletons';
-import { supabase } from '../lib/supabase';
+import { getPosts } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Post } from '../types';
 
@@ -19,27 +19,13 @@ export default function Feed() {
     setIsLoading(true);
     setError(null);
     try {
-      let query = supabase
-        .from('posts')
-        .select(`
-          *,
-          profiles:author_id (
-            full_name,
-            avatar_url
-          )
-        `)
-        .order('created_at', { ascending: false });
+      const data = await getPosts();
 
-      const { data, error } = await query;
-
-      if (error) throw error;
-
-      // Transform Supabase data to App Post type
-      const transformedPosts: Post[] = (data || []).map(p => ({
+      const transformedPosts: Post[] = (data || []).map((p: any) => ({
         id: p.id,
         type: p.type,
         institutionName: p.institution,
-        institutionLogo: `https://picsum.photos/seed/${p.institution_id}/100/100`, // Placeholder or fetched logo
+        institutionLogo: `https://picsum.photos/seed/${p.institution_id}/100/100`,
         governorate: p.governorate as any,
         content: p.content,
         title: p.title,
@@ -48,10 +34,10 @@ export default function Feed() {
         comments: p.comments_count,
         views: p.views_count,
         timestamp: new Date(p.created_at).toLocaleDateString('ar-IQ'),
-        isVerified: p.is_verified,
-        authorName: p.profiles?.full_name,
-        authorAvatar: p.profiles?.avatar_url,
-        ...(p.metadata || {})
+        isVerified: Boolean(p.is_verified),
+        authorName: p.author_full_name,
+        authorAvatar: p.author_avatar_url,
+        ...(p.metadata && typeof p.metadata === 'string' ? JSON.parse(p.metadata) : (p.metadata || {}))
       }));
 
       setPosts(transformedPosts);
@@ -64,18 +50,6 @@ export default function Feed() {
 
   useEffect(() => {
     fetchPosts();
-    
-    // Set up Realtime subscription
-    const subscription = supabase
-      .channel('public:posts')
-      .on('postgres_changes', { event: '*', schema: 'public', table: 'posts' }, () => {
-        fetchPosts();
-      })
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
   }, []);
 
   const filters = [

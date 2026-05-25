@@ -1,6 +1,6 @@
--- Cloudflare D1 Schema for Rafid (StudentHUB-plus)
--- See backend/schema.sql for the authoritative copy.
--- Run: wrangler d1 execute rafid-db --file=./backend/schema.sql
+-- Rafid (StudentHUB-plus) D1 Schema
+-- Run with: wrangler d1 execute rafid-db --file=./schema.sql
+-- Remote:   wrangler d1 execute rafid-db --remote --file=./schema.sql
 
 CREATE TABLE IF NOT EXISTS profiles (
   id TEXT PRIMARY KEY,
