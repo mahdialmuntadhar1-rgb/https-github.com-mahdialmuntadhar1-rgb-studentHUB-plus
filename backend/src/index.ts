@@ -226,6 +226,9 @@ app.put('/api/profile', authMiddleware, async (c) => {
 app.get('/api/posts', async (c) => {
   const governorate = c.req.query('governorate');
   const institution = c.req.query('institution');
+  const page = Math.max(parseInt(c.req.query('page') || '1'), 1);
+  const limit = Math.min(parseInt(c.req.query('limit') || '10'), 100);
+  const offset = (page - 1) * limit;
 
   let query = `
     SELECT p.*,
@@ -246,11 +249,29 @@ app.get('/api/posts', async (c) => {
     params.push(institution);
   }
 
-  query += ' ORDER BY p.created_at DESC LIMIT 50';
+  // Get total count
+  const countQuery = query.replace('SELECT p.*, pr.full_name AS author_full_name, pr.avatar_url AS author_avatar_url', 'SELECT COUNT(*) as count');
+  const countStmt = c.env.DB.prepare(countQuery);
+  const countResult = await (params.length > 0 ? countStmt.bind(...params) : countStmt).first<{ count: number }>();
+  const total = countResult?.count || 0;
+
+  // Get paginated results
+  query += ' ORDER BY p.created_at DESC LIMIT ? OFFSET ?';
+  params.push(limit, offset);
 
   const stmt = c.env.DB.prepare(query);
   const result = await (params.length > 0 ? stmt.bind(...params) : stmt).all();
-  return c.json(result.results);
+
+  return c.json({
+    posts: result.results,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages: Math.ceil(total / limit),
+      hasMore: offset + limit < total
+    }
+  });
 });
 
 app.post('/api/posts', authMiddleware, async (c) => {
@@ -379,6 +400,8 @@ app.post('/api/posts/:id/comments', authMiddleware, async (c) => {
 
 app.get('/api/opportunities', async (c) => {
   const type = c.req.query('type');
+  const institution = c.req.query('institution');
+  const city = c.req.query('city');
 
   let query = 'SELECT * FROM opportunities WHERE 1=1';
   const params: string[] = [];
@@ -386,6 +409,14 @@ app.get('/api/opportunities', async (c) => {
   if (type) {
     query += ' AND type = ?';
     params.push(type);
+  }
+  if (institution) {
+    query += ' AND institution_name = ?';
+    params.push(institution);
+  }
+  if (city) {
+    query += ' AND city = ?';
+    params.push(city);
   }
 
   query += ' ORDER BY created_at DESC LIMIT 50';
@@ -396,7 +427,7 @@ app.get('/api/opportunities', async (c) => {
 });
 
 app.post('/api/opportunities', authMiddleware, async (c) => {
-  const { title, type, institution_name, institution_logo, governorate, deadline, tags } =
+  const { title, type, institution_name, institution_logo, governorate, city, deadline, tags } =
     await c.req.json();
 
   if (!title || !type || !institution_name) {
@@ -405,8 +436,8 @@ app.post('/api/opportunities', authMiddleware, async (c) => {
 
   const id = crypto.randomUUID();
   await c.env.DB.prepare(
-    `INSERT INTO opportunities (id, title, type, institution_name, institution_logo, governorate, deadline, tags)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+    `INSERT INTO opportunities (id, title, type, institution_name, institution_logo, governorate, city, deadline, tags)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       id,
@@ -415,6 +446,7 @@ app.post('/api/opportunities', authMiddleware, async (c) => {
       institution_name,
       institution_logo || null,
       governorate || null,
+      city || null,
       deadline || null,
       tags ? JSON.stringify(tags) : '[]'
     )
@@ -424,6 +456,109 @@ app.post('/api/opportunities', authMiddleware, async (c) => {
     .bind(id)
     .first();
   return c.json(opp, 201);
+});
+
+// ─── CHAT ROUTES ───────────────────────────────────────────────────────────────
+
+app.get('/api/chat/rooms', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const rooms = await c.env.DB.prepare(
+    `SELECT cr.*, 
+            CASE 
+              WHEN cr.user1_id = ? THEN u2.full_name
+              ELSE u1.full_name
+            END as other_user_name,
+            CASE 
+              WHEN cr.user1_id = ? THEN u2.avatar_url
+              ELSE u1.avatar_url
+            END as other_user_avatar,
+            (SELECT content FROM messages WHERE room_id = cr.id ORDER BY created_at DESC LIMIT 1) as last_message,
+            (SELECT created_at FROM messages WHERE room_id = cr.id ORDER BY created_at DESC LIMIT 1) as last_message_time
+     FROM chat_rooms cr
+     LEFT JOIN profiles u1 ON cr.user1_id = u1.id
+     LEFT JOIN profiles u2 ON cr.user2_id = u2.id
+     WHERE cr.user1_id = ? OR cr.user2_id = ?
+     ORDER BY last_message_time DESC`
+  )
+    .bind(userId, userId, userId, userId)
+    .all();
+  return c.json(rooms.results);
+});
+
+app.post('/api/chat/rooms', authMiddleware, async (c) => {
+  const userId = c.get('userId');
+  const { other_user_id } = await c.req.json();
+
+  if (!other_user_id) {
+    return c.json({ error: 'معرف المستخدم الآخر مطلوب' }, 400);
+  }
+
+  // Check if room already exists
+  const existing = await c.env.DB.prepare(
+    'SELECT * FROM chat_rooms WHERE (user1_id = ? AND user2_id = ?) OR (user1_id = ? AND user2_id = ?)'
+  )
+    .bind(userId, other_user_id, other_user_id, userId)
+    .first();
+
+  if (existing) {
+    return c.json(existing);
+  }
+
+  const id = crypto.randomUUID();
+  await c.env.DB.prepare(
+    'INSERT INTO chat_rooms (id, user1_id, user2_id) VALUES (?, ?, ?)'
+  )
+    .bind(id, userId, other_user_id)
+    .run();
+
+  const room = await c.env.DB.prepare('SELECT * FROM chat_rooms WHERE id = ?')
+    .bind(id)
+    .first();
+  return c.json(room, 201);
+});
+
+app.get('/api/chat/rooms/:roomId/messages', authMiddleware, async (c) => {
+  const roomId = c.req.param('roomId');
+  const limit = Math.min(parseInt(c.req.query('limit') || '50'), 100);
+
+  const messages = await c.env.DB.prepare(
+    `SELECT m.*, p.full_name as sender_name, p.avatar_url as sender_avatar
+     FROM messages m
+     LEFT JOIN profiles p ON m.sender_id = p.id
+     WHERE m.room_id = ?
+     ORDER BY m.created_at ASC
+     LIMIT ?`
+  )
+    .bind(roomId, limit)
+    .all();
+  return c.json(messages.results);
+});
+
+app.post('/api/chat/rooms/:roomId/messages', authMiddleware, async (c) => {
+  const roomId = c.req.param('roomId');
+  const userId = c.get('userId');
+  const { content } = await c.req.json();
+
+  if (!content?.trim()) {
+    return c.json({ error: 'محتوى الرسالة مطلوب' }, 400);
+  }
+
+  const id = crypto.randomUUID();
+  await c.env.DB.prepare(
+    'INSERT INTO messages (id, room_id, sender_id, content) VALUES (?, ?, ?, ?)'
+  )
+    .bind(id, roomId, userId, content.trim())
+    .run();
+
+  const message = await c.env.DB.prepare(
+    `SELECT m.*, p.full_name as sender_name, p.avatar_url as sender_avatar
+     FROM messages m
+     LEFT JOIN profiles p ON m.sender_id = p.id
+     WHERE m.id = ?`
+  )
+    .bind(id)
+    .first();
+  return c.json(message, 201);
 });
 
 // ─── UPLOAD (R2) ─────────────────────────────────────────────────────────────

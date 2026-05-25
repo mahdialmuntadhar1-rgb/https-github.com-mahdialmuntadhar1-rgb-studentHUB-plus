@@ -1,20 +1,29 @@
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
-import { 
-  Briefcase, GraduationCap, Calendar, Clock, 
+import {
+  Briefcase, GraduationCap, Calendar, Clock,
   MapPin, ChevronLeft, Bookmark, Search,
-  TrendingUp, BarChart3, Filter, Star, 
-  Zap, Save, BookOpen, BrainCircuit
+  TrendingUp, BarChart3, Filter, Star,
+  Zap, Save, BookOpen, BrainCircuit, X
 } from 'lucide-react';
-import { SAMPLE_OPPORTUNITIES, SAMPLE_INSIGHTS } from '../constants';
+import { SAMPLE_OPPORTUNITIES, SAMPLE_INSIGHTS, SAMPLE_INSTITUTIONS } from '../constants';
 import PostCard from '../components/PostCard';
 import { Post, Opportunity } from '../types';
 import { PostSkeleton } from '../components/Skeletons';
+
+const IRAQI_CITIES = [
+  'بغداد', 'البصرة', 'أربيل', 'السليمانية', 'دهوك',
+  'النجف', 'كربلاء', 'الموصل', 'كركوك', 'ديالى',
+  'الأنبار', 'بابل', 'واسط', 'المثنى', 'ذي قار',
+  'ميسان', 'صلاح الدين', 'القادسية', 'حلبجة'
+];
 
 export default function OpportunitiesHub() {
   const [activeTab, setActiveTab] = useState<'all' | 'insights' | 'saved'>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [activeCategory, setActiveCategory] = useState<string | null>(null);
+  const [selectedUniversity, setSelectedUniversity] = useState<string>('');
+  const [selectedCity, setSelectedCity] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
 
   // Transition loading simulation
@@ -22,7 +31,7 @@ export default function OpportunitiesHub() {
     setIsLoading(true);
     const timer = setTimeout(() => setIsLoading(false), 700);
     return () => clearTimeout(timer);
-  }, [activeTab, activeCategory]);
+  }, [activeTab, activeCategory, selectedUniversity, selectedCity]);
 
   const categories = [
     { id: 'job', label: 'وظائف', icon: Briefcase, color: 'text-blue-500', bg: 'bg-blue-50' },
@@ -31,9 +40,11 @@ export default function OpportunitiesHub() {
     { id: 'training', label: 'برامج تطوير', icon: BrainCircuit, color: 'text-green-500', bg: 'bg-green-50' },
   ];
 
-  const filteredOpps = SAMPLE_OPPORTUNITIES.filter(o => 
+  const filteredOpps = SAMPLE_OPPORTUNITIES.filter(o =>
     (!activeCategory || o.type === activeCategory) &&
-    (o.title.includes(searchQuery) || o.institutionName.includes(searchQuery))
+    (o.title.includes(searchQuery) || o.institutionName.includes(searchQuery)) &&
+    (!selectedUniversity || o.institutionName === selectedUniversity) &&
+    (!selectedCity || o.governorate === selectedCity)
   );
 
   return (
@@ -92,7 +103,7 @@ export default function OpportunitiesHub() {
         </div>
 
         {/* 3. Sub-Navigation Tabs */}
-        <div className="flex items-center gap-2 mb-8 bg-white p-2 rounded-[2rem] border border-gray-100 shadow-sm overflow-x-auto hide-scrollbar">
+        <div className="flex items-center gap-2 mb-6 bg-white p-2 rounded-[2rem] border border-gray-100 shadow-sm overflow-x-auto hide-scrollbar">
             {[
                 { id: 'all', label: 'جميع الفرص', icon: Briefcase },
                 { id: 'insights', label: 'تحليلات السوق', icon: BarChart3 },
@@ -102,8 +113,8 @@ export default function OpportunitiesHub() {
                     key={tab.id}
                     onClick={() => setActiveTab(tab.id as any)}
                     className={`flex items-center gap-3 px-6 py-3 rounded-[1.5rem] text-xs font-black transition-all whitespace-nowrap ${
-                        activeTab === tab.id 
-                            ? 'bg-secondary text-white shadow-lg' 
+                        activeTab === tab.id
+                            ? 'bg-secondary text-white shadow-lg'
                             : 'text-gray-400 hover:text-secondary'
                     }`}
                 >
@@ -112,6 +123,78 @@ export default function OpportunitiesHub() {
                 </button>
             ))}
         </div>
+
+        {/* 4. Advanced Filters */}
+        {activeTab === 'all' && (
+          <div className="flex items-center gap-3 mb-6 overflow-x-auto hide-scrollbar">
+            {/* University Filter */}
+            <div className="relative flex-shrink-0">
+              <select
+                value={selectedUniversity}
+                onChange={(e) => setSelectedUniversity(e.target.value)}
+                className="appearance-none pl-8 pr-10 py-2.5 bg-white border border-gray-100 rounded-2xl text-xs font-black text-secondary outline-none focus:border-primary transition-all cursor-pointer"
+                dir="rtl"
+              >
+                <option value="">🎓 الجامعة</option>
+                {SAMPLE_INSTITUTIONS.map(inst => (
+                  <option key={inst.id} value={inst.name}>{inst.name}</option>
+                ))}
+              </select>
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <Filter size={12} />
+              </div>
+              {selectedUniversity && (
+                <button
+                  onClick={() => setSelectedUniversity('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            {/* City Filter */}
+            <div className="relative flex-shrink-0">
+              <select
+                value={selectedCity}
+                onChange={(e) => setSelectedCity(e.target.value)}
+                className="appearance-none pl-8 pr-10 py-2.5 bg-white border border-gray-100 rounded-2xl text-xs font-black text-secondary outline-none focus:border-primary transition-all cursor-pointer"
+                dir="rtl"
+              >
+                <option value="">📍 المدينة</option>
+                {IRAQI_CITIES.map(city => (
+                  <option key={city} value={city}>{city}</option>
+                ))}
+              </select>
+              <div className="absolute left-3 top-1/2 -translate-y-1/2 pointer-events-none text-gray-400">
+                <MapPin size={12} />
+              </div>
+              {selectedCity && (
+                <button
+                  onClick={() => setSelectedCity('')}
+                  className="absolute right-2 top-1/2 -translate-y-1/2 text-gray-400 hover:text-red-500"
+                >
+                  <X size={12} />
+                </button>
+              )}
+            </div>
+
+            {/* Active Filters Count */}
+            {(selectedUniversity || selectedCity) && (
+              <div className="flex items-center gap-2 px-3 py-2 bg-primary/10 rounded-2xl">
+                <span className="text-[10px] font-black text-primary">
+                  {Number(!!selectedUniversity) + Number(!!selectedCity)} فلتر
+                </span>
+                <button
+                  onClick={() => { setSelectedUniversity(''); setSelectedCity(''); }}
+                  className="text-primary hover:text-red-500 transition-colors"
+                >
+                  <X size={12} />
+                </button>
+              </div>
+            )}
+          </div>
+        )}
 
         {/* 4. Tab Content */}
         <AnimatePresence mode="wait">
@@ -153,7 +236,7 @@ export default function OpportunitiesHub() {
                                 tags: opp.tags,
                                 isVerified: true
                             };
-                            return <PostCard key={opp.id} post={postConverted} />;
+                            return <PostCard key={opp.id} post={postConverted} onComment={() => {}} onImageClick={() => {}} />;
                         })}
                         {filteredOpps.length === 0 && (
                             <div className="py-20 text-center bg-white rounded-[3rem] border border-gray-50">
@@ -175,7 +258,7 @@ export default function OpportunitiesHub() {
                              <p className="text-xs font-bold text-gray-500 leading-relaxed">اكتشف التوجهات الحالية، الأجور، والمهارات الأكثر طلباً في المحافظات العراقية المختلفة.</p>
                         </div>
                         {SAMPLE_INSIGHTS.map(insight => (
-                            <PostCard key={insight.id} post={insight} />
+                            <PostCard key={insight.id} post={insight} onComment={() => {}} onImageClick={() => {}} />
                         ))}
                     </div>
                 )}

@@ -2,11 +2,12 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { Post } from '../types';
 import { Heart, MessageCircle, Share2, Bookmark, CheckCircle2, MoreHorizontal, Eye, Calendar, Clock, MapPin, ExternalLink, BarChart3, TrendingUp, ArrowRight, Link2 } from 'lucide-react';
-import { 
-    BarChart as ReBarChart, Bar, XAxis, YAxis, 
-    CartesianGrid, Tooltip, ResponsiveContainer, Cell 
+import {
+    BarChart as ReBarChart, Bar, XAxis, YAxis,
+    CartesianGrid, Tooltip, ResponsiveContainer, Cell
 } from 'recharts';
 import { likePost, getToken } from '../lib/api';
+import { useLanguage } from '../contexts/LanguageContext';
 
 interface PostCardProps {
   post: Post;
@@ -19,6 +20,11 @@ export default function PostCard({ post, delay = 0, onComment, onImageClick }: P
   const [isLiked, setIsLiked] = useState(false);
   const [likesCount, setLikesCount] = useState(post.likes || 0);
   const [shareToast, setShareToast] = useState(false);
+  const { language } = useLanguage();
+
+  // Detect if post content is Arabic or English
+  const isArabicContent = /[\u0600-\u06FF]/.test(post.content);
+  const contentDir = isArabicContent ? 'rtl' : 'ltr';
 
   const handleLike = () => {
     const next = !isLiked;
@@ -193,7 +199,7 @@ export default function PostCard({ post, delay = 0, onComment, onImageClick }: P
         </div>
 
         <div className="px-5 pb-4">
-          <p className="text-gray-700 text-sm leading-relaxed mb-4">{post.content}</p>
+          <p className="text-gray-700 text-sm leading-relaxed mb-4" dir={contentDir}>{post.content}</p>
         </div>
 
         {(post.image || post.video) && (

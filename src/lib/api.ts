@@ -125,7 +125,7 @@ export async function getPosts(filters?: {
   institution?: string;
   page?: number;
   limit?: number;
-}): Promise<any[]> {
+}): Promise<{ posts: any[]; pagination: { page: number; limit: number; total: number; totalPages: number; hasMore: boolean } }> {
   const params = new URLSearchParams();
   if (filters?.governorate) params.set('governorate', filters.governorate);
   if (filters?.institution) params.set('institution', filters.institution);
@@ -134,7 +134,7 @@ export async function getPosts(filters?: {
 
   const url = `${API_BASE}/api/posts${params.toString() ? '?' + params.toString() : ''}`;
   const res = await fetch(url);
-  return handleResponse<any[]>(res);
+  return handleResponse<{ posts: any[]; pagination: any }>(res);
 }
 
 export async function createPost(payload: {
@@ -218,6 +218,40 @@ export async function uploadImage(file: File): Promise<{ url: string }> {
     body: formData,
   });
   return handleResponse<{ url: string }>(res);
+}
+
+// ─── Chat ─────────────────────────────────────────────────────────────────────
+
+export async function getChatRooms(): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/api/chat/rooms`, {
+    headers: { ...authHeaders() },
+  });
+  return handleResponse<any[]>(res);
+}
+
+export async function createChatRoom(otherUserId: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/chat/rooms`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ other_user_id: otherUserId }),
+  });
+  return handleResponse<any>(res);
+}
+
+export async function getChatMessages(roomId: string, limit = 50): Promise<any[]> {
+  const res = await fetch(`${API_BASE}/api/chat/rooms/${roomId}/messages?limit=${limit}`, {
+    headers: { ...authHeaders() },
+  });
+  return handleResponse<any[]>(res);
+}
+
+export async function sendChatMessage(roomId: string, content: string): Promise<any> {
+  const res = await fetch(`${API_BASE}/api/chat/rooms/${roomId}/messages`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ content }),
+  });
+  return handleResponse<any>(res);
 }
 
 // ─── Admin Panel simulation types ─────────────────────────────────────────────

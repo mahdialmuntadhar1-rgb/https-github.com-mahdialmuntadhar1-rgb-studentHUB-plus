@@ -11,6 +11,7 @@ import Onboarding from './pages/Onboarding';
 import Notifications from './pages/Notifications';
 import InstitutionProfile from './pages/InstitutionProfile';
 import PostCreator from './components/PostCreator';
+import ChatBox from './components/ChatBox';
 import { Institution } from './types';
 import { Routes, Route } from 'react-router-dom';
 import ResetPassword from './pages/ResetPassword';
@@ -147,6 +148,7 @@ export default function App() {
           {!selectedInst && <Navbar activeTab={activeTab} setActiveTab={handleTabSelect} />}
 
           <PostCreator open={showPostCreator} onClose={() => setShowPostCreator(false)} onPosted={() => {/* Refresh feed if needed */}} />
+          <ChatBox />
         </div>
       } />
     </Routes>

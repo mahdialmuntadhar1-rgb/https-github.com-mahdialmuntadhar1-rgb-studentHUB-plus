@@ -49,9 +49,11 @@ export default function Feed() {
       const govFilter = (activeFilter !== 'كل العراق' && activeFilter !== 'مؤسستي' && activeFilter !== 'تريند') ? activeFilter : undefined;
       const instFilter = (activeFilter === 'مؤسستي' && profile?.institution) ? profile.institution : undefined;
 
-      const data = await getPosts({ governorate: govFilter, institution: instFilter, page: currentPage, limit: POSTS_PER_PAGE });
+      const response = await getPosts({ governorate: govFilter, institution: instFilter, page: currentPage, limit: POSTS_PER_PAGE });
+      const data = response?.posts || [];
+      const pagination = response?.pagination;
 
-      const transformedPosts: Post[] = (data || []).map(p => ({
+      const transformedPosts: Post[] = data.map(p => ({
         id: p.id,
         type: p.type,
         institutionName: p.institution,
@@ -76,7 +78,7 @@ export default function Feed() {
         setPosts(transformedPosts);
       }
 
-      setHasMore(transformedPosts.length === POSTS_PER_PAGE);
+      setHasMore(pagination?.hasMore ?? transformedPosts.length === POSTS_PER_PAGE);
     } catch {
       // Fall back to rich mock data
       const filtered = filterMockPosts(ALL_POSTS, activeFilter, uniFilter, profile?.institution);
@@ -93,13 +95,15 @@ export default function Feed() {
   // Cursor pagination via CF Worker API
   const fetchCursorPosts = useCallback(async (cursor?: string, limit = 5) => {
     const start = cursor ? parseInt(cursor, 10) : 0;
-    
+
     try {
       const govFilter = (activeFilter !== 'كل العراق' && activeFilter !== 'مؤسستي' && activeFilter !== 'تريند') ? activeFilter : undefined;
       const instFilter = (activeFilter === 'مؤسستي' && profile?.institution) ? profile.institution : undefined;
-      const data = await getPosts({ governorate: govFilter, institution: instFilter, page: start, limit });
+      const response = await getPosts({ governorate: govFilter, institution: instFilter, page: start, limit });
+      const data = response?.posts || [];
+      const pagination = response?.pagination;
 
-      const transformed: Post[] = (data || []).map((p: any) => ({
+      const transformed: Post[] = data.map((p: any) => ({
         id: p.id,
         type: p.type as any,
         institutionName: p.institution || 'جامعة عراقية',
@@ -117,7 +121,7 @@ export default function Feed() {
         authorAvatar: p.author_avatar_url || `https://picsum.photos/seed/${p.author_id}/100/100`,
       }));
 
-      const hasMore = transformed.length === limit;
+      const hasMore = pagination?.hasMore ?? transformed.length === limit;
       return {
         data: transformed,
         hasMore,

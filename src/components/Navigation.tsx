@@ -1,5 +1,7 @@
-import { Home, Compass, Plus, Briefcase, User, Bell, Search } from 'lucide-react';
+import { Home, Compass, Plus, Briefcase, User, Bell, Search, Globe, Moon, Sun } from 'lucide-react';
 import { motion } from 'motion/react';
+import { useLanguage } from '../contexts/LanguageContext';
+import { useTheme } from '../contexts/ThemeContext';
 
 interface NavbarProps {
   activeTab: string;
@@ -7,12 +9,14 @@ interface NavbarProps {
 }
 
 export default function Navbar({ activeTab, setActiveTab }: NavbarProps) {
+  const { language, setLanguage } = useLanguage();
+
   const tabs = [
-    { id: 'home', icon: Home, label: 'الرئيسية' },
-    { id: 'discover', icon: Compass, label: 'اكتشف' },
-    { id: 'post', icon: Plus, label: 'نشر', isCenter: true },
-    { id: 'opportunities', icon: Briefcase, label: 'فرص' },
-    { id: 'profile', icon: User, label: 'حسابي' },
+    { id: 'home', icon: Home, label: language === 'ar' ? 'الرئيسية' : 'Home' },
+    { id: 'discover', icon: Compass, label: language === 'ar' ? 'اكتشف' : 'Discover' },
+    { id: 'post', icon: Plus, label: language === 'ar' ? 'نشر' : 'Post', isCenter: true },
+    { id: 'opportunities', icon: Briefcase, label: language === 'ar' ? 'فرص' : 'Jobs' },
+    { id: 'profile', icon: User, label: language === 'ar' ? 'حسابي' : 'Profile' },
   ];
 
   return (
@@ -57,25 +61,43 @@ export default function Navbar({ activeTab, setActiveTab }: NavbarProps) {
 }
 
 export function Header({ title, onNotificationsClick }: { title: string; onNotificationsClick?: () => void }) {
+  const { language, setLanguage } = useLanguage();
+  const { theme, toggleTheme } = useTheme();
+
   return (
-    <header className="fixed top-0 left-0 right-0 bg-white/90 backdrop-blur-xl border-b border-gray-100 z-50 px-6 h-20 flex items-center justify-between">
+    <header className="fixed top-0 left-0 right-0 bg-white/90 dark:bg-gray-900/90 backdrop-blur-xl border-b border-gray-100 dark:border-gray-800 z-50 px-6 h-20 flex items-center justify-between">
       <div className="flex items-center gap-3">
         <div className="w-10 h-10 bg-primary rounded-2xl flex items-center justify-center shadow-lg shadow-primary/20 transform -rotate-6">
             <span className="text-white font-black text-xl">ر</span>
         </div>
         <div>
-            <h1 className="text-lg font-black text-secondary leading-tight">{title}</h1>
+            <h1 className="text-lg font-black text-secondary dark:text-white leading-tight">{title}</h1>
             <div className="text-[10px] font-bold text-primary/60 uppercase tracking-[0.2em]">Rafid Platform</div>
         </div>
       </div>
 
       <div className="flex items-center gap-3">
-        <button className="p-3 bg-surface text-secondary rounded-2xl border border-gray-50 hover:bg-gray-100 transition-all active:scale-95">
+        <button
+          onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
+          className="p-3 bg-surface dark:bg-gray-800 text-secondary dark:text-white rounded-2xl border border-gray-50 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all active:scale-95"
+          title={language === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
+        >
+          <Globe size={20} strokeWidth={2.5} />
+          <span className="text-[10px] font-black ml-1">{language === 'ar' ? 'EN' : 'ع'}</span>
+        </button>
+        <button
+          onClick={toggleTheme}
+          className="p-3 bg-surface dark:bg-gray-800 text-secondary dark:text-white rounded-2xl border border-gray-50 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all active:scale-95"
+          title={theme === 'light' ? 'Switch to dark mode' : 'التبديل إلى الوضع الفاتح'}
+        >
+          {theme === 'light' ? <Moon size={20} strokeWidth={2.5} /> : <Sun size={20} strokeWidth={2.5} />}
+        </button>
+        <button className="p-3 bg-surface dark:bg-gray-800 text-secondary dark:text-white rounded-2xl border border-gray-50 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all active:scale-95">
           <Search size={20} strokeWidth={2.5} />
         </button>
-        <button 
+        <button
             onClick={onNotificationsClick}
-            className="p-3 bg-primary/5 text-primary rounded-2xl border border-primary/20 hover:bg-primary hover:text-white transition-all active:scale-95 relative"
+            className="p-3 bg-primary/5 dark:bg-primary/20 text-primary dark:text-primary-light rounded-2xl border border-primary/20 dark:border-primary/30 hover:bg-primary hover:text-white transition-all active:scale-95 relative"
         >
           <Bell size={20} strokeWidth={2.5} />
           <div className="absolute top-2 left-2 w-2.5 h-2.5 bg-accent rounded-full border-2 border-white" />
