@@ -4,7 +4,7 @@ import PostCard from '../components/PostCard';
 import { GOVERNORATES, SAMPLE_POSTS } from '../constants';
 import { Filter, Sparkles, TrendingUp, Users, Map as MapIcon, GraduationCap, ChevronLeft, RefreshCw, Plus, ArrowRightLeft } from 'lucide-react';
 import { PostSkeleton } from '../components/Skeletons';
-import { supabase } from '../lib/supabase';
+import { getPosts } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Post } from '../types';
 import { usePaginatedQuery } from '../hooks/usePaginatedQuery';
@@ -31,27 +31,10 @@ export default function Feed() {
       const from = currentPage * POSTS_PER_PAGE;
       const to = from + POSTS_PER_PAGE - 1;
 
-      let query = supabase
-        .from('posts')
-        .select(`
-          *,
-          profiles:author_id (
-            full_name,
-            avatar_url
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .range(from, to);
+      const govFilter = (activeFilter !== 'كل العراق' && activeFilter !== 'مؤسستي' && activeFilter !== 'تريند') ? activeFilter : undefined;
+      const instFilter = (activeFilter === 'مؤسستي' && profile?.institution) ? profile.institution : undefined;
 
-      if (activeFilter !== 'كل العراق' && activeFilter !== 'مؤسستي' && activeFilter !== 'تريند') {
-        query = query.eq('governorate', activeFilter);
-      } else if (activeFilter === 'مؤسستي' && profile?.institution) {
-        query = query.eq('institution', profile.institution);
-      }
-
-      const { data, error } = await query;
-
-      if (error) throw error;
+      const data = await getPosts({ governorate: govFilter, institution: instFilter, page: currentPage, limit: POSTS_PER_PAGE });
 
       const transformedPosts: Post[] = (data || []).map(p => ({
         id: p.id,
@@ -87,34 +70,16 @@ export default function Feed() {
     }
   };
 
-  // Cursor pagination simulation callback
+  // Cursor pagination via CF Worker API
   const fetchCursorPosts = useCallback(async (cursor?: string, limit = 5) => {
     const start = cursor ? parseInt(cursor, 10) : 0;
-    const end = start + limit - 1;
     
     try {
-      let query = supabase
-        .from('posts')
-        .select(`
-          *,
-          profiles:author_id (
-            full_name,
-            avatar_url
-          )
-        `)
-        .order('created_at', { ascending: false })
-        .range(start, end);
+      const govFilter = (activeFilter !== 'كل العراق' && activeFilter !== 'مؤسستي' && activeFilter !== 'تريند') ? activeFilter : undefined;
+      const instFilter = (activeFilter === 'مؤسستي' && profile?.institution) ? profile.institution : undefined;
+      const data = await getPosts({ governorate: govFilter, institution: instFilter, page: start, limit });
 
-      if (activeFilter !== 'كل العراق' && activeFilter !== 'مؤسستي' && activeFilter !== 'تريند') {
-        query = query.eq('governorate', activeFilter);
-      } else if (activeFilter === 'مؤسستي' && profile?.institution) {
-        query = query.eq('institution', profile.institution);
-      }
-
-      const { data, error } = await query;
-      if (error) throw error;
-
-      const transformed: Post[] = (data || []).map(p => ({
+      const transformed: Post[] = (data || []).map((p: any) => ({
         id: p.id,
         type: p.type as any,
         institutionName: p.institution || 'جامعة عراقية',
@@ -129,7 +94,7 @@ export default function Feed() {
         timestamp: new Date(p.created_at).toLocaleDateString('ar-IQ'),
         isVerified: p.is_verified,
         authorName: p.profiles?.full_name || 'طالب مجهول',
-        authorAvatar: p.profiles?.avatar_url || `https://picsum.photos/seed/${p.author_id}/100/100`,
+        authorAvatar: p.author_avatar_url || `https://picsum.photos/seed/${p.author_id}/100/100`,
       }));
 
       const hasMore = transformed.length === limit;
@@ -139,17 +104,7 @@ export default function Feed() {
         nextCursor: hasMore ? String(start + limit) : undefined
       };
     } catch {
-      // High fidelity fallback matching the existing structure of Iraq colleges
-      const filteredSample = activeFilter === 'كل العراق' 
-        ? SAMPLE_POSTS 
-        : SAMPLE_POSTS.filter(p => p.governorate === activeFilter);
-      const paginated = filteredSample.slice(start, start + limit);
-      const hasMore = start + limit < filteredSample.length;
-      return {
-        data: paginated,
-        hasMore,
-        nextCursor: hasMore ? String(start + limit) : undefined
-      };
+      return { data: [], hasMore: false, nextCursor: undefined };
     }
   }, [activeFilter, profile]);
 
@@ -192,18 +147,6 @@ export default function Feed() {
     return () => observer.disconnect();
   }, [hasMore, isLoading, isFetchingMore, page]);
 
-  useEffect(() => {
-    const subscription = supabase
-      .channel('public:posts')
-      .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'posts' }, () => {
-        fetchPosts(0);
-      })
-      .subscribe();
-
-    return () => {
-      subscription.unsubscribe();
-    };
-  }, [activeFilter]);
 
   const filters = [
     { id: 'all', label: 'كل العراق', icon: Sparkles },

@@ -19,7 +19,7 @@ import ResetPassword from './pages/ResetPassword';
 
 import { useAuth } from './contexts/AuthContext';
 import Auth from './pages/Auth';
-import { supabase } from './lib/supabase';
+import { createPost } from './lib/api';
 
 export default function App() {
   const { user, profile, isLoading } = useAuth();
@@ -35,20 +35,14 @@ export default function App() {
     setIsSubmitting(true);
     
     try {
-      const { error } = await supabase
-        .from('posts')
-        .insert({
-          author_id: user?.id,
-          type: newPostType,
-          content: newPostContent,
-          institution: profile.institution,
-          institution_id: profile.institution_id || 'manual',
-          governorate: profile.governorate,
-          is_verified: profile.role === 'institution_rep'
-        })
-        .select();
-
-      if (error) throw error;
+      await createPost({
+        type: newPostType,
+        content: newPostContent,
+        institution: profile.institution || '',
+        institution_id: profile.institution_id || 'manual',
+        governorate: profile.governorate || '',
+        is_verified: profile.role === 'institution_rep',
+      });
       
       setNewPostContent('');
       setShowPostOverlay(false);
