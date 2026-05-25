@@ -7,7 +7,7 @@ import {
   Briefcase, Award, Users, Rocket, BarChart3
 } from 'lucide-react';
 import { GOVERNORATES, SAMPLE_INSTITUTIONS } from '../constants';
-import { supabase } from '../lib/supabase';
+import { updateProfile } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 
 interface OnboardingProps {
@@ -39,21 +39,15 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
     if (!user) return;
     setIsFinishing(true);
     try {
-      const { error } = await supabase
-        .from('profiles')
-        .upsert({
-          id: user.id,
-          full_name: data.name,
-          governorate: data.governorate,
-          institution: data.institution,
-          institution_id: data.institutionId,
-          stage: data.stage,
-          interests: data.interests,
-          bio: data.bio,
-          updated_at: new Date().toISOString(),
-        });
-
-      if (error) throw error;
+      await updateProfile({
+        full_name: data.name,
+        governorate: data.governorate,
+        institution: data.institution,
+        institution_id: data.institutionId,
+        stage: data.stage,
+        interests: data.interests,
+        bio: data.bio,
+      });
       await refreshProfile();
       onComplete();
     } catch (err) {

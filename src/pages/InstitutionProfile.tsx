@@ -9,7 +9,7 @@ import {
 import { Institution, Post, Opportunity } from '../types';
 import { SAMPLE_POSTS, SAMPLE_OPPORTUNITIES } from '../constants';
 import PostCard from '../components/PostCard';
-import { supabase } from '../lib/supabase';
+import { getPosts } from '../lib/api';
 import { PostSkeleton } from '../components/Skeletons';
 
 interface InstitutionProfileProps {
@@ -35,21 +35,9 @@ export default function InstitutionProfile({ institution, onBack }: InstitutionP
     setIsLoadingPosts(true);
     setError(null);
     try {
-      const { data, error } = await supabase
-        .from('posts')
-        .select(`
-          *,
-          profiles:author_id (
-            full_name,
-            avatar_url
-          )
-        `)
-        .eq('institution', institution.name)
-        .order('created_at', { ascending: false });
+      const data = await getPosts({ institution: institution.name });
 
-      if (error) throw error;
-
-      const transformedPosts: Post[] = (data || []).map(p => ({
+      const transformedPosts: Post[] = (data || []).map((p: any) => ({
         id: p.id,
         type: p.type,
         institutionName: p.institution,
@@ -63,8 +51,8 @@ export default function InstitutionProfile({ institution, onBack }: InstitutionP
         views: p.views_count,
         timestamp: new Date(p.created_at).toLocaleDateString('ar-IQ'),
         isVerified: p.is_verified,
-        authorName: p.profiles?.full_name,
-        authorAvatar: p.profiles?.avatar_url,
+        authorName: p.author_full_name,
+        authorAvatar: p.author_avatar_url,
         ...(p.metadata || {})
       }));
 

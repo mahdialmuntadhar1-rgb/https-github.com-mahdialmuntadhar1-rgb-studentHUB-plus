@@ -9,19 +9,18 @@ import {
 import { SAMPLE_POSTS, SAMPLE_INSTITUTIONS } from '../constants';
 import PostCard from '../components/PostCard';
 import { useAuth } from '../contexts/AuthContext';
-import { supabase } from '../lib/supabase';
 import AdminPanel from './AdminPanel';
 
 export default function Profile() {
-  const { profile, user: authUser } = useAuth();
+  const { profile, user: authUser, signOut } = useAuth();
   const [activeTab, setActiveTab] = useState<'posts' | 'saved' | 'followed'>('posts');
   const [isLoggingOut, setIsLoggingOut] = useState(false);
   const [showAdminPanel, setShowAdminPanel] = useState(false);
 
   const handleLogout = async () => {
     setIsLoggingOut(true);
-    await supabase.auth.signOut();
-    window.location.reload(); // Refresh to clear state and redirect
+    await signOut();
+    window.location.reload();
   };
 
   const user = {
