@@ -97,6 +97,15 @@ export async function getMe(): Promise<RafidUser> {
   return handleResponse<RafidUser>(res);
 }
 
+export async function verifyEmail(token: string): Promise<{ message: string }> {
+  const res = await fetch(`${API_BASE}/api/auth/verify-email`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ token }),
+  });
+  return handleResponse<{ message: string }>(res);
+}
+
 // ─── Profile ──────────────────────────────────────────────────────────────────
 
 export async function updateProfile(payload: {
