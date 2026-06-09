@@ -8,197 +8,9 @@ import LifeFeed from './components/LifeFeed';
 import FutureFeed from './components/FutureFeed';
 import AskFeed from './components/AskFeed';
 import ProfileView from './components/ProfileView';
+import AuthModal from './components/AuthModal';
 import { motion, AnimatePresence } from 'motion/react';
-import { Home, HelpCircle, Briefcase, User, Compass, Lock, LogOut, CheckCircle } from 'lucide-react';
-import {
-  getOpportunities,
-  getPosts,
-  getToken,
-  isLoggedIn,
-  login,
-  register,
-  getMe,
-  logout,
-  createPost,
-  likePost,
-  getComments,
-  createComment,
-  requestPasswordReset,
-  confirmPasswordReset
-} from './lib/rafidApi';
-
-const isOpportunityItem = (item: FeedItem) => {
-  return [
-    'job',
-    'internship',
-    'scholarship',
-    'training',
-    'part_time_job',
-    'full_time_job',
-    'volunteering',
-    'competition',
-    'graduation_project_support'
-  ].includes(item.type) || !!item.opportunityCategory;
-};
-
-const fallbackAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100';
-
-const normalizeText = (value?: string | null) => (value || '').toLowerCase().trim();
-
-const resolveGovernorateId = (value?: string | null) => {
-  const text = normalizeText(value);
-  if (!text) return 'all';
-  const found = IraqiGovernorates.find(g =>
-    [g.id, g.nameEN, g.nameAR, g.nameKU].some(name => normalizeText(name).includes(text) || text.includes(normalizeText(name)))
-  );
-  return found?.id || 'all';
-};
-
-const resolveUniversityId = (value?: string | null) => {
-  const text = normalizeText(value);
-  if (!text) return 'all';
-  const found = IraqiUniversities.find(u =>
-    [u.id, u.nameEN, u.nameAR, u.nameKU].some(name => normalizeText(name).includes(text) || text.includes(normalizeText(name)))
-  );
-  return found?.id || 'all';
-};
-
-const formatDateLabel = (value?: string | null) => {
-  if (!value) return 'Recently';
-  const date = new Date(value.replace(' ', 'T'));
-  if (Number.isNaN(date.getTime())) return value;
-  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
-};
-
-const mapBackendPostToFeedItem = (post: any): FeedItem => {
-  const mediaUrl = post.image_url || post.imageUrl || post.media_url;
-  const isImage = typeof mediaUrl === 'string' && /\.(png|jpe?g|gif|webp|avif)$/i.test(mediaUrl);
-  const title = post.title || 'Campus update';
-  const content = post.content || post.body || '';
-
-  return {
-    id: String(post.id),
-    type: post.type === 'announcement' ? 'announcement' : 'post',
-    titleEN: title,
-    titleAR: title,
-    titleKU: title,
-    contentEN: content,
-    contentAR: content,
-    contentKU: content,
-    author: {
-      name: post.author_full_name || post.author?.name || 'Rafid Student',
-      role: post.is_verified ? 'institution' : 'student',
-      avatar: post.author_avatar_url || post.author?.avatar || fallbackAvatar,
-      verified: Boolean(post.is_verified)
-    },
-    date: formatDateLabel(post.created_at || post.createdAt),
-    rawDate: post.created_at || post.createdAt,
-    likes: Number(post.likes_count || post.likes || 0),
-    commentsCount: Number(post.comments_count || post.commentsCount || 0),
-    commentsList: [],
-    views: Number(post.views_count || post.views || 0),
-    imageUrl: isImage ? mediaUrl : undefined,
-    governorateId: resolveGovernorateId(post.governorate),
-    universityId: resolveUniversityId(post.institution || post.university || post.institution_name),
-    tags: ['Rafid', 'Live']
-  };
-};
-
-const mapBackendCommentToComment = (comment: any): Comment => ({
-  id: String(comment.id || `comment-${Date.now()}`),
-  authorName: comment.author_name || comment.authorName || comment.author_full_name || 'Rafid Student',
-  authorRole: 'student',
-  authorAvatar: comment.author_avatar || comment.authorAvatar || fallbackAvatar,
-  content: comment.content || '',
-  date: formatDateLabel(comment.created_at || comment.createdAt),
-  likes: Number(comment.likes_count || comment.likes || 0)
-});
-
-const isBackendItem = (item?: FeedItem) => Boolean(item?.tags?.includes('Rafid'));
-
-const extractAuthUser = (value: any) => value?.user || value?.data?.user || value?.profile || value || null;
-
-const getAuthUserLabel = (user: any) => {
-  return user?.full_name || user?.fullName || user?.name || user?.email || 'مستخدم جامعاتي';
-};
-
-const parseBackendTags = (value: any) => {
-  if (Array.isArray(value)) return value;
-  if (typeof value !== 'string') return [];
-  try {
-    const parsed = JSON.parse(value);
-    return Array.isArray(parsed) ? parsed : parsed ? [parsed] : [];
-  } catch {
-    return value.split(',').map(tag => tag.trim()).filter(Boolean);
-  }
-};
-
-const findTagObject = (tags: any[]) => tags.find(tag => tag && typeof tag === 'object') || {};
-
-const mapBackendOpportunityToFeedItem = (opportunity: any): FeedItem => {
-  const parsedTags = parseBackendTags(opportunity.tags);
-  const tagMeta = findTagObject(parsedTags);
-  const title = opportunity.title || opportunity.name || opportunity.position || 'Opportunity';
-  const content = opportunity.description || tagMeta.description || opportunity.content || opportunity.summary || '';
-  const category = opportunity.category || tagMeta.category || opportunity.type || 'job';
-  const sourceUrl = opportunity.source_url || tagMeta.source_url;
-  const type = category.toLowerCase().includes('intern') ? 'internship'
-    : category.toLowerCase().includes('scholar') ? 'scholarship'
-    : category.toLowerCase().includes('train') ? 'training'
-    : category.toLowerCase().includes('volunteer') ? 'volunteering'
-    : category.toLowerCase().includes('competition') ? 'competition'
-    : category.toLowerCase().includes('language') ? 'training'
-    : category.toLowerCase().includes('course') ? 'training'
-    : category.toLowerCase().includes('part') ? 'part_time_job'
-    : category.toLowerCase().includes('project') ? 'graduation_project_support'
-    : 'job';
-
-  return {
-    id: String(opportunity.id || `backend-opp-${title}`),
-    type: type as FeedItem['type'],
-    titleEN: title,
-    titleAR: opportunity.title_ar || title,
-    titleKU: opportunity.title_ku || title,
-    contentEN: content,
-    contentAR: opportunity.description_ar || content,
-    contentKU: opportunity.description_ku || content,
-    author: {
-      name: opportunity.company || opportunity.provider || 'Rafid Opportunity',
-      role: 'institution',
-      avatar: opportunity.logo_url || fallbackAvatar,
-      verified: true
-    },
-    date: formatDateLabel(opportunity.created_at || opportunity.createdAt),
-    rawDate: opportunity.created_at || opportunity.createdAt,
-    likes: Number(opportunity.likes_count || opportunity.likes || 0),
-    commentsCount: Number(opportunity.comments_count || opportunity.commentsCount || 0),
-    commentsList: [],
-    governorateId: resolveGovernorateId(opportunity.governorate || opportunity.location),
-    universityId: resolveUniversityId(opportunity.institution || opportunity.university || tagMeta.university || opportunity.institution_name),
-    company: opportunity.company || opportunity.provider || opportunity.institution_name,
-    companyLogo: opportunity.company_logo || '💼',
-    location: opportunity.location || opportunity.governorate || 'All Iraq',
-    deadline: opportunity.deadline,
-    opportunityCategory: type === 'internship' ? 'Internship'
-      : type === 'scholarship' ? 'Scholarship'
-      : type === 'training' ? 'Training'
-      : type === 'volunteering' ? 'Volunteering'
-      : type === 'competition' ? 'Competition'
-      : type === 'graduation_project_support' ? 'Graduation project support'
-      : 'Full-time graduate job',
-    workplaceType: (opportunity.workplace_type || opportunity.workplaceType || 'On-site') as FeedItem['workplaceType'],
-    whoCanApply: opportunity.who_can_apply || opportunity.whoCanApply,
-    savedCount: Number(opportunity.saved_count || opportunity.savedCount || 0),
-    companyVerified: true,
-    tags: [
-      'Rafid',
-      'Opportunity',
-      ...(tagMeta.is_seed ? ['Seed'] : []),
-      ...(tagMeta.demo ? ['Demo'] : []),
-      ...(sourceUrl ? ['Source'] : [])
-    ]
-  };
-};
+import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
 
 export default function App() {
   // Locale States
@@ -206,21 +18,37 @@ export default function App() {
   const [selectedGov, setSelectedGov] = useState<string>('all');
   const [selectedUni, setSelectedUni] = useState<string>('all');
 
+  // Toast notifications manager state
+  interface ToastMessage {
+    id: string;
+    text: string;
+    type: 'success' | 'error' | 'info';
+    icon?: string;
+  }
+  const [toasts, setToasts] = useState<ToastMessage[]>([]);
+  const showToast = (text: string, type: 'success' | 'error' | 'info' = 'success', icon?: string) => {
+    const id = `toast-${Date.now()}`;
+    setToasts(prev => [...prev, { id, text, type, icon }]);
+    setTimeout(() => {
+      setToasts(prev => prev.filter(t => t.id !== id));
+    }, 4000);
+  };
+
   // Navigation tab state
   const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile'>('home');
-  const [authPromptOpen, setAuthPromptOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'prompt' | 'login' | 'register' | 'forgot' | 'reset'>('prompt');
-  const [authEmail, setAuthEmail] = useState('');
-  const [authPassword, setAuthPassword] = useState('');
-  const [authName, setAuthName] = useState('');
-  const [authResetCode, setAuthResetCode] = useState('');
-  const [authNewPassword, setAuthNewPassword] = useState('');
-  const [authMessage, setAuthMessage] = useState('');
-  const [authMessageType, setAuthMessageType] = useState<'error' | 'success'>('error');
-  const [authLoading, setAuthLoading] = useState(false);
-  const [loggedIn, setLoggedIn] = useState(() => isLoggedIn());
-  const [authUser, setAuthUser] = useState<Record<string, unknown> | null>(null);
-  const [interactionMessage, setInteractionMessage] = useState('');
+
+  // Brief dynamic feed loading skeleton simulator
+  const [isFeedLoading, setIsFeedLoading] = useState(false);
+
+  useEffect(() => {
+    setIsFeedLoading(true);
+    const t = setTimeout(() => setIsFeedLoading(false), 450);
+    return () => clearTimeout(t);
+  }, [selectedGov, selectedUni, activeTab]);
+
+  // Auth States
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => localStorage.getItem('jamiaati_logged_in') !== 'false');
+  const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Feed database state (persisted in session / local storage for active play)
   const [feedItems, setFeedItems] = useState<FeedItem[]>(() => {
@@ -243,192 +71,33 @@ export default function App() {
     localStorage.setItem('jamiaati_profile_v2', JSON.stringify(userProfile));
   }, [userProfile]);
 
-  useEffect(() => {
-    let cancelled = false;
-
-    async function loadRafidData() {
-      const [backendOpportunities, backendPosts] = await Promise.all([
-        getOpportunities(),
-        getPosts()
-      ]);
-
-      if (cancelled) return;
-
-      const mockOpportunities = initialFeedItems.filter(isOpportunityItem);
-      const mockPosts = initialFeedItems.filter(item => !isOpportunityItem(item));
-      const opportunityItems = backendOpportunities.length > 0
-        ? backendOpportunities.map(mapBackendOpportunityToFeedItem)
-        : mockOpportunities;
-      const postItems = backendPosts.length > 0
-        ? backendPosts.map(mapBackendPostToFeedItem)
-        : mockPosts;
-
-      setFeedItems([...postItems, ...opportunityItems]);
-    }
-
-    loadRafidData();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
-  useEffect(() => {
-    let cancelled = false;
-
-    async function validateExistingToken() {
-      const token = getToken();
-      if (!token) {
-        setLoggedIn(false);
-        return;
-      }
-
-      const me = await getMe(token);
-      if (cancelled) return;
-
-      if (!me) {
-        logout();
-        setLoggedIn(false);
-        setAuthUser(null);
-      } else {
-        setLoggedIn(true);
-        setAuthUser(extractAuthUser(me));
-      }
-    }
-
-    validateExistingToken();
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
-
   // Adjust application alignment automatically based on language direction
   const isRTL = language === 'ar' || language === 'ku';
 
   // State modification events
-  const requireLogin = () => {
-    if (loggedIn || isLoggedIn()) return false;
-    setAuthMode('prompt');
-    setAuthMessage('');
-    setAuthPromptOpen(true);
-    return true;
-  };
-
-  const showInteractionMessage = (message: string) => {
-    setInteractionMessage(message);
-    window.setTimeout(() => setInteractionMessage(''), 3500);
-  };
-
-  const handleAuthSubmit = async (event: React.FormEvent) => {
-    event.preventDefault();
-    setAuthMessage('');
-    setAuthLoading(true);
-
-    if (authMode === 'forgot') {
-      const result = await requestPasswordReset(authEmail);
-      setAuthLoading(false);
-      setAuthMessageType(result.ok ? 'success' : 'error');
-      setAuthMessage(result.message);
-      return;
-    }
-
-    if (authMode === 'reset') {
-      const result = await confirmPasswordReset(authResetCode, authNewPassword);
-      setAuthLoading(false);
-      setAuthMessageType(result.ok ? 'success' : 'error');
-      setAuthMessage(result.message);
-      if (result.ok) {
-        setAuthPassword('');
-        setAuthResetCode('');
-        setAuthNewPassword('');
-        window.setTimeout(() => {
-          setAuthMode('login');
-          setAuthMessage('');
-        }, 900);
-      }
-      return;
-    }
-
-    const result = authMode === 'register'
-      ? await register({ full_name: authName, email: authEmail, password: authPassword })
-      : await login(authEmail, authPassword);
-
-    setAuthLoading(false);
-
-    if (!result.ok) {
-      setAuthMessageType('error');
-      setAuthMessage(result.message || 'حدث خطأ، حاول مرة أخرى');
-      return;
-    }
-
-    setLoggedIn(true);
-    setAuthUser(result.user);
-    setAuthMessageType('success');
-    setAuthMessage(result.message || (authMode === 'register' ? 'تم إنشاء الحساب بنجاح' : 'تم تسجيل الدخول بنجاح'));
-    window.setTimeout(() => {
-      setAuthPromptOpen(false);
-      setAuthEmail('');
-      setAuthPassword('');
-      setAuthName('');
-      setAuthResetCode('');
-      setAuthNewPassword('');
-      setAuthMessage('');
-      setAuthMode('prompt');
-    }, 650);
-  };
-
-  const handleLogout = () => {
-    logout();
-    setLoggedIn(false);
-    setAuthUser(null);
-    setAuthMessage('');
-    showInteractionMessage('تم تسجيل الخروج');
-  };
-
-  const handleLike = async (id: string) => {
-    if (requireLogin()) return;
-    const currentItem = feedItems.find(item => item.id === id);
-    if (!isBackendItem(currentItem)) {
-      showInteractionMessage('هذا منشور تجريبي، جرّب المنشورات الحقيقية لاحقاً');
-      return;
-    }
-
-    const token = getToken();
-    if (!token) return;
-
-    const previous = currentItem;
+  const handleLike = (id: string) => {
+    let triggeredToast = false;
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
         const isLiked = !item.likedByUser;
-        return {
-          ...item,
-          likes: isLiked ? item.likes + 1 : Math.max(0, item.likes - 1),
-          likedByUser: isLiked
-        };
-      }
-      return item;
-    }));
-
-    const result = await likePost(token, id);
-    if (!result.ok) {
-      showInteractionMessage(result.message || 'تعذر تحديث الإعجاب الآن');
-      if (previous) {
-        setFeedItems(prev => prev.map(item => item.id === id ? previous : item));
-      }
-      return;
-    }
-
-    setFeedItems(prev => prev.map(item => {
-      if (item.id === id) {
-        const isLiked = Boolean(result.data?.liked);
-        // Award points on first like
-        if (isLiked) {
-          handleAwardPoints(5);
+        if (!triggeredToast) {
+          triggeredToast = true;
+          if (isLiked) {
+            handleAwardPoints(5);
+            showToast(
+              language === 'ar' ? 'تم الإعجاب بالمنشور! ❤️ +٥ نقاط تفاعل' : language === 'ku' ? 'دڵخواز بوو! ❤️ +٥ خاڵی کارلێک' : 'Post Liked! ❤️ +5 pts', 
+              'success'
+            );
+          } else {
+            showToast(
+              language === 'ar' ? 'تم إلغاء الإعجاب بالمنشور' : language === 'ku' ? 'لادانی دڵخواز لە بابەتەکە' : 'Removed like from post', 
+              'info'
+            );
+          }
         }
         return {
           ...item,
-          likes: Number(result.data?.likes_count ?? item.likes),
+          likes: isLiked ? item.likes + 1 : item.likes - 1,
           likedByUser: isLiked
         };
       }
@@ -437,13 +106,24 @@ export default function App() {
   };
 
   const handleSave = (id: string) => {
-    if (requireLogin()) return;
-
+    let triggeredToast = false;
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
         const isSaved = !item.savedByUser;
-        if (isSaved) {
-          handleAwardPoints(10);
+        if (!triggeredToast) {
+          triggeredToast = true;
+          if (isSaved) {
+            handleAwardPoints(10);
+            showToast(
+              language === 'ar' ? 'تم الحفظ في المحفظة الأكاديمية! 🔖 +١٠ نقاط' : language === 'ku' ? 'پاشەکەوتکرا لە جزدانی ئەکادیمی! 🔖 +١٠ خاڵ' : 'Saved to Hub Library! 🔖 +10 pts', 
+              'success'
+            );
+          } else {
+            showToast(
+              language === 'ar' ? 'تمت الإزالة من المفضلة الأكاديمية' : language === 'ku' ? 'لادانی لە پاشەکەوتکراوەکان' : 'Removed bookmark', 
+              'info'
+            );
+          }
         }
         return {
           ...item,
@@ -455,14 +135,20 @@ export default function App() {
   };
 
   const handleVote = (itemId: string, optionId: string) => {
-    if (requireLogin()) return;
-
+    let triggeredToast = false;
     setFeedItems(prev => prev.map(item => {
       if (item.id === itemId && item.pollOptions) {
         // Prevent voting if already voted
         if (item.pollVotedId) return item;
 
-        handleAwardPoints(25); // high reward for sharing feedback
+        if (!triggeredToast) {
+          triggeredToast = true;
+          handleAwardPoints(25); // high reward for sharing feedback
+          showToast(
+            language === 'ar' ? 'تم تسجيل رأيك الطلابي بنجاح! 📊 +٢٥ نقطة مساهمة' : language === 'ku' ? 'دەنگەکەت بە سەرکەوتوویی تۆمارکرا! 📊 +٢٥ خاڵ' : 'Feedback vote recorded! 📊 +25 pts', 
+            'success'
+          );
+        }
 
         return {
           ...item,
@@ -480,13 +166,24 @@ export default function App() {
   };
 
   const handleApply = (id: string) => {
-    if (requireLogin()) return;
-
+    let triggeredToast = false;
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
         const isApplied = !item.applied;
-        if (isApplied) {
-          handleAwardPoints(50); // Massive career action reward!
+        if (!triggeredToast) {
+          triggeredToast = true;
+          if (isApplied) {
+            handleAwardPoints(50); // Massive career action reward!
+            showToast(
+              language === 'ar' ? 'تم تسجيل طلب التقديم للفرصة بنجاح! 💼 +٥٠ نقطة تواصل مهني' : language === 'ku' ? 'پێشکەشکردنی داواکاری کارەکەت سەرکەوتوو بوو! 💼 +٥٠ خاڵی پیشەیی' : 'Application registered successfully! 💼 +50 Career pts', 
+              'success'
+            );
+          } else {
+            showToast(
+              language === 'ar' ? 'تم إلغاء تقديم الطلب بنجاح' : language === 'ku' ? 'داواکاریەکەت هەڵوەشێنرایەوە' : 'Cancelled application request', 
+              'info'
+            );
+          }
         }
         return {
           ...item,
@@ -498,13 +195,24 @@ export default function App() {
   };
 
   const handleRsvp = (id: string) => {
-    if (requireLogin()) return;
-
+    let triggeredToast = false;
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
         const isRsvped = !item.eventRsvped;
-        if (isRsvped) {
-          handleAwardPoints(30);
+        if (!triggeredToast) {
+          triggeredToast = true;
+          if (isRsvped) {
+            handleAwardPoints(30);
+            showToast(
+              language === 'ar' ? 'تم حجز تذكرتك الأكاديمية بنجاح! 🎟️ +٣٠ نقطة تفاعل' : language === 'ku' ? 'کورسیەکەت گیرا بۆ مەراسیمەکە! 🎟️ +٣٠ خاڵ' : 'Access ticket reserved! 🎟️ +30 pts', 
+              'success'
+            );
+          } else {
+            showToast(
+              language === 'ar' ? 'تم إلغاء تأكيد حضور الفعالية' : language === 'ku' ? 'هەڵوەشاندنەوەی حیجزی مەراسیمەکە' : 'Reservation cancelled', 
+              'info'
+            );
+          }
         }
         return {
           ...item,
@@ -517,13 +225,24 @@ export default function App() {
   };
 
   const handleJoinGroup = (id: string) => {
-    if (requireLogin()) return;
-
+    let triggeredToast = false;
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
         const isJoined = !item.joined;
-        if (isJoined) {
-          handleAwardPoints(30);
+        if (!triggeredToast) {
+          triggeredToast = true;
+          if (isJoined) {
+            handleAwardPoints(30);
+            showToast(
+              language === 'ar' ? 'انضممت لمجموعة المراجعة! 👥 +٣٠ نقطة دراسية' : language === 'ku' ? 'پەیوەست بوویت بە گروپی گفتوگۆکە! 👥 +٣٠ خاڵی مراجعە' : 'Joined study circle! 👥 +30 Study pts', 
+              'success'
+            );
+          } else {
+            showToast(
+              language === 'ar' ? 'غادرت مجموعة الصداقة والمراجعة' : language === 'ku' ? 'جێهێشتنی بازنەی خوێندنەکە' : 'Left study circle', 
+              'info'
+            );
+          }
         }
         return {
           ...item,
@@ -535,47 +254,21 @@ export default function App() {
     }));
   };
 
-  const handleLoadComments = async (itemId: string) => {
-    const item = feedItems.find(feedItem => feedItem.id === itemId);
-    if (!isBackendItem(item)) return;
-
-    const comments = await getComments(itemId);
-    if (!Array.isArray(comments)) {
-      showInteractionMessage('التعليقات غير متاحة حالياً');
-      return;
-    }
-
-    setFeedItems(prev => prev.map(feedItem => {
-      if (feedItem.id !== itemId) return feedItem;
-      const commentsList = comments.map(mapBackendCommentToComment);
-      return {
-        ...feedItem,
-        commentsList,
-        commentsCount: commentsList.length
-      };
-    }));
-  };
-
-  const handleAddComment = async (itemId: string, content: string) => {
-    if (requireLogin()) return false;
-    const currentItem = feedItems.find(item => item.id === itemId);
-    if (!isBackendItem(currentItem)) {
-      showInteractionMessage('هذا منشور تجريبي، جرّب المنشورات الحقيقية لاحقاً');
-      return false;
-    }
-
-    const token = getToken();
-    if (!token) return false;
-
-    const result = await createComment(token, itemId, content);
-    if (!result.ok || !result.data) {
-      showInteractionMessage(result.message || 'تعذر إضافة التعليق الآن');
-      return false;
-    }
-
-    const newComment = mapBackendCommentToComment(result.data);
+  const handleAddComment = (itemId: string, content: string) => {
+    const newComment: Comment = {
+      id: `c-${Date.now()}`,
+      authorName: userProfile.name,
+      authorRole: userProfile.role,
+      authorAvatar: userProfile.avatar,
+      content,
+      date: 'Just now'
+    };
 
     handleAwardPoints(15); // reward commenting and discussion
+    showToast(
+      language === 'ar' ? 'تم نشر تعليقك الأكاديمي بنجاح! 💬 +١٥ نقطة مراجع' : language === 'ku' ? 'وەڵامەکەت بڵاوکرایەوە بە سەرکەوتوویی! 💬 +١٥ خاڵ' : 'Academic comment posted! 💬 +15 pts', 
+      'success'
+    );
 
     setFeedItems(prev => prev.map(item => {
       if (item.id === itemId) {
@@ -587,41 +280,44 @@ export default function App() {
       }
       return item;
     }));
-    return true;
   };
 
-  const handleAddNewPost = async (title: string, body: string, anonymous: boolean, customType = 'post') => {
-    if (requireLogin()) return false;
-    const token = getToken();
-    if (!token) return false;
-
-    const governorate = selectedGov === 'all'
-      ? IraqiGovernorates.find(g => g.id === userProfile.governorateId)?.nameEN || 'Baghdad'
-      : IraqiGovernorates.find(g => g.id === selectedGov)?.nameEN || selectedGov;
-    const institution = selectedUni === 'all'
-      ? IraqiUniversities.find(u => u.id === userProfile.universityId)?.nameEN || 'University of Baghdad'
-      : IraqiUniversities.find(u => u.id === selectedUni)?.nameEN || selectedUni;
-    const institutionId = selectedUni === 'all' ? userProfile.universityId : selectedUni;
-
-    const result = await createPost(token, {
-      title,
-      content: body,
-      type: customType === 'anonymous_question' ? 'student' : customType,
-      governorate,
-      institution,
-      institution_id: institutionId,
-      metadata: { anonymous }
-    });
-
-    if (!result.ok || !result.data) {
-      showInteractionMessage(result.message || 'تعذر نشر المنشور الآن');
-      return false;
-    }
+  const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post') => {
+    const freshPost: FeedItem = {
+      id: `custom-${Date.now()}`,
+      type: customType as any,
+      titleEN: title,
+      titleAR: title,
+      titleKU: title,
+      contentEN: body,
+      contentAR: body,
+      contentKU: body,
+      author: anonymous ? {
+        name: 'Anonymous Student',
+        role: 'student',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100'
+      } : {
+        name: userProfile.name,
+        role: userProfile.role,
+        avatar: userProfile.avatar,
+        university: IraqiUniversities.find(u => u.id === userProfile.universityId)?.nameEN
+      },
+      date: 'Just now',
+      likes: 1,
+      commentsCount: 0,
+      commentsList: [],
+      likedByUser: true,
+      governorateId: selectedGov === 'all' ? userProfile.governorateId : selectedGov,
+      universityId: selectedUni === 'all' ? userProfile.universityId : selectedUni,
+      tags: ['StudentShare', customType === 'anonymous_question' ? 'Advising' : 'Life']
+    };
 
     handleAwardPoints(40); // high points for sharing posts!
-    setFeedItems(prev => [mapBackendPostToFeedItem(result.data), ...prev]);
-    showInteractionMessage('تم نشر المنشور بنجاح');
-    return true;
+    showToast(
+      language === 'ar' ? 'تم نشر مساهمتك بنجاح على ساحة الطلاب! ✨ +٤٠ نقطة' : language === 'ku' ? 'بڵاوکراوەکەت بڵاوکرایەوە لە ساحەی قوتابیان! ✨ +٤٠ خاڵ' : 'Contribution published successfully! ✨ +40 pts', 
+      'success'
+    );
+    setFeedItems(prev => [freshPost, ...prev]);
   };
 
   // Gamification engine helpers
@@ -639,8 +335,6 @@ export default function App() {
 
   // Simulating user switches Roles inside their profile
   const handleRoleToggle = () => {
-    if (requireLogin()) return;
-
     const roles: ('student' | 'graduate' | 'teacher' | 'staff')[] = ['student', 'graduate', 'teacher', 'staff'];
     const currentIdx = roles.indexOf(userProfile.role as any);
     const nextIdx = (currentIdx + 1) % roles.length;
@@ -703,10 +397,9 @@ export default function App() {
             onRsvp={handleRsvp}
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
-            onLoadComments={handleLoadComments}
             onNavigateTab={setActiveTab}
             onAddNewPost={handleAddNewPost}
-            onRequireLogin={requireLogin}
+            isFeedLoading={isFeedLoading}
           />
         );
       case 'life':
@@ -723,8 +416,8 @@ export default function App() {
             onRsvp={handleRsvp}
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
-            onLoadComments={handleLoadComments}
             onShowAll={handleShowAllLife}
+            isFeedLoading={isFeedLoading}
           />
         );
       case 'ask':
@@ -741,9 +434,8 @@ export default function App() {
             onRsvp={handleRsvp}
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
-            onLoadComments={handleLoadComments}
             onAddNewPost={handleAddNewPost}
-            onRequireLogin={requireLogin}
+            isFeedLoading={isFeedLoading}
           />
         );
       case 'future':
@@ -760,8 +452,8 @@ export default function App() {
             onRsvp={handleRsvp}
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
-            onLoadComments={handleLoadComments}
             onBackToHome={handleBackToHomeFuture}
+            isFeedLoading={isFeedLoading}
           />
         );
       case 'profile':
@@ -777,8 +469,17 @@ export default function App() {
             onRsvp={handleRsvp}
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
-            onLoadComments={handleLoadComments}
             onToggleUserRole={handleRoleToggle}
+            isLoggedIn={isLoggedIn}
+            onLogout={() => {
+              setIsLoggedIn(false);
+              localStorage.setItem('jamiaati_logged_in', 'false');
+              showToast(
+                language === 'ar' ? 'تم تسجيل خروجك بنجاح. نراك قريباً! 👋' : language === 'ku' ? 'خۆتۆمارکردنەکەت کۆتایی پێهات. بە هیوای دیدار! 👋' : 'Logged out successfully. See you! 👋', 
+                'info'
+              );
+            }}
+            onTriggerAuth={() => setIsAuthModalOpen(true)}
           />
         );
       default:
@@ -787,9 +488,9 @@ export default function App() {
   };
 
   return (
-    <div className="bg-slate-50 min-h-screen text-gray-800 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div id="jamiaati-portal" className="bg-[#040814] min-h-screen text-slate-900 dark:text-slate-100 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'}>
       {/* Centered device presentation mock */}
-      <div className="w-full max-w-md mx-auto min-h-screen bg-white shadow-2xl relative flex flex-col border-x border-gray-150/50">
+      <div className="w-full max-w-md mx-auto min-h-screen bg-[#0B1020] shadow-2xl shadow-black/8 w-full relative flex flex-col border-x border-[#1F2E4D]">
         
         {/* Top Header Selector Component */}
         <Header
@@ -803,318 +504,156 @@ export default function App() {
           onProfileClick={() => setActiveTab('profile')}
         />
 
-        {loggedIn && (
-          <div className="absolute top-20 right-3 z-30 flex items-center gap-2 bg-white/95 border border-emerald-100 rounded-2xl shadow-sm px-3 py-2 max-w-[260px]">
-            <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
-            <div className="min-w-0 text-right">
-              <span className="block text-[10px] font-black text-emerald-700 leading-none mb-0.5">متصل</span>
-              <span className="block text-[10px] font-extrabold text-gray-600 truncate max-w-[132px]">
-                {getAuthUserLabel(authUser)}
-              </span>
-            </div>
-            <button
-              type="button"
-              onClick={handleLogout}
-              className="rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors px-2 py-1 text-[10px] font-black inline-flex items-center gap-1 shrink-0"
-              title="تسجيل الخروج"
-            >
-              <LogOut className="w-3.5 h-3.5" />
-              تسجيل الخروج
-            </button>
-          </div>
-        )}
-
-        <AnimatePresence>
-          {interactionMessage && (
-            <motion.div
-              initial={{ opacity: 0, y: -10 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: -10 }}
-              className="absolute top-20 left-3 right-3 z-40 bg-gray-950 text-white text-xs font-bold rounded-2xl px-3 py-2 shadow-lg text-center"
-            >
-              {interactionMessage}
-            </motion.div>
-          )}
-        </AnimatePresence>
-
         {/* Dynamic Inner views container */}
-        <main className="flex-1 overflow-y-auto">
+        <main className="flex-1 overflow-y-auto bg-[#0B1020]">
           {renderActiveView()}
         </main>
 
         {/* Bottom Persistent Navigation Bar: Visible at all times */}
         <nav 
           id="persistent-bottom-navbar"
-          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 border-t border-gray-100 p-2.5 flex justify-around items-center backdrop-blur-md z-40 shadow-lg pointer-events-auto"
+          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[#0B1020]/95 border-t border-[#1F2E4D] px-2 py-3.5 flex justify-around items-center backdrop-blur-md z-40 shadow-2xl shadow-cyan-950/20 pointer-events-auto"
         >
           {/* TAB 1: Home */}
           <button
             onClick={() => setActiveTab('home')}
-            className={`flex flex-col items-center gap-1.5 py-1 px-3.5 rounded-2xl cursor-pointer transition-all ${
+            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'home' 
-                ? 'text-orange-500 bg-orange-50 font-black' 
-                : 'text-gray-400 hover:text-gray-600'
+                ? 'text-cyan-400 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
             }`}
           >
             <Home className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-extrabold">{getTranslation('navHome', language)}</span>
+            <span className="text-[10px] leading-none font-bold">{getTranslation('navHome', language)}</span>
+            {activeTab === 'home' && (
+              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
+            )}
           </button>
 
           {/* TAB 2: Life (Fun/Social) */}
           <button
             onClick={() => setActiveTab('life')}
-            className={`flex flex-col items-center gap-1.5 py-1 px-3.5 rounded-2xl cursor-pointer transition-all ${
+            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'life' 
-                ? 'text-orange-500 bg-orange-50 font-black' 
-                : 'text-gray-400 hover:text-gray-600'
+                ? 'text-cyan-400 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
             }`}
           >
             <Compass className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-extrabold">{getTranslation('navLife', language)}</span>
+            <span className="text-[10px] leading-none font-bold">{getTranslation('navLife', language)}</span>
+            {activeTab === 'life' && (
+              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
+            )}
           </button>
 
           {/* TAB 3: Ask (AI & Discussions) */}
           <button
             onClick={() => setActiveTab('ask')}
-            className={`flex flex-col items-center gap-1.5 py-1 px-3.5 rounded-2xl cursor-pointer transition-all ${
+            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'ask' 
-                ? 'text-orange-500 bg-orange-50 font-black font-semibold' 
-                : 'text-gray-400 hover:text-gray-600'
+                ? 'text-cyan-400 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
             }`}
           >
             <HelpCircle className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-extrabold">{getTranslation('navAsk', language)}</span>
+            <span className="text-[10px] leading-none font-bold">{getTranslation('navAsk', language)}</span>
+            {activeTab === 'ask' && (
+              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
+            )}
           </button>
 
           {/* TAB 4: Future (Careers & Board) */}
           <button
             onClick={() => setActiveTab('future')}
-            className={`flex flex-col items-center gap-1.5 py-1 px-3.5 rounded-2xl cursor-pointer transition-all ${
+            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'future' 
-                ? 'text-orange-500 bg-orange-50 font-black' 
-                : 'text-gray-400 hover:text-gray-600'
+                ? 'text-cyan-400 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
             }`}
           >
             <Briefcase className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-extrabold">{getTranslation('navFuture', language)}</span>
+            <span className="text-[10px] leading-none font-bold">{getTranslation('navFuture', language)}</span>
+            {activeTab === 'future' && (
+              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
+            )}
           </button>
 
           {/* TAB 5: Profile */}
           <button
             onClick={() => setActiveTab('profile')}
-            className={`flex flex-col items-center gap-1.5 py-1 px-3.5 rounded-2xl cursor-pointer transition-all ${
+            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'profile' 
-                ? 'text-orange-500 bg-orange-50 font-black' 
-                : 'text-gray-400 hover:text-gray-600'
+                ? 'text-cyan-400 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
             }`}
           >
             <User className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-extrabold">{getTranslation('navProfile', language)}</span>
+            <span className="text-[10px] leading-none font-bold">{getTranslation('navProfile', language)}</span>
+            {activeTab === 'profile' && (
+              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
+            )}
           </button>
         </nav>
 
-        <AnimatePresence>
-          {authPromptOpen && (
-            <motion.div
-              className="fixed inset-0 z-50 bg-slate-950/45 backdrop-blur-sm flex items-end sm:items-center justify-center px-4 pb-6"
-              initial={{ opacity: 0 }}
-              animate={{ opacity: 1 }}
-              exit={{ opacity: 0 }}
-              role="dialog"
-              aria-modal="true"
-            >
+        {/* Global Auth Modal Portal */}
+        <AuthModal
+          isOpen={isAuthModalOpen}
+          onClose={() => setIsAuthModalOpen(false)}
+          language={language}
+          onAuthSuccess={(newUsername) => {
+            setIsLoggedIn(true);
+            localStorage.setItem('jamiaati_logged_in', 'true');
+            setUserProfile(prev => ({
+              ...prev,
+              name: newUsername || 'Zara Al-Iraqi'
+            }));
+            showToast(
+              language === 'ar' ? `مرحباً بك مجدداً يا ${newUsername || 'زارا'}! 👋 تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'زارا'}! 👋 دابەزاندن سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Zara'}! 👋 Signed in`, 
+              'success'
+            );
+          }}
+        />
+
+        {/* Floating Toast Notification Center */}
+        <div className="fixed top-18 left-1/2 -translate-x-1/2 z-50 w-full max-w-[340px] flex flex-col gap-2 pointer-events-none">
+          <AnimatePresence>
+            {toasts.map((toast) => (
               <motion.div
-                initial={{ y: 28, opacity: 0, scale: 0.98 }}
-                animate={{ y: 0, opacity: 1, scale: 1 }}
-                exit={{ y: 20, opacity: 0, scale: 0.98 }}
-                className="w-full max-w-sm bg-white rounded-3xl shadow-2xl border border-orange-100 p-5 text-center"
+                key={toast.id}
+                initial={{ opacity: 0, y: -20, scale: 0.92 }}
+                animate={{ opacity: 1, y: 0, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.9, y: -10 }}
+                transition={{ duration: 0.22, ease: 'easeOut' }}
+                className="pointer-events-auto shadow-xl"
               >
-                {authMode === 'prompt' ? (
-                  <>
-                    <div className="mx-auto w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center mb-3">
-                      <Lock className="w-6 h-6" />
-                    </div>
-                    <h2 className="text-base font-black text-gray-950 mb-1">
-                      تحتاج تسجيل الدخول للتفاعل
-                    </h2>
-                    <p className="text-xs font-bold text-gray-400 leading-relaxed mb-4">
-                      يمكنك متابعة تصفح جامعاتك والفرص والمنشورات بدون حساب. سجّل الدخول فقط عندما تريد المشاركة.
-                    </p>
-                    <div className="grid grid-cols-2 gap-2">
-                      <button
-                        type="button"
-                        onClick={() => setAuthMode('login')}
-                        className="rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black py-3 shadow-md shadow-orange-500/10"
-                      >
-                        تسجيل الدخول
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => setAuthPromptOpen(false)}
-                        className="rounded-2xl bg-gray-100 text-gray-600 text-xs font-black py-3"
-                      >
-                        متابعة التصفح
-                      </button>
-                    </div>
-                  </>
-                ) : (
-                  <form onSubmit={handleAuthSubmit} className="text-left">
-                    <h2 className="text-base font-black text-gray-950 mb-1 text-center">
-                      {authMode === 'register'
-                        ? 'إنشاء حساب'
-                        : authMode === 'forgot'
-                        ? 'استعادة كلمة المرور'
-                        : authMode === 'reset'
-                        ? 'تعيين كلمة مرور جديدة'
-                        : 'تسجيل الدخول'}
-                    </h2>
-                    <p className="text-xs font-bold text-gray-400 leading-relaxed mb-4 text-center">
-                      {authMode === 'register'
-                        ? 'أنشئ حسابك للتفاعل مع المنشورات والفرص داخل جامعاتي.'
-                        : authMode === 'forgot'
-                        ? 'أدخل بريدك الإلكتروني وسنرسل لك رابط أو رمز الاستعادة عند تفعيل خدمة البريد.'
-                        : authMode === 'reset'
-                        ? 'أدخل رمز الاستعادة وكلمة المرور الجديدة.'
-                        : 'أدخل بريدك وكلمة المرور للمتابعة بالتفاعل داخل جامعاتي.'}
-                    </p>
-                    <div className="flex flex-col gap-2.5">
-                      {authMode === 'register' && (
-                        <input
-                          type="text"
-                          value={authName}
-                          onChange={e => setAuthName(e.target.value)}
-                          placeholder="الاسم"
-                          className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
-                          required
-                        />
-                      )}
-                      {authMode !== 'reset' && (
-                        <input
-                          type="email"
-                          value={authEmail}
-                          onChange={e => setAuthEmail(e.target.value)}
-                          placeholder="البريد الإلكتروني"
-                          className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
-                          required
-                        />
-                      )}
-                      {(authMode === 'login' || authMode === 'register') && (
-                        <input
-                          type="password"
-                          value={authPassword}
-                          onChange={e => setAuthPassword(e.target.value)}
-                          placeholder="كلمة المرور"
-                          className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
-                          required
-                          minLength={8}
-                        />
-                      )}
-                      {authMode === 'reset' && (
-                        <>
-                          <input
-                            type="text"
-                            value={authResetCode}
-                            onChange={e => setAuthResetCode(e.target.value)}
-                            placeholder="رمز أو رابط الاستعادة"
-                            className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
-                            required
-                          />
-                          <input
-                            type="password"
-                            value={authNewPassword}
-                            onChange={e => setAuthNewPassword(e.target.value)}
-                            placeholder="كلمة المرور الجديدة"
-                            className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
-                            required
-                            minLength={8}
-                          />
-                        </>
-                      )}
-                      {authMessage && (
-                        <p className={`text-[11px] font-bold rounded-xl p-2 text-center ${
-                          authMessageType === 'success'
-                            ? 'text-emerald-600 bg-emerald-50'
-                            : 'text-red-500 bg-red-50'
-                        }`}>
-                          {authMessage}
-                        </p>
-                      )}
-                      <button
-                        type="submit"
-                        disabled={authLoading}
-                        className="rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black py-3 shadow-md shadow-orange-500/10"
-                      >
-                        {authLoading
-                          ? 'جاري المعالجة...'
-                          : authMode === 'register'
-                          ? 'إنشاء حساب'
-                          : authMode === 'forgot'
-                          ? 'إرسال تعليمات الاستعادة'
-                          : authMode === 'reset'
-                          ? 'تحديث كلمة المرور'
-                          : 'تسجيل الدخول'}
-                      </button>
-                      {authMode === 'login' && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAuthMode('forgot');
-                            setAuthMessage('');
-                          }}
-                          className="text-[11px] font-black text-orange-600 py-1"
-                        >
-                          نسيت كلمة المرور؟
-                        </button>
-                      )}
-                      {authMode === 'forgot' && (
-                        <button
-                          type="button"
-                          onClick={() => {
-                            setAuthMode('reset');
-                            setAuthMessage('');
-                          }}
-                          className="rounded-2xl bg-white text-gray-500 text-xs font-black py-3 border border-gray-100"
-                        >
-                          لدي رمز استعادة
-                        </button>
-                      )}
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAuthMode(authMode === 'register'
-                            ? 'login'
-                            : authMode === 'forgot' || authMode === 'reset'
-                            ? 'login'
-                            : 'register');
-                          setAuthMessage('');
-                        }}
-                        className="rounded-2xl bg-orange-50 text-orange-600 text-xs font-black py-3 border border-orange-100"
-                      >
-                        {authMode === 'register'
-                          ? 'لديك حساب؟ تسجيل الدخول'
-                          : authMode === 'forgot' || authMode === 'reset'
-                          ? 'العودة إلى تسجيل الدخول'
-                          : 'ليس لديك حساب؟ إنشاء حساب'}
-                      </button>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          setAuthMode('prompt');
-                          setAuthMessage('');
-                        }}
-                        className="rounded-2xl bg-gray-100 text-gray-600 text-xs font-black py-3"
-                      >
-                        متابعة التصفح
-                      </button>
-                    </div>
-                  </form>
-                )}
+                <div className={`p-3.5 rounded-2xl border text-center font-extrabold text-xs flex items-center gap-3 backdrop-blur-md justify-between ${
+                  toast.type === 'success'
+                    ? 'bg-[#121B2E]/95 border-emerald-500/35 text-emerald-300'
+                    : toast.type === 'error'
+                    ? 'bg-[#1D1720]/95 border-rose-500/35 text-rose-300'
+                    : 'bg-[#121B2E]/95 border-cyan-500/30 text-cyan-300'
+                }`}>
+                  <div className="flex items-center gap-2">
+                    <span className="text-sm">
+                      {toast.type === 'success' ? '⚡' : toast.type === 'error' ? '🚨' : '✨'}
+                    </span>
+                    <span className="leading-relaxed tracking-tight text-[11px] text-left">
+                      {toast.text}
+                    </span>
+                  </div>
+                  <button 
+                    onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
+                    className="text-slate-400 hover:text-white transition-colors p-1 bg-transparent border-0 cursor-pointer text-[10px] font-black"
+                  >
+                    ✕
+                  </button>
+                </div>
               </motion.div>
-            </motion.div>
-          )}
-        </AnimatePresence>
+            ))}
+          </AnimatePresence>
+        </div>
 
       </div>
     </div>
   );
-}
+};

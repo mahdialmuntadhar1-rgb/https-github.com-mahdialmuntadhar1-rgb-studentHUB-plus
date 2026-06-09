@@ -53,20 +53,21 @@ export default function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white/95 border-b border-gray-100 backdrop-blur-md px-4 py-3" id="app-header-container">
+    <header className="sticky top-0 z-40 bg-[#0B1020]/95 border-b border-[#1F2E4D] backdrop-blur-md px-4 py-3.5 shadow-md shadow-black/20" id="app-header-container">
       {/* Top row: Logo & Language & Notif & Profile */}
       <div className="flex items-center justify-between gap-2 max-w-lg mx-auto" id="header-top-row">
         
         {/* Brand Logo and Title */}
-        <div className="flex items-center gap-2" id="header-brand-logo">
-          <div className="w-10 h-10 rounded-xl bg-gradient-to-tr from-amber-500 via-orange-500 to-indigo-600 flex items-center justify-center text-white font-bold shadow-md shadow-orange-500/15">
-            <BookOpen className="w-5.5 h-5.5" />
+        <div className="flex items-center gap-3" id="header-brand-logo">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#7C3AED] via-[#2563EB] to-[#06B6D4] flex items-center justify-center text-white font-bold shadow-md shadow-purple-500/10 shrink-0 border border-purple-500/20">
+            <BookOpen className="w-6 h-6 text-white drop-shadow-md animate-pulse" />
           </div>
           <div>
-            <h1 className="text-base font-bold text-gray-900 tracking-tight leading-none" id="header-app-name">
-              جامعتي <span className="text-orange-500 font-extrabold">Jamiaati</span>
+            <h1 className="text-lg font-black tracking-tight leading-none flex items-center gap-1.5" id="header-app-name">
+              <span className="font-sans font-black bg-gradient-to-r from-[#7C3AED] via-[#2563EB] to-[#06B6D4] bg-clip-text text-transparent">جامعتي</span> 
+              <span className="text-[#06B6D4] font-black text-sm uppercase tracking-tight">Jamiaati</span>
             </h1>
-            <p className="text-[9px] font-mono font-semibold tracking-wider text-indigo-600 bg-indigo-50 px-1 py-0.5 rounded-sm mt-0.5 leading-none w-max">
+            <p className="text-[8px] font-mono font-black tracking-wider text-[#7C3AED] bg-[#7C3AED]/10 border border-[#7C3AED]/20 px-1.5 py-0.5 rounded-md mt-1 leading-none w-max">
               YOUR IRAQ • عِراقنا
             </p>
           </div>
@@ -78,10 +79,10 @@ export default function Header({
           <button
             id="lang-selector-trigger"
             onClick={() => setShowLanguageModal(!showLanguageModal)}
-            className="p-2 text-gray-500 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors cursor-pointer relative"
+            className="p-2 text-slate-300 hover:text-cyan-400 hover:bg-slate-800/40 rounded-xl border border-transparent hover:border-[#1F2E4D] transition-all cursor-pointer relative"
           >
             <Languages className="w-5 h-5" />
-            <span className="absolute bottom-0 right-0 text-[8px] font-semibold bg-gray-100 text-gray-700 px-1 rounded border border-white">
+            <span className="absolute bottom-0 right-0 text-[8px] font-mono font-black bg-cyan-950 text-cyan-400 px-1 rounded border border-cyan-500/25">
               {language.toUpperCase()}
             </span>
           </button>
@@ -95,7 +96,7 @@ export default function Header({
                 setShowLanguageModal(false);
                 setShowNotificationCount(false);
               }}
-              className="p-2 text-gray-500 hover:text-orange-500 hover:bg-orange-50 rounded-lg transition-colors cursor-pointer"
+              className="p-2 text-slate-300 hover:text-cyan-400 hover:bg-slate-850/50 rounded-lg transition-colors cursor-pointer"
             >
               <Bell className="w-5 h-5" />
               {showNotificationCount && (
@@ -110,24 +111,24 @@ export default function Header({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-xl border border-gray-100 p-2 text-xs text-gray-800 z-50 pointer-events-auto"
+                  className="absolute right-0 mt-2 w-64 bg-[#121B2E] rounded-xl shadow-2xl border border-[#1F2E4D] p-2 text-xs text-slate-200 z-50 pointer-events-auto"
                 >
-                  <div className="flex justify-between items-center px-2 py-1 border-b border-gray-100 font-bold text-gray-900 mb-1">
+                  <div className="flex justify-between items-center px-2 py-1 border-b border-[#1F2E4D] font-bold text-white mb-1">
                     <span>{getTranslation('notificationsTitle', language)}</span>
-                    <button onClick={() => setNotifications([])} className="text-[10px] text-gray-400 hover:text-orange-500 cursor-pointer">
+                    <button onClick={() => setNotifications([])} className="text-[10px] text-slate-400 hover:text-cyan-400 cursor-pointer">
                       {getTranslation('clearAllBtn', language)}
                     </button>
                   </div>
                   {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-gray-400 font-bold text-[11px] leading-relaxed">
+                    <div className="p-4 text-center text-slate-400 font-bold text-[11px] leading-relaxed">
                       {getTranslation('notificationEmpty', language)}
                     </div>
                   ) : (
                     <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
                       {notifications.map(n => (
-                        <div key={n.id} className="p-2 hover:bg-orange-50 rounded-lg transition-all border-l-2 border-orange-500">
-                          <p className="font-medium text-[11px] leading-tight text-gray-800">{n.text}</p>
-                          <span className="text-[9px] text-gray-400 mt-0.5 block">{n.time}</span>
+                        <div key={n.id} className="p-2 hover:bg-[#1C2C4E]/65 rounded-lg transition-all border-l-2 border-cyan-400">
+                          <p className="font-semibold text-[11px] leading-tight text-slate-100">{n.text}</p>
+                          <span className="text-[9px] text-slate-400 mt-0.5 block">{n.time}</span>
                         </div>
                       ))}
                     </div>
@@ -141,7 +142,7 @@ export default function Header({
           <button
             id="profile-avatar-trigger"
             onClick={onProfileClick}
-            className="w-9 h-9 rounded-xl border-2 border-orange-500/35 overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+            className="w-9 h-9 rounded-xl border-2 border-cyan-400/40 overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
           >
             <img src={currentUserAvatar} alt="Zara Al-Iraqi Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           </button>
@@ -153,7 +154,7 @@ export default function Header({
       <AnimatePresence>
         {showLanguageModal && (
           <div className="fixed inset-0 z-40 bg-transparent" onClick={() => setShowLanguageModal(false)}>
-            <div className="absolute right-16 top-16 w-36 bg-white rounded-xl shadow-xl border border-gray-100 p-1 z-50" onClick={e => e.stopPropagation()}>
+            <div className="absolute right-16 top-16 w-36 bg-[#121B2E] rounded-xl shadow-2xl border border-[#1F2E4D] p-1 z-50" onClick={e => e.stopPropagation()}>
               {(['en', 'ar', 'ku'] as Language[]).map(lang => (
                 <button
                   key={lang}
@@ -163,12 +164,12 @@ export default function Header({
                   }}
                   className={`w-full flex items-center justify-between px-3 py-2 text-xs font-semibold rounded-lg text-left cursor-pointer transition-colors ${
                     language === lang 
-                      ? 'bg-gradient-to-r from-orange-50 to-amber-50 text-orange-600' 
-                      : 'text-gray-700 hover:bg-gray-50'
+                      ? 'bg-gradient-to-r from-cyan-950/30 to-indigo-950/30 text-cyan-400 border border-cyan-500/20' 
+                      : 'text-slate-300 hover:bg-slate-800/40'
                   }`}
                 >
                   <span>{getLanguageLabel(lang)}</span>
-                  {language === lang && <Check className="w-4 h-4 text-orange-500" />}
+                  {language === lang && <Check className="w-4 h-4 text-cyan-400" />}
                 </button>
               ))}
             </div>
@@ -177,20 +178,27 @@ export default function Header({
       </AnimatePresence>
 
       {/* Selectors Row: Governorate & University dropdowns */}
-      <div className="mt-3 max-w-lg mx-auto flex items-center gap-2 bg-gray-50/80 p-1.5 rounded-xl border border-gray-150/70" id="header-selectors-row">
+      <div className="mt-3 max-w-lg mx-auto flex items-center gap-2 bg-[#121B2E] p-1.5 rounded-2xl border border-[#1F2E4D]" id="header-selectors-row">
         
         {/* Governorate Selector */}
-        <div className="flex-1 flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-gray-100 shadow-sm" id="gov-selector-wrapper">
-          <MapPin className="w-4.5 h-4.5 text-orange-400 shrink-0" />
+        <div 
+          className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-300 shadow-inner ${
+            selectedGov !== 'all' 
+              ? 'bg-[#1a2d54] border-cyan-400/60 shadow-glow-cyan' 
+              : 'bg-[#162443] border-[#1F2E4D] hover:border-[#2d4373]'
+          }`} 
+          id="gov-selector-wrapper"
+        >
+          <MapPin className={`w-4 h-4 shrink-0 transition-colors ${selectedGov !== 'all' ? 'text-cyan-455 text-cyan-400' : 'text-slate-400'}`} />
           <select
             id="gov-select"
             value={selectedGov}
             onChange={handleGovChange}
-            className="w-full text-xs font-bold text-gray-800 bg-transparent border-none focus:outline-none focus:ring-0 cursor-pointer pr-1"
+            className="w-full text-xs font-extrabold text-slate-100 bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer p-0 select-none"
           >
-            <option value="all">📍 {getTranslation('allGovs', language)}</option>
+            <option value="all" className="bg-[#121B2E]">📍 {getTranslation('allGovs', language)}</option>
             {IraqiGovernorates.map(gov => (
-              <option key={gov.id} value={gov.id}>
+              <option key={gov.id} value={gov.id} className="bg-[#121B2E]">
                 {language === 'ar' ? gov.nameAR : language === 'ku' ? gov.nameKU : gov.nameEN}
               </option>
             ))}
@@ -198,17 +206,24 @@ export default function Header({
         </div>
 
         {/* University Selector */}
-        <div className="flex-1 flex items-center gap-1.5 bg-white px-2.5 py-1.5 rounded-lg border border-gray-100 shadow-sm" id="uni-selector-wrapper">
-          <School className="w-4.5 h-4.5 text-indigo-400 shrink-0" />
+        <div 
+          className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-300 shadow-inner ${
+            selectedUni !== 'all' 
+              ? 'bg-[#222163]/50 border-brand-purple/65 shadow-glow-purple' 
+              : 'bg-[#162443] border-[#1F2E4D] hover:border-[#2d4373]'
+          }`} 
+          id="uni-selector-wrapper"
+        >
+          <School className={`w-4 h-4 shrink-0 transition-colors ${selectedUni !== 'all' ? 'text-brand-purple text-indigo-400' : 'text-slate-400'}`} />
           <select
             id="uni-select"
             value={selectedUni}
             onChange={(e) => setSelectedUni(e.target.value)}
-            className="w-full text-xs font-bold text-gray-800 bg-transparent border-none focus:outline-none focus:ring-0 cursor-pointer pr-1"
+            className="w-full text-xs font-extrabold text-slate-100 bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer p-0 select-none"
           >
-            <option value="all">🏫 {getTranslation('allUnis', language)}</option>
+            <option value="all" className="bg-[#121B2E]">🏫 {getTranslation('allUnis', language)}</option>
             {filteredUnis.map(uni => (
-              <option key={uni.id} value={uni.id}>
+              <option key={uni.id} value={uni.id} className="bg-[#121B2E]">
                 {uni.logo} {language === 'ar' ? uni.nameAR : language === 'ku' ? uni.nameKU : uni.nameEN}
               </option>
             ))}

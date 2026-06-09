@@ -23,6 +23,7 @@ import {
 } from 'lucide-react';
 import { motion } from 'motion/react';
 import FeedCard from './FeedCard';
+import { SkeletonLoader } from './HomeFeed';
 
 interface FutureFeedProps {
   feedItems: FeedItem[];
@@ -35,9 +36,9 @@ interface FutureFeedProps {
   onApply: (id: string) => void;
   onRsvp: (id: string) => void;
   onJoinGroup: (id: string) => void;
-  onAddComment: (id: string, commentText: string) => boolean | Promise<boolean>;
-  onLoadComments?: (id: string) => void;
+  onAddComment: (id: string, commentText: string) => void;
   onBackToHome: () => void;
+  isFeedLoading?: boolean;
 }
 
 export default function FutureFeed({
@@ -52,8 +53,8 @@ export default function FutureFeed({
   onRsvp,
   onJoinGroup,
   onAddComment,
-  onLoadComments,
-  onBackToHome
+  onBackToHome,
+  isFeedLoading = false
 }: FutureFeedProps) {
   const [activeChip, setActiveChip] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
@@ -189,50 +190,50 @@ export default function FutureFeed({
   const section6Title = language === 'ar' ? 'حفظها زملاؤك في الصف' : language === 'ku' ? 'پاشەکەوتکراو لەلایەن هاوپۆلەکانت' : 'Saved by Your Classmates';
 
   return (
-    <div className="px-4 py-3 max-w-lg mx-auto flex flex-col pb-28 bg-gray-50/50 min-h-screen" id="future-feed-container">
+    <div className="px-4 py-4 max-w-lg mx-auto flex flex-col pb-28 bg-[#0B1020]" id="future-feed-container">
       
       {/* Dynamic Reset Banner back to Campus Today */}
       <div 
         id="future-filter-reset-banner"
         onClick={onBackToHome}
-        className="mb-4 bg-gradient-to-r from-orange-500 to-amber-500 rounded-2xl p-3.5 flex items-center justify-between cursor-pointer border border-orange-400/20 shadow-md hover:shadow-lg transition-all"
+        className="mb-5 bg-[#121B2E] border border-[#1F2E4D] rounded-2xl p-3.5 flex items-center justify-between cursor-pointer shadow-md hover:border-slate-700/80 transition-all"
       >
         <div className="flex items-center gap-3">
-          <div className="w-8 h-8 rounded-xl bg-white/20 text-white flex items-center justify-center font-bold text-lg select-none">
+          <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-400/25 text-cyan-400 flex items-center justify-center font-bold text-lg select-none">
             🚀
           </div>
           <div className="flex flex-col">
             <span className="text-[11px] font-black tracking-tight text-white uppercase">
               {getTranslation('viewingFuture', language)}
             </span>
-            <span className="text-[9px] text-orange-50 font-bold leading-normal">
+            <span className="text-[9px] text-slate-400 font-extrabold leading-tight mt-0.5">
               Your Campus Life. Your Future. Your Iraq.
             </span>
           </div>
         </div>
-        <div className="text-[10px] bg-white text-orange-600 rounded-xl px-2.5 py-1.5 font-bold shadow flex items-center gap-1 shrink-0">
+        <div className="text-[10px] bg-gradient-to-r from-[#4F46E5] to-[#2563EB] text-white rounded-xl px-2.5 py-1.5 font-bold shadow-md flex items-center gap-1 shrink-0 hover:scale-[1.03] transition-transform">
           <span>Campus Today</span>
-          <ChevronRight className="w-3 h-3 text-orange-500" />
+          <ChevronRight className="w-3" />
         </div>
       </div>
 
-      {/* Clear search query button conditionally */}
-      <div className="relative mb-4" id="future-search-bar">
-        <div className="absolute inset-y-0 left-3 flex items-center pointer-events-none text-gray-400">
-          <Search className="w-4 h-4" />
+      {/* Search box overlay */}
+      <div className="relative mb-5" id="future-search-bar">
+        <div className="absolute inset-y-0 left-3.5 flex items-center pointer-events-none text-slate-450">
+          <Search className="w-4 h-4 text-slate-400" />
         </div>
         <input 
           type="text" 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
           placeholder={language === 'ar' ? 'ابحث عن فرص عمل وتدريب...' : language === 'ku' ? 'بگەڕێ بۆ کار و مەشق...' : 'Search jobs, internships, training...'}
-          className="w-full bg-white text-xs border border-gray-200/80 rounded-2xl py-3 pl-9 pr-4 text-gray-800 font-bold focus:outline-none focus:ring-2 focus:ring-indigo-500/35 focus:border-indigo-500 shadow-sm"
+          className="w-full bg-[#16223F] text-xs border border-[#1F2E4D] hover:border-slate-650 rounded-2xl py-3 pl-10 pr-4 text-white font-extrabold focus:outline-none focus:bg-[#1E2E4E]/80 focus:border-cyan-400 focus:ring-0 shadow-inner placeholder-slate-400"
         />
         {searchQuery && (
           <button 
             type="button" 
             onClick={() => setSearchQuery('')}
-            className="absolute inset-y-0 right-3 flex items-center text-xs font-bold text-indigo-600 active:scale-95 px-2"
+            className="absolute inset-y-0 right-3.5 flex items-center text-xs font-black text-cyan-400 active:scale-95 px-1 bg-transparent border-0 cursor-pointer"
           >
             {language === 'ar' ? 'مسح' : language === 'ku' ? 'سڕینەوە' : 'Clear'}
           </button>
@@ -240,19 +241,19 @@ export default function FutureFeed({
       </div>
 
       {/* Deadlines Alert list */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-3.5 mb-5 shadow-sm" id="deadlines-ticker-panel">
-        <h3 className="text-[10px] font-black uppercase text-pink-500 tracking-wider mb-2.5 flex items-center gap-1.5">
-          <BellRing className="w-4 h-4 text-pink-500 animate-bounce" /> {getTranslation('upcomingDeadlines', language)}
+      <div className="bg-[#121B2E] border border-[#1F2E4D] rounded-2xl p-3.5 mb-5 shadow-lg" id="deadlines-ticker-panel">
+        <h3 className="text-[10px] font-black uppercase text-rose-400 tracking-wider mb-2.5 flex items-center gap-1.5 leading-none">
+          <BellRing className="w-4 h-4 text-rose-400 animate-bounce" /> {getTranslation('upcomingDeadlines', language)}
         </h3>
         <div className="grid grid-cols-2 gap-2.5">
           {timelineReminders.map((rem, i) => (
-            <div key={i} className={`p-2.5 rounded-xl border flex flex-col justify-between h-20 shadow-sm transition-transform hover:-translate-y-0.5 ${rem.urgent ? 'bg-red-50/40 border-red-100' : 'bg-indigo-50/20 border-indigo-100/40'}`}>
-              <p className="text-[10px] font-black leading-tight text-gray-800 break-words limit-rows-2">
+            <div key={i} className={`p-2.5 rounded-xl border flex flex-col justify-between h-20 shadow-sm transition-transform hover:-translate-y-0.5 ${rem.urgent ? 'bg-red-500/10 border-red-500/20' : 'bg-indigo-500/10 border border-indigo-505/20'}`}>
+              <p className="text-[10px] font-black leading-tight text-white limit-rows-2">
                 {language === 'ar' ? rem.titleAR : language === 'ku' ? rem.titleKU : rem.titleEN}
               </p>
               <div className="flex items-center justify-between mt-1">
-                <span className="text-[8px] text-gray-400 font-bold uppercase">{getTranslation('dueDateLabel', language)}</span>
-                <span className={`text-[9px] font-extrabold ${rem.urgent ? 'text-red-500 bg-red-100/40 px-1 py-0.2 rounded' : 'text-indigo-600'}`}>
+                <span className="text-[8px] text-slate-450 font-bold uppercase">{getTranslation('dueDateLabel', language)}</span>
+                <span className={`text-[9px] font-extrabold ${rem.urgent ? 'text-red-400 bg-red-500/15 border border-red-500/25 px-1 py-0.2 rounded' : 'text-indigo-350 bg-indigo-500/15 border border-indigo-502/25 px-1 py-0.2 rounded'}`}>
                   {rem.date}
                 </span>
               </div>
@@ -271,10 +272,10 @@ export default function FutureFeed({
             <button
               key={chip.id}
               onClick={() => setActiveChip(chip.id)}
-              className={`px-3 py-1.8 rounded-xl text-xs font-black shrink-0 transition-all cursor-pointer border ${
+              className={`px-3 py-1.8 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer border ${
                 isSelected
-                  ? 'bg-indigo-600 text-white shadow shadow-indigo-600/15 border-indigo-600 scale-102 font-black'
-                  : 'bg-white hover:bg-gray-50 border-gray-200/70 text-gray-600 hover:text-gray-900 font-bold hover:border-gray-300'
+                  ? 'bg-gradient-to-r from-[#4F46E5] to-[#2563EB] text-white shadow shadow-indigo-500/10 border-indigo-500/20 scale-102 font-black'
+                  : 'bg-[#16223F] hover:bg-[#1E2E4E] border-[#1F2E4D] text-slate-300 hover:text-white'
               }`}
             >
               {label}
@@ -284,22 +285,24 @@ export default function FutureFeed({
       </div>
 
       {/* Board Layouts: 6 Sections displayed when "all" chip is active */}
-      {activeChip === 'all' ? (
+      {isFeedLoading ? (
+        <SkeletonLoader />
+      ) : activeChip === 'all' ? (
         <div className="flex flex-col gap-6" id="serious-career-future-dashboard">
           
           {/* Section 1: Featured for your university */}
-          <div className="flex flex-col" id="dashboard-sec-uni shadow-sm">
-            <h2 className="text-xs font-black text-gray-900 uppercase tracking-tight flex items-center gap-1.5 mb-2.5 text-indigo-950">
-              <School className="w-4 h-4 text-indigo-600 shrink-0" />
+          <div className="flex flex-col" id="dashboard-sec-uni">
+            <h2 className="text-xs font-black text-white uppercase tracking-tight flex items-center gap-1.5 mb-2.5 border-l-4 border-cyan-400 pl-2">
+              <School className="w-4 h-4 text-cyan-400 shrink-0" />
               <span>{section1Title}</span>
-              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping mt-1" />
+              <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-ping mt-0.5" />
             </h2>
             
             {/* Featured Section Empty State Banner */}
             {featuredUniItems.length === 0 ? (
-              <div className="rounded-2xl border border-dashed border-gray-200 bg-white p-6 text-center shadow-inner flex flex-col items-center justify-center">
+              <div className="rounded-2xl border border-[#1F2E4D] bg-[#121B2E] p-6 text-center shadow-inner flex flex-col items-center justify-center">
                 <span className="text-3xl mb-1.5 select-none animate-bounce">🎓</span>
-                <p className="text-[11px] font-black text-gray-500 uppercase tracking-wide">
+                <p className="text-[11px] font-black text-slate-400 uppercase tracking-wide">
                   {language === 'ar' 
                     ? `لا توجد منشورات لجامعتك حالياً. تصفح الفرص العامة لعموم العراق!` 
                     : language === 'ku' 
@@ -308,7 +311,7 @@ export default function FutureFeed({
                 </p>
                 <div 
                   onClick={() => setActiveChip('internship')}
-                  className="mt-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 font-black text-[10px] px-3 py-1.5 rounded-lg border border-indigo-100 transition-colors cursor-pointer"
+                  className="mt-3 bg-cyan-500/15 hover:bg-cyan-500/25 text-cyan-400 border border-cyan-500/25 font-extrabold text-[10px] px-3 py-1.5 rounded-lg transition-colors cursor-pointer"
                 >
                   {language === 'ar' ? 'استكشف الفرص العامة للعراق' : language === 'ku' ? 'بینینی هەلی کارە گشتییەکان' : 'Explore General Opportunities'}
                 </div>
@@ -316,32 +319,31 @@ export default function FutureFeed({
             ) : (
               <div className="flex flex-col gap-1">
                 {featuredUniItems.map(item => (
-                  <FeedCard
-                    key={item.id}
-                    item={item}
-                    language={language}
-                    onLike={onLike}
-                    onSave={onSave}
-                    onVote={onVote}
-                    onApply={onApply}
-                    onRsvp={onRsvp}
-                    onJoinGroup={onJoinGroup}
-                    onAddComment={onAddComment}
-                    onLoadComments={onLoadComments}
-                  />
+                   <FeedCard
+                     key={item.id}
+                     item={item}
+                     language={language}
+                     onLike={onLike}
+                     onSave={onSave}
+                     onVote={onVote}
+                     onApply={onApply}
+                     onRsvp={onRsvp}
+                     onJoinGroup={onJoinGroup}
+                     onAddComment={onAddComment}
+                   />
                 ))}
               </div>
             )}
           </div>
 
           {/* Section 2: Popular in selected governorate / Sulaymaniyah */}
-          <div className="flex flex-col" id="dashboard-sec-gov bg-white/40 p-1.5 rounded-3xl">
-            <h2 className="text-xs font-black text-gray-900 uppercase tracking-tight flex items-center gap-1.5 mb-2.5 text-indigo-950">
-              <TrendingUp className="w-4 h-4 text-orange-500 shrink-0" />
+          <div className="flex flex-col" id="dashboard-sec-gov">
+            <h2 className="text-xs font-black text-white uppercase tracking-tight flex items-center gap-1.5 mb-2.5 border-l-4 border-[#2563EB] pl-2">
+              <TrendingUp className="w-4 h-4 text-cyan-450 shrink-0" />
               <span>{section2Title}</span>
             </h2>
             {popularLocalItems.length === 0 ? (
-              <p className="text-[10px] font-bold text-gray-400 bg-white rounded-2xl p-4 border border-gray-100/80 text-center">
+              <p className="text-[10px] font-bold text-slate-400 bg-[#121B2E] rounded-2xl p-4 border border-[#1F2E4D] text-center leading-relaxed">
                 {language === 'ar' 
                   ? `لا توجد منشورات مميزة حالياً في ${getGovLabel()}. معروض لك الفرص العامة في العراق!` 
                   : language === 'ku' 
@@ -362,7 +364,6 @@ export default function FutureFeed({
                     onRsvp={onRsvp}
                     onJoinGroup={onJoinGroup}
                     onAddComment={onAddComment}
-                    onLoadComments={onLoadComments}
                   />
                 ))}
               </div>
@@ -371,8 +372,8 @@ export default function FutureFeed({
 
           {/* Section 3: Open for all Iraq */}
           <div className="flex flex-col" id="dashboard-sec-alliraq">
-            <h2 className="text-xs font-black text-gray-900 uppercase tracking-tight flex items-center gap-1.5 mb-2.5 text-indigo-950">
-              <Compass className="w-4 h-4 text-pink-500 shrink-0" />
+            <h2 className="text-xs font-black text-white uppercase tracking-tight flex items-center gap-1.5 mb-2.5 border-l-4 border-[#06B6D4] pl-2">
+              <Compass className="w-4 h-4 text-cyan-400 shrink-0" />
               <span>{section3Title}</span>
             </h2>
             <div className="flex flex-col gap-1">
@@ -388,7 +389,6 @@ export default function FutureFeed({
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
-                  onLoadComments={onLoadComments}
                 />
               ))}
             </div>
@@ -396,8 +396,8 @@ export default function FutureFeed({
 
           {/* Section 4: New internships */}
           <div className="flex flex-col" id="dashboard-sec-interns">
-            <h2 className="text-xs font-black text-gray-900 uppercase tracking-tight flex items-center gap-1.5 mb-2.5 text-indigo-950">
-              <Briefcase className="w-4 h-4 text-teal-600 shrink-0" />
+            <h2 className="text-xs font-black text-white uppercase tracking-tight flex items-center gap-1.5 mb-2.5 border-l-4 border-indigo-500 pl-2">
+              <Briefcase className="w-4 h-4 text-indigo-400 shrink-0" />
               <span>{section4Title}</span>
             </h2>
             <div className="flex flex-col gap-1">
@@ -413,16 +413,15 @@ export default function FutureFeed({
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
-                  onLoadComments={onLoadComments}
                 />
               ))}
             </div>
           </div>
 
           {/* Section 5: Scholarships and training */}
-          <div className="flex flex-col" id="dashboard-sec-scholar">
-            <h2 className="text-xs font-black text-gray-900 uppercase tracking-tight flex items-center gap-1.5 mb-2.5 text-indigo-950">
-              <GraduationCap className="w-4 h-4 text-violet-500 shrink-0" />
+          <div className="flex flex-col" id="dashboard-sec-scholarships">
+            <h2 className="text-xs font-black text-white uppercase tracking-tight flex items-center gap-1.5 mb-2.5 border-l-4 border-purple-500 pl-2">
+              <GraduationCap className="w-4 h-4 text-purple-400 shrink-0" />
               <span>{section5Title}</span>
             </h2>
             <div className="flex flex-col gap-1">
@@ -438,20 +437,19 @@ export default function FutureFeed({
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
-                  onLoadComments={onLoadComments}
                 />
               ))}
             </div>
           </div>
 
           {/* Section 6: Saved by classmates */}
-          <div className="flex flex-col" id="dashboard-sec-saves">
-            <h2 className="text-xs font-black text-gray-900 uppercase tracking-tight flex items-center gap-1.5 mb-2.5 text-indigo-950">
-              <Users className="w-4 h-4 text-sky-500 shrink-0" />
+          <div className="flex flex-col" id="dashboard-sec-savedbypeers">
+            <h2 className="text-xs font-black text-white uppercase tracking-tight flex items-center gap-1.5 mb-2.5 border-l-4 border-rose-500 pl-2">
+              <Bookmark className="w-4 h-4 text-rose-450 shrink-0" />
               <span>{section6Title}</span>
             </h2>
             <div className="flex flex-col gap-1">
-              {savedByClassmatesItems.slice(0, 4).map(item => (
+              {savedByClassmatesItems.slice(0, 3).map(item => (
                 <FeedCard
                   key={item.id}
                   item={item}
@@ -463,7 +461,6 @@ export default function FutureFeed({
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
-                  onLoadComments={onLoadComments}
                 />
               ))}
             </div>
@@ -471,29 +468,14 @@ export default function FutureFeed({
 
         </div>
       ) : (
-        /* Focused list layout if a specific category chip is active */
-        <div className="flex flex-col gap-1" id="serious-career-future-list">
-          <div className="mb-2 bg-indigo-50/30 p-2.5 rounded-xl border border-indigo-100 flex items-center justify-between text-[11px] font-bold">
-            <span className="text-indigo-950">
-              {language === 'ar' 
-                ? `${chips.find(c => c.id === activeChip)?.labelAR} - ${getTranslation('listingsLabel', language)}` 
-                : language === 'ku' 
-                ? `${chips.find(c => c.id === activeChip)?.labelKU} - ${getTranslation('listingsLabel', language)}` 
-                : `${chips.find(c => c.id === activeChip)?.labelEN} Listings`}
-            </span>
-            <span className="bg-white border border-gray-150 rounded-lg px-2 py-0.5 text-[10px] text-gray-500 font-mono">
-              {finalFilteredOpportunityItems.length} {language === 'ar' ? 'عنصر' : language === 'ku' ? 'بابەت' : 'items'}
-            </span>
-          </div>
-
+        /* If a separate slot selected, linear flow with no boards grouping */
+        <div className="flex flex-col gap-1" id="linear-opportunities-feed-items">
           {finalFilteredOpportunityItems.length === 0 ? (
-            <div className="text-center py-12 text-gray-400 bg-white border border-gray-100 rounded-3xl p-6">
-              <div className="text-3xl mb-2">🎓</div>
-              <h3 className="font-bold text-gray-700 text-xs text-uppercase uppercase">
-                {language === 'ar' ? 'لا توجد فرص مطابقة' : language === 'ku' ? 'هیچ دەرفەتێک نەدۆزرایەوە' : 'No listings match selection'}
-              </h3>
-              <p className="text-[10px] text-gray-400 max-w-xs mt-1 mx-auto">
-                {getTranslation('listingsEmptyDesc', language)}
+            <div className="text-center py-12 text-slate-450 bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-6 shadow-inner">
+              <div className="text-3xl mb-2">🔭</div>
+              <h3 className="font-extrabold text-white text-xs">No opportunities matches this filter</h3>
+              <p className="text-[10px] text-slate-450 max-w-xs mt-1.5 mx-auto leading-relaxed">
+                Try writing brief segments (e.g. "Dev", "Intern") or broaden your campus governorate selection.
               </p>
             </div>
           ) : (
@@ -509,7 +491,6 @@ export default function FutureFeed({
                 onRsvp={onRsvp}
                 onJoinGroup={onJoinGroup}
                 onAddComment={onAddComment}
-                onLoadComments={onLoadComments}
               />
             ))
           )}

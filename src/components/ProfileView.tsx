@@ -16,9 +16,11 @@ interface ProfileViewProps {
   onApply: (id: string) => void;
   onRsvp: (id: string) => void;
   onJoinGroup: (id: string) => void;
-  onAddComment: (id: string, commentText: string) => boolean | Promise<boolean>;
-  onLoadComments?: (id: string) => void;
+  onAddComment: (id: string, commentText: string) => void;
   onToggleUserRole: () => void;
+  isLoggedIn: boolean;
+  onLogout: () => void;
+  onTriggerAuth: () => void;
 }
 
 export default function ProfileView({
@@ -32,8 +34,10 @@ export default function ProfileView({
   onRsvp,
   onJoinGroup,
   onAddComment,
-  onLoadComments,
-  onToggleUserRole
+  onToggleUserRole,
+  isLoggedIn,
+  onLogout,
+  onTriggerAuth
 }: ProfileViewProps) {
   const [activeTab, setActiveTab] = useState<'bookmarks' | 'activities'>('bookmarks');
 
@@ -59,14 +63,47 @@ export default function ProfileView({
     return item.applied || item.eventRsvped || item.joined;
   });
 
+  if (!isLoggedIn) {
+    return (
+      <div className="px-4 py-6 max-w-lg mx-auto flex flex-col pb-28 bg-[#0B1020] min-h-[70vh] justify-center items-center" id="profile-view-container">
+        <div className="bg-gradient-to-b from-[#121B2E] to-[#0E1726]/60 border border-[#1F2E4D] rounded-3xl p-6.5 shadow-xl text-center w-full relative overflow-hidden flex flex-col items-center">
+          <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-500 via-[#2563EB] to-[#4F46E5]" />
+          <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-[#1F2E4D] flex items-center justify-center text-3xl mb-4 shadow-inner">
+            👤
+          </div>
+          
+          <h2 className="text-base font-black text-white px-2 leading-tight">
+            {language === 'ar' ? 'بوابة الطالب الأكاديمية' : language === 'ku' ? 'دەروازەی ئەکادیمی خوێندکاران' : 'Academic Student Portal'}
+          </h2>
+          
+          <p className="text-xs font-semibold text-slate-300 leading-relaxed mt-3 max-w-xs mx-auto">
+            {language === 'ar' 
+              ? 'سجل دخولك الآن لتتبع نقاط تفاعلك لمساعدة زملائك، حفظ ومراجعة ملازم الدراسة، التقديم لوظائف الخريجين، واستشارة مساعد الذكاء الاصطناعي "المرشد"!' 
+              : language === 'ku'
+              ? 'ئێستا بچۆ ژوورەوە بۆ پاشەکەوتکردنی بابەتەکانی خوێندن، پێشکەشکردنی داواکاری بۆ هەلی کار، و ڕاوێژکردن لەگەڵ ڕێبەری زیرەکی دەستکرد!'
+              : 'Sign in to access advanced features: rack up academic interaction points by helping your peers, save and bookmark lectures, apply directly to tech opportunities, and unlock our AI advisor Al-Murshed!'}
+          </p>
+
+          <button
+            onClick={onTriggerAuth}
+            className="w-full mt-6 py-3 bg-gradient-to-r from-[#4F46E5] via-[#2563EB] to-[#06B6D4] hover:scale-[1.01] active:scale-95 text-xs font-black text-white hover:shadow-glow-cyan/5 border border-white/5 cursor-pointer rounded-2xl transition-all shadow-md flex items-center justify-center gap-1.5"
+            id="guest-signin-btn"
+          >
+            {language === 'ar' ? 'تسجيل الدخول / إنشاء حساب' : language === 'ku' ? 'چوونەژوورەوە / دروستکردنی هەژمار' : 'Sign In / Create Account'}
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
-    <div className="px-4 py-3 max-w-lg mx-auto flex flex-col pb-24" id="profile-view-container">
+    <div className="px-4 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-[#0B1020]" id="profile-view-container">
       
       {/* Profile Header Cards */}
-      <div className="bg-white rounded-3xl border border-gray-100 p-5 shadow-sm text-center mb-5 relative overflow-hidden" id="profile-card-header">
+      <div className="bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-5 shadow-lg text-center mb-5 relative overflow-hidden" id="profile-card-header">
         
         {/* Absolute header pattern color depending on role */}
-        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-r from-orange-500 via-indigo-600 to-indigo-800 -z-10" />
+        <div className="absolute top-0 left-0 right-0 h-20 bg-gradient-to-r from-[#4F46E5] via-[#2563EB] to-cyan-500 -z-10 opacity-75" />
 
         {/* Profile Details */}
         <div className="mt-6 flex flex-col items-center">
@@ -74,25 +111,25 @@ export default function ProfileView({
             <img 
               src={user.avatar} 
               alt={user.name} 
-              className="w-20 h-20 rounded-2xl object-cover border-4 border-white shadow-md"
+              className="w-20 h-20 rounded-2xl object-cover border-4 border-[#121B2E] shadow-xl"
               referrerPolicy="no-referrer"
             />
-            <span className="absolute bottom-0 right-0 bg-orange-500 text-white text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-white">
+            <span className="absolute bottom-0 right-0 bg-cyan-500 text-slate-900 text-[10px] font-black w-6 h-6 rounded-full flex items-center justify-center border-2 border-[#121B2E] shadow-md">
               L{user.level}
             </span>
           </div>
 
-          <h2 className="text-base font-black text-gray-900 mt-2.5 flex items-center gap-1">
+          <h2 className="text-base font-black text-white mt-3 flex items-center gap-1.5 leading-none">
             {user.name}
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </h2>
 
-          <p className="text-[10px] bg-orange-50 text-orange-600 border border-orange-100 font-extrabold px-2.5 py-0.5 rounded-lg uppercase mt-1 leading-none w-max">
+          <p className="text-[10px] bg-cyan-500/10 text-cyan-400 border border-cyan-400/25 font-black px-2.5 py-0.5 rounded-lg uppercase mt-2.5 leading-none w-max">
             {getTranslation('eliteStudent', language)}
           </p>
 
-          <div className="flex flex-col gap-0.5 text-center text-gray-400 font-bold text-[10px] mt-2">
-            <span className="text-gray-800 flex items-center justify-center gap-1">
+          <div className="flex flex-col gap-1 text-center text-slate-400 font-bold text-[10px] mt-3">
+            <span className="text-slate-100 flex items-center justify-center gap-1">
               🎓 {uniName}
             </span>
             <span className="flex items-center justify-center gap-1">
@@ -100,58 +137,69 @@ export default function ProfileView({
             </span>
           </div>
 
-          {/* Interactive Role Toggle as requested to simulate teachers/graduates */}
-          <button
-            onClick={onToggleUserRole}
-            className="mt-3 text-[9px] font-black text-indigo-600 bg-indigo-50 hover:bg-indigo-100 border border-indigo-200/50 rounded-xl px-3 py-1.5 cursor-pointer transition-colors flex items-center gap-1"
-          >
-            <ArrowRightLeft className="w-3 h-3" />
-            <span>{getTranslation('switchRoleBtn', language)}</span>
-          </button>
+          {/* Interactive Role Toggle & Logout Options */}
+          <div className="flex flex-wrap items-center justify-center gap-2 mt-3.5" id="profile-actions-row">
+            <button
+              onClick={onToggleUserRole}
+              className="text-[9px] font-black text-cyan-400 bg-cyan-400/10 hover:bg-cyan-400/20 border border-cyan-400/20 rounded-xl px-3 py-1.5 cursor-pointer transition-all flex items-center gap-1"
+            >
+              <ArrowRightLeft className="w-3 h-3 text-cyan-400" />
+              <span>{getTranslation('switchRoleBtn', language)}</span>
+            </button>
+            <button
+              onClick={onLogout}
+              className="text-[9px] font-black text-red-400 bg-red-400/10 hover:bg-red-400/20 border border-red-500/10 rounded-xl px-3 py-1.5 cursor-pointer transition-colors flex items-center gap-1"
+            >
+              <svg className="w-3 h-3 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
+              </svg>
+              <span>{language === 'ar' ? 'تسجيل الخروج' : language === 'ku' ? 'چوونەدەرەوە' : 'Log Out'}</span>
+            </button>
+          </div>
         </div>
 
         {/* Bio segment */}
-        <div className="mt-4 border-t border-gray-100 pt-3 text-xs text-gray-600 font-medium leading-relaxed max-w-sm mx-auto">
+        <div className="mt-4 border-t border-[#1F2E4D] pt-3 text-xs text-slate-200 font-semibold leading-relaxed max-w-sm mx-auto">
           "{bio}"
         </div>
 
         {/* Gamified stats panel */}
-        <div className="grid grid-cols-2 gap-2 mt-4.5 pt-3 border-t border-gray-100">
-          <div className="bg-orange-50/50 p-2.5 rounded-2xl border border-orange-100/50 text-center">
-            <span className="text-[9px] font-black uppercase text-orange-500 tracking-wider block">
+        <div className="grid grid-cols-2 gap-3 mt-4.5 pt-3.5 border-t border-[#1F2E4D]">
+          <div className="bg-[#16223F] p-3 rounded-2xl border border-cyan-500/15 text-center shadow-inner">
+            <span className="text-[9px] font-black uppercase text-cyan-400 tracking-wider block">
               {getTranslation('pointsBadge', language)}
             </span>
-            <span className="text-lg font-black text-orange-950 mt-0.5 block">
+            <span className="text-lg font-black text-white mt-1 block leading-none">
               {user.points}
             </span>
           </div>
 
-          <div className="bg-indigo-50/50 p-2.5 rounded-2xl border border-indigo-100/50 text-center">
-            <span className="text-[9px] font-black uppercase text-indigo-600 tracking-wider block">
+          <div className="bg-[#16223F] p-3 rounded-2xl border border-indigo-505/15 text-center shadow-inner">
+            <span className="text-[9px] font-black uppercase text-indigo-400 tracking-wider block">
               {getTranslation('levelLabel', language)}
             </span>
-            <span className="text-lg font-black text-indigo-950 mt-0.5 block">
+            <span className="text-lg font-black text-white mt-1 block leading-none">
               {user.level}
             </span>
           </div>
         </div>
 
         {/* Quick points description banner */}
-        <div className="mt-4 p-2 bg-gradient-to-r from-amber-50 to-orange-50 border border-orange-100 text-[10px] text-gray-500 rounded-xl font-bold flex items-center gap-1 text-left">
-          <Star className="w-4 h-4 text-orange-400 shrink-0 fill-current" />
+        <div className="mt-4 p-2.5 bg-[#101726]/60 border border-[#1F2E4D] text-[10px] text-slate-300 rounded-xl font-bold flex items-center gap-1.5 text-left leading-snug">
+          <Star className="w-4 h-4 text-yellow-450 shrink-0 fill-current text-yellow-400" />
           <span>{getTranslation('gamificationTip', language)}</span>
         </div>
 
       </div>
 
       {/* Selector Tabs: Bookmarked, Applied activities */}
-      <div className="flex border-b border-gray-150 mb-4" id="profile-saved-tabs">
+      <div className="flex border-b border-[#1F2E4D] mb-4 mt-1" id="profile-saved-tabs">
         <button
           onClick={() => setActiveTab('bookmarks')}
           className={`flex-1 py-2.5 text-xs font-black transition-all border-b-2 text-center cursor-pointer flex items-center justify-center gap-1.5 ${
             activeTab === 'bookmarks'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-gray-400 hover:text-gray-600'
+              ? 'border-cyan-400 text-cyan-400'
+              : 'border-transparent text-slate-400 hover:text-white'
           }`}
         >
           <Bookmark className="w-4 h-4" />
@@ -162,8 +210,8 @@ export default function ProfileView({
           onClick={() => setActiveTab('activities')}
           className={`flex-1 py-2.5 text-xs font-black transition-all border-b-2 text-center cursor-pointer flex items-center justify-center gap-1.5 ${
             activeTab === 'activities'
-              ? 'border-indigo-600 text-indigo-600'
-              : 'border-transparent text-gray-400 hover:text-gray-600'
+              ? 'border-cyan-400 text-cyan-400'
+              : 'border-transparent text-slate-400 hover:text-white'
           }`}
         >
           <Grid className="w-4 h-4" />
@@ -175,10 +223,10 @@ export default function ProfileView({
       <div className="flex flex-col gap-1" id="profile-tabs-content">
         {activeTab === 'bookmarks' ? (
           bookmarkedItems.length === 0 ? (
-            <div className="text-center py-10 bg-white border border-gray-100 rounded-2xl p-4 text-gray-400 text-xs">
+            <div className="text-center py-10 bg-[#121B2E] border border-[#1F2E4D] rounded-2xl p-4 text-slate-450 text-xs">
               <div className="text-2xl mb-1.5">🔖</div>
-              <h4 className="font-extrabold text-gray-700">{getTranslation('bookmarksEmptyTitle', language)}</h4>
-              <p className="text-[10px] text-gray-400 mt-0.5">{getTranslation('bookmarksEmptyDesc', language)}</p>
+              <h4 className="font-extrabold text-white">{getTranslation('bookmarksEmptyTitle', language)}</h4>
+              <p className="text-[10px] text-slate-450 mt-1 max-w-[200px] mx-auto leading-normal">{getTranslation('bookmarksEmptyDesc', language)}</p>
             </div>
           ) : (
             bookmarkedItems.map(item => (
@@ -193,16 +241,15 @@ export default function ProfileView({
                 onRsvp={onRsvp}
                 onJoinGroup={onJoinGroup}
                 onAddComment={onAddComment}
-                onLoadComments={onLoadComments}
               />
             ))
           )
         ) : (
           activeEngagements.length === 0 ? (
-            <div className="text-center py-10 bg-white border border-gray-100 rounded-2xl p-4 text-gray-400 text-xs text-center">
+            <div className="text-center py-10 bg-[#121B2E] border border-[#1F2E4D] rounded-2xl p-4 text-slate-450 text-xs">
               <div className="text-2xl mb-1.5">💼</div>
-              <h4 className="font-extrabold text-gray-700">{getTranslation('entriesEmptyTitle', language)}</h4>
-              <p className="text-[10px] text-gray-400 mt-0.5">{getTranslation('entriesEmptyDesc', language)}</p>
+              <h4 className="font-extrabold text-white">{getTranslation('entriesEmptyTitle', language)}</h4>
+              <p className="text-[10px] text-slate-450 mt-1 max-w-[200px] mx-auto leading-normal">{getTranslation('entriesEmptyDesc', language)}</p>
             </div>
           ) : (
             activeEngagements.map(item => (
@@ -217,7 +264,6 @@ export default function ProfileView({
                 onRsvp={onRsvp}
                 onJoinGroup={onJoinGroup}
                 onAddComment={onAddComment}
-                onLoadComments={onLoadComments}
               />
             ))
           )

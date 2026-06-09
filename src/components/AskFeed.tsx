@@ -1,9 +1,10 @@
 import React, { useState } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
-import { Sparkles, Send, MessagesSquare, CheckCircle, EyeOff, Clock, Loader2 } from 'lucide-react';
+import { HelpCircle, Sparkles, Send, MessagesSquare, CheckCircle, EyeOff, BookOpen, Clock, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
+import { SkeletonLoader } from './HomeFeed';
 
 interface AskFeedProps {
   feedItems: FeedItem[];
@@ -16,10 +17,9 @@ interface AskFeedProps {
   onApply: (id: string) => void;
   onRsvp: (id: string) => void;
   onJoinGroup: (id: string) => void;
-  onAddComment: (id: string, commentText: string) => boolean | Promise<boolean>;
-  onLoadComments?: (id: string) => void;
-  onAddNewPost: (title: string, body: string, anonymous: boolean, customType?: string) => boolean | Promise<boolean>;
-  onRequireLogin?: () => boolean;
+  onAddComment: (id: string, commentText: string) => void;
+  onAddNewPost: (title: string, body: string, anonymous: boolean, customType?: string) => void;
+  isFeedLoading?: boolean;
 }
 
 export default function AskFeed({
@@ -34,9 +34,8 @@ export default function AskFeed({
   onRsvp,
   onJoinGroup,
   onAddComment,
-  onLoadComments,
   onAddNewPost,
-  onRequireLogin
+  isFeedLoading = false
 }: AskFeedProps) {
   const [askQuery, setAskQuery] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -75,21 +74,20 @@ export default function AskFeed({
 
       const data = await response.json();
       setAiResponse(data.text);
-    } catch {
-      setAiResponse('المساعد الذكي غير متاح حالياً على النسخة المنشورة، يمكنك متابعة التصفح.');
+    } catch (err: any) {
+      console.error(err);
+      setAiResponse("⚠️ [MOCK_NETWORK_NOTICE]: I am unable to connect to the active backend. Please review your server processes. Here is local guidance: Absences over 10% invoke an 'أول إنذار' (First warning). Present a valid emergency medical note to the student registry immediately.");
     } finally {
       setIsAiLoading(false);
     }
   };
 
   // Publish to community feed
-  const handleCommunitySubmit = async (e: React.FormEvent) => {
+  const handleCommunitySubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (onRequireLogin?.()) return;
     if (!communityQuery.trim()) return;
 
-    const ok = await onAddNewPost('Student Question 🙋‍♀️', communityQuery, anonymousCommunity, 'anonymous_question');
-    if (!ok) return;
+    onAddNewPost('Student Question 🙋‍♀️', communityQuery, anonymousCommunity, 'anonymous_question');
     
     setCommunityQuery('');
     setNotiMessage(language === 'ar' ? 'تم نشر سؤالك في تبويب المناقشات!' : language === 'ku' ? 'پرسیارەکەت بڵاوکرایەوە لە گفتوگۆکاندا!' : 'Question published to student discussions!');
@@ -102,28 +100,28 @@ export default function AskFeed({
   });
 
   return (
-    <div className="px-4 py-3 max-w-lg mx-auto flex flex-col pb-24" id="ask-feed-container">
+    <div className="px-4 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-[#0B1020]" id="ask-feed-container">
       
       {/* 1. AI ADVISOR MAIN INTERACTIVE SECTION */}
       <div 
-        className="bg-gradient-to-tr from-indigo-900 via-indigo-950 to-orange-950 rounded-2xl p-4 text-white shadow-xl shadow-indigo-950/20 mb-6" 
+        className="bg-[#121B2E] border border-[#1F2E4D] rounded-2xl p-4.5 text-white shadow-xl shadow-cyan-900/5 mb-6" 
         id="ai-advisor-panel"
       >
-        <div className="flex items-center gap-2 mb-2">
-          <div className="w-8 h-8 rounded-xl bg-orange-500 flex items-center justify-center text-white text-sm shrink-0 shadow shadow-orange-500/30 animate-pulse">
+        <div className="flex items-center gap-2.5 mb-2.5">
+          <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-400/25 flex items-center justify-center text-cyan-400 text-sm shrink-0 shadow animate-pulse">
             ✨
           </div>
           <div>
-            <h2 className="text-xs font-black text-orange-400 uppercase tracking-wider flex items-center gap-1">
-              {language === 'ar' ? 'مستشار الذكاء الاصطناعي' : language === 'ku' ? 'ڕاوێژکاری زیرەکی دەستکرد' : 'Al-Murshed AI Advisor'} <span className="bg-orange-500/20 text-orange-300 text-[8px] font-black px-1.5 py-0.2 rounded">LIVE v3.5</span>
+            <h2 className="text-[10px] font-black text-cyan-400 uppercase tracking-wider flex items-center gap-1 leading-none">
+              {language === 'ar' ? 'مستشار الذكاء الاصطناعي' : language === 'ku' ? 'ڕاوێژکاری زیرەکی دەستکرد' : 'Al-Murshed AI Advisor'} <span className="bg-cyan-500/15 text-cyan-300 text-[8px] font-black px-1.5 py-0.2 rounded border border-cyan-400/20">LIVE v3.5</span>
             </h2>
-            <h3 className="text-sm font-black text-white pr-2 leading-tight">
+            <h3 className="text-sm font-black text-white leading-tight mt-1">
               {getTranslation('askAiTitle', language)}
             </h3>
           </div>
         </div>
         
-        <p className="text-[11px] text-indigo-200 leading-relaxed font-medium mb-4">
+        <p className="text-[11px] text-slate-300 leading-relaxed font-semibold mb-4">
           {getTranslation('askAiDesc', language)}
         </p>
 
@@ -134,19 +132,19 @@ export default function AskFeed({
             onChange={e => setAskQuery(e.target.value)}
             rows={2}
             placeholder={getTranslation('askAiPlaceholder', language)}
-            className="w-full bg-white/10 border border-white/15 hover:border-white/25 rounded-xl p-3 text-xs text-white placeholder-indigo-300 focus:outline-none focus:bg-white/15 focus:border-white/30 resize-none font-medium leading-relaxed"
+            className="w-full bg-[#16223F] border border-[#1F2E4D] hover:border-slate-600 rounded-xl p-3.5 text-xs text-white placeholder-slate-400 focus:outline-none focus:bg-[#1E2E4B]/50 focus:border-cyan-400/50 resize-none font-semibold leading-relaxed"
           />
 
           <div className="flex items-center justify-between">
             {/* Anonymous Toggle for AI */}
-            <label className="flex items-center gap-1.5 cursor-pointer text-white/75 hover:text-white transition-colors" id="ai-anonymous-check">
+            <label className="flex items-center gap-1.5 cursor-pointer text-slate-400 hover:text-white transition-colors" id="ai-anonymous-check">
               <input
                 type="checkbox"
                 checked={anonymousAi}
                 onChange={e => setAnonymousAi(e.target.checked)}
-                className="w-3.5 h-3.5 text-orange-500 rounded border-white/20 bg-white/5 focus:ring-orange-500"
+                className="w-3.5 h-3.5 text-cyan-500 rounded border-[#1F2E4D] bg-[#101726] focus:ring-cyan-500 cursor-pointer"
               />
-              <span className="text-[9px] font-black">
+              <span className="text-[9px] font-black uppercase tracking-wider">
                 {getTranslation('anonymous', language)}
               </span>
             </label>
@@ -154,7 +152,7 @@ export default function AskFeed({
             <button
               type="submit"
               disabled={isAiLoading || !askQuery.trim()}
-              className="px-4 py-2 bg-gradient-to-r from-orange-500 to-amber-500 hover:from-orange-600 hover:to-amber-600 text-white font-black text-xs rounded-xl shadow-md cursor-pointer transition-all disabled:opacity-50 flex items-center gap-1.5"
+              className="px-4 py-2 bg-gradient-to-r from-[#4F46E5] to-[#2563EB] hover:scale-[1.01] active:scale-95 text-white font-black text-xs rounded-xl shadow-md cursor-pointer transition-all disabled:opacity-50 flex items-center gap-1.5 border border-indigo-500/20"
             >
               {isAiLoading ? (
                 <>
@@ -178,16 +176,16 @@ export default function AskFeed({
               initial={{ opacity: 0, y: 10 }}
               animate={{ opacity: 1, y: 0 }}
               exit={{ opacity: 0 }}
-              className="mt-4 bg-white rounded-xl p-3.5 border border-indigo-100 flex flex-col gap-2 shadow-inner text-gray-800"
+              className="mt-4 bg-[#16223F] rounded-xl p-3.5 border border-[#1F2E4D] flex flex-col gap-2 shadow-inner text-slate-200"
               id="ai-response-memo-box"
             >
-              <div className="flex justify-between items-center text-[9px] font-black text-gray-400 border-b border-gray-100 pb-1.5 uppercase tracking-wider">
-                <span className="flex items-center gap-1 text-indigo-600">
+              <div className="flex justify-between items-center text-[9px] font-black text-slate-450 border-b border-[#1F2E4D] pb-1.5 uppercase tracking-wider">
+                <span className="flex items-center gap-1 text-cyan-400">
                   <Clock className="w-3.5 h-3.5" /> {getTranslation('verifiedSolution', language)}
                 </span>
                 <span>Response v3.5-flash</span>
               </div>
-              <p className="text-xs font-semibold text-gray-700 leading-relaxed whitespace-pre-wrap break-words">
+              <p className="text-xs font-semibold text-slate-200 leading-relaxed whitespace-pre-wrap break-words">
                 {aiResponse}
               </p>
               <button
@@ -195,7 +193,7 @@ export default function AskFeed({
                   setAskQuery('');
                   setAiResponse(null);
                 }}
-                className="text-[10px] font-black text-center text-orange-600 mt-2 hover:bg-orange-50 py-1.5 rounded bg-orange-50/20 cursor-pointer border border-orange-100/30 w-full"
+                className="text-[10px] font-black text-center text-rose-400 mt-2 hover:bg-rose-500/10 py-1.5 rounded bg-rose-500/5 cursor-pointer border border-[#FEF2F2]/10 w-full"
               >
                 {getTranslation('clearMemo', language)}
               </button>
@@ -205,18 +203,18 @@ export default function AskFeed({
       </div>
 
       {/* 2. COMMUNITY DISCUSSION INTERACTIVE SECTION */}
-      <div className="bg-white rounded-2xl border border-gray-100 p-3.5 mb-5 shadow-sm" id="community-ask-form-wrapper">
+      <div className="bg-[#121B2E] rounded-2xl border border-[#1F2E4D] p-3.5 mb-5 shadow-lg" id="community-ask-form-wrapper">
         {notiMessage && (
-          <div className="bg-emerald-50 text-emerald-700 text-xs font-bold p-2.5 rounded-xl border border-emerald-100 mb-3 flex items-center gap-1.5">
-            <CheckCircle className="w-4.5 h-4.5 text-emerald-500 shrink-0" />
+          <div className="bg-[#121B2E] text-emerald-400 text-xs font-bold p-2.5 rounded-xl border border-emerald-500/25 mb-3 flex items-center gap-1.5">
+            <CheckCircle className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
             <span>{notiMessage}</span>
           </div>
         )}
 
-        <h3 className="text-xs font-black text-gray-900 tracking-tight mb-2 flex items-center gap-1">
-          <MessagesSquare className="w-4 h-4 text-orange-500" /> {getTranslation('classmateCommTitle', language)}
+        <h3 className="text-xs font-black text-white tracking-tight mb-2 flex items-center gap-1.5">
+          <MessagesSquare className="w-4 h-4 text-cyan-450" /> {getTranslation('classmateCommTitle', language)}
         </h3>
-        <p className="text-[10px] text-gray-400 font-bold mb-3">
+        <p className="text-[10px] text-slate-400 font-bold mb-3">
           {getTranslation('classmateCommDesc', language)}
         </p>
 
@@ -228,19 +226,19 @@ export default function AskFeed({
             rows={2}
             required
             placeholder={language === 'ar' ? 'اكتب سؤالك هنا لزملائك الطلاب...' : language === 'ku' ? 'پرسیارەکەت بنووسە لێرە بۆ هاوڕێکانت...' : 'Ask your classmate peers: Can anyone share Networking syllabus notes? Or are there team members available?'}
-            className="w-full text-xs font-medium text-gray-800 bg-gray-50 border border-gray-100 rounded-xl p-3.5 focus:bg-white focus:outline-none focus:ring-1 focus:ring-orange-500 resize-none"
+            className="w-full text-xs font-semibold text-slate-100 bg-[#16223F] border border-[#1F2E4D] rounded-xl p-3.5 focus:bg-[#1E2E4E] focus:outline-none focus:border-cyan-400 resize-none"
           />
 
           <div className="flex items-center justify-between">
             {/* Anonymous Toggle for Community */}
-            <label className="flex items-center gap-1.5 cursor-pointer text-gray-500" id="community-anonymous-check">
+            <label className="flex items-center gap-1.5 cursor-pointer text-slate-400 bg-[#101726] border border-[#1F2E4D]/85 px-2.5 py-1 rounded-lg" id="community-anonymous-check">
               <input
                 type="checkbox"
                 checked={anonymousCommunity}
                 onChange={e => setAnonymousCommunity(e.target.checked)}
-                className="w-3.5 h-3.5 text-orange-500 rounded border-gray-300 focus:ring-orange-500"
+                className="w-3.5 h-3.5 text-cyan-500 rounded border-gray-300 focus:ring-cyan-500 cursor-pointer"
               />
-              <span className="text-[9px] font-bold">
+              <span className="text-[9px] font-black uppercase tracking-wider">
                 {getTranslation('anonymous', language)}
               </span>
             </label>
@@ -248,7 +246,7 @@ export default function AskFeed({
             <button
               type="submit"
               disabled={!communityQuery.trim()}
-              className="px-3.5 py-1.8 bg-gray-900 text-white hover:bg-gray-800 text-xs font-bold rounded-xl shadow cursor-pointer transition-colors disabled:opacity-50 flex items-center gap-1.5"
+              className="px-3.5 py-2 bg-gradient-to-r from-cyan-500 to-indigo-600 text-white hover:scale-[1.01] text-xs font-extrabold rounded-xl shadow cursor-pointer transition-transform disabled:opacity-50 flex items-center gap-1.5"
             >
               <Send className="w-3.5 h-3.5" />
               <span>{getTranslation('askCommunityBtn', language)}</span>
@@ -259,18 +257,20 @@ export default function AskFeed({
 
       {/* 3. ACTIVE QUESTIONS LIST FOR GENERAL BENEFIT */}
       <div id="student-discussions-header" className="mb-3">
-        <h3 className="text-[10px] font-black uppercase text-gray-400 tracking-wider flex items-center gap-1">
+        <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center gap-1">
           💬 {getTranslation('activeDiscussionsTitle', language)} ({questionItems.length})
         </h3>
       </div>
 
       <div className="flex flex-col gap-1" id="active-questions-posts-list">
-        {questionItems.length === 0 ? (
-          <div className="text-center py-12 text-gray-400 bg-white border border-gray-100 rounded-3xl p-6">
+        {isFeedLoading ? (
+          <SkeletonLoader />
+        ) : questionItems.length === 0 ? (
+          <div className="text-center py-12 text-slate-450 bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-6 shadow-inner">
             <div className="text-3xl mb-2">🔭</div>
-            <h3 className="font-bold text-gray-700 text-xs">{getTranslation('noDiscussions', language)}</h3>
-            <p className="text-[10px] text-gray-400 max-w-xs mt-1 mx-auto">
-              {language === 'ar' ? 'غير عوامل التصفية وابحث من جديد.' : language === 'ku' ? 'فلتەرەکە بگۆڕە و دووبارە بگەڕێ.' : 'Change selectors and search again.'}
+            <h3 className="font-extrabold text-white text-xs text-center">{getTranslation('noDiscussions', language)}</h3>
+            <p className="text-[10px] text-slate-450 max-w-xs mt-1.5 mx-auto leading-relaxed text-center">
+              {language === 'ar' ? 'غير عوامل التصفية واستعرض من جديد.' : language === 'ku' ? 'فلتەرەکە بگۆڕە و دووبارە بگەڕێ.' : 'Change selectors and search again.'}
             </p>
           </div>
         ) : (
@@ -286,7 +286,6 @@ export default function AskFeed({
               onRsvp={onRsvp}
               onJoinGroup={onJoinGroup}
               onAddComment={onAddComment}
-              onLoadComments={onLoadComments}
             />
           ))
         )}
