@@ -3,7 +3,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Sparkles } from 'lucide-react';
 import Navbar, { Header } from './components/Navigation';
 import Feed from './pages/Feed';
-import Home from './pages/Home';
 import Discover from './pages/Discover';
 import OpportunitiesHub from './pages/OpportunitiesHub';
 import Profile from './pages/Profile';
@@ -44,7 +43,7 @@ export default function App() {
     );
   }
 
-  // Show Auth page (must be checked BEFORE the !user guard)
+  // Keep auth available, but do not force visitors into it.
   if (activeTab === 'auth' && !user) {
     return <Auth />;
   }
@@ -54,20 +53,13 @@ export default function App() {
     if (profile?.institution) setActiveTab('home');
   }
 
-  // Not logged in
-  if (!user) {
-    if (selectedInst) {
-      return <InstitutionProfile institution={selectedInst} onBack={() => setSelectedInst(null)} />;
-    }
-    return <Home onStart={() => setActiveTab('auth')} onSelectInstitution={setSelectedInst} />;
-  }
-
   // Logged in but profile incomplete
   if (user && !profile?.institution) {
     return <Onboarding onComplete={() => {}} />;
   }
 
-  // Main App (Authenticated)
+  // Main App: visible to guests and signed-in users.
+  const isGuestPreview = !user;
 
   // Simple Router
   const renderContent = () => {
@@ -86,13 +78,13 @@ export default function App() {
       case 'discover':
         return <Discover onSelectInstitution={setSelectedInst} />;
       case 'post':
-        return null; // Handled by overlay
+        return null; // Handled by overlay for signed-in users
       case 'opportunities':
         return <OpportunitiesHub />;
       case 'profile':
-        return <Profile />;
+        return user ? <Profile /> : <Feed />;
       case 'notifications':
-        return <Notifications />;
+        return user ? <Notifications /> : <Feed />;
       default:
         return <Feed />;
     }
@@ -100,9 +92,13 @@ export default function App() {
 
   const handleTabSelect = (tab: string) => {
     if (tab === 'post') {
-        setShowPostCreator(true);
+      if (!user) {
+        setActiveTab('home');
+        return;
+      }
+      setShowPostCreator(true);
     } else {
-        setActiveTab(tab);
+      setActiveTab(tab);
     }
   };
 
@@ -113,8 +109,8 @@ export default function App() {
     switch(activeTab) {
         case 'discover': headerTitle = "اكتشف الجامعات"; break;
         case 'opportunities': headerTitle = "الفرص والمهن"; break;
-        case 'profile': headerTitle = "الملف الشخصي"; break;
-        case 'notifications': headerTitle = "التنبيهات"; break;
+        case 'profile': headerTitle = user ? "الملف الشخصي" : "رافد"; break;
+        case 'notifications': headerTitle = user ? "التنبيهات" : "رافد"; break;
         default: headerTitle = "رافد";
     }
   }
@@ -127,8 +123,25 @@ export default function App() {
           {!selectedInst && (
             <Header 
                 title={headerTitle} 
-                onNotificationsClick={() => setActiveTab('notifications')}
+                onNotificationsClick={() => user ? setActiveTab('notifications') : setActiveTab('auth')}
             />
+          )}
+
+          {isGuestPreview && !selectedInst && (
+            <div className="fixed top-20 left-0 right-0 z-30 px-3 md:px-4 pointer-events-none">
+              <div className="mx-auto max-w-xl bg-secondary text-white rounded-2xl shadow-xl px-4 py-3 flex items-center justify-between gap-3 pointer-events-auto" dir="rtl">
+                <div className="min-w-0">
+                  <p className="text-xs font-black text-primary">وضع المعاينة</p>
+                  <p className="text-[10px] font-bold text-white/80 truncate">تصفح التطبيق بدون تسجيل دخول. النشر والمحادثات تحتاج حساب لاحقاً.</p>
+                </div>
+                <button
+                  onClick={() => setActiveTab('auth')}
+                  className="bg-primary text-secondary px-3 py-2 rounded-xl text-[10px] font-black whitespace-nowrap"
+                >
+                  دخول / تسجيل
+                </button>
+              </div>
+            </div>
           )}
           
           <main>
@@ -147,8 +160,8 @@ export default function App() {
 
           {!selectedInst && <Navbar activeTab={activeTab} setActiveTab={handleTabSelect} />}
 
-          <PostCreator open={showPostCreator} onClose={() => setShowPostCreator(false)} onPosted={() => {/* Refresh feed if needed */}} />
-          <ChatBox />
+          {user && <PostCreator open={showPostCreator} onClose={() => setShowPostCreator(false)} onPosted={() => {/* Refresh feed if needed */}} />}
+          {user && <ChatBox />}
         </div>
       } />
     </Routes>
