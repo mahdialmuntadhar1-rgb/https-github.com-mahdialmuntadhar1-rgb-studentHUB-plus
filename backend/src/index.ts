@@ -112,6 +112,16 @@ async function hashPassword(password: string): Promise<string> {
     .replace(/=/g, '');
 }
 
+async function hashResetToken(token: string): Promise<string> {
+  return hashPassword(token);
+}
+
+function createResetToken(): string {
+  const bytes = new Uint8Array(32);
+  crypto.getRandomValues(bytes);
+  return bytesToBase64Url(bytes);
+}
+
 // ─── AUTH MIDDLEWARE ─────────────────────────────────────────────────────────
 
 const authMiddleware = async (c: any, next: any) => {
@@ -308,36 +318,85 @@ app.post('/api/auth/send-verification-email', rateLimitMiddleware, async (c) => 
   return c.json({ message: 'تم إرسال رابط التحقق إلى بريدك الإلكتروني' });
 });
 
+app.post('/api/auth/forgot-password', rateLimitMiddleware, async (c) => {
+  const genericMessage = 'إذا كان البريد موجوداً، سيتم إرسال تعليمات الاستعادة عند تفعيل خدمة البريد.';
+
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const email = String(body.email || '').trim().toLowerCase();
+
+    if (!email || !email.includes('@')) {
+      return c.json({ success: true, message: genericMessage });
+    }
+
+    const user = await c.env.DB.prepare('SELECT id, email FROM profiles WHERE lower(email) = lower(?)')
+      .bind(email)
+      .first() as any;
+
+    if (user) {
+      const resetToken = createResetToken();
+      const tokenHash = await hashResetToken(resetToken);
+      const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+
+      await c.env.DB.prepare('DELETE FROM password_resets WHERE lower(email) = lower(?)')
+        .bind(email)
+        .run();
+
+      await c.env.DB.prepare(
+        'INSERT INTO password_resets (email, token, expires_at) VALUES (?, ?, ?)'
+      )
+        .bind(email, tokenHash, expiresAt)
+        .run();
+
+      // TODO: Send resetToken via a configured transactional email provider.
+      console.log('Password reset requested for existing account; email provider is not configured yet.');
+    }
+
+    return c.json({ success: true, message: genericMessage });
+  } catch (e: any) {
+    console.error('Forgot password error:', e?.message || e);
+    return c.json({ success: true, message: genericMessage });
+  }
+});
+
 app.post('/api/auth/reset-password', rateLimitMiddleware, async (c) => {
-  const { email, token, new_password } = await c.req.json();
-  
-  if (!email || !token || !new_password) {
-    return c.json({ error: 'البريد الإلكتروني والرمز وكلمة المرور الجديدة مطلوبة' }, 400);
+  try {
+    const body = await c.req.json().catch(() => ({}));
+    const token = String(body.token || body.code || body.tokenOrCode || '').trim();
+    const newPassword = String(body.password || body.new_password || body.newPassword || '').trim();
+
+    if (!token || !newPassword) {
+      return c.json({ error: 'الرمز وكلمة المرور الجديدة مطلوبان' }, 400);
+    }
+
+    if (newPassword.length < 8) {
+      return c.json({ error: 'كلمة المرور يجب أن تكون 8 أحرف على الأقل' }, 400);
+    }
+
+    const tokenHash = await hashResetToken(token);
+    const reset = await c.env.DB.prepare(
+      'SELECT email FROM password_resets WHERE token = ? AND expires_at > ?'
+    )
+      .bind(tokenHash, new Date().toISOString())
+      .first() as any;
+
+    if (!reset) {
+      return c.json({ error: 'رمز إعادة تعيين كلمة المرور غير صالح أو منتهي الصلاحية' }, 400);
+    }
+
+    const passwordHash = await hashPassword(newPassword);
+    await c.env.DB.batch([
+      c.env.DB.prepare('UPDATE profiles SET password_hash = ? WHERE lower(email) = lower(?)')
+        .bind(passwordHash, reset.email),
+      c.env.DB.prepare('DELETE FROM password_resets WHERE token = ?')
+        .bind(tokenHash)
+    ]);
+
+    return c.json({ success: true, message: 'تم تحديث كلمة المرور بنجاح' });
+  } catch (e: any) {
+    console.error('Reset password error:', e?.message || e);
+    return c.json({ error: 'الخدمة غير متاحة حالياً، حاول لاحقاً' }, 500);
   }
-
-  // Check if reset token exists and is valid
-  const reset = await c.env.DB.prepare(
-    'SELECT * FROM password_resets WHERE email = ? AND token = ? AND expires_at > ?'
-  )
-    .bind(email, token, new Date().toISOString())
-    .first() as any;
-
-  if (!reset) {
-    return c.json({ error: 'رمز إعادة تعيين كلمة المرور غير صالح أو منتهي الصلاحية' }, 400);
-  }
-
-  // Update password
-  const passwordHash = await hashPassword(new_password);
-  await c.env.DB.prepare('UPDATE profiles SET password_hash = ? WHERE email = ?')
-    .bind(passwordHash, email)
-    .run();
-
-  // Delete used reset token
-  await c.env.DB.prepare('DELETE FROM password_resets WHERE email = ? AND token = ?')
-    .bind(email, token)
-    .run();
-
-  return c.json({ message: 'تم تحديث كلمة المرور بنجاح' });
 });
 
 app.post('/api/auth/verify-email', async (c) => {
