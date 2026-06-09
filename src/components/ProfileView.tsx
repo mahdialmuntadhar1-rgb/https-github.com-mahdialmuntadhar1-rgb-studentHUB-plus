@@ -16,7 +16,8 @@ interface ProfileViewProps {
   onApply: (id: string) => void;
   onRsvp: (id: string) => void;
   onJoinGroup: (id: string) => void;
-  onAddComment: (id: string, commentText: string) => void;
+  onAddComment: (id: string, commentText: string) => boolean | Promise<boolean>;
+  onLoadComments?: (id: string) => void;
   onToggleUserRole: () => void;
 }
 
@@ -31,6 +32,7 @@ export default function ProfileView({
   onRsvp,
   onJoinGroup,
   onAddComment,
+  onLoadComments,
   onToggleUserRole
 }: ProfileViewProps) {
   const [activeTab, setActiveTab] = useState<'bookmarks' | 'activities'>('bookmarks');
@@ -191,6 +193,7 @@ export default function ProfileView({
                 onRsvp={onRsvp}
                 onJoinGroup={onJoinGroup}
                 onAddComment={onAddComment}
+                onLoadComments={onLoadComments}
               />
             ))
           )
@@ -214,6 +217,7 @@ export default function ProfileView({
                 onRsvp={onRsvp}
                 onJoinGroup={onJoinGroup}
                 onAddComment={onAddComment}
+                onLoadComments={onLoadComments}
               />
             ))
           )

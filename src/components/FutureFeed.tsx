@@ -35,7 +35,8 @@ interface FutureFeedProps {
   onApply: (id: string) => void;
   onRsvp: (id: string) => void;
   onJoinGroup: (id: string) => void;
-  onAddComment: (id: string, commentText: string) => void;
+  onAddComment: (id: string, commentText: string) => boolean | Promise<boolean>;
+  onLoadComments?: (id: string) => void;
   onBackToHome: () => void;
 }
 
@@ -51,6 +52,7 @@ export default function FutureFeed({
   onRsvp,
   onJoinGroup,
   onAddComment,
+  onLoadComments,
   onBackToHome
 }: FutureFeedProps) {
   const [activeChip, setActiveChip] = useState<string>('all');
@@ -325,6 +327,7 @@ export default function FutureFeed({
                     onRsvp={onRsvp}
                     onJoinGroup={onJoinGroup}
                     onAddComment={onAddComment}
+                    onLoadComments={onLoadComments}
                   />
                 ))}
               </div>
@@ -359,6 +362,7 @@ export default function FutureFeed({
                     onRsvp={onRsvp}
                     onJoinGroup={onJoinGroup}
                     onAddComment={onAddComment}
+                    onLoadComments={onLoadComments}
                   />
                 ))}
               </div>
@@ -384,6 +388,7 @@ export default function FutureFeed({
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onLoadComments={onLoadComments}
                 />
               ))}
             </div>
@@ -408,6 +413,7 @@ export default function FutureFeed({
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onLoadComments={onLoadComments}
                 />
               ))}
             </div>
@@ -432,6 +438,7 @@ export default function FutureFeed({
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onLoadComments={onLoadComments}
                 />
               ))}
             </div>
@@ -456,6 +463,7 @@ export default function FutureFeed({
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onLoadComments={onLoadComments}
                 />
               ))}
             </div>
@@ -501,6 +509,7 @@ export default function FutureFeed({
                 onRsvp={onRsvp}
                 onJoinGroup={onJoinGroup}
                 onAddComment={onAddComment}
+                onLoadComments={onLoadComments}
               />
             ))
           )}

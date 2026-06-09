@@ -31,7 +31,8 @@ interface FeedCardProps {
   onApply: (id: string) => void;
   onRsvp: (id: string) => void;
   onJoinGroup: (id: string) => void;
-  onAddComment: (id: string, commentText: string) => void;
+  onAddComment: (id: string, commentText: string) => boolean | Promise<boolean>;
+  onLoadComments?: (id: string) => void;
   allPostsHighlightDisabled?: boolean;
 }
 
@@ -44,7 +45,8 @@ export default function FeedCard({
   onApply,
   onRsvp,
   onJoinGroup,
-  onAddComment
+  onAddComment,
+  onLoadComments
 }: FeedCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -114,11 +116,13 @@ export default function FeedCard({
   };
 
   // Helper to trigger comment submits
-  const handleCommentSubmit = (e: React.FormEvent) => {
+  const handleCommentSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!commentText.trim()) return;
-    onAddComment(item.id, commentText);
-    setCommentText('');
+    const ok = await onAddComment(item.id, commentText);
+    if (ok) {
+      setCommentText('');
+    }
   };
 
   // Copy link helper
@@ -501,7 +505,13 @@ export default function FeedCard({
           {/* Comment collapse button */}
           <button
             id={`comments-collapse-btn-${item.id}`}
-            onClick={() => setShowComments(!showComments)}
+            onClick={() => {
+              const nextShow = !showComments;
+              setShowComments(nextShow);
+              if (nextShow) {
+                onLoadComments?.(item.id);
+              }
+            }}
             className="flex items-center gap-1 px-2.5 py-1.5 rounded-xl text-xs font-extrabold text-gray-400 hover:text-orange-500 hover:bg-orange-50 cursor-pointer transition-colors"
           >
             <MessageSquare className="w-4 h-4" />

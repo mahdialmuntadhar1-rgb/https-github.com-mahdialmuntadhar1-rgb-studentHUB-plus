@@ -17,7 +17,8 @@ interface LifeFeedProps {
   onApply: (id: string) => void;
   onRsvp: (id: string) => void;
   onJoinGroup: (id: string) => void;
-  onAddComment: (id: string, commentText: string) => void;
+  onAddComment: (id: string, commentText: string) => boolean | Promise<boolean>;
+  onLoadComments?: (id: string) => void;
   onShowAll: () => void;
 }
 
@@ -33,6 +34,7 @@ export default function LifeFeed({
   onRsvp,
   onJoinGroup,
   onAddComment,
+  onLoadComments,
   onShowAll
 }: LifeFeedProps) {
   const [activeChip, setActiveChip] = useState<'all' | 'video' | 'photo' | 'story' | 'poll' | 'clubs' | 'nearby' | 'trending'>('all');
@@ -177,6 +179,7 @@ export default function LifeFeed({
               onRsvp={onRsvp}
               onJoinGroup={onJoinGroup}
               onAddComment={onAddComment}
+              onLoadComments={onLoadComments}
             />
           ))
         )}

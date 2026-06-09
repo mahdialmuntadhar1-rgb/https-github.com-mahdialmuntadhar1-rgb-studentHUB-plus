@@ -16,8 +16,9 @@ interface AskFeedProps {
   onApply: (id: string) => void;
   onRsvp: (id: string) => void;
   onJoinGroup: (id: string) => void;
-  onAddComment: (id: string, commentText: string) => void;
-  onAddNewPost: (title: string, body: string, anonymous: boolean, customType?: string) => void;
+  onAddComment: (id: string, commentText: string) => boolean | Promise<boolean>;
+  onLoadComments?: (id: string) => void;
+  onAddNewPost: (title: string, body: string, anonymous: boolean, customType?: string) => boolean | Promise<boolean>;
   onRequireLogin?: () => boolean;
 }
 
@@ -33,6 +34,7 @@ export default function AskFeed({
   onRsvp,
   onJoinGroup,
   onAddComment,
+  onLoadComments,
   onAddNewPost,
   onRequireLogin
 }: AskFeedProps) {
@@ -81,12 +83,13 @@ export default function AskFeed({
   };
 
   // Publish to community feed
-  const handleCommunitySubmit = (e: React.FormEvent) => {
+  const handleCommunitySubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (onRequireLogin?.()) return;
     if (!communityQuery.trim()) return;
 
-    onAddNewPost('Student Question 🙋‍♀️', communityQuery, anonymousCommunity, 'anonymous_question');
+    const ok = await onAddNewPost('Student Question 🙋‍♀️', communityQuery, anonymousCommunity, 'anonymous_question');
+    if (!ok) return;
     
     setCommunityQuery('');
     setNotiMessage(language === 'ar' ? 'تم نشر سؤالك في تبويب المناقشات!' : language === 'ku' ? 'پرسیارەکەت بڵاوکرایەوە لە گفتوگۆکاندا!' : 'Question published to student discussions!');
@@ -283,6 +286,7 @@ export default function AskFeed({
               onRsvp={onRsvp}
               onJoinGroup={onJoinGroup}
               onAddComment={onAddComment}
+              onLoadComments={onLoadComments}
             />
           ))
         )}

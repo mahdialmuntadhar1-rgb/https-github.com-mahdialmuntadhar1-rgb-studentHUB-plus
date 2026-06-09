@@ -21,6 +21,7 @@ import {
   logout,
   createPost,
   likePost,
+  getComments,
   createComment
 } from './lib/rafidApi';
 
@@ -101,6 +102,18 @@ const mapBackendPostToFeedItem = (post: any): FeedItem => {
   };
 };
 
+const mapBackendCommentToComment = (comment: any): Comment => ({
+  id: String(comment.id || `comment-${Date.now()}`),
+  authorName: comment.author_name || comment.authorName || comment.author_full_name || 'Rafid Student',
+  authorRole: 'student',
+  authorAvatar: comment.author_avatar || comment.authorAvatar || fallbackAvatar,
+  content: comment.content || '',
+  date: formatDateLabel(comment.created_at || comment.createdAt),
+  likes: Number(comment.likes_count || comment.likes || 0)
+});
+
+const isBackendItem = (item?: FeedItem) => Boolean(item?.tags?.includes('Rafid'));
+
 const mapBackendOpportunityToFeedItem = (opportunity: any): FeedItem => {
   const title = opportunity.title || opportunity.name || opportunity.position || 'Opportunity';
   const content = opportunity.description || opportunity.content || opportunity.summary || '';
@@ -169,6 +182,7 @@ export default function App() {
   const [authMessageType, setAuthMessageType] = useState<'error' | 'success'>('error');
   const [authLoading, setAuthLoading] = useState(false);
   const [loggedIn, setLoggedIn] = useState(() => isLoggedIn());
+  const [interactionMessage, setInteractionMessage] = useState('');
 
   // Feed database state (persisted in session / local storage for active play)
   const [feedItems, setFeedItems] = useState<FeedItem[]>(() => {
@@ -261,6 +275,11 @@ export default function App() {
     return true;
   };
 
+  const showInteractionMessage = (message: string) => {
+    setInteractionMessage(message);
+    window.setTimeout(() => setInteractionMessage(''), 3500);
+  };
+
   const handleAuthSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setAuthMessage('');
@@ -299,21 +318,47 @@ export default function App() {
 
   const handleLike = async (id: string) => {
     if (requireLogin()) return;
+    const currentItem = feedItems.find(item => item.id === id);
+    if (!isBackendItem(currentItem)) {
+      showInteractionMessage('هذا منشور تجريبي، جرّب المنشورات الحقيقية لاحقاً');
+      return;
+    }
+
     const token = getToken();
-    if (token) {
-      likePost(token, id);
+    if (!token) return;
+
+    const previous = currentItem;
+    setFeedItems(prev => prev.map(item => {
+      if (item.id === id) {
+        const isLiked = !item.likedByUser;
+        return {
+          ...item,
+          likes: isLiked ? item.likes + 1 : Math.max(0, item.likes - 1),
+          likedByUser: isLiked
+        };
+      }
+      return item;
+    }));
+
+    const result = await likePost(token, id);
+    if (!result.ok) {
+      showInteractionMessage(result.message || 'تعذر تحديث الإعجاب الآن');
+      if (previous) {
+        setFeedItems(prev => prev.map(item => item.id === id ? previous : item));
+      }
+      return;
     }
 
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
-        const isLiked = !item.likedByUser;
+        const isLiked = Boolean(result.data?.liked);
         // Award points on first like
         if (isLiked) {
           handleAwardPoints(5);
         }
         return {
           ...item,
-          likes: isLiked ? item.likes + 1 : item.likes - 1,
+          likes: Number(result.data?.likes_count ?? item.likes),
           likedByUser: isLiked
         };
       }
@@ -420,21 +465,45 @@ export default function App() {
     }));
   };
 
-  const handleAddComment = async (itemId: string, content: string) => {
-    if (requireLogin()) return;
-    const token = getToken();
-    if (token) {
-      createComment(token, itemId, content);
+  const handleLoadComments = async (itemId: string) => {
+    const item = feedItems.find(feedItem => feedItem.id === itemId);
+    if (!isBackendItem(item)) return;
+
+    const comments = await getComments(itemId);
+    if (!Array.isArray(comments)) {
+      showInteractionMessage('التعليقات غير متاحة حالياً');
+      return;
     }
 
-    const newComment: Comment = {
-      id: `c-${Date.now()}`,
-      authorName: userProfile.name,
-      authorRole: userProfile.role,
-      authorAvatar: userProfile.avatar,
-      content,
-      date: 'Just now'
-    };
+    setFeedItems(prev => prev.map(feedItem => {
+      if (feedItem.id !== itemId) return feedItem;
+      const commentsList = comments.map(mapBackendCommentToComment);
+      return {
+        ...feedItem,
+        commentsList,
+        commentsCount: commentsList.length
+      };
+    }));
+  };
+
+  const handleAddComment = async (itemId: string, content: string) => {
+    if (requireLogin()) return false;
+    const currentItem = feedItems.find(item => item.id === itemId);
+    if (!isBackendItem(currentItem)) {
+      showInteractionMessage('هذا منشور تجريبي، جرّب المنشورات الحقيقية لاحقاً');
+      return false;
+    }
+
+    const token = getToken();
+    if (!token) return false;
+
+    const result = await createComment(token, itemId, content);
+    if (!result.ok || !result.data) {
+      showInteractionMessage(result.message || 'تعذر إضافة التعليق الآن');
+      return false;
+    }
+
+    const newComment = mapBackendCommentToComment(result.data);
 
     handleAwardPoints(15); // reward commenting and discussion
 
@@ -448,54 +517,41 @@ export default function App() {
       }
       return item;
     }));
+    return true;
   };
 
   const handleAddNewPost = async (title: string, body: string, anonymous: boolean, customType = 'post') => {
-    if (requireLogin()) return;
+    if (requireLogin()) return false;
+    const token = getToken();
+    if (!token) return false;
 
-    const freshPost: FeedItem = {
-      id: `custom-${Date.now()}`,
-      type: customType as any,
-      titleEN: title,
-      titleAR: title,
-      titleKU: title,
-      contentEN: body,
-      contentAR: body,
-      contentKU: body,
-      author: anonymous ? {
-        name: 'Anonymous Student',
-        role: 'student',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100'
-      } : {
-        name: userProfile.name,
-        role: userProfile.role,
-        avatar: userProfile.avatar,
-        university: IraqiUniversities.find(u => u.id === userProfile.universityId)?.nameEN
-      },
-      date: 'Just now',
-      likes: 1,
-      commentsCount: 0,
-      commentsList: [],
-      likedByUser: true,
-      governorateId: selectedGov === 'all' ? userProfile.governorateId : selectedGov,
-      universityId: selectedUni === 'all' ? userProfile.universityId : selectedUni,
-      tags: ['StudentShare', customType === 'anonymous_question' ? 'Advising' : 'Life']
-    };
+    const governorate = selectedGov === 'all'
+      ? IraqiGovernorates.find(g => g.id === userProfile.governorateId)?.nameEN || 'Baghdad'
+      : IraqiGovernorates.find(g => g.id === selectedGov)?.nameEN || selectedGov;
+    const institution = selectedUni === 'all'
+      ? IraqiUniversities.find(u => u.id === userProfile.universityId)?.nameEN || 'University of Baghdad'
+      : IraqiUniversities.find(u => u.id === selectedUni)?.nameEN || selectedUni;
+    const institutionId = selectedUni === 'all' ? userProfile.universityId : selectedUni;
+
+    const result = await createPost(token, {
+      title,
+      content: body,
+      type: customType === 'anonymous_question' ? 'student' : customType,
+      governorate,
+      institution,
+      institution_id: institutionId,
+      metadata: { anonymous }
+    });
+
+    if (!result.ok || !result.data) {
+      showInteractionMessage(result.message || 'تعذر نشر المنشور الآن');
+      return false;
+    }
 
     handleAwardPoints(40); // high points for sharing posts!
-    setFeedItems(prev => [freshPost, ...prev]);
-
-    const token = getToken();
-    if (token) {
-      createPost(token, {
-        title,
-        content: body,
-        anonymous,
-        type: customType,
-        governorate: selectedGov,
-        institution: selectedUni
-      });
-    }
+    setFeedItems(prev => [mapBackendPostToFeedItem(result.data), ...prev]);
+    showInteractionMessage('تم نشر المنشور بنجاح');
+    return true;
   };
 
   // Gamification engine helpers
@@ -577,6 +633,7 @@ export default function App() {
             onRsvp={handleRsvp}
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
+            onLoadComments={handleLoadComments}
             onNavigateTab={setActiveTab}
             onAddNewPost={handleAddNewPost}
             onRequireLogin={requireLogin}
@@ -596,6 +653,7 @@ export default function App() {
             onRsvp={handleRsvp}
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
+            onLoadComments={handleLoadComments}
             onShowAll={handleShowAllLife}
           />
         );
@@ -613,6 +671,7 @@ export default function App() {
             onRsvp={handleRsvp}
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
+            onLoadComments={handleLoadComments}
             onAddNewPost={handleAddNewPost}
             onRequireLogin={requireLogin}
           />
@@ -631,6 +690,7 @@ export default function App() {
             onRsvp={handleRsvp}
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
+            onLoadComments={handleLoadComments}
             onBackToHome={handleBackToHomeFuture}
           />
         );
@@ -647,6 +707,7 @@ export default function App() {
             onRsvp={handleRsvp}
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
+            onLoadComments={handleLoadComments}
             onToggleUserRole={handleRoleToggle}
           />
         );
@@ -686,6 +747,19 @@ export default function App() {
             </button>
           </div>
         )}
+
+        <AnimatePresence>
+          {interactionMessage && (
+            <motion.div
+              initial={{ opacity: 0, y: -10 }}
+              animate={{ opacity: 1, y: 0 }}
+              exit={{ opacity: 0, y: -10 }}
+              className="absolute top-20 left-3 right-3 z-40 bg-gray-950 text-white text-xs font-bold rounded-2xl px-3 py-2 shadow-lg text-center"
+            >
+              {interactionMessage}
+            </motion.div>
+          )}
+        </AnimatePresence>
 
         {/* Dynamic Inner views container */}
         <main className="flex-1 overflow-y-auto">

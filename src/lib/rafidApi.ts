@@ -2,6 +2,12 @@ const API_BASE = "https://rafid-api.mahdialmuntadhar1.workers.dev";
 const TOKEN_KEY = "rafid_auth_token";
 
 type ApiResult<T> = T | null;
+export type ApiActionResult<T = any> = {
+  ok: boolean;
+  status: number;
+  data: T | null;
+  message?: string;
+};
 export type AuthResult = {
   ok: boolean;
   token: string | null;
@@ -43,6 +49,10 @@ function authHeaders(token: string) {
   return {
     Authorization: `Bearer ${token}`,
   };
+}
+
+function apiMessage(data: any, fallback: string) {
+  return data?.message || data?.error || fallback;
 }
 
 export function getToken() {
@@ -192,43 +202,68 @@ export async function getMe(token: string) {
 }
 
 export async function createPost(token: string, data: Record<string, unknown>) {
-  return safeFetch(
+  const payload = {
+    type: data.type || "student",
+    title: data.title || null,
+    content: data.content || data.text || "",
+    governorate: data.governorate || "all",
+    institution: data.institution || "all",
+    institution_id: data.institution_id || data.institutionId || "manual",
+    metadata: data.metadata || {},
+  };
+  const response = await requestJson<any>(
     "/api/posts",
     {
       method: "POST",
       headers: authHeaders(token),
-      body: JSON.stringify(data),
-    },
-    null
+      body: JSON.stringify(payload),
+    }
   );
+  return {
+    ok: response.ok,
+    status: response.status,
+    data: response.data,
+    message: response.ok ? undefined : apiMessage(response.data, "تعذر نشر المنشور الآن")
+  } satisfies ApiActionResult;
 }
 
 export async function likePost(token: string, postId: string) {
-  return safeFetch(
+  const response = await requestJson<any>(
     `/api/posts/${postId}/like`,
     {
       method: "POST",
       headers: authHeaders(token),
-    },
-    null
+    }
   );
+  return {
+    ok: response.ok,
+    status: response.status,
+    data: response.data,
+    message: response.ok ? undefined : apiMessage(response.data, "تعذر تحديث الإعجاب الآن")
+  } satisfies ApiActionResult;
 }
 
 export async function getComments(postId: string) {
-  const data = await safeFetch<any>(`/api/posts/${postId}/comments`, {}, []);
+  const data = await safeFetch<any>(`/api/posts/${postId}/comments`, {}, null);
+  if (data === null) return null;
   if (Array.isArray(data)) return data;
   if (Array.isArray(data?.comments)) return data.comments;
-  return [];
+  return null;
 }
 
 export async function createComment(token: string, postId: string, content: string) {
-  return safeFetch(
+  const response = await requestJson<any>(
     `/api/posts/${postId}/comments`,
     {
       method: "POST",
       headers: authHeaders(token),
       body: JSON.stringify({ content }),
-    },
-    null
+    }
   );
+  return {
+    ok: response.ok,
+    status: response.status,
+    data: response.data,
+    message: response.ok ? undefined : apiMessage(response.data, "تعذر إضافة التعليق الآن")
+  } satisfies ApiActionResult;
 }

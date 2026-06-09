@@ -16,9 +16,10 @@ interface HomeFeedProps {
   onApply: (id: string) => void;
   onRsvp: (id: string) => void;
   onJoinGroup: (id: string) => void;
-  onAddComment: (id: string, commentText: string) => void;
+  onAddComment: (id: string, commentText: string) => boolean | Promise<boolean>;
+  onLoadComments?: (id: string) => void;
   onNavigateTab: (tabId: 'home' | 'life' | 'ask' | 'future' | 'profile') => void;
-  onAddNewPost: (title: string, body: string, anonymous: boolean) => void;
+  onAddNewPost: (title: string, body: string, anonymous: boolean) => boolean | Promise<boolean>;
   onRequireLogin?: () => boolean;
 }
 
@@ -34,6 +35,7 @@ export default function HomeFeed({
   onRsvp,
   onJoinGroup,
   onAddComment,
+  onLoadComments,
   onNavigateTab,
   onAddNewPost,
   onRequireLogin
@@ -44,14 +46,15 @@ export default function HomeFeed({
   const [anonymous, setAnonymous] = useState(false);
   const [message, setMessage] = useState('');
 
-  const handlePostSubmit = (e: React.FormEvent) => {
+  const handlePostSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (onRequireLogin?.()) return;
     if (!postBody.trim()) return;
 
     // Use default titles if not filled
     const generatedTitle = postTitle.trim() || (anonymous ? 'Anonymous Question' : 'Campus Moment 🌟');
-    onAddNewPost(generatedTitle, postBody, anonymous);
+    const ok = await onAddNewPost(generatedTitle, postBody, anonymous);
+    if (!ok) return;
     
     // reset states
     setPostTitle('');
@@ -278,6 +281,7 @@ export default function HomeFeed({
               onRsvp={onRsvp}
               onJoinGroup={onJoinGroup}
               onAddComment={onAddComment}
+              onLoadComments={onLoadComments}
             />
           ))
         )}
