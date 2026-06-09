@@ -220,10 +220,10 @@ export default function FeedCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.3 }}
-      className={`bg-[#121B2E] rounded-3xl border transition-all duration-300 p-5 mb-5 relative flex flex-col shadow-lg hover:shadow-glow-cyan/5 hover:scale-[1.005] ${
+      className={`bg-white rounded-3xl transition-all duration-300 p-5 mb-5 relative flex flex-col ${
         item.author.verified 
-          ? 'border-[#2d4277] bg-gradient-to-b from-[#131E35] to-[#121B2E]' 
-          : 'border-[#1F2E4D] hover:border-[#2d4373]'
+          ? 'border-3 border-[#6B25C9] shadow-md shadow-[#6B25C9]/5' 
+          : 'border-2 border-[#E6E1F5] hover:border-[#6B25C9] shadow-sm'
       }`}
     >
       
@@ -236,49 +236,49 @@ export default function FeedCard({
               src={item.author.avatar} 
               alt={item.author.name}
               className={`w-11 h-11 rounded-xl object-cover border-2 shadow-md ${
-                item.author.role === 'institution' ? 'border-[#EF4444]' : item.author.role === 'teacher' ? 'border-[#4F46E5]' : 'border-[#06B6D4]'
+                item.author.role === 'institution' ? 'border-[#D9272E]' : item.author.role === 'teacher' ? 'border-[#6B25C9]' : 'border-[#2F7CCB]'
               }`}
               referrerPolicy="no-referrer"
             />
             {item.author.verified && (
-              <span className="absolute -bottom-1 -right-1 bg-gradient-to-tr from-[#06B6D4] to-[#4F46E5] text-white rounded-full p-0.5 border-2 border-[#121B2E] flex items-center justify-center">
+              <span className="absolute -bottom-1 -right-1 bg-gradient-to-tr from-[#6B25C9] to-[#2F7CCB] text-white rounded-full p-0.5 border-2 border-white flex items-center justify-center">
                 <svg className="w-2.5 h-2.5 fill-current text-white" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
               </span>
             )}
           </div>
           <div>
             <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-xs font-black text-white leading-tight">
+              <h3 className="text-xs font-black text-[#161A33] leading-tight">
                 {item.type === 'anonymous_question' ? getTranslation('anonymousLabel', language) : item.author.name}
               </h3>
               {item.author.verified && (
-                <span className="text-[8px] font-black uppercase bg-amber-500/15 text-yellow-400 px-1.5 py-0.5 rounded-md border border-amber-500/25 tracking-tight flex items-center gap-0.5 shadow-glow-gold">
+                <span className="text-[8px] font-black uppercase bg-[#FFD21F] text-[#161A33] px-1.5 py-0.5 rounded-md border border-[#161A33]/15 tracking-tight flex items-center gap-0.5 shadow-sm">
                   ✨ {getTranslation('verifiedPartner', language)}
                 </span>
               )}
             </div>
-            <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-400 mt-1.5" id={`card-author-meta-${item.id}`}>
-              <span className="font-black text-cyan-400 bg-cyan-400/10 px-2 py-0.5 rounded-md border border-cyan-400/10 shrink-0">
+            <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500 mt-1.5" id={`card-author-meta-${item.id}`}>
+              <span className="font-black text-[#6B25C9] bg-[#6B25C9]/10 px-2 py-0.5 rounded-md shrink-0">
                 {getRoleLabel(item.author.role)}
               </span>
               {resolvedUniLabel && (
-                <span className="font-black text-slate-200 flex items-center gap-1 shrink-0 bg-slate-900 border border-[#1F2E4D] px-2 py-0.5 rounded-md max-w-[150px] truncate">
+                <span className="font-black text-[#161A33] flex items-center gap-1 shrink-0 bg-[#F3F7FF] border border-[#E6E1F5] px-2 py-0.5 rounded-md max-w-[150px] truncate">
                   🏫 {resolvedUniLabel}
                 </span>
               )}
               {resolvedGovLabel && (
-                <span className="text-slate-300 font-bold flex items-center gap-0.5 shrink-0">
+                <span className="text-slate-600 font-bold flex items-center gap-0.5 shrink-0">
                   📍 {resolvedGovLabel}
                 </span>
               )}
-              <span className="text-slate-500">•</span>
-              <span className="font-bold text-slate-400 text-[9px]">{item.date}</span>
+              <span className="text-slate-300">•</span>
+              <span className="font-bold text-slate-500 text-[9px]">{item.date}</span>
             </div>
           </div>
         </div>
 
         {/* Content Type Badge */}
-        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-xl border leading-none bg-[#16223F] ${badge.color}`}>
+        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-xl border leading-none bg-[#F7F4FF] ${badge.color}`}>
           {badge.text}
         </span>
       </div>
@@ -287,13 +287,13 @@ export default function FeedCard({
       <div className="flex-1" id={`card-body-${item.id}`}>
         {/* Localized Title */}
         {title && (
-          <h2 className="text-sm font-black text-white tracking-tight leading-snug mb-1.5">
+          <h2 className="text-sm font-black text-[#161A33] tracking-tight leading-snug mb-1.5">
             {title}
           </h2>
         )}
 
         {/* Localized Content Text */}
-        <p className="text-xs font-semibold text-slate-200 leading-relaxed break-words whitespace-pre-line mb-3">
+        <p className="text-xs font-semibold text-slate-700 leading-relaxed break-words whitespace-pre-line mb-3">
           {content}
         </p>
 
@@ -370,35 +370,35 @@ export default function FeedCard({
         {(item.type === 'job' || item.type === 'internship' || item.type === 'scholarship' || item.type === 'training' || 
           item.type === 'part_time_job' || item.type === 'full_time_job' || item.type === 'volunteering' || 
           item.type === 'competition' || item.type === 'graduation_project_support' || !!item.opportunityCategory) && (
-          <div className="bg-gradient-to-br from-[#EEF2FF] via-[#FFFFFF] to-[#E0F2FE] dark:from-[#16223F] dark:via-[#121B2E] dark:to-[#1F2E4D]/25 p-4 rounded-2xl border-2 border-slate-200 dark:border-[#1F2E4D] flex flex-col gap-3.5 mb-4 shadow-md relative overflow-hidden transition-all duration-300 hover:shadow-lg">
+          <div className="bg-gradient-to-br from-[#F7F4FF] via-white to-[#F3F7FF] p-4.5 rounded-2xl border-2 border-[#161A33] flex flex-col gap-3.5 mb-4 shadow-[3px_3px_0px_0px_#161A33] relative overflow-hidden transition-all duration-300">
             {/* Soft decorative background spot */}
-            <div className="absolute -top-12 -right-12 w-24 h-24 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
-            <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -top-12 -right-12 w-24 h-24 bg-[#FFD21F]/10 rounded-full blur-2xl pointer-events-none" />
+            <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-[#6B25C9]/10 rounded-full blur-2xl pointer-events-none" />
 
             {/* Header: Company Profile Info */}
             <div className="flex items-start justify-between gap-2.5 relative z-10">
               <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-white dark:bg-[#1F2E4D] border border-slate-200 dark:border-slate-700 text-cyan-600 dark:text-cyan-404 shadow-sm font-extrabold flex items-center justify-center text-lg select-none shrink-0 transform hover:scale-105 transition-transform">
+                <div className="w-10 h-10 rounded-xl bg-white border-2 border-[#161A33]/80 text-[#6B25C9] shadow-sm font-black flex items-center justify-center text-lg select-none shrink-0 transform hover:scale-105 transition-transform">
                   {item.companyLogo || '💼'}
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5 flex-wrap">
-                    <h4 className="text-[12px] font-black text-[#0F172A] dark:text-white leading-tight">
+                    <h4 className="text-[12px] font-black text-[#161A33] leading-tight">
                       {item.company || 'Iraq Opportunity Provider'}
                     </h4>
                     {(item.companyVerified || item.author.verified) && (
-                      <span className="text-[9px] font-extrabold bg-green-500/10 text-green-600 dark:text-green-400 px-1 py-0.2 bg-green-500/10 text-green-400 border border-green-500/25 flex items-center gap-0.5 leading-none shrink-0">
+                      <span className="text-[9px] font-extrabold bg-[#FFD21F]/20 text-[#161A33] px-1.5 py-0.2 rounded border border-[#161A33]/10 flex items-center gap-0.5 leading-none shrink-0">
                         ✓ Verified
                       </span>
                     )}
                   </div>
-                  <div className="flex items-center gap-1.5 text-[10px] text-slate-500 dark:text-slate-400 font-bold mt-1.5">
-                    <span className="flex items-center gap-0.5 text-[#0284C7] dark:text-cyan-404">
-                      <MapPin className="w-3" />
+                  <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold mt-1.5">
+                    <span className="flex items-center gap-0.5 text-[#2F7CCB]">
+                      <MapPin className="w-3 text-[#2F7CCB]" />
                       {item.location || 'All Iraq'}
                     </span>
                     <span>•</span>
-                    <span className="bg-indigo-500/10 text-indigo-400 border border-indigo-500/20 px-1.5 py-0.2 rounded text-[9px] font-black">
+                    <span className="bg-[#6B25C9]/10 text-[#6B25C9] border border-[#6B25C9]/15 px-1.5 py-0.2 rounded text-[9px] font-black">
                       {item.workplaceType || 'On-site'}
                     </span>
                   </div>
@@ -408,8 +408,8 @@ export default function FeedCard({
               {/* Deadline Tag with youthful animation */}
               {item.deadline && (
                 <div className="text-right shrink-0">
-                  <span className="text-[8px] font-black uppercase tracking-wider text-red-500 dark:text-red-400 block">Deadline</span>
-                  <span className="text-[10px] font-extrabold text-[#EF4444] dark:text-red-400 bg-red-500/10 border border-red-500/20 px-2 py-0.5 rounded-lg flex items-center gap-0.5 mt-1 animate-pulse">
+                  <span className="text-[8px] font-black uppercase tracking-wider text-[#D9272E] block">Deadline</span>
+                  <span className="text-[10px] font-extrabold text-[#D9272E] bg-[#D9272E]/10 border border-[#D9272E]/20 px-2 py-0.5 rounded-lg flex items-center gap-0.5 mt-1 animate-pulse">
                     ⏰ {item.deadline}
                   </span>
                 </div>
@@ -418,56 +418,56 @@ export default function FeedCard({
 
             {/* Who Can Apply Eligibility Alert Section */}
             {item.whoCanApply && (
-              <div className="bg-[#FFFBEB] dark:bg-amber-500/10 p-2.5 rounded-lg border border-[#FEF3C7] dark:border-amber-500/20 text-[10px] text-slate-700 dark:text-slate-300 leading-relaxed relative z-10 font-bold flex items-start gap-1.5">
+              <div className="bg-amber-50 p-2.5 rounded-lg border-2 border-[#161A33] text-[10px] text-slate-700 leading-relaxed relative z-10 font-bold flex items-start gap-1.5 shadow-[2px_2px_0px_0px_#161A33]">
                 <span className="text-sm shrink-0 leading-none">🎯</span>
                 <div>
-                  <span className="text-amber-700 dark:text-amber-400 font-black text-[9px] uppercase tracking-wider block mb-0.5">Who can apply</span>
-                  <span className="text-slate-800 dark:text-white font-extrabold">{item.whoCanApply}</span>
+                  <span className="text-amber-700 font-black text-[9px] uppercase tracking-wider block mb-0.5">Who can apply</span>
+                  <span className="text-slate-800 font-extrabold">{item.whoCanApply}</span>
                 </div>
               </div>
             )}
 
             {/* Campus Social Proof Block (Students who applied) */}
-            <div className="flex items-center gap-2 mt-0.5 bg-emerald-50 dark:bg-emerald-500/5 p-2 rounded-lg border border-emerald-200 dark:border-emerald-500/25 relative z-10">
+            <div className="flex items-center gap-2 mt-0.5 bg-emerald-50 p-2 rounded-lg border-2 border-[#161A33] relative z-10 shadow-[2px_2px_0px_0px_#161A33]">
               <div className="flex -space-x-1.5">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-cyan-400 to-indigo-505 border border-[#E2E8F0] dark:border-[#121B2E] text-[8px] flex items-center justify-center font-bold shadow-sm">🙋‍♂️</div>
-                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-amber-400 to-orange-505 border border-[#E2E8F0] dark:border-[#121B2E] text-[8px] flex items-center justify-center font-bold shadow-sm">🙋‍♀️</div>
-                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-pink-500 to-rose-505 border border-[#E2E8F0] dark:border-[#121B2E] text-[8px] flex items-center justify-center font-bold shadow-sm">✨</div>
+                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#6B25C9] to-[#2F7CCB] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">🙋‍♂️</div>
+                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#FFD21F] to-[#D9272E] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">🙋‍♀️</div>
+                <div className="w-5 h-5 rounded-full bg-white border border-[#161A33] text-[8px] flex items-center justify-center font-bold shadow-sm">✨</div>
               </div>
-              <p className="text-[10px] text-emerald-700 dark:text-emerald-300 font-extrabold leading-tight">
+              <p className="text-[10px] text-emerald-800 font-extrabold leading-tight">
                 {item.universityAppliedCount || 6} students from your university applied
               </p>
             </div>
 
             {/* Saves and Badges Stats tracker */}
-            <div className="flex items-center gap-2 text-[10px] text-slate-500 dark:text-gray-500 font-bold justify-between pt-1">
-              <span className="flex items-center gap-1 bg-[#F1F5F9] dark:bg-[#16223F] text-slate-600 dark:text-slate-300 border border-slate-200 dark:border-[#1F2E4D] px-2 py-0.5 rounded-md text-[9px] font-black uppercase">
+            <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold justify-between pt-1">
+              <span className="flex items-center gap-1 bg-[#F3F7FF] text-[#161A33] border border-[#E6E1F5] px-2 py-0.5 rounded-md text-[9px] font-black uppercase">
                 🏷️ {item.opportunityCategory || 'Career'}
               </span>
-              <span className="text-[#7C3AED] dark:text-indigo-400 flex items-center gap-0.5 bg-indigo-500/10 px-2 py-0.5 rounded-lg text-[9px] font-black">
+              <span className="text-[#6B25C9] flex items-center gap-0.5 bg-[#6B25C9]/10 px-2 py-0.5 rounded-lg text-[9px] font-black">
                 ⭐ {item.savedByUser ? (item.savedCount || 12) + 1 : (item.savedCount || 12)} saved by peers
               </span>
             </div>
 
             {/* Quick Interactive Button Deck */}
-            <div className="flex gap-1.5 mt-1 pt-2 border-t border-slate-200 dark:border-[#1F2E4D] relative z-10 font-sans">
+            <div className="flex gap-1.5 mt-1 pt-2 border-t border-[#E6E1F5] relative z-10 font-sans">
               <button
                 id={`apply-btn-${item.id}`}
                 onClick={() => onApply(item.id)}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-black tracking-tight cursor-pointer transition-all flex items-center justify-center gap-1.5 transform active:scale-95 ${
+                className={`flex-1 py-2.5 rounded-xl text-xs font-black tracking-tight cursor-pointer transition-all flex items-center justify-center gap-1.5 transform active:scale-95 border-2 border-[#161A33] ${
                   item.applied
-                    ? 'bg-gradient-to-r from-emerald-500 to-teal-500 text-white shadow-md shadow-emerald-500/10 hover:shadow-lg'
-                    : 'bg-gradient-to-r from-[#7C3AED] via-[#2563EB] to-[#06B6D4] text-white hover:scale-[1.01] hover:shadow-purple-500/20 shadow-md border-0 text-white'
+                    ? 'bg-emerald-100 text-emerald-900 shadow-[2px_2px_0px_0px_#161A33]'
+                    : 'bg-[#FFD21F] text-[#161A33] hover:bg-[#FFE052] shadow-[3px_3px_0px_0px_#161A33]'
                 }`}
               >
                 {item.applied ? (
                   <>
-                    <UserCheck className="w-4 h-4 text-white" />
+                    <UserCheck className="w-4 h-4 text-emerald-950" />
                     <span>Applied Successfully!</span>
                   </>
                 ) : (
                   <>
-                    <Briefcase className="w-4 h-4 text-white" />
+                    <Briefcase className="w-4 h-4 text-[#161A33]" />
                     <span>{getTranslation('applyNow', language)}</span>
                   </>
                 )}
@@ -478,30 +478,30 @@ export default function FeedCard({
 
         {/* C. Interactive Event Station */}
         {item.type === 'event' && (
-          <div className="bg-rose-500/5 p-3 rounded-xl border border-rose-500/20 mb-3 flex flex-col gap-2.5">
-            <div className="flex flex-col gap-1.5 text-[11px] font-bold text-slate-300">
+          <div className="bg-rose-50 p-3.5 rounded-2xl border-2 border-[#161A33] mb-3 flex flex-col gap-2.5 shadow-[2px_2px_0px_0px_#161A33]">
+            <div className="flex flex-col gap-1.5 text-[11px] font-bold text-slate-700">
               <div className="flex items-center gap-2">
-                <Calendar className="w-4 h-4 text-rose-400 shrink-0" />
+                <Calendar className="w-4 h-4 text-[#D9272E] shrink-0" />
                 <span>{item.eventDate} • {item.eventTime}</span>
               </div>
               <div className="flex items-center gap-2">
-                <MapPin className="w-4 h-4 text-cyan-400 shrink-0" />
-                <span className="text-slate-300 break-words">{item.eventVenue}</span>
+                <MapPin className="w-4 h-4 text-[#2F7CCB] shrink-0" />
+                <span className="text-slate-800 break-words">{item.eventVenue}</span>
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-rose-500/10 pt-2">
-              <span className="text-[10px] text-rose-400 font-extrabold bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
+            <div className="flex items-center justify-between border-t border-[#E6E1F5] pt-2">
+              <span className="text-[10px] text-[#D9272E] font-black bg-[#D9272E]/10 px-1.5 py-0.5 rounded border border-[#D9272E]/20">
                 🎯 {item.eventRsvpCount || 0} students listed
               </span>
 
               <button
                 id={`rsvp-btn-${item.id}`}
                 onClick={() => onRsvp(item.id)}
-                className={`py-1.5 px-3 rounded-lg text-[11px] font-black cursor-pointer transition-all ${
+                className={`py-1.5 px-3 rounded-xl text-[11px] font-black cursor-pointer transition-all border-2 border-[#161A33] ${
                   item.eventRsvped
-                    ? 'bg-rose-600 text-white shadow shadow-rose-600/25'
-                    : 'bg-transparent text-rose-400 border border-rose-500/30 hover:bg-rose-500/10'
+                    ? 'bg-[#D9272E] text-white shadow-[2px_2px_0px_0px_#161A33]'
+                    : 'bg-white text-slate-800 hover:bg-rose-100 shadow-[2px_2px_0px_0px_#161A33]'
                 }`}
               >
                 {item.eventRsvped ? getTranslation('rsvped', language) : getTranslation('rsvpBtn', language)}
@@ -512,27 +512,27 @@ export default function FeedCard({
 
         {/* D. Study Group Station */}
         {item.type === 'study_group' && (
-          <div className="bg-indigo-500/5 p-3 rounded-xl border border-indigo-500/20 mb-3 flex flex-col gap-2">
-            <div className="flex items-center justify-between text-[11px] font-bold text-slate-300">
-              <span className="text-[#06B6D4] uppercase text-[9px] tracking-wider font-extrabold">Subject</span>
-              <span className="text-white bg-[#16223F] border border-[#1F2E4D] px-2 py-0.5 rounded-md">
+          <div className="bg-indigo-50 p-3.5 rounded-2xl border-2 border-[#161A33] mb-3 flex flex-col gap-2 shadow-[2px_2px_0px_0px_#161A33]">
+            <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
+              <span className="text-[#6B25C9] uppercase text-[9px] tracking-wider font-extrabold">Subject</span>
+              <span className="text-[#161A33] bg-white border border-[#E6E1F5] px-2.5 py-0.5 rounded-md font-black">
                 {item.subject}
               </span>
             </div>
 
-            <div className="flex items-center justify-between border-t border-indigo-500/10 pt-2 mt-1">
-              <span className="text-[10px] text-slate-300 font-bold flex items-center gap-1">
-                <Users className="w-4 h-4 text-indigo-400" />
+            <div className="flex items-center justify-between border-t border-[#E6E1F5] pt-2 mt-1">
+              <span className="text-[10px] text-slate-700 font-bold flex items-center gap-1">
+                <Users className="w-4 h-4 text-[#6B25C9]" />
                 {item.memberCount || 1} studying inside
               </span>
 
               <button
                 id={`join-group-btn-${item.id}`}
                 onClick={() => onJoinGroup(item.id)}
-                className={`py-1.5 px-3 rounded-lg text-[11px] font-black cursor-pointer transition-all ${
+                className={`py-1.5 px-3 rounded-xl text-[11px] font-black cursor-pointer transition-all border-2 border-[#161A33] ${
                   item.joined
-                    ? 'bg-emerald-500/20 text-emerald-300 border border-emerald-500/30'
-                    : 'bg-gradient-to-r from-indigo-500 to-indigo-700 text-white'
+                    ? 'bg-emerald-100 text-emerald-900 shadow-[2px_2px_0px_0px_#161A33]'
+                    : 'bg-[#FFD21F] text-[#161A33] hover:bg-[#FFE052] shadow-[2px_2px_0px_0px_#161A33]'
                 }`}
               >
                 {item.joined ? getTranslation('joined', language) : getTranslation('joinGroup', language)}
@@ -543,17 +543,17 @@ export default function FeedCard({
 
         {/* E. Local Service Card */}
         {item.type === 'local_service' && (
-          <div className="bg-[#16223F]/60 p-2.5 rounded-xl border border-[#1F2E4D] mb-3 flex flex-col gap-1.5">
-            <div className="flex justify-between items-center text-[10px] font-bold text-slate-300">
-              <span className="bg-amber-500/10 text-amber-400 border border-amber-500/20 px-1.5 py-0.5 rounded uppercase text-[8px] font-extrabold">
+          <div className="bg-[#F3F7FF] p-3 rounded-2xl border-2 border-[#E6E1F5] mb-3 flex flex-col gap-1.5">
+            <div className="flex justify-between items-center text-[10px] font-bold text-[#161A33]">
+              <span className="bg-[#FFD21F] text-[#161A33] px-2 py-0.5 rounded-full uppercase text-[8px] font-black shadow-sm">
                 Nearest Campus Asset
               </span>
-              <span className="text-yellow-400 font-extrabold">
+              <span className="text-yellow-500 font-extrabold">
                 ★ {item.serviceRating || '5.0'}
               </span>
             </div>
-            <div className="text-[10px] font-semibold text-slate-400 flex items-center gap-1">
-              <MapPin className="w-3.5 text-cyan-400" />
+            <div className="text-[10px] font-semibold text-slate-600 flex items-center gap-1">
+              <MapPin className="w-3.5 text-[#6B25C9]" />
               <span>{item.serviceDistance || 'Nearby'}</span>
             </div>
           </div>
@@ -561,10 +561,10 @@ export default function FeedCard({
 
         {/* Tags renderer */}
         {item.tags && item.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3 bg-[#16223F]/40 p-1.5 rounded-xl border border-[#1F2E4D]/60 shadow-inner">
+          <div className="flex flex-wrap gap-1 mb-3 bg-[#F7F4FF]/70 p-1.5 rounded-xl border border-[#E6E1F5] shadow-inner">
             {item.tags.map(tag => (
-              <span key={tag} className="text-[9px] font-bold bg-[#121B2E] text-slate-300 border border-[#1F2E4D]/80 px-2 py-0.5 rounded-md flex items-center gap-0.5 leading-none">
-                <Hash className="w-2.5 h-2.5 text-[#06B6D4]" />
+              <span key={tag} className="text-[9px] font-bold bg-white text-[#6B25C9] border border-[#6B25C9]/25 px-2 py-0.5 rounded-md flex items-center gap-0.5 leading-none shadow-sm">
+                <Hash className="w-2.5 h-2.5 text-[#6B25C9]" />
                 {tag}
               </span>
             ))}
@@ -574,7 +574,7 @@ export default function FeedCard({
       </div>
 
       {/* Button Action Bar */}
-      <div className="border-t border-slate-100 dark:border-[#1F2E4D] pt-3.5 flex items-center justify-between" id={`card-actions-${item.id}`}>
+      <div className="border-t border-[#E6E1F5] pt-3.5 flex items-center justify-between" id={`card-actions-${item.id}`}>
         
         {/* Left item actions */}
         <div className="flex items-center gap-2">
@@ -584,11 +584,11 @@ export default function FeedCard({
             onClick={() => onLike(item.id)}
             className={`flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-black cursor-pointer transition-all duration-200 border transform active:scale-90 hover:scale-105 select-none ${
               item.likedByUser 
-                ? 'text-[#EC4899] bg-[#EC4899]/10 border-[#EC4899]/30 shadow-md shadow-pink-500/5' 
-                : 'text-slate-500 dark:text-slate-400 hover:text-[#EC4899] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-transparent'
+                ? 'text-[#C9256B] bg-[#C9256B]/10 border-[#C9256B]/30 shadow-sm' 
+                : 'text-slate-500 hover:text-[#C9256B] hover:bg-slate-50 border-transparent'
             }`}
           >
-            <Heart className={`w-4 h-4 transition-transform duration-300 ${item.likedByUser ? 'fill-current scale-110 text-[#EC4899]' : ''}`} />
+            <Heart className={`w-4 h-4 transition-transform duration-300 ${item.likedByUser ? 'fill-current scale-110 text-[#C9256B]' : ''}`} />
             <span>{item.likes}</span>
           </button>
 
@@ -596,9 +596,9 @@ export default function FeedCard({
           <button
             id={`comments-collapse-btn-${item.id}`}
             onClick={() => setShowComments(!showComments)}
-            className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-black text-slate-500 dark:text-slate-400 hover:text-[#7C3AED] hover:bg-slate-50 dark:hover:bg-slate-800/40 border border-transparent hover:border-[#7C3AED]/20 cursor-pointer transition-all duration-200 select-none"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-2xl text-xs font-black text-slate-500 hover:text-[#6B25C9] hover:bg-slate-50 border border-transparent hover:border-[#6B25C9]/20 cursor-pointer transition-all duration-200 select-none"
           >
-            <MessageSquare className="w-4 h-4 text-[#7C3AED]" />
+            <MessageSquare className="w-4 h-4 text-[#6B25C9]" />
             <span>{item.commentsCount}</span>
           </button>
         </div>
@@ -611,18 +611,18 @@ export default function FeedCard({
             onClick={() => onSave(item.id)}
             className={`p-2 rounded-2xl cursor-pointer transition-all duration-200 border transform active:scale-90 hover:scale-105 ${
               item.savedByUser 
-                ? 'text-[#06B6D4] bg-[#06B6D4]/10 border-[#06B6D4]/30 shadow-md shadow-cyan-500/5' 
-                : 'text-slate-500 dark:text-slate-400 hover:text-[#06B6D4] hover:bg-slate-50 dark:hover:bg-slate-800/40 border-transparent'
+                ? 'text-[#2F7CCB] bg-[#2F7CCB]/10 border-[#2F7CCB]/30 shadow-sm' 
+                : 'text-slate-500 hover:text-[#2F7CCB] hover:bg-slate-50 border-transparent'
             }`}
           >
-            <Bookmark className={`w-4 h-4 ${item.savedByUser ? 'fill-current text-[#06B6D4]' : ''}`} />
+            <Bookmark className={`w-4 h-4 ${item.savedByUser ? 'fill-current text-[#2F7CCB]' : ''}`} />
           </button>
 
           {/* Share link button */}
           <button
             id={`share-btn-${item.id}`}
             onClick={handleShareClick}
-            className="p-2 rounded-2xl text-slate-500 dark:text-slate-400 hover:text-[#2563EB] hover:bg-slate-50 dark:hover:bg-slate-800/40 border border-transparent hover:border-[#2563EB]/25 cursor-pointer transition-all duration-200 relative"
+            className="p-2 rounded-2xl text-slate-500 hover:text-[#2F7CCB] hover:bg-slate-50 border border-transparent hover:border-[#2F7CCB]/25 cursor-pointer transition-all duration-200 relative"
           >
             <Share2 className="w-4 h-4" />
             <AnimatePresence>
@@ -631,7 +631,7 @@ export default function FeedCard({
                   initial={{ opacity: 0, scale: 0.8, y: -20 }}
                   animate={{ opacity: 1, scale: 1, y: -25 }}
                   exit={{ opacity: 0, scale: 0.8 }}
-                  className="absolute bottom-full left-1/2 -translate-x-1/2 bg-[#0F172A] text-white text-[8px] px-2 py-0.5 rounded shadow-xl border border-slate-700 whitespace-nowrap z-30 font-black"
+                  className="absolute bottom-full left-1/2 -translate-x-1/2 bg-[#161A33] text-white text-[8px] px-2 py-0.5 rounded shadow-xl border border-slate-700 whitespace-nowrap z-30 font-black"
                 >
                   Link copied!
                 </motion.span>
@@ -650,36 +650,36 @@ export default function FeedCard({
             initial={{ height: 0, opacity: 0 }}
             animate={{ height: 'auto', opacity: 1 }}
             exit={{ height: 0, opacity: 0 }}
-            className="overflow-hidden border-t border-[#1F2E4D] mt-2.5 pt-3"
+            className="overflow-hidden border-t border-[#E6E1F5] mt-2.5 pt-3"
           >
-            <h4 className="text-[11px] font-black uppercase text-slate-400 tracking-wider mb-2 flex items-center gap-1">
+            <h4 className="text-[11px] font-black uppercase text-slate-500 tracking-wider mb-2 flex items-center gap-1">
               {getTranslation('commentsTitle', language)} • {item.commentsList.length} replies
             </h4>
 
             {/* List of comments */}
             <div className="flex flex-col gap-2.5 max-h-48 overflow-y-auto pr-1 mb-3">
               {item.commentsList.length === 0 ? (
-                <div className="text-center py-4 text-slate-500 text-[11px] font-bold">
+                <div className="text-center py-4 text-slate-450 text-[11px] font-bold">
                   {getTranslation('noComments', language)}
                 </div>
               ) : (
                 item.commentsList.map(comment => (
-                  <div key={comment.id} className="flex gap-2 text-xs bg-[#16223F] p-2.5 rounded-xl border border-[#1F2E4D] text-slate-200">
+                  <div key={comment.id} className="flex gap-2 text-xs bg-[#F3F7FF] p-2.5 rounded-xl border border-[#E6E1F5] text-slate-700">
                     <img 
                       src={comment.authorAvatar} 
                       alt={comment.authorName} 
-                      className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-700"
+                      className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-350"
                       referrerPolicy="no-referrer"
                     />
                     <div className="flex-1">
                       <div className="flex items-center justify-between">
-                        <span className="font-extrabold text-white">{comment.authorName}</span>
-                        <span className="text-[9px] text-slate-400">{comment.date}</span>
+                        <span className="font-extrabold text-[#161A33]">{comment.authorName}</span>
+                        <span className="text-[9px] text-slate-500">{comment.date}</span>
                       </div>
-                      <span className="text-[9px] text-cyan-400 font-extrabold bg-cyan-400/10 border border-cyan-400/25 px-1 py-0.2 rounded mt-0.5 block w-max">
+                      <span className="text-[9px] text-[#6B25C9] font-extrabold bg-[#6B25C9]/10 border border-[#6B25C9]/25 px-1.5 py-0.2 rounded mt-0.5 block w-max leading-none">
                         {getRoleLabel(comment.authorRole)}
                       </span>
-                      <p className="text-slate-200 text-[11px] font-medium mt-1 leading-normal break-words">{comment.content}</p>
+                      <p className="text-slate-700 text-[11px] font-medium mt-1 leading-normal break-words">{comment.content}</p>
                     </div>
                   </div>
                 ))
@@ -691,14 +691,14 @@ export default function FeedCard({
               <input
                 type="text"
                 value={commentText}
-                onChange={e => setCommentText(e.target.value)}
+                onChange={e => setPostBody ? setCommentText(e.target.value) : setCommentText(e.target.value)}
                 placeholder={getTranslation('writeComment', language)}
-                className="flex-1 bg-[#16223F] rounded-xl px-3 py-2 text-xs border border-[#1F2E4D] focus:outline-none focus:border-cyan-400 text-white focus:bg-[#1E2E4B]/50"
+                className="flex-1 bg-white rounded-xl px-3 py-2 text-xs border border-[#E6E1F5] focus:outline-none focus:border-[#6B25C9] text-[#161A33] focus:bg-[#F3F7FF]"
               />
               <button
                 type="submit"
                 id={`comment-submit-btn-${item.id}`}
-                className="p-2 bg-gradient-to-tr from-cyan-500 to-indigo-600 text-white rounded-xl shadow cursor-pointer hover:shadow-lg hover:scale-105 shrink-0"
+                className="p-2.5 bg-[#FFD21F] hover:bg-[#FFE052] text-[#161A33] border border-[#161A33] rounded-xl shadow cursor-pointer hover:scale-105 shrink-0"
               >
                 <Send className="w-3.5 h-3.5" />
               </button>

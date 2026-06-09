@@ -74,23 +74,23 @@ export default function LifeFeed({
   });
 
   return (
-    <div className="px-4 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-[#0B1020]" id="life-feed-container">
+    <div className="px-4 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-[#F3F7FF] min-h-screen" id="life-feed-container">
       
       {/* Absolute Header Alert UX Rule: "Viewing Campus Life · Show all" */}
       <div 
         id="life-filter-reset-banner"
         onClick={onShowAll}
-        className="mb-5 bg-[#121B2E] rounded-2xl p-3.5 border border-[#1F2E4D] flex items-center justify-between pointer-events-auto cursor-pointer shadow-md hover:border-slate-600/80 transition-all"
+        className="mb-5 bg-white rounded-3xl p-3.5 border-2 border-[#161A33] flex items-center justify-between pointer-events-auto cursor-pointer shadow-[3px_3px_0px_0px_#161A33] hover:shadow-[5px_5px_0px_0px_#161A33] transition-all"
       >
         <div className="flex items-center gap-2.5">
-          <div className="w-8 h-8 rounded-xl bg-cyan-500/10 border border-cyan-400/25 text-cyan-400 flex items-center justify-center font-bold">
+          <div className="w-8 h-8 rounded-xl bg-[#6B25C9]/10 text-[#6B25C9] flex items-center justify-center font-bold">
             🌸
           </div>
-          <span className="text-[11px] font-black tracking-tight text-white">
+          <span className="text-[11px] font-black tracking-tight text-[#161A33]">
             {getTranslation('viewingLife', language)}
           </span>
         </div>
-        <div className="text-[10px] bg-gradient-to-r from-[#4F46E5] to-[#2563EB] text-white rounded-lg px-2.5 py-1 font-bold shadow-md flex items-center gap-0.5 shrink-0 hover:scale-[1.03] transition-transform">
+        <div className="text-[10px] bg-[#FFD21F] text-[#161A33] border-2 border-[#161A33] rounded-xl px-2.5 py-1.5 font-black shadow-sm flex items-center gap-0.5 shrink-0 hover:scale-[1.03] transition-transform">
           <span>Show All</span>
           <ChevronRight className="w-3 h-3" />
         </div>
@@ -98,7 +98,7 @@ export default function LifeFeed({
 
       {/* Stories Rail */}
       <div className="mb-5" id="stories-circular-container">
-        <h3 className="text-[10px] font-black uppercase text-slate-400 tracking-wider mb-2.5 flex items-center gap-1">
+        <h3 className="text-[10px] font-black uppercase text-[#6B25C9] tracking-wider mb-2.5 flex items-center gap-1">
           ✨ Campus Moments Stories
         </h3>
         <div className="flex gap-3 overflow-x-auto pb-1.5 scrollbar-none" id="stories-circular-rail">
@@ -108,8 +108,8 @@ export default function LifeFeed({
               onClick={() => setSelectedStory(story)}
               className="flex flex-col items-center gap-1.5 focus:outline-none shrink-0 cursor-pointer group"
             >
-              <div className="relative p-0.5 rounded-2xl bg-gradient-to-tr from-cyan-400 via-[#4F46E5] to-[#2563EB] select-none group-hover:scale-105 active:scale-95 transition-all shadow-md shadow-cyan-500/10">
-                <div className="bg-[#0B1020] p-0.5 rounded-2xl">
+              <div className="relative p-0.5 rounded-2xl bg-gradient-to-tr from-[#6B25C9] via-[#2F7CCB] to-[#FFD21F] select-none group-hover:scale-105 active:scale-95 transition-all shadow-md shadow-[#6B25C9]/10">
+                <div className="bg-white p-0.5 rounded-2xl">
                   <img
                     src={story.author.avatar}
                     alt={story.author.name}
@@ -118,16 +118,16 @@ export default function LifeFeed({
                   />
                 </div>
                 {story.type === 'video' ? (
-                  <span className="absolute bottom-0 right-0 bg-cyan-500 text-slate-900 text-[8px] font-black px-1.5 rounded-md py-0.2 border border-[#0B1020]">
+                  <span className="absolute bottom-0 right-0 bg-[#FFD21F] text-[#161A33] text-[8px] font-black px-1.5 rounded-md py-0.2 border border-white">
                     LIVE
                   </span>
                 ) : (
-                  <span className="absolute bottom-0 right-0 bg-[#4F46E5] text-white text-[8px] font-black px-1.5 rounded-md py-0.2 border border-[#0B1020]">
+                  <span className="absolute bottom-0 right-0 bg-[#6B25C9] text-white text-[8px] font-black px-1.5 rounded-md py-0.2 border border-white">
                     MEM
                   </span>
                 )}
               </div>
-              <span className="text-[9px] font-bold text-slate-300 max-w-[65px] truncate">
+              <span className="text-[9px] font-bold text-slate-700 max-w-[65px] truncate">
                 {story.author.name.split(' ')[0]}
               </span>
             </button>
@@ -145,10 +145,10 @@ export default function LifeFeed({
             <button
               key={chip.id}
               onClick={() => setActiveChip(chip.id as any)}
-              className={`px-3 py-1.8 rounded-xl text-xs font-bold shrink-0 transition-all cursor-pointer ${
+              className={`px-3 py-1.8 rounded-xl text-xs shrink-0 transition-all cursor-pointer ${
                 isSelected
-                  ? 'bg-gradient-to-r from-[#4F46E5] to-[#2563EB] text-white shadow-md border border-indigo-505/30 scale-102'
-                  : 'bg-[#16223F] hover:bg-[#1E2E4E] text-slate-300 hover:text-white border border-[#1F2E4D]/80'
+                  ? 'bg-[#6B25C9] text-white border-2 border-[#161A33] shadow-[2px_2px_0px_0px_#161A33] font-black'
+                  : 'bg-white hover:bg-[#F3F7FF] text-[#161A33] hover:text-[#6B25C9] border-2 border-[#E6E1F5] font-bold'
               }`}
             >
               {label}
@@ -162,10 +162,10 @@ export default function LifeFeed({
         {isFeedLoading ? (
           <SkeletonLoader />
         ) : filteredItems.length === 0 ? (
-          <div className="text-center py-12 text-slate-400 bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-6 shadow-inner">
+          <div className="text-center py-12 text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-6 shadow-sm">
             <div className="text-3xl mb-2">🎈</div>
-            <h3 className="font-extrabold text-white text-xs text-center">No active entries matching filter</h3>
-            <p className="text-[10px] text-slate-400 max-w-xs mt-1.5 mx-auto text-center leading-relaxed">
+            <h3 className="font-extrabold text-[#161A33] text-xs text-center">No active entries matching filter</h3>
+            <p className="text-[10px] text-slate-500 max-w-xs mt-1.5 mx-auto text-center leading-relaxed">
               We reused details across lists to avoid empty views. Change selectors or try the "All" tab.
             </p>
           </div>

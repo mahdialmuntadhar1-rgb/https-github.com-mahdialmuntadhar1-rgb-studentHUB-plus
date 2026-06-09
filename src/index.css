@@ -5,114 +5,117 @@
   --font-sans: "Cairo", "Outfit", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  --color-primary-dark: #F1F5F9;
-  --color-primary-navy: #F8FAFC;
-  --color-brand-purple: #7C3AED;
-  --color-brand-blue: #2563EB;
-  --color-brand-cyan: #06B6D4;
-  --color-brand-yellow: #FACC15;
-  --color-brand-green: #22C55E;
-  --color-brand-red: #EF4444;
+  --color-primary-dark: #F7F4FF;
+  --color-primary-navy: #161A33;
+  --color-brand-purple: #6B25C9;
+  --color-brand-blue: #2F7CCB;
+  --color-brand-yellow: #FFD21F;
+  --color-brand-red: #D9272E;
   --color-card-bg: #FFFFFF;
-  --color-card-border: #E2E8F0;
-  --color-page-bg: #F8FAFC;
+  --color-card-border: #E6E1F5;
+  --color-page-bg: #F7F4FF;
 
   --shadow-glow-cyan: 0 0 15px rgba(6, 182, 212, 0.15);
-  --shadow-glow-purple: 0 0 20px rgba(124, 58, 237, 0.2);
-  --shadow-glow-orange: 0 0 15px rgba(236, 72, 153, 0.15);
-  --shadow-glow-gold: 0 0 15px rgba(250, 204, 21, 0.2);
+  --shadow-glow-purple: 0 0 20px rgba(107, 37, 201, 0.2);
+  --shadow-glow-orange: 0 0 15px rgba(217, 39, 46, 0.15);
+  --shadow-glow-gold: 0 0 15px rgba(255, 210, 31, 0.2);
 }
 
 body {
   font-family: var(--font-sans);
-  background-color: #F1F5F9;
-  color: #0F172A;
+  background-color: #F7F4FF !important;
+  color: #161A33 !important;
 }
 
-/* Youthful Bright Mode Utility Overrides */
+/* Youthful Bright Mode Option 1: Campus Pop Overrides */
 .bg-\[\#040814\] {
-  background-color: #F1F5F9 !important;
+  background-color: #F7F4FF !important;
 }
 
 .bg-\[\#0B1020\] {
-  background-color: #F8FAFC !important;
+  background-color: #F3F7FF !important;
 }
 
 .bg-\[\#121B2E\] {
   background-color: #FFFFFF !important;
-  box-shadow: 0 8px 24px -6px rgba(15, 23, 42, 0.08), 0 1px 3px rgba(15, 23, 42, 0.03), inset 0 1px 0 rgba(255, 255, 255, 0.8) !important;
+  box-shadow: 0 10px 30px -5px rgba(107, 37, 201, 0.08), 0 1px 3px rgba(107, 37, 201, 0.03) !important;
   border-radius: 24px !important;
+  border: 1px solid #E6E1F5 !important;
 }
 
 .bg-\[\#16223F\] {
-  background-color: #F1F5F9 !important;
+  background-color: #F7F4FF !important;
+  border-color: #E6E1F5 !important;
+  color: #161A33 !important;
 }
 
 .bg-\[\#101726\] {
   background-color: #FFFFFF !important;
-  border-color: #E2E8F0 !important;
+  border-color: #E6E1F5 !important;
 }
 
 .bg-\[\#101726\]\/80 {
-  background-color: rgba(255, 255, 255, 0.8) !important;
+  background-color: rgba(255, 255, 255, 0.9) !important;
+  border-color: #E6E1F5 !important;
 }
 
 .bg-\[\#16223F\]\/60 {
-  background-color: rgba(241, 245, 249, 0.6) !important;
+  background-color: rgba(243, 247, 255, 0.8) !important;
 }
 
 .bg-\[\#16223F\]\/40 {
-  background-color: rgba(241, 245, 249, 0.4) !important;
+  background-color: rgba(243, 247, 255, 0.5) !important;
 }
 
 .bg-\[\#121B2E\]\/95 {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-  backdrop-blur: 12px !important;
+  background-color: rgba(255, 255, 255, 0.96) !important;
+  backdrop-blur: 16px !important;
+  border: 1px solid #E6E1F5 !important;
 }
 
 .bg-\[\#0B1020\]\/95 {
-  background-color: rgba(248, 250, 252, 0.95) !important;
-  backdrop-blur: 12px !important;
+  background-color: rgba(255, 255, 255, 0.95) !important;
+  backdrop-blur: 16px !important;
 }
 
 .border-\[\#1F2E4D\] {
-  border-color: #E2E8F0 !important;
+  border-color: #E6E1F5 !important;
 }
 
 .border-\[\#1F2E4D\]\/80 {
-  border-color: rgba(226, 232, 240, 0.8) !important;
+  border-color: rgba(230, 225, 245, 0.8) !important;
 }
 
 .border-\[\#1F2E4D\]\/60 {
-  border-color: rgba(226, 232, 240, 0.6) !important;
+  border-color: rgba(230, 225, 245, 0.6) !important;
 }
 
 .border-slate-700 {
-  border-color: #CBD5E1 !important;
+  border-color: #E6E1F5 !important;
 }
 
-/* Scrollable background tabs */
+/* Scrollable background selectors and tabs */
 .bg-\[\#162443\] {
   background-color: #FFFFFF !important;
-  border-color: #E2E8F0 !important;
+  border-color: #E6E1F5 !important;
 }
 
 /* Governorate selected item */
 .bg-\[\#1a2d54\] {
-  background-color: #E0F2FE !important;
-  border-color: #38BDF8 !important;
+  background-color: #F7F4FF !important;
+  border-color: #6B25C9 !important;
 }
 
 /* University selected item */
 .bg-\[\#222163\]\/50 {
-  background-color: #EEF2FF !important;
-  border-color: #C7D2FE !important;
+  background-color: #F3F7FF !important;
+  border-color: #2F7CCB !important;
 }
 
 /* Select options inside dropdown */
 select option {
   background-color: #FFFFFF !important;
-  color: #0F172A !important;
+  color: #161A33 !important;
 }
 
 /* Overriding typography classes for readability and high contrast */
@@ -123,6 +126,7 @@ select option {
 #jamiaati-portal h5,
 #jamiaati-portal h6 {
   font-family: 'Outfit', 'Cairo', sans-serif !important;
+  color: #161A33 !important;
 }
 
 #jamiaati-portal p,
@@ -133,8 +137,9 @@ select option {
   font-family: 'Cairo', 'Outfit', sans-serif !important;
 }
 
+/* Contrast adjustment overrides */
 .text-slate-100 {
-  color: #0F172A !important;
+  color: #161A33 !important;
 }
 
 .text-slate-200 {
@@ -150,112 +155,137 @@ select option {
 }
 
 .text-slate-450 {
-  color: #64748B !important;
+  color: #475569 !important;
 }
 
 .text-slate-500 {
-  color: #64748B !important;
+  color: #5C677D !important;
 }
 
 /* Badges typography and layout colors */
 .bg-amber-500\/15 {
-  background-color: rgba(245, 158, 11, 0.12) !important;
+  background-color: rgba(255, 210, 31, 0.15) !important;
 }
 .text-yellow-400 {
-  color: #B45309 !important;
+  color: #7A5E00 !important;
 }
 
-/* Ensure our brand/status labels colored badge texts remain visible! */
+/* Ensure our brand/status labels colored badge texts remain clear! */
 .text-cyan-400 {
-  color: #0284C7 !important;
+  color: #2F7CCB !important;
 }
 .text-indigo-400 {
-  color: #4F46E5 !important;
+  color: #6B25C9 !important;
 }
 .text-emerald-400 {
-  color: #059669 !important;
+  color: #0E9F6E !important;
 }
 .text-rose-400 {
-  color: #E11D48 !important;
+  color: #D9272E !important;
 }
 .text-amber-500 {
   color: #D97706 !important;
 }
 
-/* Sleek 3D Card popping styles */
+/* Sleek 3D Card popping styles matching Option 1 */
 .shadow-premium-grow {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05), 0 2px 4px -1px rgba(0, 0, 0, 0.03), 0 0 0 1px rgba(0, 0, 0, 0.03) !important;
+  box-shadow: 0 4px 6px -1px rgba(107, 37, 201, 0.05), 0 2px 4px -1px rgba(107, 37, 201, 0.03), 0 0 0 1px rgba(107, 37, 201, 0.03) !important;
 }
 .shadow-premium-grow:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 20px -8px rgba(37, 99, 235, 0.15), 0 4px 6px -2px rgba(37, 99, 235, 0.1) !important;
+  box-shadow: 0 12px 24px -8px rgba(107, 37, 200, 0.2), 0 4px 12px -2px rgba(107, 37, 200, 0.12) !important;
 }
 
-/* Popping visual components/cards */
+/* Interactive Popping cards */
 .pop-card-3d {
   background: #FFFFFF !important;
-  border: 2px solid #0F172A !important;
-  box-shadow: 4px 4px 0px 0px #0F172A !important;
+  border: 2px solid #161A33 !important;
+  box-shadow: 4px 4px 0px 0px #161A33 !important;
   transition: all 0.2s ease;
 }
 .pop-card-3d:hover {
   transform: translate(-1px, -1px);
-  box-shadow: 6px 6px 0px 0px #0F172A !important;
+  box-shadow: 6px 6px 0px 0px #161A33 !important;
 }
 .pop-card-3d:active {
   transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px 0px #0F172A !important;
+  box-shadow: 2px 2px 0px 0px #161A33 !important;
 }
 
+/* Playful popping buttons */
 .pop-btn-3d {
-  border: 2px solid #0F172A !important;
-  box-shadow: 3px 3px 0px 0px #0F172A !important;
+  border: 2px solid #161A33 !important;
+  box-shadow: 3px 3px 0px 0px #161A33 !important;
   transition: all 0.15s ease;
 }
 .pop-btn-3d:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 4px 4px 0px 0px #0F172A !important;
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 4.5px 4.5px 0px 0px #161A33 !important;
 }
 .pop-btn-3d:active {
   transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px 0px #0F172A !important;
+  box-shadow: 1px 1px 0px 0px #161A33 !important;
 }
 
-/* Dynamic glow gradients */
+/* Primary Yellow pill buttons */
+.btn-primary-yellow {
+  background-color: #FFD21F !important;
+  color: #161A33 !important;
+  font-family: 'Outfit', 'Cairo', sans-serif !important;
+  font-weight: 850 !important;
+  border: 2px solid #161A33 !important;
+  box-shadow: 3px 3px 0px 0px #161A33 !important;
+  border-radius: 9999px !important;
+  transition: all 0.15s ease;
+}
+.btn-primary-yellow:hover {
+  background-color: #FFE052 !important;
+  transform: translate(-1.5px, -1.5px);
+  box-shadow: 4.5px 4.5px 0px 0px #161A33 !important;
+}
+.btn-primary-yellow:active {
+  transform: translate(2px, 2px);
+  box-shadow: 1px 1px 0px 0px #161A33 !important;
+}
+
+/* Secondary White and Purple/Red border outline buttons */
+.btn-secondary-outline {
+  background-color: #FFFFFF !important;
+  color: #6B25C9 !important;
+  border: 2px solid #6B25C9 !important;
+  border-radius: 9999px !important;
+  font-weight: 700 !important;
+  transition: all 0.15s ease;
+}
+.btn-secondary-outline:hover {
+  background-color: #F7F4FF !important;
+  transform: translateY(-1px);
+}
+.btn-secondary-outline:active {
+  transform: translateY(1px);
+}
+
+/* Gradient backgrounds */
 .bg-gradient-premium {
-  background: linear-gradient(135deg, #FFFFFF 0%, #F8FAFC 100%) !important;
+  background: linear-gradient(135deg, #FFFFFF 0%, #FDFDFF 100%) !important;
 }
 
 .border-glow-accent {
-  box-shadow: 0 0 0 1px rgba(124, 58, 237, 0.1), 0 0 12px rgba(6, 182, 212, 0.05);
+  box-shadow: 0 0 0 1px rgba(107, 37, 201, 0.1), 0 0 12px rgba(47, 124, 203, 0.05);
 }
 
-/* Scrollbar styling for horizontal swipe tabs */
+/* Swipe styling for dynamic horizontal cards */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
 .scrollbar-none {
-  -ms-overflow-style: none;  /* IE and Edge */
-  scrollbar-width: none;  /* Firefox */
+  -ms-overflow-style: none;
+  scrollbar-width: none;
 }
 
-/* Custom animates */
-@keyframes spin-slow {
-  from {
-    transform: rotate(0deg);
-  }
-  to {
-    transform: rotate(360deg);
-  }
-}
-.animate-spin-slow {
-  animation: spin-slow 15s linear infinite;
-}
-
-/* Custom RTL-aware margin indicators */
-[dir="rtl"] select {
-  background-position: left 0.5rem center;
-  padding-left: 1.5rem;
-  padding-right: 0.5rem;
+/* Clock / UTC Status Indicators */
+p[id^="footer-timezone"],
+span[id^="live-time-ticker"] {
+  font-family: "JetBrains Mono", monospace !important;
 }

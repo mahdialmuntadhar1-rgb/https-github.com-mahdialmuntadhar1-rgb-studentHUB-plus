@@ -106,24 +106,27 @@ export default function StoryHighlights({
   onSelectStory
 }: StoryHighlightsProps) {
   return (
-    <div className="w-full mt-2 mb-6" id="jamiaati-stories-frame">
-      <div className="flex items-center justify-between mb-2.5 px-1">
-        <span className="text-[11px] font-black uppercase tracking-widest text-[#7C3AED] dark:text-[#EC4899] bg-gradient-to-r from-pink-500/10 to-purple-500/10 px-2.5 py-1 rounded-xl border border-pink-500/10 leading-none">
-          {language === 'ar' ? 'أبرز القصص وبانوراما 📸' : language === 'ku' ? 'چیرۆکە دیارەکان 📸' : 'CAMPUS HIGHLIGHTS 📸'}
+    <div className="w-full mt-2 mb-6 bg-white rounded-3xl border-2 border-[#E6E1F5] p-4.5 shadow-sm" id="jamiaati-stories-frame">
+      <div className="flex items-center justify-between mb-4 px-1">
+        <span className="text-[11px] font-black uppercase tracking-widest text-[#6B25C9] bg-[#6B25C9]/10 px-3 py-1 rounded-full leading-none">
+          {language === 'ar' ? 'أبرز القصص وبانوراما 📸' : language === 'ku' ? 'چیرۆکە دیارەکان 📸' : 'CAMPUS STORIES 📸'}
         </span>
-        <span className="text-[9px] font-bold text-slate-500 animate-pulse">
-          {language === 'ar' ? 'اسحب لمشاهدة المزيد' : language === 'ku' ? 'بۆ بینینی زیاتر ڕابکێشە' : 'Swipe for more'}
+        <span className="text-[9px] font-black text-[#6B25C9] animate-pulse flex items-center gap-1">
+          <span className="w-2 h-2 rounded-full bg-[#FFD21F]" />
+          {language === 'ar' ? 'اسحب للمشاهدة' : language === 'ku' ? 'ڕابکێشە' : 'Swipe now'}
         </span>
       </div>
       
-      {/* Horizontal Swipe Layout */}
-      <div className="flex gap-4 overflow-x-auto pb-2 scrollbar-none snap-x touch-pan-x" id="stories-scrollable-bar">
+      {/* Horizontal Swipe Layout wrapped elegantly */}
+      <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-none snap-x touch-pan-x" id="stories-scrollable-bar">
         {storiesData.map((story) => {
           const label = language === 'ar' ? story.labelAR : language === 'ku' ? story.labelKU : story.labelEN;
+          // Apply custom playful yellow/purple/blue gradient border for Campus Pop 1 spec
+          const popGradient = "from-[#6B25C9] via-[#2F7CCB] to-[#FFD21F]";
           return (
             <div 
               key={story.id} 
-              className="flex flex-col items-center gap-1.5 snap-start cursor-pointer shrink-0"
+              className="flex flex-col items-center gap-2 snap-start cursor-pointer shrink-0"
               onClick={() => {
                 if (onSelectStory) {
                   onSelectStory(story);
@@ -135,21 +138,28 @@ export default function StoryHighlights({
               {/* Instagram styled dynamic story circle */}
               <div className="relative group">
                 {/* 3D dynamic spinning/popping gradient ring */}
-                <span className={`absolute inset-0 bg-gradient-to-tr ${story.color} rounded-full p-[2.5px] transition-all duration-300 group-hover:scale-105 group-active:scale-95 shadow-md shadow-black/10`} />
+                <span className={`absolute inset-0 bg-gradient-to-tr ${popGradient} rounded-full p-[2.5px] transition-all duration-300 group-hover:scale-110 shadow-md shadow-[#6B25C9]/10`} />
                 
                 {/* Inner bubble circle */}
-                <span className="relative flex items-center justify-center w-15 h-15 bg-[#FFFFFF] dark:bg-[#121B2E] rounded-full border-2 border-[#F8FAFC] dark:border-[#0B1020] text-2xl shadow-inner select-none transition-transform duration-300 group-hover:rotate-6">
+                <span className="relative flex items-center justify-center w-14 h-14 bg-white rounded-full border-2 border-white text-2xl shadow-inner select-none transition-transform duration-300 group-hover:rotate-6">
                   {story.emoji}
                 </span>
 
-                {/* Sparkling tiny live indicator */}
-                <span className="absolute bottom-0 right-0 w-3 h-3 bg-[#EC4899] border-2 border-white dark:border-[#0B1020] rounded-full shadow-sm animate-pulse" />
+                {/* Sparkling tiny live indicator - bright yellow or red */}
+                <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#FFD21F] border-2 border-white rounded-full shadow-sm flex items-center justify-center text-[7px]" title="Live Story">
+                  ✨
+                </span>
               </div>
 
               {/* Story text label */}
-              <span className="text-[10px] font-bold text-[#0F172A] dark:text-slate-200 text-center tracking-tight leading-tight max-w-[72px] truncate">
-                {label}
-              </span>
+              <div className="flex flex-col items-center">
+                <span className="text-[10px] font-black text-[#161A33] text-center tracking-tight leading-none max-w-[72px] truncate">
+                  {label}
+                </span>
+                <span className="text-[7px] font-black uppercase text-[#6B25C9] bg-[#6B25C9]/5 px-1 py-0.2 rounded mt-0.5 scale-90">
+                  {story.emoji === '🎈' ? 'Live' : 'Hot'}
+                </span>
+              </div>
             </div>
           );
         })}

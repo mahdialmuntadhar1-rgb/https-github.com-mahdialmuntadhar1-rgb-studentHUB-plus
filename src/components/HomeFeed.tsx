@@ -104,37 +104,49 @@ export default function HomeFeed({
   return (
     <div className="px-4 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-[#0B1020]" id="home-feed-container">
       
-      {/* Slogan Banner / Immersive Hero */}
-      <div className="mb-6 relative rounded-3xl overflow-hidden shadow-xl border border-slate-200 dark:border-[#1F2E4D] h-44 select-none group cursor-pointer" id="campus-core-slogan-card">
-        {/* Unsplash beautiful college student collaboration illustration image */}
-        <img 
-          src="https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=600" 
-          alt="Jamiaati College life banner" 
-          className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-105"
-          referrerPolicy="no-referrer"
-        />
-        {/* Dark colorful gradient overlay for readable text */}
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-[#7C3AED]/20" />
+      {/* Slogan Banner / Playful Dynamic Gradient Hero */}
+      <div className="mb-6 relative rounded-3xl bg-gradient-to-tr from-[#6B25C9] via-[#D9272E] to-[#2F7CCB] p-6 text-white border-b-6 border-[#FFD21F] shadow-lg overflow-hidden select-none" id="campus-core-slogan-card">
+        {/* Playful background decorative shapes/stars/circles */}
+        <div className="absolute top-2 right-4 text-2xl opacity-20 select-none pointer-events-none animate-pulse">✦</div>
+        <div className="absolute bottom-4 left-6 text-3xl opacity-15 select-none pointer-events-none animate-bounce">★</div>
+        <div className="absolute -top-10 -left-10 w-28 h-28 bg-white/10 rounded-full blur-xl pointer-events-none" />
+        <div className="absolute top-1/2 right-1/4 w-12 h-12 bg-yellow-405 bg-[#FFD21F]/10 rounded-full blur-lg pointer-events-none" />
         
-        {/* Floating badge */}
-        <div className="absolute top-3 left-4 bg-[#7C3AED] text-white text-[8px] font-black tracking-widest uppercase px-2 py-0.5 rounded-lg shadow-md border border-white/10">
-          CAMPUS EXCLUSIVE • حصري
+        {/* Floating Yellow Slogan Pill */}
+        <div className="inline-flex items-center gap-1.5 bg-[#FFD21F] text-[#161A33] text-[9px] font-black tracking-wider uppercase px-3 py-1 rounded-full shadow-sm mb-3.5 border border-[#161A33]/15 transform -rotate-1 hover:rotate-0 transition-transform">
+          <span>🎯 {language === 'ar' ? 'البوابة الذكية الأولى' : language === 'ku' ? 'یەکەم دەروازی خوێندکاران' : 'NUM. 1 CAMPUS APP'}</span>
         </div>
 
-        {/* Text Content overlay */}
-        <div className="absolute bottom-4 inset-x-4 flex flex-col justify-end text-left">
-          <h2 className="text-white text-base font-black tracking-tight leading-snug">
-            {language === 'ar' ? 'تميّز، تواصل، وابنِ مستقبلك الأكاديمي! 🚀' : language === 'ku' ? 'داهاتوو لێرە بنیات بنێ! 🚀' : 'Master your campus life! 🚀'}
+        {/* Big Bold Titles in White & Yellow */}
+        <div className="relative z-10">
+          <h2 className="text-lg md:text-xl font-black tracking-tight leading-snug drop-shadow-sm">
+            {language === 'ar' ? (
+              <>
+                تميّز وابنِ <span className="text-[#FFD21F] underline decoration-wavy decoration-[#FFD21F] underline-offset-4 font-black">مستقبلك الأكاديمي!</span> 🚀
+              </>
+            ) : language === 'ku' ? (
+              <>
+                داهاتوویەکی <span className="text-[#FFD21F] underline decoration-wavy decoration-[#FFD21F] underline-offset-4 font-black">پڕشنگدار بنيات بنێ!</span> 🚀
+              </>
+            ) : (
+              <>
+                Master Your <span className="text-[#FFD21F] underline decoration-wavy decoration-[#FFD21F] underline-offset-4 font-black">Campus Journey!</span> 🚀
+              </>
+            )}
           </h2>
-          <p className="text-[#06B6D4] text-[10px] font-extrabold mt-0.5">
-            {language === 'ar' ? 'البوابة الطلابية الأولى للجامعات والتدريب في عِراقنا' : language === 'ku' ? 'یەکەم دەروازەی خوێندکارانی زانکۆ لە عێراق' : 'The ultimate student hub for universities & premium opportunities'}
+          
+          <p className="text-[10px] text-white/90 font-black mt-2 leading-relaxed max-w-sm">
+            {language === 'ar' ? 'البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب' : language === 'ku' ? 'یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق و ڕاهێنان' : 'The ultimate collegiate hub for premium opportunities & academic resources'}
           </p>
-          <div className="mt-2 flex items-center gap-1.5">
-            <span className="text-[9px] font-bold bg-[#FFFFFF]/15 hover:bg-[#FFFFFF]/25 text-white px-2.5 py-1 rounded-lg border border-white/10 transition-colors">
-              {language === 'ar' ? 'استكشف الفرص ✨' : language === 'ku' ? 'گەڕان بەدوای هەلەکان ✨' : 'Explore Hub ✨'}
+
+          {/* Interactive features inside the hero */}
+          <div className="mt-4 flex flex-wrap items-center gap-2">
+            <span className="text-[9px] font-black bg-[#FFD21F] text-[#161A33] px-3.5 py-1.5 rounded-full hover:bg-yellow-300 transition-colors shadow-sm cursor-pointer transform hover:scale-105 active:scale-95 leading-none">
+              {language === 'ar' ? 'استكشف الفرص ✨' : language === 'ku' ? 'گەڕان بەدوای هەلەکان ✨' : 'Explore Opportunities ✨'}
             </span>
-            <span className="text-[8px] font-mono font-black text-rose-400 animate-pulse bg-rose-500/10 px-1.5 py-0.5 rounded border border-rose-500/20">
-              ● {language === 'ar' ? 'نشط الآن' : language === 'ku' ? 'ئەکتیڤە' : 'LIVE'}
+            <span className="text-[8px] font-mono font-black text-[#FFD21F] bg-white/10 px-2 py-1 rounded-lg border border-white/20 flex items-center gap-1">
+              <span className="w-1.5 h-1.5 rounded-full bg-[#FFD21F] animate-ping" />
+              ● {language === 'ar' ? 'مباشر الآن' : language === 'ku' ? 'ئەکتیڤە' : 'LIVE'}
             </span>
           </div>
         </div>
@@ -142,14 +154,14 @@ export default function HomeFeed({
 
       {/* Hero Header */}
       <div className="mb-5" id="home-hero-header">
-        <div className="flex items-center gap-1.5 text-cyan-400 mb-1">
-          <Sparkles className="w-4 h-4 animate-spin-slow text-[#06B6D4]" />
-          <span className="text-[9px] font-black uppercase tracking-widest leading-none text-cyan-400">{getTranslation('campusToday', language)}</span>
+        <div className="flex items-center gap-1.5 text-[#6B25C9] mb-1">
+          <Sparkles className="w-4 h-4 animate-spin-slow text-[#6B25C9]" />
+          <span className="text-[9px] font-black uppercase tracking-widest leading-none text-[#6B25C9]">{getTranslation('campusToday', language)}</span>
         </div>
-        <h2 className="text-xl font-black text-white tracking-tight leading-tight">
+        <h2 className="text-xl font-black text-[#161A33] tracking-tight leading-tight">
           {getTranslation('campusToday', language)}
         </h2>
-        <p className="text-xs text-slate-400 font-semibold mt-1 max-w-sm">
+        <p className="text-xs text-slate-500 font-semibold mt-1 max-w-sm">
           {getTranslation('heroSubtitle', language)}
         </p>
       </div>
@@ -164,20 +176,20 @@ export default function HomeFeed({
         <button
           id="quick-card-life"
           onClick={() => onNavigateTab('life')}
-          className="text-left bg-gradient-to-br from-[#2563EB] to-[#06B6D4] rounded-3xl p-4.5 text-white shadow-lg cursor-pointer transform hover:scale-[1.02] active:scale-95 transition-all relative overflow-hidden group flex flex-col justify-between min-h-[148px] border border-cyan-500/25"
+          className="text-left bg-gradient-to-br from-[#6B25C9] to-[#2F7CCB] rounded-3xl p-4.5 text-white border-2 border-[#161A33] shadow-[3px_3px_0px_0px_#161A33] hover:shadow-[5px_5px_0px_0px_#161A33] cursor-pointer transform hover:-translate-y-0.5 active:translate-y-0.5 transition-all relative overflow-hidden group flex flex-col justify-between min-h-[148px]"
         >
           <div className="absolute right-0 top-0 w-24 h-24 bg-white/10 rounded-full translate-x-8 -translate-y-8 group-hover:scale-110 transition-transform blur-md" />
-          <div className="bg-white/15 w-9 h-9 rounded-xl flex items-center justify-center mb-1 shadow-inner">
-            <MessageSquare className="w-5 h-5" />
+          <div className="bg-white/20 w-9 h-9 rounded-xl flex items-center justify-center mb-1 shadow-inner">
+            <MessageSquare className="w-5 h-5 text-white" />
           </div>
           <div>
             <h3 className="text-xs font-black tracking-tight leading-none uppercase">
               {getTranslation('cardLifeTitle', language)}
             </h3>
-            <p className="text-[9px] text-[#E0F7FA] font-extrabold leading-tight mt-1 opacity-95">
+            <p className="text-[9px] text-[#F3F7FF] font-extrabold leading-tight mt-1 opacity-95">
               {getTranslation('cardLifeDesc', language)}
             </p>
-            <div className="mt-3 flex items-center gap-1 text-[8px] font-black uppercase tracking-wider bg-white/20 px-2 py-1 rounded-md cursor-pointer w-max border border-white/10">
+            <div className="mt-3 flex items-center gap-1 text-[8px] font-black uppercase tracking-wider bg-[#FFD21F] text-[#161A33] px-2.5 py-1 rounded-md cursor-pointer w-max shadow-sm">
               <span>Go social</span>
               <span>→</span>
             </div>
@@ -188,20 +200,20 @@ export default function HomeFeed({
         <button
           id="quick-card-future"
           onClick={() => onNavigateTab('future')}
-          className="text-left bg-gradient-to-br from-[#4F46E5] to-[#2563EB] rounded-3xl p-4.5 text-white shadow-lg cursor-pointer transform hover:scale-[1.02] active:scale-95 transition-all relative overflow-hidden group flex flex-col justify-between min-h-[148px] border border-indigo-500/25"
+          className="text-left bg-gradient-to-br from-[#D9272E] to-[#FFD21F] rounded-3xl p-4.5 text-white border-2 border-[#161A33] shadow-[3px_3px_0px_0px_#161A33] hover:shadow-[5px_5px_0px_0px_#161A33] cursor-pointer transform hover:-translate-y-0.5 active:translate-y-0.5 transition-all relative overflow-hidden group flex flex-col justify-between min-h-[148px]"
         >
           <div className="absolute right-0 top-0 w-24 h-24 bg-white/10 rounded-full translate-x-8 -translate-y-8 group-hover:scale-110 transition-transform blur-md" />
-          <div className="bg-white/15 w-9 h-9 rounded-xl flex items-center justify-center mb-1 shadow-inner">
-            <Briefcase className="w-5 h-5" />
+          <div className="bg-white/20 w-9 h-9 rounded-xl flex items-center justify-center mb-1 shadow-inner">
+            <Briefcase className="w-5 h-5 text-white" />
           </div>
           <div>
             <h3 className="text-xs font-black tracking-tight leading-none uppercase">
               {getTranslation('cardFutureTitle', language)}
             </h3>
-            <p className="text-[9px] text-[#E0F2FE] font-extrabold leading-tight mt-1 opacity-95">
+            <p className="text-[9px] text-white font-extrabold leading-tight mt-1 opacity-95">
               {getTranslation('cardFutureDesc', language)}
             </p>
-            <div className="mt-3 flex items-center gap-1 text-[8px] font-black uppercase tracking-wider bg-white/20 px-2 py-1 rounded-md cursor-pointer w-max border border-white/10">
+            <div className="mt-3 flex items-center gap-1 text-[8px] font-black uppercase tracking-wider bg-white text-[#161A33] px-2.5 py-1 rounded-md cursor-pointer w-max shadow-sm border border-[#161A33]/10">
               <span>Build Career</span>
               <span>→</span>
             </div>
@@ -211,20 +223,20 @@ export default function HomeFeed({
       </div>
 
       {/* Share bar / compose post */}
-      <div className="bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-4 mb-5 shadow-lg" id="post-composition-box">
+      <div className="bg-white border-2 border-[#161A33] rounded-3xl p-4.5 mb-5 shadow-[3px_3px_0px_0px_#161A33]" id="post-composition-box">
         {message && (
-          <div className="bg-emerald-500/10 text-emerald-400 text-xs font-bold p-2.5 rounded-xl border border-emerald-500/25 mb-3 flex items-center gap-1.5 animate-pulse">
-            <CheckCircle className="w-4.5 h-4.5 text-emerald-400 shrink-0" />
+          <div className="bg-emerald-50 text-emerald-800 text-xs font-bold p-2.5 rounded-xl border-2 border-emerald-500/30 mb-3 flex items-center gap-1.5 animate-pulse">
+            <CheckCircle className="w-4.5 h-4.5 text-emerald-600 shrink-0" />
             <span>{message}</span>
           </div>
         )}
 
         <div className="flex items-center gap-2.5 pointer-events-auto" onClick={() => setShowPublisher(!showPublisher)}>
           <div className="text-xl">⚡</div>
-          <div className="flex-1 bg-[#16223F] hover:bg-[#1E2E4E] border border-[#1F2E4D] px-3.5 py-3 rounded-xl text-xs font-semibold text-slate-300 transition-all cursor-pointer shadow-inner">
+          <div className="flex-1 bg-[#F7F4FF] hover:bg-[#F3F7FF] border border-[#E6E1F5] px-3.5 py-3 rounded-xl text-xs font-bold text-slate-500 transition-all cursor-pointer shadow-inner">
             {getTranslation('newPostPlaceholder', language)}
           </div>
-          <button id="post-trigger-plus" className="p-3 bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500/20 border border-cyan-500/20 rounded-xl transition-all cursor-pointer">
+          <button id="post-trigger-plus" className="p-3 bg-[#FFD21F] text-[#161A33] hover:bg-yellow-450 border-2 border-[#161A33] rounded-xl transition-all cursor-pointer shadow-[2px_2px_0px_0px_#161A33]">
             <PlusCircle className="w-5 h-5" />
           </button>
         </div>
@@ -237,7 +249,7 @@ export default function HomeFeed({
               initial={{ height: 0, opacity: 0 }}
               animate={{ height: 'auto', opacity: 1 }}
               exit={{ height: 0, opacity: 0 }}
-              className="overflow-hidden mt-3.5 border-t border-[#1F2E4D] pt-4 flex flex-col gap-3"
+              className="overflow-hidden mt-3.5 border-t border-[#E6E1F5] pt-4 flex flex-col gap-3"
             >
               {/* Optional Title input */}
               <input
@@ -245,7 +257,7 @@ export default function HomeFeed({
                 value={postTitle}
                 onChange={e => setPostTitle(e.target.value)}
                 placeholder={getTranslation('headlineTopic', language)}
-                className="w-full text-xs font-bold text-white bg-[#101726] border border-[#1F2E4D] rounded-xl px-3.5 py-2.5 focus:bg-[#16223F] focus:outline-none focus:border-cyan-400/50 transition-colors"
+                className="w-full text-xs font-bold text-[#161A33] bg-white border border-[#E6E1F5] rounded-xl px-3.5 py-2.5 focus:bg-[#F3F7FF] focus:outline-none focus:border-[#6B25C9] transition-colors"
               />
 
               {/* Main Text Content */}
@@ -255,21 +267,21 @@ export default function HomeFeed({
                 required
                 rows={3}
                 placeholder={getTranslation('newPostPlaceholder', language)}
-                className="w-full text-xs font-semibold text-slate-100 bg-[#101726] border border-[#1F2E4D] rounded-xl p-3.5 focus:bg-[#16223F] focus:outline-none focus:border-cyan-400/50 transition-colors resize-none"
+                className="w-full text-xs font-semibold text-[#161A33] bg-white border border-[#E6E1F5] rounded-xl p-3.5 focus:bg-[#F3F7FF] focus:outline-none focus:border-[#6B25C9] transition-colors resize-none"
               />
 
               {/* Options panel */}
               <div className="flex items-center justify-between mt-1">
                 {/* Anonymous Toggle */}
-                <label className="flex items-center gap-1.5 cursor-pointer bg-slate-900 border border-[#1F2E4D] px-3 py-1.5 rounded-xl hover:border-slate-600 transition-colors" id="anonymous-toggle-label">
+                <label className="flex items-center gap-1.5 cursor-pointer bg-white border border-[#E6E1F5] px-3 py-1.5 rounded-xl hover:border-[#6B25C9] transition-colors" id="anonymous-toggle-label">
                   <input
                     type="checkbox"
                     checked={anonymous}
                     onChange={e => setAnonymous(e.target.checked)}
-                    className="w-4 h-4 text-[#06B6D4] bg-slate-950 border-[#1F2E4D] rounded focus:ring-0 cursor-pointer"
+                    className="w-4 h-4 text-[#6B25C9] bg-white border-[#E6E1F5] rounded focus:ring-0 cursor-pointer"
                   />
-                  <span className="text-[10px] text-slate-400 font-extrabold uppercase flex items-center gap-1">
-                    <EyeOff className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="text-[10px] text-slate-500 font-extrabold uppercase flex items-center gap-1">
+                    <EyeOff className="w-3.5 h-3.5 text-slate-500" />
                     {getTranslation('anonymous', language)}
                   </span>
                 </label>
@@ -279,13 +291,13 @@ export default function HomeFeed({
                   <button
                     type="button"
                     onClick={() => setShowPublisher(false)}
-                    className="text-[10px] font-extrabold text-slate-400 hover:text-white bg-slate-800 hover:bg-slate-755 hover:bg-slate-700/80 px-3.5 py-2 rounded-xl border border-slate-700 cursor-pointer transition-colors"
+                    className="text-[10px] font-extrabold text-slate-600 hover:text-slate-800 bg-slate-100 hover:bg-slate-200 px-3.5 py-2 rounded-xl cursor-pointer transition-colors"
                   >
                     Cancel
                   </button>
                   <button
                     type="submit"
-                    className="text-[10px] font-black bg-gradient-to-tr from-[#06B6D4] via-[#2563EB] to-[#4F46E5] hover:scale-[1.01] active:scale-95 text-white px-4 py-2 rounded-xl shadow-glow-cyan/5 border border-white/5 cursor-pointer transition-all"
+                    className="text-[10px] font-black bg-[#FFD21F] text-[#161A33] hover:bg-[#FFE052] px-4 py-2 rounded-xl shadow-sm border-2 border-[#161A33] cursor-pointer transition-all"
                   >
                     {getTranslation('postBtn', language)}
                   </button>
@@ -298,9 +310,9 @@ export default function HomeFeed({
 
       {/* Selector feedback and Reset filters info */}
       {(selectedGov !== 'all' || selectedUni !== 'all') && (
-        <div className="bg-cyan-500/10 border border-cyan-400/20 rounded-xl p-2.5 mb-4 text-[10px] font-bold text-cyan-400 flex items-center justify-between gap-1">
+        <div className="bg-[#F3F7FF] border-2 border-[#161A33] rounded-2xl p-3 mb-4 text-[10px] font-bold text-[#161A33] flex items-center justify-between gap-1 shadow-sm">
           <div className="flex items-center gap-1.5">
-            <Info className="w-4 h-4 text-cyan-400 shrink-0" />
+            <Info className="w-4 h-4 text-[#6B25C9] shrink-0" />
             <span>
               {language === 'ar' 
                 ? 'يتم تصفية المنشورات حالياً طبقاً لاختياراتك الجغرافية والأكاديمية المحددة.' 
@@ -317,10 +329,10 @@ export default function HomeFeed({
         {isFeedLoading ? (
           <SkeletonLoader />
         ) : feedItems.length === 0 ? (
-          <div className="text-center py-12 text-slate-400 bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-6 shadow-inner">
+          <div className="text-center py-12 text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-6 shadow-sm">
             <div className="text-3xl mb-2">🔭</div>
-            <h3 className="font-extrabold text-white text-xs">No active posts for this combination</h3>
-            <p className="text-[10px] text-slate-400 max-w-xs mt-1.5 mx-auto leading-relaxed">
+            <h3 className="font-extrabold text-[#161A33] text-xs">No active posts for this combination</h3>
+            <p className="text-[10px] text-[#5C677D] max-w-xs mt-1.5 mx-auto leading-relaxed">
               {language === 'ar' 
                 ? 'لا توجد منشورات للطلاب هنا لهذه التصفية. وسّع نطاق تحديد المحافظة أو الجامعة لرى المزيد!' 
                 : language === 'ku' 

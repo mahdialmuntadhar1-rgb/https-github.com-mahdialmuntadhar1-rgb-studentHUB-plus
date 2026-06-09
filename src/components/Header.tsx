@@ -53,21 +53,22 @@ export default function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0B1020]/95 border-b border-[#1F2E4D] backdrop-blur-md px-4 py-3.5 shadow-md shadow-black/20" id="app-header-container">
+    <header className="sticky top-0 z-40 bg-white border-b-2 border-[#E6E1F5] px-4 py-3.5 shadow-sm" id="app-header-container">
       {/* Top row: Logo & Language & Notif & Profile */}
       <div className="flex items-center justify-between gap-2 max-w-lg mx-auto" id="header-top-row">
         
         {/* Brand Logo and Title */}
         <div className="flex items-center gap-3" id="header-brand-logo">
-          <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#7C3AED] via-[#2563EB] to-[#06B6D4] flex items-center justify-center text-white font-bold shadow-md shadow-purple-500/10 shrink-0 border border-purple-500/20">
+          <div className="w-11 h-11 rounded-xl bg-gradient-to-tr from-[#6B25C9] via-[#D9272E] to-[#2F7CCB] flex items-center justify-center text-white font-bold shadow-md shadow-purple-500/10 shrink-0 border border-purple-500/20">
             <BookOpen className="w-6 h-6 text-white drop-shadow-md animate-pulse" />
           </div>
           <div>
             <h1 className="text-lg font-black tracking-tight leading-none flex items-center gap-1.5" id="header-app-name">
-              <span className="font-sans font-black bg-gradient-to-r from-[#7C3AED] via-[#2563EB] to-[#06B6D4] bg-clip-text text-transparent">جامعتي</span> 
-              <span className="text-[#06B6D4] font-black text-sm uppercase tracking-tight">Jamiaati</span>
+              <span className="font-sans font-black bg-gradient-to-r from-[#6B25C9] via-[#D9272E] to-[#2F7CCB] bg-clip-text text-transparent">جامعتي</span> 
+              <span className="text-[#2F7CCB] font-black text-sm uppercase tracking-tight">Jamiaati</span>
+              <span className="px-1.5 py-0.5 text-[8px] font-black bg-[#FFD21F] text-[#161A33] rounded-md shadow-sm border border-[#161A33]/10 transform rotate-1">جديد</span>
             </h1>
-            <p className="text-[8px] font-mono font-black tracking-wider text-[#7C3AED] bg-[#7C3AED]/10 border border-[#7C3AED]/20 px-1.5 py-0.5 rounded-md mt-1 leading-none w-max">
+            <p className="text-[8px] font-mono font-black tracking-wider text-[#6B25C9] bg-[#6B25C9]/10 border border-[#6B25C9]/20 px-1.5 py-0.5 rounded-md mt-1 leading-none w-max">
               YOUR IRAQ • عِراقنا
             </p>
           </div>
@@ -79,10 +80,10 @@ export default function Header({
           <button
             id="lang-selector-trigger"
             onClick={() => setShowLanguageModal(!showLanguageModal)}
-            className="p-2 text-slate-300 hover:text-cyan-400 hover:bg-slate-800/40 rounded-xl border border-transparent hover:border-[#1F2E4D] transition-all cursor-pointer relative"
+            className="p-2 text-slate-700 hover:text-[#6B25C9] hover:bg-[#F3F7FF] rounded-xl border border-transparent hover:border-[#E6E1F5] transition-all cursor-pointer relative"
           >
             <Languages className="w-5 h-5" />
-            <span className="absolute bottom-0 right-0 text-[8px] font-mono font-black bg-cyan-950 text-cyan-400 px-1 rounded border border-cyan-500/25">
+            <span className="absolute bottom-0 right-0 text-[8px] font-mono font-black bg-[#FFD21F] text-[#161A33] px-1 rounded border border-[#161A33]/20">
               {language.toUpperCase()}
             </span>
           </button>
@@ -90,17 +91,17 @@ export default function Header({
           {/* Notifications Trigger */}
           <div className="relative">
             <button
-              id="notif-bell"
-              onClick={() => {
-                setShowNotifications(!showNotifications);
-                setShowLanguageModal(false);
-                setShowNotificationCount(false);
-              }}
-              className="p-2 text-slate-300 hover:text-cyan-400 hover:bg-slate-850/50 rounded-lg transition-colors cursor-pointer"
+               id="notif-bell"
+               onClick={() => {
+                 setShowNotifications(!showNotifications);
+                 setShowLanguageModal(false);
+                 setShowNotificationCount(false);
+               }}
+               className="p-2 text-slate-705 text-slate-700 hover:text-[#6B25C9] hover:bg-[#F3F7FF] rounded-lg transition-colors cursor-pointer"
             >
               <Bell className="w-5 h-5" />
               {showNotificationCount && (
-                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-red-500 rounded-full animate-pulse" />
+                <span className="absolute top-1.5 right-1.5 w-2 h-2 bg-[#D9272E] rounded-full animate-pulse" />
               )}
             </button>
 
@@ -111,24 +112,24 @@ export default function Header({
                   initial={{ opacity: 0, y: 10 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: 10 }}
-                  className="absolute right-0 mt-2 w-64 bg-[#121B2E] rounded-xl shadow-2xl border border-[#1F2E4D] p-2 text-xs text-slate-200 z-50 pointer-events-auto"
+                  className="absolute right-0 mt-2 w-64 bg-white rounded-xl shadow-2xl border-2 border-[#161A33] p-2 text-xs text-slate-850 text-slate-900 z-50 pointer-events-auto"
                 >
-                  <div className="flex justify-between items-center px-2 py-1 border-b border-[#1F2E4D] font-bold text-white mb-1">
+                  <div className="flex justify-between items-center px-2 py-1 border-b border-[#E6E1F5] font-bold text-[#161A33] mb-1">
                     <span>{getTranslation('notificationsTitle', language)}</span>
-                    <button onClick={() => setNotifications([])} className="text-[10px] text-slate-400 hover:text-cyan-400 cursor-pointer">
+                    <button onClick={() => setNotifications([])} className="text-[10px] text-slate-500 hover:text-[#D9272E] cursor-pointer font-bold">
                       {getTranslation('clearAllBtn', language)}
                     </button>
                   </div>
                   {notifications.length === 0 ? (
-                    <div className="p-4 text-center text-slate-400 font-bold text-[11px] leading-relaxed">
+                    <div className="p-4 text-center text-slate-500 font-bold text-[11px] leading-relaxed">
                       {getTranslation('notificationEmpty', language)}
                     </div>
                   ) : (
                     <div className="flex flex-col gap-1 max-h-48 overflow-y-auto">
                       {notifications.map(n => (
-                        <div key={n.id} className="p-2 hover:bg-[#1C2C4E]/65 rounded-lg transition-all border-l-2 border-cyan-400">
-                          <p className="font-semibold text-[11px] leading-tight text-slate-100">{n.text}</p>
-                          <span className="text-[9px] text-slate-400 mt-0.5 block">{n.time}</span>
+                        <div key={n.id} className="p-2 hover:bg-[#F7F4FF] rounded-lg transition-all border-l-2 border-[#6B25C9]">
+                          <p className="font-semibold text-[11px] leading-tight text-[#161A33]">{n.text}</p>
+                          <span className="text-[9px] text-slate-500 mt-0.5 block">{n.time}</span>
                         </div>
                       ))}
                     </div>
@@ -142,7 +143,7 @@ export default function Header({
           <button
             id="profile-avatar-trigger"
             onClick={onProfileClick}
-            className="w-9 h-9 rounded-xl border-2 border-cyan-400/40 overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
+            className="w-9 h-9 rounded-xl border-2 border-[#6B25C9]/40 overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer"
           >
             <img src={currentUserAvatar} alt="Zara Al-Iraqi Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           </button>
@@ -178,27 +179,27 @@ export default function Header({
       </AnimatePresence>
 
       {/* Selectors Row: Governorate & University dropdowns */}
-      <div className="mt-3 max-w-lg mx-auto flex items-center gap-2 bg-[#121B2E] p-1.5 rounded-2xl border border-[#1F2E4D]" id="header-selectors-row">
+      <div className="mt-3 max-w-lg mx-auto flex items-center gap-2 bg-[#F7F4FF] p-2 rounded-2xl border-2 border-[#E6E1F5]" id="header-selectors-row">
         
         {/* Governorate Selector */}
         <div 
-          className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-300 shadow-inner ${
+          className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 ${
             selectedGov !== 'all' 
-              ? 'bg-[#1a2d54] border-cyan-400/60 shadow-glow-cyan' 
-              : 'bg-[#162443] border-[#1F2E4D] hover:border-[#2d4373]'
+              ? 'bg-white border-2 border-[#6B25C9] shadow-inner shadow-purple-500/5' 
+              : 'bg-white border border-[#E6E1F5] hover:border-[#6B25C9]'
           }`} 
           id="gov-selector-wrapper"
         >
-          <MapPin className={`w-4 h-4 shrink-0 transition-colors ${selectedGov !== 'all' ? 'text-cyan-455 text-cyan-400' : 'text-slate-400'}`} />
+          <MapPin className={`w-4 h-4 shrink-0 transition-colors ${selectedGov !== 'all' ? 'text-[#6B25C9]' : 'text-slate-500'}`} />
           <select
             id="gov-select"
             value={selectedGov}
             onChange={handleGovChange}
-            className="w-full text-xs font-extrabold text-slate-100 bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer p-0 select-none"
+            className="w-full text-xs font-black text-[#161A33] bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer p-0 select-none"
           >
-            <option value="all" className="bg-[#121B2E]">📍 {getTranslation('allGovs', language)}</option>
+            <option value="all" className="bg-white text-[#161A33]">📍 {getTranslation('allGovs', language)}</option>
             {IraqiGovernorates.map(gov => (
-              <option key={gov.id} value={gov.id} className="bg-[#121B2E]">
+              <option key={gov.id} value={gov.id} className="bg-white text-[#161A33]">
                 {language === 'ar' ? gov.nameAR : language === 'ku' ? gov.nameKU : gov.nameEN}
               </option>
             ))}
@@ -207,23 +208,23 @@ export default function Header({
 
         {/* University Selector */}
         <div 
-          className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl border transition-all duration-300 shadow-inner ${
+          className={`flex-1 flex items-center gap-2 px-3 py-2 rounded-xl transition-all duration-300 ${
             selectedUni !== 'all' 
-              ? 'bg-[#222163]/50 border-brand-purple/65 shadow-glow-purple' 
-              : 'bg-[#162443] border-[#1F2E4D] hover:border-[#2d4373]'
+              ? 'bg-white border-2 border-[#2F7CCB] shadow-inner' 
+              : 'bg-white border border-[#E6E1F5] hover:border-[#2F7CCB]'
           }`} 
           id="uni-selector-wrapper"
         >
-          <School className={`w-4 h-4 shrink-0 transition-colors ${selectedUni !== 'all' ? 'text-brand-purple text-indigo-400' : 'text-slate-400'}`} />
+          <School className={`w-4 h-4 shrink-0 transition-colors ${selectedUni !== 'all' ? 'text-[#2F7CCB]' : 'text-slate-500'}`} />
           <select
             id="uni-select"
             value={selectedUni}
             onChange={(e) => setSelectedUni(e.target.value)}
-            className="w-full text-xs font-extrabold text-slate-100 bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer p-0 select-none"
+            className="w-full text-xs font-black text-[#161A33] bg-transparent border-0 focus:outline-none focus:ring-0 cursor-pointer p-0 select-none"
           >
-            <option value="all" className="bg-[#121B2E]">🏫 {getTranslation('allUnis', language)}</option>
+            <option value="all" className="bg-white text-[#161A33]">🏫 {getTranslation('allUnis', language)}</option>
             {filteredUnis.map(uni => (
-              <option key={uni.id} value={uni.id} className="bg-[#121B2E]">
+              <option key={uni.id} value={uni.id} className="bg-white text-[#161A33]">
                 {uni.logo} {language === 'ar' ? uni.nameAR : language === 'ku' ? uni.nameKU : uni.nameEN}
               </option>
             ))}
