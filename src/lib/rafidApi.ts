@@ -2,12 +2,18 @@ const API_BASE = "https://rafid-api.mahdialmuntadhar1.workers.dev";
 const TOKEN_KEY = "rafid_auth_token";
 
 type ApiResult<T> = T | null;
+export type AuthResult = {
+  ok: boolean;
+  token?: string;
+  user?: any;
+  data?: any;
+  message?: string;
+};
 
-async function safeFetch<T>(
+async function requestJson<T>(
   path: string,
-  options: RequestInit = {},
-  fallback: T | null = null
-): Promise<ApiResult<T>> {
+  options: RequestInit = {}
+): Promise<{ ok: boolean; status: number; data: T | null }> {
   try {
     const response = await fetch(`${API_BASE}${path}`, {
       ...options,
@@ -16,15 +22,20 @@ async function safeFetch<T>(
         ...(options.headers || {}),
       },
     });
-
-    if (!response.ok) {
-      return fallback;
-    }
-
-    return (await response.json()) as T;
+    const data = await response.json().catch(() => null);
+    return { ok: response.ok, status: response.status, data: data as T | null };
   } catch {
-    return fallback;
+    return { ok: false, status: 0, data: null };
   }
+}
+
+async function safeFetch<T>(
+  path: string,
+  options: RequestInit = {},
+  fallback: T | null = null
+): Promise<ApiResult<T>> {
+  const response = await requestJson<T>(path, options);
+  return response.ok && response.data !== null ? response.data : fallback;
 }
 
 function authHeaders(token: string) {
@@ -34,7 +45,11 @@ function authHeaders(token: string) {
 }
 
 export function getToken() {
-  return localStorage.getItem(TOKEN_KEY);
+  try {
+    return localStorage.getItem(TOKEN_KEY);
+  } catch {
+    return null;
+  }
 }
 
 export function isLoggedIn() {
@@ -42,15 +57,61 @@ export function isLoggedIn() {
 }
 
 export function logout() {
-  localStorage.removeItem(TOKEN_KEY);
+  try {
+    localStorage.removeItem(TOKEN_KEY);
+  } catch {
+    // Browsing should keep working even if storage is unavailable.
+  }
+}
+
+function extractToken(data: any): string | undefined {
+  return data?.token
+    || data?.access_token
+    || data?.accessToken
+    || data?.data?.token
+    || data?.data?.access_token
+    || data?.data?.accessToken
+    || data?.session?.token
+    || data?.session?.access_token;
 }
 
 function persistToken(data: any) {
-  const token = data?.token || data?.access_token || data?.accessToken;
+  const token = extractToken(data);
   if (token) {
-    localStorage.setItem(TOKEN_KEY, token);
+    try {
+      localStorage.setItem(TOKEN_KEY, token);
+    } catch {
+      // Keep the response usable even if localStorage is blocked.
+    }
   }
-  return data;
+  return token;
+}
+
+function authMessage(data: any, fallback: string) {
+  return data?.message || data?.error || data?.errors?.[0]?.message || fallback;
+}
+
+function authResult(ok: boolean, data: any, fallback: string): AuthResult {
+  if (!ok) {
+    return { ok: false, data, message: authMessage(data, fallback) };
+  }
+
+  const token = persistToken(data);
+  if (!token) {
+    return {
+      ok: false,
+      data,
+      message: "حدث خطأ، حاول مرة أخرى"
+    };
+  }
+
+  return {
+    ok: true,
+    token,
+    data,
+    user: data?.user || data?.data?.user || data?.profile || data?.data?.profile,
+    message: "تم تسجيل الدخول بنجاح"
+  };
 }
 
 export async function getHealth() {
@@ -73,32 +134,30 @@ export async function getOpportunities() {
 }
 
 export async function login(email: string, password: string) {
-  const data = await safeFetch<any>(
+  const response = await requestJson<any>(
     "/api/auth/login",
     {
       method: "POST",
       body: JSON.stringify({ email, password }),
-    },
-    null
+    }
   );
-  return data ? persistToken(data) : null;
+  return authResult(response.ok, response.data, "حدث خطأ، حاول مرة أخرى");
 }
 
 export async function register(data: Record<string, unknown>) {
-  const response = await safeFetch<any>(
+  const response = await requestJson<any>(
     "/api/auth/register",
     {
       method: "POST",
       body: JSON.stringify(data),
-    },
-    null
+    }
   );
-  return response ? persistToken(response) : null;
+  return authResult(response.ok, response.data, "حدث خطأ، حاول مرة أخرى");
 }
 
 export async function getMe(token: string) {
   return safeFetch(
-    "/api/me",
+    "/api/auth/me",
     {
       headers: authHeaders(token),
     },

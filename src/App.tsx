@@ -9,13 +9,16 @@ import FutureFeed from './components/FutureFeed';
 import AskFeed from './components/AskFeed';
 import ProfileView from './components/ProfileView';
 import { motion, AnimatePresence } from 'motion/react';
-import { Home, HelpCircle, Briefcase, User, Compass, Lock } from 'lucide-react';
+import { Home, HelpCircle, Briefcase, User, Compass, Lock, LogOut, CheckCircle } from 'lucide-react';
 import {
   getOpportunities,
   getPosts,
   getToken,
   isLoggedIn,
   login,
+  register,
+  getMe,
+  logout,
   createPost,
   likePost,
   createComment
@@ -158,10 +161,14 @@ export default function App() {
   // Navigation tab state
   const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile'>('home');
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'prompt' | 'login'>('prompt');
+  const [authMode, setAuthMode] = useState<'prompt' | 'login' | 'register'>('prompt');
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
+  const [authName, setAuthName] = useState('');
   const [authMessage, setAuthMessage] = useState('');
+  const [authMessageType, setAuthMessageType] = useState<'error' | 'success'>('error');
+  const [authLoading, setAuthLoading] = useState(false);
+  const [loggedIn, setLoggedIn] = useState(() => isLoggedIn());
 
   // Feed database state (persisted in session / local storage for active play)
   const [feedItems, setFeedItems] = useState<FeedItem[]>(() => {
@@ -214,29 +221,80 @@ export default function App() {
     };
   }, []);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function validateExistingToken() {
+      const token = getToken();
+      if (!token) {
+        setLoggedIn(false);
+        return;
+      }
+
+      const me = await getMe(token);
+      if (cancelled) return;
+
+      if (!me) {
+        logout();
+        setLoggedIn(false);
+      } else {
+        setLoggedIn(true);
+      }
+    }
+
+    validateExistingToken();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Adjust application alignment automatically based on language direction
   const isRTL = language === 'ar' || language === 'ku';
 
   // State modification events
   const requireLogin = () => {
-    if (isLoggedIn()) return false;
+    if (loggedIn || isLoggedIn()) return false;
     setAuthMode('prompt');
     setAuthMessage('');
     setAuthPromptOpen(true);
     return true;
   };
 
-  const handleModalLogin = async (event: React.FormEvent) => {
+  const handleAuthSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     setAuthMessage('');
-    const result = await login(authEmail, authPassword);
-    if (!result) {
-      setAuthMessage('تعذر تسجيل الدخول الآن. يمكنك متابعة التصفح والمحاولة لاحقاً.');
+    setAuthLoading(true);
+
+    const result = authMode === 'register'
+      ? await register({ name: authName, full_name: authName, email: authEmail, password: authPassword })
+      : await login(authEmail, authPassword);
+
+    setAuthLoading(false);
+
+    if (!result.ok) {
+      setAuthMessageType('error');
+      setAuthMessage(result.message || 'حدث خطأ، حاول مرة أخرى');
       return;
     }
-    setAuthPromptOpen(false);
-    setAuthEmail('');
-    setAuthPassword('');
+
+    setLoggedIn(true);
+    setAuthMessageType('success');
+    setAuthMessage(authMode === 'register' ? 'تم إنشاء الحساب بنجاح' : 'تم تسجيل الدخول بنجاح');
+    window.setTimeout(() => {
+      setAuthPromptOpen(false);
+      setAuthEmail('');
+      setAuthPassword('');
+      setAuthName('');
+      setAuthMessage('');
+      setAuthMode('prompt');
+    }, 650);
+  };
+
+  const handleLogout = () => {
+    logout();
+    setLoggedIn(false);
+    setAuthMessage('');
   };
 
   const handleLike = async (id: string) => {
@@ -614,6 +672,21 @@ export default function App() {
           onProfileClick={() => setActiveTab('profile')}
         />
 
+        {loggedIn && (
+          <div className="absolute top-20 right-3 z-30 flex items-center gap-1.5 bg-white/95 border border-emerald-100 rounded-2xl shadow-sm px-2.5 py-1.5">
+            <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
+            <span className="text-[10px] font-black text-emerald-700">متصل</span>
+            <button
+              type="button"
+              onClick={handleLogout}
+              className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
+              title="Logout"
+            >
+              <LogOut className="w-3.5 h-3.5" />
+            </button>
+          </div>
+        )}
+
         {/* Dynamic Inner views container */}
         <main className="flex-1 overflow-y-auto">
           {renderActiveView()}
@@ -735,19 +808,31 @@ export default function App() {
                     </div>
                   </>
                 ) : (
-                  <form onSubmit={handleModalLogin} className="text-left">
+                  <form onSubmit={handleAuthSubmit} className="text-left">
                     <h2 className="text-base font-black text-gray-950 mb-1 text-center">
-                      تسجيل الدخول
+                      {authMode === 'register' ? 'إنشاء حساب' : 'تسجيل الدخول'}
                     </h2>
                     <p className="text-xs font-bold text-gray-400 leading-relaxed mb-4 text-center">
-                      أدخل بريدك وكلمة المرور للمتابعة بالتفاعل داخل جامعاتي.
+                      {authMode === 'register'
+                        ? 'أنشئ حسابك للتفاعل مع المنشورات والفرص داخل جامعاتي.'
+                        : 'أدخل بريدك وكلمة المرور للمتابعة بالتفاعل داخل جامعاتي.'}
                     </p>
                     <div className="flex flex-col gap-2.5">
+                      {authMode === 'register' && (
+                        <input
+                          type="text"
+                          value={authName}
+                          onChange={e => setAuthName(e.target.value)}
+                          placeholder="الاسم"
+                          className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
+                          required
+                        />
+                      )}
                       <input
                         type="email"
                         value={authEmail}
                         onChange={e => setAuthEmail(e.target.value)}
-                        placeholder="Email"
+                        placeholder="البريد الإلكتروني"
                         className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
                         required
                       />
@@ -755,20 +840,39 @@ export default function App() {
                         type="password"
                         value={authPassword}
                         onChange={e => setAuthPassword(e.target.value)}
-                        placeholder="Password"
+                        placeholder="كلمة المرور"
                         className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
                         required
                       />
                       {authMessage && (
-                        <p className="text-[11px] font-bold text-red-500 bg-red-50 rounded-xl p-2 text-center">
+                        <p className={`text-[11px] font-bold rounded-xl p-2 text-center ${
+                          authMessageType === 'success'
+                            ? 'text-emerald-600 bg-emerald-50'
+                            : 'text-red-500 bg-red-50'
+                        }`}>
                           {authMessage}
                         </p>
                       )}
                       <button
                         type="submit"
+                        disabled={authLoading}
                         className="rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black py-3 shadow-md shadow-orange-500/10"
                       >
-                        تسجيل الدخول
+                        {authLoading
+                          ? 'جاري المعالجة...'
+                          : authMode === 'register'
+                          ? 'إنشاء حساب'
+                          : 'تسجيل الدخول'}
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthMode(authMode === 'register' ? 'login' : 'register');
+                          setAuthMessage('');
+                        }}
+                        className="rounded-2xl bg-orange-50 text-orange-600 text-xs font-black py-3 border border-orange-100"
+                      >
+                        {authMode === 'register' ? 'لديك حساب؟ تسجيل الدخول' : 'ليس لديك حساب؟ إنشاء حساب'}
                       </button>
                       <button
                         type="button"
