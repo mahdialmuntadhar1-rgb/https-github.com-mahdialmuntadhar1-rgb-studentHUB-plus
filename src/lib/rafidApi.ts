@@ -16,6 +16,12 @@ export type AuthResult = {
   status?: number;
   message?: string;
 };
+export type PasswordResetResult = {
+  ok: boolean;
+  status: number;
+  message: string;
+  raw: any;
+};
 
 async function requestJson<T>(
   path: string,
@@ -199,6 +205,54 @@ export async function getMe(token: string) {
     },
     null
   );
+}
+
+function passwordResetMessage(status: number, data: any, fallback: string) {
+  if (status === 404) return "استعادة كلمة المرور غير مفعلة حالياً، تواصل مع الدعم.";
+  if (status === 0 || status >= 500) return "الخدمة غير متاحة حالياً، حاول لاحقاً";
+  return apiMessage(data, fallback);
+}
+
+export async function requestPasswordReset(email: string): Promise<PasswordResetResult> {
+  const response = await requestJson<any>(
+    "/api/auth/forgot-password",
+    {
+      method: "POST",
+      body: JSON.stringify({ email }),
+    }
+  );
+  const fallback = "إذا كان البريد موجوداً، سيتم إرسال تعليمات الاستعادة عند تفعيل خدمة البريد.";
+  return {
+    ok: response.ok,
+    status: response.status,
+    raw: response.data,
+    message: response.ok ? apiMessage(response.data, fallback) : passwordResetMessage(response.status, response.data, fallback)
+  };
+}
+
+export async function confirmPasswordReset(tokenOrCode: string, newPassword: string): Promise<PasswordResetResult> {
+  const token = (() => {
+    try {
+      const url = new URL(tokenOrCode);
+      return url.searchParams.get("token") || url.searchParams.get("code") || tokenOrCode;
+    } catch {
+      return tokenOrCode;
+    }
+  })();
+  const response = await requestJson<any>(
+    "/api/auth/reset-password",
+    {
+      method: "POST",
+      body: JSON.stringify({ token, password: newPassword }),
+    }
+  );
+  const fallback = "تم تحديث كلمة المرور بنجاح";
+  return {
+    ok: response.ok,
+    status: response.status,
+    raw: response.data,
+    message: response.ok ? apiMessage(response.data, fallback) : passwordResetMessage(response.status, response.data, "حدث خطأ، حاول مرة أخرى")
+  };
 }
 
 export async function createPost(token: string, data: Record<string, unknown>) {

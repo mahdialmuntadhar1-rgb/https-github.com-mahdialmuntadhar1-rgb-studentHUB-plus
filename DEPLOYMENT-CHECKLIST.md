@@ -69,3 +69,12 @@ https://rafid-api.mahdialmuntadhar1.workers.dev
 - Logout: log out and confirm creating posts, liking, and writing comments show the login/register modal.
 - Guest modal: as a guest, click post, comment, like, save, apply, chat, and edit profile; each should show `تحتاج تسجيل الدخول للتفاعل`.
 - Mock fallback: if `/api/posts` returns empty or fails, confirm mock posts remain visible and interactions show a friendly demo-post message.
+
+## Auth Polish Test
+
+- Logout: login/register, confirm the visible auth area shows `متصل`, the user name or email, and `تسجيل الخروج`; click logout and confirm the same page remains public.
+- Forgot-password request: from the login modal, click `نسيت كلمة المرور؟`, enter an email, and confirm the UI shows a generic recovery message without revealing whether the email exists.
+- Reset-password: when a real reset token is available from the configured email provider, open `لدي رمز استعادة`, enter the token/link and a password of at least 8 characters, then confirm login works with the new password.
+- Invalid email behavior: submit a non-existent email and confirm the same generic recovery message is shown.
+- Public browsing after logout: after logout, browse Home, Life, Ask, Future, and Profile; interaction clicks should show the login/register modal again.
+- TODO before public launch: configure a transactional email provider for reset links/codes; until then the backend stores reset tokens but does not send email.

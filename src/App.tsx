@@ -22,7 +22,9 @@ import {
   createPost,
   likePost,
   getComments,
-  createComment
+  createComment,
+  requestPasswordReset,
+  confirmPasswordReset
 } from './lib/rafidApi';
 
 const isOpportunityItem = (item: FeedItem) => {
@@ -114,6 +116,12 @@ const mapBackendCommentToComment = (comment: any): Comment => ({
 
 const isBackendItem = (item?: FeedItem) => Boolean(item?.tags?.includes('Rafid'));
 
+const extractAuthUser = (value: any) => value?.user || value?.data?.user || value?.profile || value || null;
+
+const getAuthUserLabel = (user: any) => {
+  return user?.full_name || user?.fullName || user?.name || user?.email || 'مستخدم جامعاتي';
+};
+
 const mapBackendOpportunityToFeedItem = (opportunity: any): FeedItem => {
   const title = opportunity.title || opportunity.name || opportunity.position || 'Opportunity';
   const content = opportunity.description || opportunity.content || opportunity.summary || '';
@@ -174,14 +182,17 @@ export default function App() {
   // Navigation tab state
   const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile'>('home');
   const [authPromptOpen, setAuthPromptOpen] = useState(false);
-  const [authMode, setAuthMode] = useState<'prompt' | 'login' | 'register'>('prompt');
+  const [authMode, setAuthMode] = useState<'prompt' | 'login' | 'register' | 'forgot' | 'reset'>('prompt');
   const [authEmail, setAuthEmail] = useState('');
   const [authPassword, setAuthPassword] = useState('');
   const [authName, setAuthName] = useState('');
+  const [authResetCode, setAuthResetCode] = useState('');
+  const [authNewPassword, setAuthNewPassword] = useState('');
   const [authMessage, setAuthMessage] = useState('');
   const [authMessageType, setAuthMessageType] = useState<'error' | 'success'>('error');
   const [authLoading, setAuthLoading] = useState(false);
   const [loggedIn, setLoggedIn] = useState(() => isLoggedIn());
+  const [authUser, setAuthUser] = useState<Record<string, unknown> | null>(null);
   const [interactionMessage, setInteractionMessage] = useState('');
 
   // Feed database state (persisted in session / local storage for active play)
@@ -251,8 +262,10 @@ export default function App() {
       if (!me) {
         logout();
         setLoggedIn(false);
+        setAuthUser(null);
       } else {
         setLoggedIn(true);
+        setAuthUser(extractAuthUser(me));
       }
     }
 
@@ -285,6 +298,31 @@ export default function App() {
     setAuthMessage('');
     setAuthLoading(true);
 
+    if (authMode === 'forgot') {
+      const result = await requestPasswordReset(authEmail);
+      setAuthLoading(false);
+      setAuthMessageType(result.ok ? 'success' : 'error');
+      setAuthMessage(result.message);
+      return;
+    }
+
+    if (authMode === 'reset') {
+      const result = await confirmPasswordReset(authResetCode, authNewPassword);
+      setAuthLoading(false);
+      setAuthMessageType(result.ok ? 'success' : 'error');
+      setAuthMessage(result.message);
+      if (result.ok) {
+        setAuthPassword('');
+        setAuthResetCode('');
+        setAuthNewPassword('');
+        window.setTimeout(() => {
+          setAuthMode('login');
+          setAuthMessage('');
+        }, 900);
+      }
+      return;
+    }
+
     const result = authMode === 'register'
       ? await register({ full_name: authName, email: authEmail, password: authPassword })
       : await login(authEmail, authPassword);
@@ -298,6 +336,7 @@ export default function App() {
     }
 
     setLoggedIn(true);
+    setAuthUser(result.user);
     setAuthMessageType('success');
     setAuthMessage(result.message || (authMode === 'register' ? 'تم إنشاء الحساب بنجاح' : 'تم تسجيل الدخول بنجاح'));
     window.setTimeout(() => {
@@ -305,6 +344,8 @@ export default function App() {
       setAuthEmail('');
       setAuthPassword('');
       setAuthName('');
+      setAuthResetCode('');
+      setAuthNewPassword('');
       setAuthMessage('');
       setAuthMode('prompt');
     }, 650);
@@ -313,7 +354,9 @@ export default function App() {
   const handleLogout = () => {
     logout();
     setLoggedIn(false);
+    setAuthUser(null);
     setAuthMessage('');
+    showInteractionMessage('تم تسجيل الخروج');
   };
 
   const handleLike = async (id: string) => {
@@ -734,16 +777,22 @@ export default function App() {
         />
 
         {loggedIn && (
-          <div className="absolute top-20 right-3 z-30 flex items-center gap-1.5 bg-white/95 border border-emerald-100 rounded-2xl shadow-sm px-2.5 py-1.5">
-            <CheckCircle className="w-3.5 h-3.5 text-emerald-500" />
-            <span className="text-[10px] font-black text-emerald-700">متصل</span>
+          <div className="absolute top-20 right-3 z-30 flex items-center gap-2 bg-white/95 border border-emerald-100 rounded-2xl shadow-sm px-3 py-2 max-w-[260px]">
+            <CheckCircle className="w-4 h-4 text-emerald-500 shrink-0" />
+            <div className="min-w-0 text-right">
+              <span className="block text-[10px] font-black text-emerald-700 leading-none mb-0.5">متصل</span>
+              <span className="block text-[10px] font-extrabold text-gray-600 truncate max-w-[132px]">
+                {getAuthUserLabel(authUser)}
+              </span>
+            </div>
             <button
               type="button"
               onClick={handleLogout}
-              className="ml-1 text-gray-400 hover:text-red-500 transition-colors"
-              title="Logout"
+              className="rounded-xl bg-red-50 text-red-500 hover:bg-red-100 transition-colors px-2 py-1 text-[10px] font-black inline-flex items-center gap-1 shrink-0"
+              title="تسجيل الخروج"
             >
               <LogOut className="w-3.5 h-3.5" />
+              تسجيل الخروج
             </button>
           </div>
         )}
@@ -884,11 +933,21 @@ export default function App() {
                 ) : (
                   <form onSubmit={handleAuthSubmit} className="text-left">
                     <h2 className="text-base font-black text-gray-950 mb-1 text-center">
-                      {authMode === 'register' ? 'إنشاء حساب' : 'تسجيل الدخول'}
+                      {authMode === 'register'
+                        ? 'إنشاء حساب'
+                        : authMode === 'forgot'
+                        ? 'استعادة كلمة المرور'
+                        : authMode === 'reset'
+                        ? 'تعيين كلمة مرور جديدة'
+                        : 'تسجيل الدخول'}
                     </h2>
                     <p className="text-xs font-bold text-gray-400 leading-relaxed mb-4 text-center">
                       {authMode === 'register'
                         ? 'أنشئ حسابك للتفاعل مع المنشورات والفرص داخل جامعاتي.'
+                        : authMode === 'forgot'
+                        ? 'أدخل بريدك الإلكتروني وسنرسل لك رابط أو رمز الاستعادة عند تفعيل خدمة البريد.'
+                        : authMode === 'reset'
+                        ? 'أدخل رمز الاستعادة وكلمة المرور الجديدة.'
                         : 'أدخل بريدك وكلمة المرور للمتابعة بالتفاعل داخل جامعاتي.'}
                     </p>
                     <div className="flex flex-col gap-2.5">
@@ -902,22 +961,48 @@ export default function App() {
                           required
                         />
                       )}
-                      <input
-                        type="email"
-                        value={authEmail}
-                        onChange={e => setAuthEmail(e.target.value)}
-                        placeholder="البريد الإلكتروني"
-                        className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
-                        required
-                      />
-                      <input
-                        type="password"
-                        value={authPassword}
-                        onChange={e => setAuthPassword(e.target.value)}
-                        placeholder="كلمة المرور"
-                        className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
-                        required
-                      />
+                      {authMode !== 'reset' && (
+                        <input
+                          type="email"
+                          value={authEmail}
+                          onChange={e => setAuthEmail(e.target.value)}
+                          placeholder="البريد الإلكتروني"
+                          className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
+                          required
+                        />
+                      )}
+                      {(authMode === 'login' || authMode === 'register') && (
+                        <input
+                          type="password"
+                          value={authPassword}
+                          onChange={e => setAuthPassword(e.target.value)}
+                          placeholder="كلمة المرور"
+                          className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
+                          required
+                          minLength={8}
+                        />
+                      )}
+                      {authMode === 'reset' && (
+                        <>
+                          <input
+                            type="text"
+                            value={authResetCode}
+                            onChange={e => setAuthResetCode(e.target.value)}
+                            placeholder="رمز أو رابط الاستعادة"
+                            className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
+                            required
+                          />
+                          <input
+                            type="password"
+                            value={authNewPassword}
+                            onChange={e => setAuthNewPassword(e.target.value)}
+                            placeholder="كلمة المرور الجديدة"
+                            className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
+                            required
+                            minLength={8}
+                          />
+                        </>
+                      )}
                       {authMessage && (
                         <p className={`text-[11px] font-bold rounded-xl p-2 text-center ${
                           authMessageType === 'success'
@@ -936,17 +1021,53 @@ export default function App() {
                           ? 'جاري المعالجة...'
                           : authMode === 'register'
                           ? 'إنشاء حساب'
+                          : authMode === 'forgot'
+                          ? 'إرسال تعليمات الاستعادة'
+                          : authMode === 'reset'
+                          ? 'تحديث كلمة المرور'
                           : 'تسجيل الدخول'}
                       </button>
+                      {authMode === 'login' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAuthMode('forgot');
+                            setAuthMessage('');
+                          }}
+                          className="text-[11px] font-black text-orange-600 py-1"
+                        >
+                          نسيت كلمة المرور؟
+                        </button>
+                      )}
+                      {authMode === 'forgot' && (
+                        <button
+                          type="button"
+                          onClick={() => {
+                            setAuthMode('reset');
+                            setAuthMessage('');
+                          }}
+                          className="rounded-2xl bg-white text-gray-500 text-xs font-black py-3 border border-gray-100"
+                        >
+                          لدي رمز استعادة
+                        </button>
+                      )}
                       <button
                         type="button"
                         onClick={() => {
-                          setAuthMode(authMode === 'register' ? 'login' : 'register');
+                          setAuthMode(authMode === 'register'
+                            ? 'login'
+                            : authMode === 'forgot' || authMode === 'reset'
+                            ? 'login'
+                            : 'register');
                           setAuthMessage('');
                         }}
                         className="rounded-2xl bg-orange-50 text-orange-600 text-xs font-black py-3 border border-orange-100"
                       >
-                        {authMode === 'register' ? 'لديك حساب؟ تسجيل الدخول' : 'ليس لديك حساب؟ إنشاء حساب'}
+                        {authMode === 'register'
+                          ? 'لديك حساب؟ تسجيل الدخول'
+                          : authMode === 'forgot' || authMode === 'reset'
+                          ? 'العودة إلى تسجيل الدخول'
+                          : 'ليس لديك حساب؟ إنشاء حساب'}
                       </button>
                       <button
                         type="button"
