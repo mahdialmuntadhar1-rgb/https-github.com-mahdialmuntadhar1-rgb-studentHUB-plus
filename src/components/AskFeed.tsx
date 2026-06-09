@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
-import { HelpCircle, Sparkles, Send, MessagesSquare, CheckCircle, EyeOff, BookOpen, Clock, Loader2, AlertCircle } from 'lucide-react';
+import { Sparkles, Send, MessagesSquare, CheckCircle, EyeOff, Clock, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
 
@@ -73,9 +73,8 @@ export default function AskFeed({
 
       const data = await response.json();
       setAiResponse(data.text);
-    } catch (err: any) {
-      console.error(err);
-      setAiResponse("⚠️ [MOCK_NETWORK_NOTICE]: I am unable to connect to the active backend. Please review your server processes. Here is local guidance: Absences over 10% invoke an 'أول إنذار' (First warning). Present a valid emergency medical note to the student registry immediately.");
+    } catch {
+      setAiResponse('المساعد الذكي غير متاح حالياً على النسخة المنشورة، يمكنك متابعة التصفح.');
     } finally {
       setIsAiLoading(false);
     }

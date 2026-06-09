@@ -22,8 +22,7 @@ async function safeFetch<T>(
     }
 
     return (await response.json()) as T;
-  } catch (error) {
-    console.warn(`rafidApi: ${path} unavailable`, error);
+  } catch {
     return fallback;
   }
 }
