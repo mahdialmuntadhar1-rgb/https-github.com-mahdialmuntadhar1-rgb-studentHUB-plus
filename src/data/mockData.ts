@@ -2,13 +2,24 @@ import { Governorate, University, FeedItem, UserProfile } from '../types';
 
 export const IraqiGovernorates: Governorate[] = [
   { id: 'baghdad', nameEN: 'Baghdad', nameAR: 'بغداد', nameKU: 'بەغدا' },
-  { id: 'erbil', nameEN: 'Erbil', nameAR: 'أربيل', nameKU: 'هەولێر' },
-  { id: 'sulaymaniyah', nameEN: 'Sulaymaniyah', nameAR: 'السليمانية', nameKU: 'سڵێمانی' },
   { id: 'nineveh', nameEN: 'Nineveh (Mosul)', nameAR: 'نينوى (الموصل)', nameKU: 'نەینەوا' },
   { id: 'basra', nameEN: 'Basra', nameAR: 'البصرة', nameKU: 'بەسرە' },
-  { id: 'karbala', nameEN: 'Karbala', nameAR: 'كربلاء', nameKU: 'کەربەلا' },
-  { id: 'najaf', nameEN: 'Najaf', nameAR: 'النجف', nameKU: 'نەجەف' },
+  { id: 'sulaymaniyah', nameEN: 'Sulaymaniyah', nameAR: 'السليمانية', nameKU: 'سڵێمانی' },
+  { id: 'erbil', nameEN: 'Erbil', nameAR: 'أربيل', nameKU: 'هەولێر' },
   { id: 'kirkuk', nameEN: 'Kirkuk', nameAR: 'كركوك', nameKU: 'کەرکووک' },
+  { id: 'najaf', nameEN: 'Najaf', nameAR: 'النجف', nameKU: 'نەجەف' },
+  { id: 'karbala', nameEN: 'Karbala', nameAR: 'كربلاء', nameKU: 'کەربەلا' },
+  { id: 'dhi_qar', nameEN: 'Dhi Qar', nameAR: 'ذي قار', nameKU: 'زیقار' },
+  { id: 'babil', nameEN: 'Babil', nameAR: 'بابل', nameKU: 'بابل' },
+  { id: 'anbar', nameEN: 'Anbar', nameAR: 'الأنبار', nameKU: 'ئەنبار' },
+  { id: 'diyala', nameEN: 'Diyala', nameAR: 'ديالى', nameKU: 'دیالە' },
+  { id: 'salah_al_din', nameEN: 'Salah Al-Din', nameAR: 'صلاح الدين', nameKU: 'سەڵاحەدین' },
+  { id: 'wasit', nameEN: 'Wasit', nameAR: 'واسط', nameKU: 'واست' },
+  { id: 'maysan', nameEN: 'Maysan', nameAR: 'ميسان', nameKU: 'میسان' },
+  { id: 'al_qadisiyah', nameEN: 'Al-Qadisiyah', nameAR: 'القادسية', nameKU: 'قادسیە' },
+  { id: 'muthanna', nameEN: 'Muthanna', nameAR: 'المثنى', nameKU: 'موسەننا' },
+  { id: 'duhok', nameEN: 'Duhok', nameAR: 'دهوك', nameKU: 'دهۆک' },
+  { id: 'halabja', nameEN: 'Halabja', nameAR: 'حلبجة', nameKU: 'هەڵەبجە' },
 ];
 
 export const IraqiUniversities: University[] = [

@@ -691,7 +691,7 @@ export default function FeedCard({
               <input
                 type="text"
                 value={commentText}
-                onChange={e => setPostBody ? setCommentText(e.target.value) : setCommentText(e.target.value)}
+                onChange={e => setCommentText(e.target.value)}
                 placeholder={getTranslation('writeComment', language)}
                 className="flex-1 bg-white rounded-xl px-3 py-2 text-xs border border-[#E6E1F5] focus:outline-none focus:border-[#6B25C9] text-[#161A33] focus:bg-[#F3F7FF]"
               />
