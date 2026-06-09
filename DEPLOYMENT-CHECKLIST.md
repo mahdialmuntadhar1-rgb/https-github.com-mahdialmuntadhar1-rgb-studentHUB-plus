@@ -78,3 +78,13 @@ https://rafid-api.mahdialmuntadhar1.workers.dev
 - Invalid email behavior: submit a non-existent email and confirm the same generic recovery message is shown.
 - Public browsing after logout: after logout, browse Home, Life, Ask, Future, and Profile; interaction clicks should show the login/register modal again.
 - TODO before public launch: configure a transactional email provider for reset links/codes; until then the backend stores reset tokens but does not send email.
+
+## Seed Data Test
+
+- Run import locally from `C:\Users\HB LAPTOP STORE\.windsurf\studentHUB-plus\backend` with `npm run db:seed:beta`.
+- Run import remotely from the same folder with `npm run db:seed:beta:remote`; the script uses deterministic IDs and `INSERT OR IGNORE`, so it is safe to re-run.
+- Verify universities/institutions with `Invoke-RestMethod "https://rafid-api.mahdialmuntadhar1.workers.dev/api/institutions"` and confirm public/private/institute rows are returned.
+- Verify opportunities with `Invoke-RestMethod "https://rafid-api.mahdialmuntadhar1.workers.dev/api/opportunities"` and confirm seed/demo metadata appears in `tags`.
+- Verify posts with `Invoke-RestMethod "https://rafid-api.mahdialmuntadhar1.workers.dev/api/posts?limit=50"` and confirm Jamiaati admin/demo starter posts appear.
+- Confirm no users were overwritten by checking the import only creates `seed-system@jamiaati.local` with `INSERT OR IGNORE` and does not delete or update existing `profiles`.
+- Re-run safety: run `npm run db:seed:beta:remote` a second time and confirm counts do not increase for the deterministic seed IDs.

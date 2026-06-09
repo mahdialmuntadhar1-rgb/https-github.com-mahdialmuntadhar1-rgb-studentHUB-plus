@@ -122,15 +122,35 @@ const getAuthUserLabel = (user: any) => {
   return user?.full_name || user?.fullName || user?.name || user?.email || 'مستخدم جامعاتي';
 };
 
+const parseBackendTags = (value: any) => {
+  if (Array.isArray(value)) return value;
+  if (typeof value !== 'string') return [];
+  try {
+    const parsed = JSON.parse(value);
+    return Array.isArray(parsed) ? parsed : parsed ? [parsed] : [];
+  } catch {
+    return value.split(',').map(tag => tag.trim()).filter(Boolean);
+  }
+};
+
+const findTagObject = (tags: any[]) => tags.find(tag => tag && typeof tag === 'object') || {};
+
 const mapBackendOpportunityToFeedItem = (opportunity: any): FeedItem => {
+  const parsedTags = parseBackendTags(opportunity.tags);
+  const tagMeta = findTagObject(parsedTags);
   const title = opportunity.title || opportunity.name || opportunity.position || 'Opportunity';
-  const content = opportunity.description || opportunity.content || opportunity.summary || '';
-  const category = opportunity.category || opportunity.type || 'job';
+  const content = opportunity.description || tagMeta.description || opportunity.content || opportunity.summary || '';
+  const category = opportunity.category || tagMeta.category || opportunity.type || 'job';
+  const sourceUrl = opportunity.source_url || tagMeta.source_url;
   const type = category.toLowerCase().includes('intern') ? 'internship'
     : category.toLowerCase().includes('scholar') ? 'scholarship'
     : category.toLowerCase().includes('train') ? 'training'
     : category.toLowerCase().includes('volunteer') ? 'volunteering'
     : category.toLowerCase().includes('competition') ? 'competition'
+    : category.toLowerCase().includes('language') ? 'training'
+    : category.toLowerCase().includes('course') ? 'training'
+    : category.toLowerCase().includes('part') ? 'part_time_job'
+    : category.toLowerCase().includes('project') ? 'graduation_project_support'
     : 'job';
 
   return {
@@ -154,8 +174,8 @@ const mapBackendOpportunityToFeedItem = (opportunity: any): FeedItem => {
     commentsCount: Number(opportunity.comments_count || opportunity.commentsCount || 0),
     commentsList: [],
     governorateId: resolveGovernorateId(opportunity.governorate || opportunity.location),
-    universityId: resolveUniversityId(opportunity.institution || opportunity.university),
-    company: opportunity.company || opportunity.provider,
+    universityId: resolveUniversityId(opportunity.institution || opportunity.university || tagMeta.university || opportunity.institution_name),
+    company: opportunity.company || opportunity.provider || opportunity.institution_name,
     companyLogo: opportunity.company_logo || '💼',
     location: opportunity.location || opportunity.governorate || 'All Iraq',
     deadline: opportunity.deadline,
@@ -164,12 +184,19 @@ const mapBackendOpportunityToFeedItem = (opportunity: any): FeedItem => {
       : type === 'training' ? 'Training'
       : type === 'volunteering' ? 'Volunteering'
       : type === 'competition' ? 'Competition'
+      : type === 'graduation_project_support' ? 'Graduation project support'
       : 'Full-time graduate job',
     workplaceType: (opportunity.workplace_type || opportunity.workplaceType || 'On-site') as FeedItem['workplaceType'],
     whoCanApply: opportunity.who_can_apply || opportunity.whoCanApply,
     savedCount: Number(opportunity.saved_count || opportunity.savedCount || 0),
     companyVerified: true,
-    tags: ['Rafid', 'Opportunity']
+    tags: [
+      'Rafid',
+      'Opportunity',
+      ...(tagMeta.is_seed ? ['Seed'] : []),
+      ...(tagMeta.demo ? ['Demo'] : []),
+      ...(sourceUrl ? ['Source'] : [])
+    ]
   };
 };
 
