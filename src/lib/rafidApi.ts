@@ -4,9 +4,10 @@ const TOKEN_KEY = "rafid_auth_token";
 type ApiResult<T> = T | null;
 export type AuthResult = {
   ok: boolean;
-  token?: string;
-  user?: any;
-  data?: any;
+  token: string | null;
+  user: Record<string, unknown> | null;
+  raw: any;
+  status?: number;
   message?: string;
 };
 
@@ -91,16 +92,40 @@ function authMessage(data: any, fallback: string) {
   return data?.message || data?.error || data?.errors?.[0]?.message || fallback;
 }
 
-function authResult(ok: boolean, data: any, fallback: string): AuthResult {
+function extractUser(data: any): Record<string, unknown> | null {
+  return data?.user
+    || data?.data?.user
+    || data?.profile
+    || data?.data?.profile
+    || null;
+}
+
+function friendlyAuthMessage(status: number, data: any, fallback: string) {
+  if (status === 401) return "البريد الإلكتروني أو كلمة المرور غير صحيحة";
+  if (status === 0 || status >= 500) return "الخدمة غير متاحة حالياً، حاول لاحقاً";
+  return authMessage(data, fallback);
+}
+
+function authResult(ok: boolean, status: number, data: any, fallback: string, successMessage: string): AuthResult {
   if (!ok) {
-    return { ok: false, data, message: authMessage(data, fallback) };
+    return {
+      ok: false,
+      token: null,
+      user: null,
+      raw: data,
+      status,
+      message: friendlyAuthMessage(status, data, fallback)
+    };
   }
 
   const token = persistToken(data);
   if (!token) {
     return {
       ok: false,
-      data,
+      token: null,
+      user: extractUser(data),
+      raw: data,
+      status,
       message: "حدث خطأ، حاول مرة أخرى"
     };
   }
@@ -108,9 +133,10 @@ function authResult(ok: boolean, data: any, fallback: string): AuthResult {
   return {
     ok: true,
     token,
-    data,
-    user: data?.user || data?.data?.user || data?.profile || data?.data?.profile,
-    message: "تم تسجيل الدخول بنجاح"
+    user: extractUser(data),
+    raw: data,
+    status,
+    message: successMessage
   };
 }
 
@@ -141,7 +167,7 @@ export async function login(email: string, password: string) {
       body: JSON.stringify({ email, password }),
     }
   );
-  return authResult(response.ok, response.data, "حدث خطأ، حاول مرة أخرى");
+  return authResult(response.ok, response.status, response.data, "حدث خطأ، حاول مرة أخرى", "تم تسجيل الدخول بنجاح");
 }
 
 export async function register(data: Record<string, unknown>) {
@@ -152,7 +178,7 @@ export async function register(data: Record<string, unknown>) {
       body: JSON.stringify(data),
     }
   );
-  return authResult(response.ok, response.data, "حدث خطأ، حاول مرة أخرى");
+  return authResult(response.ok, response.status, response.data, "حدث خطأ، حاول مرة أخرى", "تم إنشاء الحساب بنجاح");
 }
 
 export async function getMe(token: string) {

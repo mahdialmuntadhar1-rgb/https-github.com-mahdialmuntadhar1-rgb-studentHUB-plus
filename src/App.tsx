@@ -267,7 +267,7 @@ export default function App() {
     setAuthLoading(true);
 
     const result = authMode === 'register'
-      ? await register({ name: authName, full_name: authName, email: authEmail, password: authPassword })
+      ? await register({ full_name: authName, email: authEmail, password: authPassword })
       : await login(authEmail, authPassword);
 
     setAuthLoading(false);
@@ -280,7 +280,7 @@ export default function App() {
 
     setLoggedIn(true);
     setAuthMessageType('success');
-    setAuthMessage(authMode === 'register' ? 'تم إنشاء الحساب بنجاح' : 'تم تسجيل الدخول بنجاح');
+    setAuthMessage(result.message || (authMode === 'register' ? 'تم إنشاء الحساب بنجاح' : 'تم تسجيل الدخول بنجاح'));
     window.setTimeout(() => {
       setAuthPromptOpen(false);
       setAuthEmail('');
