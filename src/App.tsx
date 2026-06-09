@@ -9,7 +9,145 @@ import FutureFeed from './components/FutureFeed';
 import AskFeed from './components/AskFeed';
 import ProfileView from './components/ProfileView';
 import { motion, AnimatePresence } from 'motion/react';
-import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
+import { Home, HelpCircle, Briefcase, User, Compass, Lock } from 'lucide-react';
+import {
+  getOpportunities,
+  getPosts,
+  getToken,
+  isLoggedIn,
+  login,
+  createPost,
+  likePost,
+  createComment
+} from './lib/rafidApi';
+
+const isOpportunityItem = (item: FeedItem) => {
+  return [
+    'job',
+    'internship',
+    'scholarship',
+    'training',
+    'part_time_job',
+    'full_time_job',
+    'volunteering',
+    'competition',
+    'graduation_project_support'
+  ].includes(item.type) || !!item.opportunityCategory;
+};
+
+const fallbackAvatar = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100';
+
+const normalizeText = (value?: string | null) => (value || '').toLowerCase().trim();
+
+const resolveGovernorateId = (value?: string | null) => {
+  const text = normalizeText(value);
+  if (!text) return 'all';
+  const found = IraqiGovernorates.find(g =>
+    [g.id, g.nameEN, g.nameAR, g.nameKU].some(name => normalizeText(name).includes(text) || text.includes(normalizeText(name)))
+  );
+  return found?.id || 'all';
+};
+
+const resolveUniversityId = (value?: string | null) => {
+  const text = normalizeText(value);
+  if (!text) return 'all';
+  const found = IraqiUniversities.find(u =>
+    [u.id, u.nameEN, u.nameAR, u.nameKU].some(name => normalizeText(name).includes(text) || text.includes(normalizeText(name)))
+  );
+  return found?.id || 'all';
+};
+
+const formatDateLabel = (value?: string | null) => {
+  if (!value) return 'Recently';
+  const date = new Date(value.replace(' ', 'T'));
+  if (Number.isNaN(date.getTime())) return value;
+  return date.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' });
+};
+
+const mapBackendPostToFeedItem = (post: any): FeedItem => {
+  const mediaUrl = post.image_url || post.imageUrl || post.media_url;
+  const isImage = typeof mediaUrl === 'string' && /\.(png|jpe?g|gif|webp|avif)$/i.test(mediaUrl);
+  const title = post.title || 'Campus update';
+  const content = post.content || post.body || '';
+
+  return {
+    id: String(post.id),
+    type: post.type === 'announcement' ? 'announcement' : 'post',
+    titleEN: title,
+    titleAR: title,
+    titleKU: title,
+    contentEN: content,
+    contentAR: content,
+    contentKU: content,
+    author: {
+      name: post.author_full_name || post.author?.name || 'Rafid Student',
+      role: post.is_verified ? 'institution' : 'student',
+      avatar: post.author_avatar_url || post.author?.avatar || fallbackAvatar,
+      verified: Boolean(post.is_verified)
+    },
+    date: formatDateLabel(post.created_at || post.createdAt),
+    rawDate: post.created_at || post.createdAt,
+    likes: Number(post.likes_count || post.likes || 0),
+    commentsCount: Number(post.comments_count || post.commentsCount || 0),
+    commentsList: [],
+    views: Number(post.views_count || post.views || 0),
+    imageUrl: isImage ? mediaUrl : undefined,
+    governorateId: resolveGovernorateId(post.governorate),
+    universityId: resolveUniversityId(post.institution || post.university || post.institution_name),
+    tags: ['Rafid', 'Live']
+  };
+};
+
+const mapBackendOpportunityToFeedItem = (opportunity: any): FeedItem => {
+  const title = opportunity.title || opportunity.name || opportunity.position || 'Opportunity';
+  const content = opportunity.description || opportunity.content || opportunity.summary || '';
+  const category = opportunity.category || opportunity.type || 'job';
+  const type = category.toLowerCase().includes('intern') ? 'internship'
+    : category.toLowerCase().includes('scholar') ? 'scholarship'
+    : category.toLowerCase().includes('train') ? 'training'
+    : category.toLowerCase().includes('volunteer') ? 'volunteering'
+    : category.toLowerCase().includes('competition') ? 'competition'
+    : 'job';
+
+  return {
+    id: String(opportunity.id || `backend-opp-${title}`),
+    type: type as FeedItem['type'],
+    titleEN: title,
+    titleAR: opportunity.title_ar || title,
+    titleKU: opportunity.title_ku || title,
+    contentEN: content,
+    contentAR: opportunity.description_ar || content,
+    contentKU: opportunity.description_ku || content,
+    author: {
+      name: opportunity.company || opportunity.provider || 'Rafid Opportunity',
+      role: 'institution',
+      avatar: opportunity.logo_url || fallbackAvatar,
+      verified: true
+    },
+    date: formatDateLabel(opportunity.created_at || opportunity.createdAt),
+    rawDate: opportunity.created_at || opportunity.createdAt,
+    likes: Number(opportunity.likes_count || opportunity.likes || 0),
+    commentsCount: Number(opportunity.comments_count || opportunity.commentsCount || 0),
+    commentsList: [],
+    governorateId: resolveGovernorateId(opportunity.governorate || opportunity.location),
+    universityId: resolveUniversityId(opportunity.institution || opportunity.university),
+    company: opportunity.company || opportunity.provider,
+    companyLogo: opportunity.company_logo || '💼',
+    location: opportunity.location || opportunity.governorate || 'All Iraq',
+    deadline: opportunity.deadline,
+    opportunityCategory: type === 'internship' ? 'Internship'
+      : type === 'scholarship' ? 'Scholarship'
+      : type === 'training' ? 'Training'
+      : type === 'volunteering' ? 'Volunteering'
+      : type === 'competition' ? 'Competition'
+      : 'Full-time graduate job',
+    workplaceType: (opportunity.workplace_type || opportunity.workplaceType || 'On-site') as FeedItem['workplaceType'],
+    whoCanApply: opportunity.who_can_apply || opportunity.whoCanApply,
+    savedCount: Number(opportunity.saved_count || opportunity.savedCount || 0),
+    companyVerified: true,
+    tags: ['Rafid', 'Opportunity']
+  };
+};
 
 export default function App() {
   // Locale States
@@ -19,6 +157,11 @@ export default function App() {
 
   // Navigation tab state
   const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile'>('home');
+  const [authPromptOpen, setAuthPromptOpen] = useState(false);
+  const [authMode, setAuthMode] = useState<'prompt' | 'login'>('prompt');
+  const [authEmail, setAuthEmail] = useState('');
+  const [authPassword, setAuthPassword] = useState('');
+  const [authMessage, setAuthMessage] = useState('');
 
   // Feed database state (persisted in session / local storage for active play)
   const [feedItems, setFeedItems] = useState<FeedItem[]>(() => {
@@ -41,11 +184,68 @@ export default function App() {
     localStorage.setItem('jamiaati_profile_v2', JSON.stringify(userProfile));
   }, [userProfile]);
 
+  useEffect(() => {
+    let cancelled = false;
+
+    async function loadRafidData() {
+      const [backendOpportunities, backendPosts] = await Promise.all([
+        getOpportunities(),
+        getPosts()
+      ]);
+
+      if (cancelled) return;
+
+      const mockOpportunities = initialFeedItems.filter(isOpportunityItem);
+      const mockPosts = initialFeedItems.filter(item => !isOpportunityItem(item));
+      const opportunityItems = backendOpportunities.length > 0
+        ? backendOpportunities.map(mapBackendOpportunityToFeedItem)
+        : mockOpportunities;
+      const postItems = backendPosts.length > 0
+        ? backendPosts.map(mapBackendPostToFeedItem)
+        : mockPosts;
+
+      setFeedItems([...postItems, ...opportunityItems]);
+    }
+
+    loadRafidData();
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Adjust application alignment automatically based on language direction
   const isRTL = language === 'ar' || language === 'ku';
 
   // State modification events
-  const handleLike = (id: string) => {
+  const requireLogin = () => {
+    if (isLoggedIn()) return false;
+    setAuthMode('prompt');
+    setAuthMessage('');
+    setAuthPromptOpen(true);
+    return true;
+  };
+
+  const handleModalLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
+    setAuthMessage('');
+    const result = await login(authEmail, authPassword);
+    if (!result) {
+      setAuthMessage('تعذر تسجيل الدخول الآن. يمكنك متابعة التصفح والمحاولة لاحقاً.');
+      return;
+    }
+    setAuthPromptOpen(false);
+    setAuthEmail('');
+    setAuthPassword('');
+  };
+
+  const handleLike = async (id: string) => {
+    if (requireLogin()) return;
+    const token = getToken();
+    if (token) {
+      likePost(token, id);
+    }
+
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
         const isLiked = !item.likedByUser;
@@ -64,6 +264,8 @@ export default function App() {
   };
 
   const handleSave = (id: string) => {
+    if (requireLogin()) return;
+
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
         const isSaved = !item.savedByUser;
@@ -80,6 +282,8 @@ export default function App() {
   };
 
   const handleVote = (itemId: string, optionId: string) => {
+    if (requireLogin()) return;
+
     setFeedItems(prev => prev.map(item => {
       if (item.id === itemId && item.pollOptions) {
         // Prevent voting if already voted
@@ -103,6 +307,8 @@ export default function App() {
   };
 
   const handleApply = (id: string) => {
+    if (requireLogin()) return;
+
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
         const isApplied = !item.applied;
@@ -119,6 +325,8 @@ export default function App() {
   };
 
   const handleRsvp = (id: string) => {
+    if (requireLogin()) return;
+
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
         const isRsvped = !item.eventRsvped;
@@ -136,6 +344,8 @@ export default function App() {
   };
 
   const handleJoinGroup = (id: string) => {
+    if (requireLogin()) return;
+
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
         const isJoined = !item.joined;
@@ -152,7 +362,13 @@ export default function App() {
     }));
   };
 
-  const handleAddComment = (itemId: string, content: string) => {
+  const handleAddComment = async (itemId: string, content: string) => {
+    if (requireLogin()) return;
+    const token = getToken();
+    if (token) {
+      createComment(token, itemId, content);
+    }
+
     const newComment: Comment = {
       id: `c-${Date.now()}`,
       authorName: userProfile.name,
@@ -176,7 +392,9 @@ export default function App() {
     }));
   };
 
-  const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post') => {
+  const handleAddNewPost = async (title: string, body: string, anonymous: boolean, customType = 'post') => {
+    if (requireLogin()) return;
+
     const freshPost: FeedItem = {
       id: `custom-${Date.now()}`,
       type: customType as any,
@@ -208,6 +426,18 @@ export default function App() {
 
     handleAwardPoints(40); // high points for sharing posts!
     setFeedItems(prev => [freshPost, ...prev]);
+
+    const token = getToken();
+    if (token) {
+      createPost(token, {
+        title,
+        content: body,
+        anonymous,
+        type: customType,
+        governorate: selectedGov,
+        institution: selectedUni
+      });
+    }
   };
 
   // Gamification engine helpers
@@ -225,6 +455,8 @@ export default function App() {
 
   // Simulating user switches Roles inside their profile
   const handleRoleToggle = () => {
+    if (requireLogin()) return;
+
     const roles: ('student' | 'graduate' | 'teacher' | 'staff')[] = ['student', 'graduate', 'teacher', 'staff'];
     const currentIdx = roles.indexOf(userProfile.role as any);
     const nextIdx = (currentIdx + 1) % roles.length;
@@ -289,6 +521,7 @@ export default function App() {
             onAddComment={handleAddComment}
             onNavigateTab={setActiveTab}
             onAddNewPost={handleAddNewPost}
+            onRequireLogin={requireLogin}
           />
         );
       case 'life':
@@ -323,6 +556,7 @@ export default function App() {
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
             onAddNewPost={handleAddNewPost}
+            onRequireLogin={requireLogin}
           />
         );
       case 'future':
@@ -455,6 +689,104 @@ export default function App() {
             <span className="text-[10px] leading-none font-extrabold">{getTranslation('navProfile', language)}</span>
           </button>
         </nav>
+
+        <AnimatePresence>
+          {authPromptOpen && (
+            <motion.div
+              className="fixed inset-0 z-50 bg-slate-950/45 backdrop-blur-sm flex items-end sm:items-center justify-center px-4 pb-6"
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 1 }}
+              exit={{ opacity: 0 }}
+              role="dialog"
+              aria-modal="true"
+            >
+              <motion.div
+                initial={{ y: 28, opacity: 0, scale: 0.98 }}
+                animate={{ y: 0, opacity: 1, scale: 1 }}
+                exit={{ y: 20, opacity: 0, scale: 0.98 }}
+                className="w-full max-w-sm bg-white rounded-3xl shadow-2xl border border-orange-100 p-5 text-center"
+              >
+                {authMode === 'prompt' ? (
+                  <>
+                    <div className="mx-auto w-12 h-12 rounded-2xl bg-orange-50 text-orange-500 flex items-center justify-center mb-3">
+                      <Lock className="w-6 h-6" />
+                    </div>
+                    <h2 className="text-base font-black text-gray-950 mb-1">
+                      تحتاج تسجيل الدخول للتفاعل
+                    </h2>
+                    <p className="text-xs font-bold text-gray-400 leading-relaxed mb-4">
+                      يمكنك متابعة تصفح جامعاتك والفرص والمنشورات بدون حساب. سجّل الدخول فقط عندما تريد المشاركة.
+                    </p>
+                    <div className="grid grid-cols-2 gap-2">
+                      <button
+                        type="button"
+                        onClick={() => setAuthMode('login')}
+                        className="rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black py-3 shadow-md shadow-orange-500/10"
+                      >
+                        تسجيل الدخول
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => setAuthPromptOpen(false)}
+                        className="rounded-2xl bg-gray-100 text-gray-600 text-xs font-black py-3"
+                      >
+                        متابعة التصفح
+                      </button>
+                    </div>
+                  </>
+                ) : (
+                  <form onSubmit={handleModalLogin} className="text-left">
+                    <h2 className="text-base font-black text-gray-950 mb-1 text-center">
+                      تسجيل الدخول
+                    </h2>
+                    <p className="text-xs font-bold text-gray-400 leading-relaxed mb-4 text-center">
+                      أدخل بريدك وكلمة المرور للمتابعة بالتفاعل داخل جامعاتي.
+                    </p>
+                    <div className="flex flex-col gap-2.5">
+                      <input
+                        type="email"
+                        value={authEmail}
+                        onChange={e => setAuthEmail(e.target.value)}
+                        placeholder="Email"
+                        className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
+                        required
+                      />
+                      <input
+                        type="password"
+                        value={authPassword}
+                        onChange={e => setAuthPassword(e.target.value)}
+                        placeholder="Password"
+                        className="w-full rounded-2xl bg-gray-50 border border-gray-100 px-3 py-3 text-xs font-bold focus:outline-none focus:ring-2 focus:ring-orange-400/30"
+                        required
+                      />
+                      {authMessage && (
+                        <p className="text-[11px] font-bold text-red-500 bg-red-50 rounded-xl p-2 text-center">
+                          {authMessage}
+                        </p>
+                      )}
+                      <button
+                        type="submit"
+                        className="rounded-2xl bg-gradient-to-r from-orange-500 to-amber-500 text-white text-xs font-black py-3 shadow-md shadow-orange-500/10"
+                      >
+                        تسجيل الدخول
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => {
+                          setAuthMode('prompt');
+                          setAuthMessage('');
+                        }}
+                        className="rounded-2xl bg-gray-100 text-gray-600 text-xs font-black py-3"
+                      >
+                        متابعة التصفح
+                      </button>
+                    </div>
+                  </form>
+                )}
+              </motion.div>
+            </motion.div>
+          )}
+        </AnimatePresence>
 
       </div>
     </div>

@@ -19,6 +19,7 @@ interface HomeFeedProps {
   onAddComment: (id: string, commentText: string) => void;
   onNavigateTab: (tabId: 'home' | 'life' | 'ask' | 'future' | 'profile') => void;
   onAddNewPost: (title: string, body: string, anonymous: boolean) => void;
+  onRequireLogin?: () => boolean;
 }
 
 export default function HomeFeed({
@@ -34,7 +35,8 @@ export default function HomeFeed({
   onJoinGroup,
   onAddComment,
   onNavigateTab,
-  onAddNewPost
+  onAddNewPost,
+  onRequireLogin
 }: HomeFeedProps) {
   const [showPublisher, setShowPublisher] = useState(false);
   const [postTitle, setPostTitle] = useState('');
@@ -44,6 +46,7 @@ export default function HomeFeed({
 
   const handlePostSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (onRequireLogin?.()) return;
     if (!postBody.trim()) return;
 
     // Use default titles if not filled
@@ -149,7 +152,13 @@ export default function HomeFeed({
           </div>
         )}
 
-        <div className="flex items-center gap-2.5 pointer-events-auto" onClick={() => setShowPublisher(!showPublisher)}>
+        <div
+          className="flex items-center gap-2.5 pointer-events-auto"
+          onClick={() => {
+            if (onRequireLogin?.()) return;
+            setShowPublisher(!showPublisher);
+          }}
+        >
           <div className="text-2xl">⚡</div>
           <div className="flex-1 bg-gray-50 hover:bg-gray-100/70 border border-gray-100 px-3.5 py-2.5 rounded-xl text-xs font-semibold text-gray-500 transition-colors cursor-pointer">
             {getTranslation('newPostPlaceholder', language)}

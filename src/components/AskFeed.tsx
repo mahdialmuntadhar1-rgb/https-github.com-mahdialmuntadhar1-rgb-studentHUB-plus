@@ -18,6 +18,7 @@ interface AskFeedProps {
   onJoinGroup: (id: string) => void;
   onAddComment: (id: string, commentText: string) => void;
   onAddNewPost: (title: string, body: string, anonymous: boolean, customType?: string) => void;
+  onRequireLogin?: () => boolean;
 }
 
 export default function AskFeed({
@@ -32,7 +33,8 @@ export default function AskFeed({
   onRsvp,
   onJoinGroup,
   onAddComment,
-  onAddNewPost
+  onAddNewPost,
+  onRequireLogin
 }: AskFeedProps) {
   const [askQuery, setAskQuery] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -82,6 +84,7 @@ export default function AskFeed({
   // Publish to community feed
   const handleCommunitySubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    if (onRequireLogin?.()) return;
     if (!communityQuery.trim()) return;
 
     onAddNewPost('Student Question 🙋‍♀️', communityQuery, anonymousCommunity, 'anonymous_question');
