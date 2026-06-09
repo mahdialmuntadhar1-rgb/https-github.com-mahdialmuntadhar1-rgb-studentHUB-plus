@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Language, FeedItem, UserProfile, Comment } from './types';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from './data/mockData';
 import { getTranslation } from './data/translations';
+import { brandingThemes } from './data/themes';
 import Header from './components/Header';
 import HomeFeed from './components/HomeFeed';
 import LifeFeed from './components/LifeFeed';
@@ -17,6 +18,36 @@ export default function App() {
   const [language, setLanguage] = useState<Language>('en');
   const [selectedGov, setSelectedGov] = useState<string>('all');
   const [selectedUni, setSelectedUni] = useState<string>('all');
+
+  // Branding Theme state initialized from localStorage (defaulting to iraq-local)
+  const [selectedTheme, setSelectedTheme] = useState<string>(() => {
+    return localStorage.getItem('jamiaati_theme') || 'iraq-local';
+  });
+
+  // Dynamic root CSS variables updates on theme selection
+  useEffect(() => {
+    const theme = brandingThemes.find(t => t.id === selectedTheme) || brandingThemes[0];
+    localStorage.setItem('jamiaati_theme', selectedTheme);
+    const root = document.documentElement;
+    root.style.setProperty('--primary', theme.primary);
+    root.style.setProperty('--secondary', theme.secondary);
+    root.style.setProperty('--accent', theme.accent);
+    root.style.setProperty('--background', theme.background);
+    root.style.setProperty('--surface', theme.surface);
+    root.style.setProperty('--soft-card', theme.softCard);
+    root.style.setProperty('--border-custom', theme.border);
+    root.style.setProperty('--text-custom', theme.text);
+    root.style.setProperty('--muted-text', theme.mutedText);
+    root.style.setProperty('--shadow', theme.shadow);
+    root.style.setProperty('--card-text-custom', theme.cardText || theme.text);
+    
+    root.style.setProperty('--secondary-dark', theme.secondaryDark || theme.background);
+    if (theme.bgGradient) {
+      root.style.setProperty('--bg-gradient', theme.bgGradient);
+    } else {
+      root.style.setProperty('--bg-gradient', `linear-gradient(180deg, ${theme.background} 0%, ${theme.background} 100%)`);
+    }
+  }, [selectedTheme]);
 
   // Toast notifications manager state
   interface ToastMessage {
@@ -502,6 +533,8 @@ export default function App() {
           setLanguage={setLanguage}
           currentUserAvatar={userProfile.avatar}
           onProfileClick={() => setActiveTab('profile')}
+          selectedTheme={selectedTheme}
+          setSelectedTheme={setSelectedTheme}
         />
 
         {/* Dynamic Inner views container */}

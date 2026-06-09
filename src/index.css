@@ -5,15 +5,15 @@
   --font-sans: "Cairo", "Outfit", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
-  --color-primary-dark: #F7F4FF;
-  --color-primary-navy: #161A33;
-  --color-brand-purple: #6B25C9;
-  --color-brand-blue: #2F7CCB;
-  --color-brand-yellow: #FFD21F;
-  --color-brand-red: #D9272E;
-  --color-card-bg: #FFFFFF;
-  --color-card-border: #E6E1F5;
-  --color-page-bg: #F7F4FF;
+  --color-primary-dark: var(--background);
+  --color-primary-navy: var(--text-custom);
+  --color-brand-purple: var(--primary);
+  --color-brand-blue: var(--secondary);
+  --color-brand-yellow: var(--accent);
+  --color-brand-red: var(--accent);
+  --color-card-bg: var(--surface);
+  --color-card-border: var(--border-custom);
+  --color-page-bg: var(--background);
 
   --shadow-glow-cyan: 0 0 15px rgba(6, 182, 212, 0.15);
   --shadow-glow-purple: 0 0 20px rgba(107, 37, 201, 0.2);
@@ -21,101 +21,216 @@
   --shadow-glow-gold: 0 0 15px rgba(255, 210, 31, 0.2);
 }
 
-body {
-  font-family: var(--font-sans);
-  background-color: #F7F4FF !important;
-  color: #161A33 !important;
+:root {
+  /* Default Theme: Iraq Premium Local */
+  --primary: #4F46E5;
+  --secondary: #06B6D4;
+  --accent: #F59E0B;
+  --background: #07111F;
+  --secondary-dark: #101B3A;
+  --surface: #FFFFFF;
+  --soft-card: #F8FAFC;
+  --border-custom: rgba(6, 182, 212, 0.15);
+  --text-custom: #F3F4F6;
+  --card-text-custom: #0F172A;
+  --muted-text: #94A3B8;
+  --shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.12);
+  --bg-gradient: radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.2) 0%, transparent 65%), linear-gradient(180deg, #07111F 0%, #101B3A 100%);
 }
 
-/* Youthful Bright Mode Option 1: Campus Pop Overrides */
+body {
+  font-family: var(--font-sans);
+  background: var(--bg-gradient, var(--background)) !important;
+  color: var(--text-custom) !important;
+  transition: background 0.25s ease, color 0.25s ease;
+}
+
+/* Color mapping overrides so any element using old brand hexes automatically aligns to the theme variables */
+.bg-\[\#6B25C9\] {
+  background-color: var(--primary) !important;
+}
+.text-\[\#6B25C9\] {
+  color: var(--primary) !important;
+}
+.border-\[\#6B25C9\] {
+  border-color: var(--primary) !important;
+}
+.hover\:text-\[\#6B25C9\]:hover {
+  color: var(--primary) !important;
+}
+
+.bg-\[\#2F7CCB\] {
+  background-color: var(--secondary) !important;
+}
+.text-\[\#2F7CCB\] {
+  color: var(--secondary) !important;
+}
+.border-\[\#2F7CCB\] {
+  border-color: var(--secondary) !important;
+}
+
+.bg-\[\#FFD21F\] {
+  background-color: var(--accent) !important;
+}
+.text-\[\#FFD21F\] {
+  color: var(--accent) !important;
+}
+.border-\[\#FFD21F\] {
+  border-color: var(--accent) !important;
+}
+
+.bg-\[\#D9272E\] {
+  background-color: var(--accent) !important;
+}
+.text-\[\#D9272E\] {
+  color: var(--accent) !important;
+}
+.border-\[\#D9272E\] {
+  border-color: var(--accent) !important;
+}
+
+/* Base colors overrides */
+.bg-\[\#161A33\] {
+  background-color: var(--secondary-dark, #101B3A) !important;
+}
+.text-\[\#161A33\] {
+  color: var(--card-text-custom, #0F172A) !important;
+}
+.border-\[\#161A33\] {
+  border-color: var(--border-custom) !important;
+}
+
+/* Scoped override for text alignment and contrast */
+.text-\[\#161A33\] {
+  color: var(--card-text-custom, #0F172A) !important;
+}
+
+/* When the old dark body color is used in a layout that sits directly on the dark main page background */
+body .text-\[\#161A33\]:not(.bg-white *):not([id^="feed-card-"] *):not(.bg-\[\#121B2E\] *):not([class*="bg-white"] *):not([class*="bg-amber"] *):not([class*="bg-[#FFD21F]"] *) {
+  color: var(--text-custom, #F3F4F6) !important;
+}
+
+.bg-\[\#E6E1F5\] {
+  background-color: var(--border-custom) !important;
+}
+.text-\[\#E6E1F5\] {
+  color: var(--muted-text) !important;
+}
+.border-\[\#E6E1F5\] {
+  border-color: var(--border-custom) !important;
+}
+
+.bg-\[\#F3F7FF\] {
+  background-color: var(--soft-card, #F8FAFC) !important;
+}
+.text-\[\#F3F7FF\] {
+  color: var(--card-text-custom, #0F172A) !important;
+}
+
+.bg-\[\#F7F4FF\] {
+  background-color: var(--soft-card, #F8FAFC) !important;
+}
+.text-\[\#F7F4FF\] {
+  color: var(--card-text-custom, #0F172A) !important;
+}
+
+/* Layout overrides */
 .bg-\[\#040814\] {
-  background-color: #F7F4FF !important;
+  background: var(--bg-gradient, var(--background)) !important;
 }
 
 .bg-\[\#0B1020\] {
-  background-color: #F3F7FF !important;
+  background: var(--bg-gradient, var(--background)) !important;
 }
 
+/* Card layout container styling */
+.bg-white,
+[id^="feed-card-"],
 .bg-\[\#121B2E\] {
-  background-color: #FFFFFF !important;
-  box-shadow: 0 10px 30px -5px rgba(107, 37, 201, 0.08), 0 1px 3px rgba(107, 37, 201, 0.03) !important;
+  background-color: var(--surface, #FFFFFF) !important;
+  color: var(--card-text-custom, #0F172A) !important;
+  box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.08), 0 4px 12px -2px rgba(7, 17, 31, 0.04) !important;
   border-radius: 24px !important;
-  border: 1px solid #E6E1F5 !important;
+  border: 1.5px solid rgba(6, 182, 212, 0.18) !important; /* Thin turquoise border using #06B6D4 with low opacity */
 }
 
+/* Secondary cards/boxes */
 .bg-\[\#16223F\] {
-  background-color: #F7F4FF !important;
-  border-color: #E6E1F5 !important;
-  color: #161A33 !important;
+  background-color: var(--soft-card, #F8FAFC) !important;
+  border: 1px solid var(--border-custom) !important;
+  color: var(--card-text-custom, #0F172A) !important;
 }
 
 .bg-\[\#101726\] {
-  background-color: #FFFFFF !important;
-  border-color: #E6E1F5 !important;
+  background-color: var(--surface, #FFFFFF) !important;
+  border: 1px solid var(--border-custom) !important;
 }
 
 .bg-\[\#101726\]\/80 {
-  background-color: rgba(255, 255, 255, 0.9) !important;
-  border-color: #E6E1F5 !important;
+  background-color: var(--surface, #FFFFFF) !important;
+  border: 1px solid var(--border-custom) !important;
 }
 
 .bg-\[\#16223F\]\/60 {
-  background-color: rgba(243, 247, 255, 0.8) !important;
+  background-color: var(--soft-card, #F8FAFC) !important;
+  opacity: 0.9;
 }
 
 .bg-\[\#16223F\]\/40 {
-  background-color: rgba(243, 247, 255, 0.5) !important;
+  background-color: var(--soft-card, #F8FAFC) !important;
+  opacity: 0.8;
 }
 
 .bg-\[\#121B2E\]\/95 {
-  background-color: rgba(255, 255, 255, 0.96) !important;
-  backdrop-blur: 16px !important;
-  border: 1px solid #E6E1F5 !important;
+  background-color: var(--surface, #FFFFFF) !important;
+  backdrop-filter: blur(16px) !important;
+  border: 1.5px solid rgba(6, 182, 212, 0.18) !important;
 }
 
 .bg-\[\#0B1020\]\/95 {
-  background-color: rgba(255, 255, 255, 0.95) !important;
-  backdrop-blur: 16px !important;
+  background-color: var(--secondary-dark, #101B3A) !important;
+  backdrop-filter: blur(16px) !important;
+  border-top: 1px solid var(--border-custom) !important;
 }
 
 .border-\[\#1F2E4D\] {
-  border-color: #E6E1F5 !important;
+  border-color: var(--border-custom) !important;
 }
 
 .border-\[\#1F2E4D\]\/80 {
-  border-color: rgba(230, 225, 245, 0.8) !important;
+  border-color: var(--border-custom) !important;
 }
 
 .border-\[\#1F2E4D\]\/60 {
-  border-color: rgba(230, 225, 245, 0.6) !important;
+  border-color: var(--border-custom) !important;
 }
 
 .border-slate-700 {
-  border-color: #E6E1F5 !important;
+  border-color: var(--border-custom) !important;
 }
 
 /* Scrollable background selectors and tabs */
 .bg-\[\#162443\] {
-  background-color: #FFFFFF !important;
-  border-color: #E6E1F5 !important;
+  background-color: var(--soft-card, #F8FAFC) !important;
+  border: 1px solid var(--border-custom) !important;
 }
 
 /* Governorate selected item */
 .bg-\[\#1a2d54\] {
-  background-color: #F7F4FF !important;
-  border-color: #6B25C9 !important;
+  background-color: rgba(6, 182, 212, 0.12) !important;
+  border: 2px solid var(--secondary, #06B6D4) !important;
 }
 
 /* University selected item */
 .bg-\[\#222163\]\/50 {
-  background-color: #F3F7FF !important;
-  border-color: #2F7CCB !important;
+  background-color: rgba(79, 70, 229, 0.12) !important;
+  border: 2px solid var(--primary, #4F46E5) !important;
 }
 
 /* Select options inside dropdown */
 select option {
-  background-color: #FFFFFF !important;
-  color: #161A33 !important;
+  background-color: var(--secondary-dark, #101B3A) !important;
+  color: var(--text-custom, #F3F4F6) !important;
 }
 
 /* Overriding typography classes for readability and high contrast */
@@ -126,7 +241,69 @@ select option {
 #jamiaati-portal h5,
 #jamiaati-portal h6 {
   font-family: 'Outfit', 'Cairo', sans-serif !important;
-  color: #161A33 !important;
+  color: var(--text-custom, #F3F4F6) !important;
+}
+
+/* Force all text inside cards to remain high contrast dark navy */
+[id^="feed-card-"] h2,
+[id^="feed-card-"] h3,
+[id^="feed-card-"] h4,
+[id^="feed-card-"] p,
+[id^="feed-card-"] span:not(.text-white):not([class*="bg-indigo"]):not([class*="bg-cyan"]):not([class*="bg-emerald"]):not([class*="text-[white]"]):not([class*="bg-gradient"]),
+[id^="feed-card-"] label,
+[id^="feed-card-"] div:not([class*="bg-indigo"]):not([class*="bg-cyan"]):not([class*="bg-emerald"]) {
+  color: #0F172A !important; /* Dark Navy text on cards */
+}
+
+/* Inner block containers on postcards (RSVP, opportunities, study groups, etc) */
+[id^="feed-card-"] .bg-rose-50,
+[id^="feed-card-"] .bg-indigo-50,
+[id^="feed-card-"] .bg-emerald-50,
+[id^="feed-card-"] .bg-amber-50,
+[id^="feed-card-"] .bg-\[\#F3F7FF\],
+[id^="feed-card-"] .bg-\[\#F7F4FF\]\/70,
+[id^="feed-card-"] div[class*="from-["],
+[id^="feed-card-"] .bg-gradient-to-br {
+  background: #F8FAFC !important; /* Very soft light gray box */
+  border: 1px solid rgba(6, 182, 212, 0.22) !important;
+  box-shadow: none !important;
+}
+
+#app-header-container {
+  background: var(--secondary-dark, #101B3A) !important;
+  border-bottom: 2px solid var(--border-custom) !important;
+}
+
+#app-header-container h1,
+#app-header-container h2,
+#app-header-container h3,
+#app-header-container h4,
+#app-header-container h5,
+#app-header-container h6,
+#app-header-container span,
+#app-header-container p,
+#app-header-container button,
+#app-header-container select {
+  color: var(--text-custom, #F3F4F6) !important;
+}
+
+/* Card content specific text color override */
+.bg-\[\#121B2E\] h1,
+.bg-\[\#121B2E\] h2,
+.bg-\[\#121B2E\] h3,
+.bg-\[\#121B2E\] h4,
+.bg-\[\#121B2E\] h5,
+.bg-\[\#121B2E\] h6,
+.bg-\[\#121B2E\] p,
+.bg-\[\#121B2E\] span:not(.text-white):not([class*="bg-[#4F46E5]"]):not([class*="bg-indigo"]):not([class*="bg-cyan"]):not([class*="bg-emerald"]):not([class*="bg-gradient"]):not([class*="text-[white]"]),
+.bg-\[\#121B2E\] label,
+.bg-\[\#121B2E\] div:not(.bg-\[\#161A33\]):not([class*="bg-[#4F46E5]"]):not([class*="bg-indigo"]):not([class*="bg-cyan"]):not([class*="bg-emerald"]) {
+  color: var(--card-text-custom, #0F172A) !important;
+}
+
+.bg-\[\#121B2E\] .border-\[\#161A33\],
+.bg-\[\#121B2E\] .border-\[\#E6E1F5\] {
+  border-color: var(--border-custom) !important;
 }
 
 #jamiaati-portal p,
@@ -139,143 +316,220 @@ select option {
 
 /* Contrast adjustment overrides */
 .text-slate-100 {
-  color: #161A33 !important;
+  color: var(--text-custom, #F3F4F6) !important;
 }
 
 .text-slate-200 {
-  color: #1E293B !important;
+  color: var(--text-custom, #F3F4F6) !important;
+  opacity: 0.95;
 }
 
 .text-slate-300 {
-  color: #334155 !important;
+  color: var(--text-custom, #F3F4F6) !important;
+  opacity: 0.85;
 }
 
 .text-slate-400 {
-  color: #475569 !important;
+  color: var(--muted-text, #94A3B8) !important;
 }
 
 .text-slate-450 {
-  color: #475569 !important;
+  color: var(--muted-text, #94A3B8) !important;
 }
 
 .text-slate-500 {
-  color: #5C677D !important;
+  color: var(--muted-text, #94A3B8) !important;
+}
+
+.text-slate-700,
+.text-slate-800,
+.text-slate-900 {
+  color: var(--card-text-custom, #0F172A) !important;
 }
 
 /* Badges typography and layout colors */
 .bg-amber-500\/15 {
-  background-color: rgba(255, 210, 31, 0.15) !important;
-}
-.text-yellow-400 {
-  color: #7A5E00 !important;
+  background-color: var(--soft-card, #F8FAFC) !important;
 }
 
-/* Ensure our brand/status labels colored badge texts remain clear! */
+/* High contrast tag color alignments mapping */
+.text-yellow-400 {
+  color: var(--accent, #F59E0B) !important;
+}
 .text-cyan-400 {
-  color: #2F7CCB !important;
+  color: var(--secondary, #06B6D4) !important;
 }
 .text-indigo-400 {
-  color: #6B25C9 !important;
+  color: var(--primary, #4F46E5) !important;
 }
 .text-emerald-400 {
-  color: #0E9F6E !important;
+  color: #10B981 !important; /* Managed success check */
 }
-.text-rose-400 {
-  color: #D9272E !important;
+.text-rose-400,
+.text-rose-450,
+.text-rose-500 {
+  color: #EC4899 !important; /* Modern Pink small feed highlight check */
 }
 .text-amber-500 {
-  color: #D97706 !important;
+  color: var(--accent, #F59E0B) !important;
 }
 
-/* Sleek 3D Card popping styles matching Option 1 */
+/* Sleek subtle card design replacing blocky 3D elements */
 .shadow-premium-grow {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 4px 6px -1px rgba(107, 37, 201, 0.05), 0 2px 4px -1px rgba(107, 37, 201, 0.03), 0 0 0 1px rgba(107, 37, 201, 0.03) !important;
+  box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.08) !important;
+  border: 1px solid var(--border-custom) !important;
 }
 .shadow-premium-grow:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px -8px rgba(107, 37, 200, 0.2), 0 4px 12px -2px rgba(107, 37, 200, 0.12) !important;
+  box-shadow: 0 16px 32px -6px rgba(6, 182, 212, 0.15) !important;
 }
 
-/* Interactive Popping cards */
+/* Interactive card transitions */
 .pop-card-3d {
-  background: #FFFFFF !important;
-  border: 2px solid #161A33 !important;
-  box-shadow: 4px 4px 0px 0px #161A33 !important;
+  background: var(--surface, #FFFFFF) !important;
+  border: 1.5px solid rgba(6, 182, 212, 0.22) !important;
+  box-shadow: 0 8px 16px -2px rgba(6, 182, 212, 0.06) !important;
   transition: all 0.2s ease;
 }
 .pop-card-3d:hover {
-  transform: translate(-1px, -1px);
-  box-shadow: 6px 6px 0px 0px #161A33 !important;
-}
-.pop-card-3d:active {
-  transform: translate(2px, 2px);
-  box-shadow: 2px 2px 0px 0px #161A33 !important;
+  transform: translateY(-2px);
+  box-shadow: 0 12px 24px -4px rgba(6, 182, 212, 0.12) !important;
 }
 
-/* Playful popping buttons */
-.pop-btn-3d {
-  border: 2px solid #161A33 !important;
-  box-shadow: 3px 3px 0px 0px #161A33 !important;
-  transition: all 0.15s ease;
-}
-.pop-btn-3d:hover {
-  transform: translate(-1.5px, -1.5px);
-  box-shadow: 4.5px 4.5px 0px 0px #161A33 !important;
-}
-.pop-btn-3d:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px 0px #161A33 !important;
+/* Universal blocky 3D shadow remover & replacement */
+[class*="shadow-["],
+[class*="shadow-[3px_3.5px_0px_0px_#161A33]"],
+[class*="shadow-[3px_3px_0px_0px_#161A33]"],
+[class*="shadow-[2px_2px_0px_0px_#161A33]"],
+[class*="shadow-[4px_4px_0px_0px_#161A33]"],
+[class*="shadow-[5px_5px_0px_0px_#161A33]"] {
+  box-shadow: 0 8px 20px -3px rgba(6, 182, 212, 0.08), 0 3px 8px -2px rgba(7, 17, 31, 0.04) !important;
+  border-width: 1px !important;
+  border-color: rgba(6, 182, 212, 0.2) !important;
 }
 
-/* Primary Yellow pill buttons */
-.btn-primary-yellow {
-  background-color: #FFD21F !important;
-  color: #161A33 !important;
-  font-family: 'Outfit', 'Cairo', sans-serif !important;
-  font-weight: 850 !important;
-  border: 2px solid #161A33 !important;
-  box-shadow: 3px 3px 0px 0px #161A33 !important;
-  border-radius: 9999px !important;
-  transition: all 0.15s ease;
-}
-.btn-primary-yellow:hover {
-  background-color: #FFE052 !important;
-  transform: translate(-1.5px, -1.5px);
-  box-shadow: 4.5px 4.5px 0px 0px #161A33 !important;
-}
-.btn-primary-yellow:active {
-  transform: translate(2px, 2px);
-  box-shadow: 1px 1px 0px 0px #161A33 !important;
-}
-
-/* Secondary White and Purple/Red border outline buttons */
-.btn-secondary-outline {
-  background-color: #FFFFFF !important;
-  color: #6B25C9 !important;
-  border: 2px solid #6B25C9 !important;
-  border-radius: 9999px !important;
+/* Primary buttons style using Royal Indigo (#4F46E5) with white text */
+button.bg-\[\#6B25C9\],
+button[class*="bg-[#6B25C9]"],
+button[class*="bg-indigo-600"],
+.bg-indigo-600 {
+  background-color: #4F46E5 !important; /* Royal Indigo */
+  color: #FFFFFF !important;
+  border: 1.5px solid #4338CA !important;
+  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.2) !important;
+  border-radius: 12px !important;
   font-weight: 700 !important;
-  transition: all 0.15s ease;
+  transition: all 0.2s ease;
 }
-.btn-secondary-outline:hover {
-  background-color: #F7F4FF !important;
+button.bg-\[\#6B25C9\]:hover,
+button[class*="bg-[#6B25C9]"]:hover {
+  background-color: #4338CA !important;
   transform: translateY(-1px);
 }
-.btn-secondary-outline:active {
-  transform: translateY(1px);
+
+/* Important Warm Amber CTA Button Style */
+button.bg-\[\#FFD21F\],
+button[class*="bg-[#FFD21F]"],
+button.bg-amber-500,
+button[class*="bg-amber"] {
+  background-color: #F59E0B !important; /* Warm Amber */
+  color: #0F172A !important; /* Dark Navy text */
+  border: 1.5px solid #D97706 !important;
+  box-shadow: 0 4px 14px rgba(245, 158, 11, 0.25) !important;
+  border-radius: 12px !important;
+  font-weight: 800 !important;
+  transition: all 0.2s ease;
+}
+button.bg-\[\#FFD21F\]:hover,
+button[class*="bg-[#FFD21F]"]:hover,
+button.bg-amber-500:hover {
+  background-color: #FBBF24 !important;
+  transform: translateY(-1px);
+}
+
+/* Secondary outline buttons */
+.btn-secondary-outline,
+button.bg-white.text-slate-800 {
+  background-color: #FFFFFF !important;
+  color: #4F46E5 !important;
+  border: 1.5px solid #4F46E5 !important;
+  border-radius: 12px !important;
+  font-weight: 700 !important;
+  box-shadow: none !important;
+  transition: all 0.2s ease;
+}
+.btn-secondary-outline:hover,
+button.bg-white.text-slate-800:hover {
+  background-color: #F8FAFC !important;
+  transform: translateY(-1px);
+}
+
+/* Verified partner and verified badges styled with #10B981 (Emerald Green) */
+span.bg-\[\#FFD21F\]\/20,
+span[class*="bg-[#FFD21F]"][class*="text-[#161A33]"],
+span[class*="bg-emerald-100"] {
+  background-color: rgba(16, 185, 129, 0.12) !important;
+  color: #10B981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.25) !important;
+  font-weight: 800 !important;
+}
+
+/* Success/Active states */
+.text-emerald-500,
+.text-emerald-800,
+.text-emerald-900 {
+  color: #10B981 !important;
+}
+.bg-emerald-500 {
+  background-color: #10B981 !important;
+}
+.border-emerald-500 {
+  border-color: #10B981 !important;
+}
+.bg-emerald-50,
+.bg-emerald-100 {
+  background-color: rgba(16, 185, 129, 0.08) !important;
+  color: #10B981 !important;
+  border: 1px solid rgba(16, 185, 129, 0.2) !important;
+}
+
+/* Errors & deletions */
+.bg-red-500,
+.bg-red-600 {
+  background-color: #EF4444 !important;
+}
+.text-red-500,
+.text-red-600 {
+  color: #EF4444 !important;
+}
+.border-red-500,
+.border-red-600 {
+  border-color: #EF4444 !important;
+}
+
+/* Likes & Highlights (Modern Pink: #EC4899) */
+.text-\[\#C9256B\],
+.hover\:text-\[\#C9256B\]:hover {
+  color: #EC4899 !important;
+}
+.bg-\[\#C9256B\]\/10 {
+  background-color: rgba(236, 72, 153, 0.1) !important;
+}
+.border-\[\#C9256B\]\/30 {
+  border-color: rgba(236, 72, 153, 0.3) !important;
 }
 
 /* Gradient backgrounds */
 .bg-gradient-premium {
-  background: linear-gradient(135deg, #FFFFFF 0%, #FDFDFF 100%) !important;
+  background: var(--bg-gradient, var(--background)) !important;
 }
 
 .border-glow-accent {
-  box-shadow: 0 0 0 1px rgba(107, 37, 201, 0.1), 0 0 12px rgba(47, 124, 203, 0.05);
+  box-shadow: 0 0 15px rgba(6, 182, 212, 0.25) !important;
 }
 
-/* Swipe styling for dynamic horizontal cards */
+/* Scroll tab styling */
 .scrollbar-none::-webkit-scrollbar {
   display: none;
 }
@@ -289,3 +543,12 @@ p[id^="footer-timezone"],
 span[id^="live-time-ticker"] {
   font-family: "JetBrains Mono", monospace !important;
 }
+
+/* Header gradient slogan banner */
+#campus-core-slogan-card {
+  background: linear-gradient(135deg, var(--primary) 0%, var(--secondary) 50%, var(--accent) 100%) !important;
+  border-bottom: 6px solid var(--accent) !important;
+  box-shadow: var(--shadow) !important;
+  transition: background 0.3s ease, border-color 0.3s ease;
+}
+

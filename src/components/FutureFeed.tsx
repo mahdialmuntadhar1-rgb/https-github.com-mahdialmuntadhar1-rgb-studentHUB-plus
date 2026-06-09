@@ -247,13 +247,24 @@ export default function FutureFeed({
         </h3>
         <div className="grid grid-cols-2 gap-2.5">
           {timelineReminders.map((rem, i) => (
-            <div key={i} className={`p-2.5 rounded-xl border-2 flex flex-col justify-between h-20 shadow-sm transition-transform hover:-translate-y-0.5 ${rem.urgent ? 'bg-red-50 border-[#D9272E] text-red-950' : 'bg-[#F3F7FF] border-[#161A33] text-[#161A33]'}`}>
-              <p className={`text-[10px] font-black leading-tight limit-rows-2 ${rem.urgent ? 'text-[#D9272E]' : 'text-[#161A33]'}`}>
+            <div 
+              key={i} 
+              className={`p-2.5 rounded-xl border-y border-r border-[#E6E1F5] flex flex-col justify-between h-22 shadow-sm transition-transform hover:-translate-y-0.5 border-l-4 ${
+                rem.urgent 
+                  ? 'bg-red-50/50 border-l-[#D9272E]' 
+                  : 'bg-[var(--soft-card)] border-l-[var(--primary)]'
+              }`}
+            >
+              <p className={`text-[10px] font-black leading-tight limit-rows-2 ${rem.urgent ? 'text-[#D9272E]' : 'text-[var(--text-custom)]'}`}>
                 {language === 'ar' ? rem.titleAR : language === 'ku' ? rem.titleKU : rem.titleEN}
               </p>
               <div className="flex items-center justify-between mt-1">
                 <span className="text-[8px] text-slate-500 font-bold uppercase">{getTranslation('dueDateLabel', language)}</span>
-                <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded ${rem.urgent ? 'text-[#D9272E] bg-red-100 border border-[#D9272E]/25' : 'text-[#6B25C9] bg-[#6B25C9]/10 border border-[#6B25C9]/20'}`}>
+                <span className={`text-[9px] font-extrabold px-1.5 py-0.2 rounded ${
+                  rem.urgent 
+                    ? 'text-[#D9272E] bg-red-100 border border-[#D9272E]/25' 
+                    : 'text-[var(--primary)] bg-[var(--soft-card)] border border-[var(--primary)]/20'
+                }`}>
                   {rem.date}
                 </span>
               </div>
