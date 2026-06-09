@@ -1,0 +1,41 @@
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Outfit:wght@300;450;600;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Cairo", "Outfit", system-ui, -apple-system, sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+body {
+  font-family: var(--font-sans);
+  background-color: #f8fafc;
+}
+
+/* Scrollbar styling for horizontal swipe tabs */
+.scrollbar-none::-webkit-scrollbar {
+  display: none;
+}
+.scrollbar-none {
+  -ms-overflow-style: none;  /* IE and Edge */
+  scrollbar-width: none;  /* Firefox */
+}
+
+/* Custom animates */
+@keyframes spin-slow {
+  from {
+    transform: rotate(0deg);
+  }
+  to {
+    transform: rotate(360deg);
+  }
+}
+.animate-spin-slow {
+  animation: spin-slow 15s linear infinite;
+}
+
+/* Custom RTL-aware margin indicators */
+[dir="rtl"] select {
+  background-position: left 0.5rem center;
+  padding-left: 1.5rem;
+  padding-right: 0.5rem;
+}
