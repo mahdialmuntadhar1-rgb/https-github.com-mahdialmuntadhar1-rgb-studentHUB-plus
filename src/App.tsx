@@ -10,6 +10,7 @@ import FutureFeed from './components/FutureFeed';
 import AskFeed from './components/AskFeed';
 import ProfileView from './components/ProfileView';
 import AuthModal from './components/AuthModal';
+import AdminPanel from './components/AdminPanel';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
 
@@ -66,7 +67,7 @@ export default function App() {
   };
 
   // Navigation tab state
-  const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'admin'>('home');
 
   // Brief dynamic feed loading skeleton simulator
   const [isFeedLoading, setIsFeedLoading] = useState(false);
@@ -97,6 +98,66 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('jamiaati_feed_v2', JSON.stringify(feedItems));
   }, [feedItems]);
+
+  // Load dynamic scraped/approved opportunities on mount or activeTab swap
+  useEffect(() => {
+    const fetchOpps = async () => {
+      try {
+        const response = await fetch('/api/opportunities');
+        if (response.ok) {
+          const list = await response.json();
+          if (Array.isArray(list)) {
+            const dbFeedItems = list.map((item: any) => ({
+              id: item.id,
+              type: item.category || 'job',
+              titleEN: item.titleEN,
+              titleAR: item.titleAR,
+              titleKU: item.titleKU,
+              contentEN: item.contentEN,
+              contentAR: item.contentAR,
+              contentKU: item.contentKU,
+              author: {
+                name: item.organization || 'Scraped Recruiter',
+                role: 'institution' as const,
+                avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+                verified: true
+              },
+              date: item.published_date ? `Scraped on ${item.published_date}` : 'Recently scraped 🔔',
+              likes: 12,
+              commentsCount: 0,
+              commentsList: [],
+              governorateId: item.governorateId || 'all',
+              universityId: 'all',
+              tags: ['Scraped', item.category || 'career'],
+              company: item.organization,
+              companyLogo: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+              location: item.location || 'Iraq',
+              deadline: item.deadline || 'August 2026',
+              imageUrl: item.imageUrl,
+              opportunityCategory: (item.category === 'internship' ? 'Internship' : 
+                                     item.category === 'scholarship' ? 'Scholarship' : 
+                                     item.category === 'training' ? 'Training' : 
+                                     item.category === 'volunteering' ? 'Volunteering' : 
+                                     item.category === 'competition' ? 'Competition' : 
+                                     item.category === 'graduation_support' ? 'Graduation project support' : 'Full-time graduate job') as any,
+              workplaceType: item.workplaceType || 'On-site',
+              whoCanApply: item.whoCanApply || 'Iraqi students',
+              salary: item.salary || 'Recruiter structured'
+            }));
+
+            // Filter out existing dbFeedItems duplicates based on ID starting with 'scraped-'
+            setFeedItems(prev => {
+              const staticItems = prev.filter(p => !p.id.startsWith('scraped-'));
+              return [...dbFeedItems, ...staticItems];
+            });
+          }
+        }
+      } catch (err) {
+        console.error("Error loading approved scraped opportunities:", err);
+      }
+    };
+    fetchOpps();
+  }, [activeTab]);
 
   useEffect(() => {
     localStorage.setItem('jamiaati_profile_v2', JSON.stringify(userProfile));
@@ -515,6 +576,15 @@ export default function App() {
               );
             }}
             onTriggerAuth={() => setIsAuthModalOpen(true)}
+            onNavigateAdmin={() => setActiveTab('admin')}
+          />
+        );
+      case 'admin':
+        return (
+          <AdminPanel
+            language={language}
+            onBack={() => setActiveTab('profile')}
+            showToast={showToast}
           />
         );
       default:
@@ -523,7 +593,7 @@ export default function App() {
   };
 
   return (
-    <div id="jamiaati-portal" className="bg-[#040814] min-h-screen text-slate-900 dark:text-slate-100 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'}>
+    <div id="jamiaati-portal" className="bg-[#040814] min-h-screen text-slate-900 dark:text-slate-100 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'} lang={language}>
       {/* Centered device presentation mock */}
       <div className="w-full max-w-md mx-auto min-h-screen bg-[#0B1020] shadow-2xl shadow-black/8 w-full relative flex flex-col border-x border-[#1F2E4D]">
         

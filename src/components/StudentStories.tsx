@@ -174,11 +174,18 @@ export default function StudentStories({
   onAwardPoints,
   showToast
 }: StudentStoriesProps) {
+  // Read/Write active list including user stories
   const [stories, setStories] = useState<StudentStory[]>(() => {
     // Read seen status from local storage
     const savedSeen = localStorage.getItem('jamiaati_seen_stories');
     const seenIds = savedSeen ? JSON.parse(savedSeen) : [];
-    return studentStoriesMockData.map(story => ({
+    
+    // Read custom stories contributed by user
+    const savedCustom = localStorage.getItem('jamiaati_custom_stories');
+    const customStories: StudentStory[] = savedCustom ? JSON.parse(savedCustom) : [];
+    
+    const combined = [...studentStoriesMockData, ...customStories];
+    return combined.map(story => ({
       ...story,
       isSeen: seenIds.includes(story.id)
     }));
@@ -188,6 +195,138 @@ export default function StudentStories({
   const [activeSlideIdx, setActiveSlideIdx] = useState<number>(0);
   const [replyText, setReplyText] = useState('');
   const [paused, setPaused] = useState(false);
+  
+  // Custom Live Story Creation States
+  const [isCreatingStory, setIsCreatingStory] = useState(false);
+  const [creatorName, setCreatorName] = useState(() => {
+    try {
+      const p = localStorage.getItem('jamiaati_profile_v2');
+      return p ? JSON.parse(p).name : 'Zara Al-Iraqi';
+    } catch {
+      return 'Zara Al-Iraqi';
+    }
+  });
+  const [selectedTemplate, setSelectedTemplate] = useState<number | 'custom'>(0);
+  const [customTextEN, setCustomTextEN] = useState('');
+  const [customTextAR, setCustomTextAR] = useState('');
+  const [customTextKU, setCustomTextKU] = useState('');
+  const [slideEmoji, setSlideEmoji] = useState('💻');
+  const [slideBg, setSlideBg] = useState('from-[#4F46E5] via-[#8B5CF6] to-[#EC4899]');
+
+  const storyTemplates = [
+    {
+      id: 0,
+      titleEN: '💻 Software Coding',
+      titleAR: '💻 برمجة برمجيات',
+      titleKU: '💻 کۆدکردنی نەرمەکاڵا',
+      emoji: '💻',
+      bgColor: 'from-blue-600 via-violet-750 to-indigo-900',
+      textEN: 'Coding our new graduation prototype using React & Tailwind! Running close database queries 💻🚀',
+      textAR: 'نبرمج نموذج تخرجنا الأولي المبتكر بالاعتماد على مكتبات React & Tailwind! نقوم بعمليات تصفية بيانات سريعة 💻🚀',
+      textKU: 'کۆدکردنی پڕۆژەی دەرچوونمان بە بەکارهێنانی React & Tailwind! خەریکە تەواو دەبێت 💻🚀'
+    },
+    {
+      id: 1,
+      titleEN: '🫖 Cardamom Tea',
+      titleAR: '🫖 شاي هيل دبل',
+      titleKU: '🫖 چای هێلی دبل',
+      emoji: '🫖',
+      bgColor: 'from-amber-600 via-orange-600 to-rose-700',
+      textEN: 'Cardamom double-fueled tea session near Mosul central library gardens to power through control exams! 📚✨',
+      textAR: 'جلسة شاي مهيل عراقي مضاعف قرب حدائق مكتبة جامعة الموصل المركزية لاجتياز امتحانات التحكم العصيبة! 📚✨',
+      textKU: 'خواردنەوەی چایەکی هێلی چڕ لە نزیک کتێبخانەی ناوەندی زانکۆی مووسڵ بۆ مراجەعەی تاقیکردنەوەکان! 📚✨'
+    },
+    {
+      id: 2,
+      titleEN: '🌅 Golden Hour',
+      titleAR: '🌅 الساعة الذهبية',
+      titleKU: '🌅 کاتی زێڕین',
+      emoji: '🌅',
+      bgColor: 'from-indigo-600 via-purple-700 to-pink-600',
+      textEN: 'Unwinding with music near the university fountain. The Kurdish mountains highlight the sunset beautifully 🌄🏔️',
+      textAR: 'فترة استرخاء لطيفة مع الموسيقى قرب نافورة الحرم الجامعي. جبال كوردستان ترسم الغروب بجمالية لا توصف 🌄🏔️',
+      textKU: 'ئارامگرتنەوە پاش تەواوبوونی وانەکان لە نزیک نافورەی زانکۆ. چیاکانی کوردستان دیمەنی ئاوابوونەکە جوانتر دەکەن 🌄🏔️'
+    },
+    {
+      id: 3,
+      titleEN: '🤝 Study Group',
+      titleAR: '🤝 حلقة دراسة',
+      titleKU: '🤝 گروپی خوێندن',
+      emoji: '🤝',
+      bgColor: 'from-emerald-600 via-teal-700 to-cyan-800',
+      textEN: 'Productive group project session at Al-Mansour Coworking lounge. Tech ecosystem in Iraq is fast! 🚀💡',
+      textAR: 'جلسة عمل مشتركة ومثمرة لمشروعنا في قاعة المنصور الذكية. بيئة ريادة الأعمال في العراق تنمو بسرعة خارقة! 🚀💡',
+      textKU: 'کارێکی بەکۆمەڵ بەرهەمدار بۆ یەکەم پڕۆژە لە هۆڵی مەنسور. سیستەمی کۆمپانیا دەستپێشخەرەکان لە عێراقدا خێرایە! 🚀💡'
+    }
+  ];
+
+  const handleCreateStorySubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    
+    let resultSlide: StorySlide;
+
+    if (selectedTemplate === 'custom') {
+      const txtEN = customTextEN.trim() || 'Excited for next university semester class! 🌟🎒';
+      const txtAR = customTextAR.trim() || 'متحمس لبدء الفصل الدراسي الجامعي الجديد وملاقاة الأصدقاء! 🌟🎒';
+      const txtKU = customTextKU.trim() || 'بەپەرۆشم بۆ دەستپێکردنی وەرزی نوێی زانکۆ و بینینی هاوڕێیان! 🌟🎒';
+      resultSlide = {
+        textEN: txtEN,
+        textAR: txtAR,
+        textKU: txtKU,
+        emoji: slideEmoji,
+        bgColor: slideBg
+      };
+    } else {
+      const template = storyTemplates.find(t => t.id === selectedTemplate) || storyTemplates[0];
+      resultSlide = {
+        textEN: template.textEN,
+        textAR: template.textAR,
+        textKU: template.textKU,
+        emoji: template.emoji,
+        bgColor: template.bgColor
+      };
+    }
+
+    const newStoryId = `story-user-${Date.now()}`;
+    const newStory: StudentStory = {
+      id: newStoryId,
+      nameEN: creatorName,
+      nameAR: creatorName,
+      nameKU: creatorName,
+      uniEN: language === 'ar' ? 'جامعة بغداد 🎓' : language === 'ku' ? 'زانکۆی بەغدا 🎓' : 'Univ of Baghdad 🎓',
+      uniAR: 'جامعة بغداد 🎓',
+      uniKU: 'زانکۆی بەغدا 🎓',
+      avatarEmoji: selectedTemplate === 'custom' ? slideEmoji : (storyTemplates.find(t => t.id === selectedTemplate)?.emoji || '🎓'),
+      avatarColor: 'bg-violet-600',
+      slides: [resultSlide],
+      isSeen: false
+    };
+
+    // Save to localStorage list of custom stories
+    const savedCustom = localStorage.getItem('jamiaati_custom_stories');
+    const existingCustom = savedCustom ? JSON.parse(savedCustom) : [];
+    const updatedCustom = [...existingCustom, newStory];
+    localStorage.setItem('jamiaati_custom_stories', JSON.stringify(updatedCustom));
+
+    // Update state directly
+    setStories(prev => [newStory, ...prev]);
+    setIsCreatingStory(false);
+
+    // Reset fields
+    setCustomTextEN('');
+    setCustomTextAR('');
+    setCustomTextKU('');
+    setSelectedTemplate(0);
+
+    // Award points
+    if (onAwardPoints) onAwardPoints(50);
+    if (showToast) {
+      showToast(
+        language === 'ar' ? 'تم نشر يومياتك وقصتك بنجاح! 🎬 +٥٠ نقطة صناعة محتوى' : language === 'ku' ? 'چیرۆکەکەت بە سەرکەوتوویی بڵاوکرایەوە! 🎬 +٥٠ خاڵ' : 'Your Live Diary story is now live! 🎬 +50 pts creator tier',
+        'success'
+      );
+    }
+  };
   
   // Progress bar duration per slide (ms)
   const SLIDE_DURATION = 4000;
@@ -325,7 +464,14 @@ export default function StudentStories({
         id="student-stories-horizontal-bar"
       >
         {/* Your Story trigger */}
-        <div className="flex flex-col items-center gap-1.5 snap-start cursor-pointer shrink-0">
+        <div 
+          onClick={() => {
+            setIsCreatingStory(true);
+            if (onAwardPoints) onAwardPoints(5); // positive reinforcement
+          }}
+          className="flex flex-col items-center gap-1.5 snap-start cursor-pointer shrink-0"
+          id="your-story-launch-trigger"
+        >
           <div className="relative">
             <div className="flex items-center justify-center w-12.5 h-12.5 rounded-full bg-slate-800 border-2 border-dashed border-violet-500/50 p-[2px] transition-transform duration-200 active:scale-95">
               <span className="flex items-center justify-center w-full h-full bg-[#11052C] rounded-full text-base font-black text-violet-400">
@@ -576,6 +722,231 @@ export default function StudentStories({
               </button>
 
             </div>
+          </motion.div>
+        )}
+      </AnimatePresence>
+
+      {/* Modern Trilingual Story Maker Wizard Modal */}
+      <AnimatePresence>
+        {isCreatingStory && (
+          <motion.div
+            initial={{ opacity: 0 }}
+            animate={{ opacity: 1 }}
+            exit={{ opacity: 0 }}
+            className="fixed inset-0 z-50 flex items-center justify-center bg-black/80 backdrop-blur-md p-4 overflow-y-auto"
+            id="story-maker-modal-overlay"
+          >
+            <motion.div
+              initial={{ scale: 0.9, y: 30 }}
+              animate={{ scale: 1, y: 0 }}
+              exit={{ scale: 0.9, y: 30 }}
+              className="bg-[#12192C] border-2 border-[#1F2E4D] w-full max-w-md rounded-3xl p-5 sm:p-6 shadow-[0px_20px_50px_rgba(0,0,0,0.5)] text-left relative"
+              id="story-maker-card"
+            >
+              {/* Close Button */}
+              <button
+                onClick={() => setIsCreatingStory(false)}
+                className="absolute top-4 right-4 p-1.5 bg-white/5 hover:bg-white/10 transition rounded-full text-white cursor-pointer"
+                aria-label="Close Story Maker"
+              >
+                <X className="w-4 h-4" />
+              </button>
+
+              <div className="flex items-center gap-2 mb-4">
+                <Sparkles className="w-5 h-5 text-yellow-400 animate-pulse" />
+                <h3 className="text-sm sm:text-base font-black text-white">
+                  {language === 'ar' ? 'اصنع يومياتك المباشرة 🎬' : language === 'ku' ? 'چیرۆکێکی ڕاستەوخۆ دروست بکە 🎬' : 'Create Live Student Story 🎬'}
+                </h3>
+              </div>
+
+              <form onSubmit={handleCreateStorySubmit} className="flex flex-col gap-4">
+                
+                {/* Creator Name Field */}
+                <div>
+                  <label className="block text-[10px] uppercase font-black text-slate-400 mb-1.5">
+                    {language === 'ar' ? 'اسم صاحب القصة 👤' : language === 'ku' ? 'ناوی خاوەن چیرۆک 👤' : 'Author Name / Handle 👤'}
+                  </label>
+                  <input
+                    type="text"
+                    value={creatorName}
+                    onChange={e => setCreatorName(e.target.value)}
+                    required
+                    maxLength={24}
+                    placeholder="Enter name..."
+                    className="w-full text-xs font-bold text-white bg-slate-800/80 border border-slate-750 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-500 transition-colors"
+                  />
+                </div>
+
+                {/* Grid Template Picker */}
+                <div>
+                  <label className="block text-[10px] uppercase font-black text-slate-400 mb-2">
+                    {language === 'ar' ? 'اختر قالب قصتك ⚡' : language === 'ku' ? 'قالب بۆ چیرۆکەکەت دیاریبکە ⚡' : 'Select Story Template ⚡'}
+                  </label>
+                  <div className="grid grid-cols-2 gap-2 mb-2">
+                    {storyTemplates.map(template => (
+                      <button
+                        key={template.id}
+                        type="button"
+                        onClick={() => setSelectedTemplate(template.id)}
+                        className={`p-3 rounded-xl border-2 text-left transition-all cursor-pointer ${
+                          selectedTemplate === template.id
+                            ? 'border-yellow-400 bg-slate-800 shadow-[2px_2px_0px_0px_rgba(255,210,31,0.5)]'
+                            : 'border-[#1F2E4D] bg-slate-900/40 hover:bg-slate-800/30'
+                        }`}
+                      >
+                        <div className="text-base mb-1">{template.emoji}</div>
+                        <div className="text-[10px] font-black text-white leading-tight">
+                          {language === 'ar' ? template.titleAR : language === 'ku' ? template.titleKU : template.titleEN}
+                        </div>
+                      </button>
+                    ))}
+                    <button
+                      type="button"
+                      onClick={() => setSelectedTemplate('custom')}
+                      className={`p-3 rounded-xl border-2 text-left transition-all col-span-2 flex items-center justify-between cursor-pointer ${
+                        selectedTemplate === 'custom'
+                          ? 'border-yellow-400 bg-slate-800 shadow-[2px_2px_0px_0px_rgba(255,210,31,0.5)]'
+                          : 'border-[#1F2E4D] bg-slate-900/40 hover:bg-slate-800/30'
+                      }`}
+                    >
+                      <div className="flex items-center gap-2">
+                        <span className="text-base">✏️</span>
+                        <div className="text-[10px] font-black text-white">
+                          {language === 'ar' ? '✍️ اكتب قصتك الخاصة بالكامل' : language === 'ku' ? '✍️ نووسینی چیرۆکی مەیلی خۆت' : '✍️ Write Custom Trilingual Story'}
+                        </div>
+                      </div>
+                      <span className="text-[9px] font-mono text-violet-400 font-extrabold uppercase">Custom</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Custom Editor Fields - Show only if selectedTemplate is 'custom' */}
+                {selectedTemplate === 'custom' && (
+                  <motion.div
+                    initial={{ opacity: 0, height: 0 }}
+                    animate={{ opacity: 1, height: 'auto' }}
+                    className="flex flex-col gap-3.5 border-t border-slate-800 pt-3"
+                  >
+                    {/* TRILINGUAL TEXT INPUTS */}
+                    <div>
+                      <label className="block text-[8.5px] font-extrabold uppercase text-slate-400 mb-1 flex justify-between">
+                        <span>English Story Caption 🇬🇧</span>
+                        <span className="text-[7.5px] text-slate-500 font-bold">Max 120 chars</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={customTextEN}
+                        onChange={e => setCustomTextEN(e.target.value)}
+                        maxLength={120}
+                        placeholder="e.g. Debugging my database models after midnight! 💻✨"
+                        className="w-full text-xs font-semibold text-white bg-slate-800/50 border border-slate-750 rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 transition-colors"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[8.5px] font-extrabold uppercase text-slate-400 mb-1 flex justify-between">
+                        <span>نص القصة بالعربية 🇮🇶</span>
+                        <span className="text-[7.5px] text-slate-500 font-bold">الحد الأقصى ١٢٠ حرف</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={customTextAR}
+                        onChange={e => setCustomTextAR(e.target.value)}
+                        maxLength={120}
+                        placeholder="مثال: مراجعة كود قاعدة البيانات مع زملائي بعد منتصف الليل! 💻✨"
+                        className="w-full text-xs font-semibold text-white bg-slate-800/50 border border-slate-750 rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 transition-colors text-right"
+                        dir="rtl"
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-[8.5px] font-extrabold uppercase text-[#A99ECA] mb-1 flex justify-between">
+                        <span>دەقی چیرۆک بە کوردی ☀️</span>
+                        <span className="text-[7.5px] text-slate-500 font-bold">زۆرترین ١٢٠ پیت</span>
+                      </label>
+                      <input
+                        type="text"
+                        value={customTextKU}
+                        onChange={e => setCustomTextKU(e.target.value)}
+                        maxLength={120}
+                        placeholder="نمونە: چاککردنی داتابەیسەکەم لەگەڵ هاوڕێیانم پاش نیوەشەو! 💻✨"
+                        className="w-full text-xs font-semibold text-white bg-slate-800/50 border border-slate-750 rounded-lg px-3 py-2 focus:outline-none focus:border-violet-500 transition-colors text-right"
+                        dir="rtl"
+                      />
+                    </div>
+
+                    {/* Emoji Select list */}
+                    <div>
+                      <label className="block text-[8.5px] font-black text-slate-400 uppercase mb-1.5">
+                        Select Slide Emoji Key 🎭
+                      </label>
+                      <div className="flex gap-2.5 overflow-x-auto py-1 scrollbar-none">
+                        {['💻', '🫖', '🌅', '🔬', '🎓', '🏥', '🧠', '🎨', '🚀', '💯'].map(emoji => (
+                          <button
+                            key={emoji}
+                            type="button"
+                            onClick={() => setSlideEmoji(emoji)}
+                            className={`w-9 h-9 text-lg rounded-full flex items-center justify-center transition-all shrink-0 cursor-pointer ${
+                              slideEmoji === emoji
+                                ? 'bg-violet-600 border-2 border-yellow-400 scale-110'
+                                : 'bg-slate-850 border border-[#161B30]'
+                            }`}
+                          >
+                            {emoji}
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+
+                    {/* Custom bg selector list */}
+                    <div>
+                      <label className="block text-[8.5px] font-black text-slate-400 uppercase mb-1.5">
+                        Choose Gradient Backdrop Theme 🎨
+                      </label>
+                      <div className="flex gap-2.5 overflow-x-auto py-1 scrollbar-none">
+                        {[
+                          { id: 'grad-1', cls: 'from-blue-600 via-violet-750 to-indigo-900', label: 'Tech Space' },
+                          { id: 'grad-2', cls: 'from-emerald-650 via-teal-700 to-cyan-800', label: 'Nature Green' },
+                          { id: 'grad-3', cls: 'from-indigo-650 via-purple-700 to-pink-650', label: 'Epic Sunset' },
+                          { id: 'grad-4', cls: 'from-amber-600 via-orange-650 to-red-700', label: 'Retro Warmth' },
+                          { id: 'grad-5', cls: 'from-[#6B25C9] to-fuchsia-600', label: 'Vibrant Purple' },
+                          { id: 'grad-6', cls: 'from-slate-800 via-pink-700 to-indigo-950', label: 'Hot Pink Nebula' }
+                        ].map(bg => (
+                          <button
+                            key={bg.id}
+                            type="button"
+                            onClick={() => setSlideBg(bg.cls)}
+                            title={bg.label}
+                            className={`w-8 h-8 rounded-full bg-gradient-to-tr ${bg.cls} shrink-0 transition-all cursor-pointer ${
+                              slideBg === bg.cls
+                                ? 'border-2 border-white scale-115 ring-2 ring-yellow-405 shadow-inner'
+                                : 'border border-black/40'
+                            }`}
+                          />
+                        ))}
+                      </div>
+                    </div>
+                  </motion.div>
+                )}
+
+                {/* Submit row */}
+                <div className="flex items-center justify-end gap-2.5 mt-2 border-t border-slate-800/80 pt-4">
+                  <button
+                    type="button"
+                    onClick={() => setIsCreatingStory(false)}
+                    className="text-[10px] font-bold text-slate-300 hover:text-white bg-slate-800 hover:bg-slate-755 px-4 py-2.5 rounded-xl transition-all cursor-pointer"
+                  >
+                    Cancel
+                  </button>
+                  <button
+                    type="submit"
+                    className="text-[10px] font-black bg-[#FFD21F] hover:bg-[#FFE052] text-black px-5 py-2.5 rounded-xl shadow-md border-2 border-slate-950 transition-all flex items-center gap-1 cursor-pointer"
+                  >
+                    🚀 {language === 'ar' ? 'انشر الآن' : language === 'ku' ? 'بڵاوکردنەوە' : 'Publish Story'}
+                  </button>
+                </div>
+              </form>
+            </motion.div>
           </motion.div>
         )}
       </AnimatePresence>

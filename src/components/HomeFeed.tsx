@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from '../data/mockData';
-import { Sparkles, MessageSquare, Briefcase, PlusCircle, CheckCircle, Info, Image, EyeOff, MapPin, School, Palette, X, Calendar, Megaphone, HelpCircle } from 'lucide-react';
+import { Sparkles, MessageSquare, Briefcase, PlusCircle, CheckCircle, Info, Image, EyeOff, MapPin, School, Palette, X, Calendar, Megaphone, HelpCircle, Search, Filter } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
 import StudentStories from './StudentStories';
@@ -88,6 +88,11 @@ export default function HomeFeed({
   
   // Custom Story-based categories filter state
   const [activeStoryFilter, setActiveStoryFilter] = useState<string | null>(null);
+
+  // Opportunities search and classification filters
+  const [oppSearch, setOppSearch] = useState('');
+  const [oppCategory, setOppCategory] = useState('all');
+  const [oppDeadline, setOppDeadline] = useState('all');
 
   const handleTabChange = (tab: 'campus' | 'opportunities') => {
     setActiveSubTab(tab);
@@ -206,7 +211,9 @@ export default function HomeFeed({
 
   // 1. Map Campus Life post categories VS Careers opportunities
   const campusTypes = ['announcement', 'video', 'poll', 'story', 'study_group', 'local_service', 'anonymous_question'];
-  const opportunityTypes = ['internship', 'training', 'graduation_project_support', 'volunteering', 'part_time_job', 'competition', 'job', 'scholarship'];
+  const opportunityTypes = [
+    'internship', 'training', 'graduation_project_support', 'volunteering', 'part_time_job', 'competition', 'competitions', 'job', 'full_time_job', 'scholarship', 'fellowship', 'event', 'announcement'
+  ];
 
   // 2. Perform the precise multi-layered filter logic:
   const filteredFeedItems = feedItems.filter(item => {
@@ -220,22 +227,69 @@ export default function HomeFeed({
     // 2b. Map Story highlighting sub-category filters
     if (activeStoryFilter) {
       if (activeStoryFilter === 'announcement' || activeStoryFilter === 'official_announcement') {
-        return item.type === 'announcement';
+        if (item.type !== 'announcement') return false;
+      } else if (activeStoryFilter === 'event') {
+        const matchesEvent = item.type === 'event' || item.type === 'video' || (item.tags && item.tags.some(t => t.toLowerCase().includes('event')));
+        if (!matchesEvent) return false;
+      } else if (activeStoryFilter === 'job') {
+        if (item.type !== 'job' && item.type !== 'part_time_job' && item.type !== 'full_time_job') return false;
+      } else if (activeStoryFilter === 'internship') {
+        if (item.type !== 'internship' && item.type !== 'training') return false;
+      } else if (activeStoryFilter === 'scholarship') {
+        if (item.type !== 'scholarship' && item.type !== 'graduation_project_support') return false;
+      } else if (activeStoryFilter === 'study_group') {
+        if (item.type !== 'study_group' && item.type !== 'local_service') return false;
       }
-      if (activeStoryFilter === 'event') {
-        return item.type === 'event' || item.type === 'video' || item.tags.some(t => t.toLowerCase().includes('event') || t.toLowerCase().includes('sunset'));
+    }
+
+    // 2c. Multi-layered Opportunity Specific filters
+    if (activeSubTab === 'opportunities') {
+      // Category Filter
+      if (oppCategory !== 'all') {
+        if (oppCategory === 'job') {
+          if (item.type !== 'job' && item.type !== 'part_time_job' && item.type !== 'full_time_job') return false;
+        } else if (oppCategory === 'competition') {
+          if (item.type !== 'competition' && item.type !== 'competitions') return false;
+        } else {
+          if (item.type !== oppCategory) return false;
+        }
       }
-      if (activeStoryFilter === 'job') {
-        return item.type === 'job' || item.type === 'part_time_job';
+
+      // Deadline Filter
+      if (oppDeadline !== 'all') {
+        const todayStr = new Date().toISOString().split("T")[0];
+        const itemDeadline = item.deadline;
+        if (!itemDeadline) {
+          if (oppDeadline === 'expired') return false;
+        } else {
+          if (oppDeadline === 'active') {
+            if (itemDeadline < todayStr) return false;
+          } else if (oppDeadline === 'expired') {
+            if (itemDeadline >= todayStr) return false;
+          } else if (oppDeadline === 'closing_soon') {
+            const threeDaysFromNow = new Date();
+            threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
+            const maxDateStr = threeDaysFromNow.toISOString().split("T")[0];
+            if (itemDeadline < todayStr || itemDeadline > maxDateStr) return false;
+          }
+        }
       }
-      if (activeStoryFilter === 'internship') {
-        return item.type === 'internship' || item.type === 'training';
-      }
-      if (activeStoryFilter === 'scholarship') {
-        return item.type === 'scholarship' || item.type === 'graduation_project_support';
-      }
-      if (activeStoryFilter === 'study_group') {
-        return item.type === 'study_group' || item.type === 'local_service';
+
+      // Search Bar Filter
+      if (oppSearch.trim()) {
+        const q = oppSearch.toLowerCase();
+        const tEN = (item.titleEN || '').toLowerCase();
+        const tAR = (item.titleAR || '').toLowerCase();
+        const tKU = (item.titleKU || '').toLowerCase();
+        const cEN = (item.contentEN || '').toLowerCase();
+        const cAR = (item.contentAR || '').toLowerCase();
+        const cKU = (item.contentKU || '').toLowerCase();
+        const org = (item.organization || item.company || '').toLowerCase();
+
+        const matches = tEN.includes(q) || tAR.includes(q) || tKU.includes(q) ||
+                        cEN.includes(q) || cAR.includes(q) || cKU.includes(q) ||
+                        org.includes(q);
+        if (!matches) return false;
       }
     }
 
@@ -446,6 +500,96 @@ export default function HomeFeed({
         </button>
 
       </div>
+
+      {/* Opportunities Filter Dashboard */}
+      {activeSubTab === 'opportunities' && (
+        <div className="mb-5 bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-4 flex flex-col gap-3 shadow-md" id="opportunities-filter-dashboard">
+          {/* Header */}
+          <div className="flex items-center gap-1.5 text-xs font-black text-cyan-400 capitalize pb-2 border-b border-[#1F2E4D]">
+            <Filter className="w-3.5 h-3.5 shrink-0" />
+            <span>
+              {language === 'ar' ? 'تصفية مخصصة للفرص الأكاديمية والمهنية' : language === 'ku' ? 'پاڵاوتنی دەستکاریکراوی فرسەتەکان' : 'Academic Opportunity Filters'}
+            </span>
+          </div>
+
+          {/* Search bar */}
+          <div className="relative">
+            <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
+            <input
+              type="text"
+              value={oppSearch}
+              onChange={(e) => setOppSearch(e.target.value)}
+              placeholder={
+                language === 'ar'
+                  ? '🔍 ابحث بالاسم، الجهة، أو تفاصيل الفرصة...'
+                  : language === 'ku'
+                  ? '🔍 لێرە بگەڕێ بۆ ناونیشان یان پێشەکەشکار...'
+                  : '🔍 Search title, organization, or terms...'
+              }
+              className="w-full text-xs font-bold text-white bg-slate-900/60 border border-[#1F2E4D] rounded-2xl pl-10 pr-4 py-2.5 outline-none focus:border-[#6B25C9] transition-all"
+            />
+          </div>
+
+          {/* Dropdowns Row */}
+          <div className="grid grid-cols-2 gap-3">
+            {/* Category selection */}
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-tight">
+                {language === 'ar' ? 'تصنيف الفرصة' : language === 'ku' ? 'جۆری فرسەت' : 'Opportunity Category'}
+              </label>
+              <select
+                value={oppCategory}
+                onChange={(e) => setOppCategory(e.target.value)}
+                className="w-full px-3 py-2 text-xs font-bold text-slate-200 bg-slate-900/80 border border-[#1F2E4D] rounded-xl outline-none focus:border-[#6B25C9] cursor-pointer"
+              >
+                <option value="all">⚡ {language === 'ar' ? 'كل التصنيفات' : language === 'ku' ? 'هەموو جۆرەکان' : 'All Categories'}</option>
+                <option value="job">💼 {language === 'ar' ? 'وظائف مهنية' : language === 'ku' ? 'هەلی کار' : 'Jobs'}</option>
+                <option value="internship">⚙️ {language === 'ar' ? 'تدريب عملي' : language === 'ku' ? 'مەشقەکان' : 'Internships'}</option>
+                <option value="scholarship">🎓 {language === 'ar' ? 'منح دراسية' : language === 'ku' ? 'منحی خوێندن' : 'Scholarships'}</option>
+                <option value="training">🏫 {language === 'ar' ? 'مخيمات تدريبية' : language === 'ku' ? 'ڕاهێنان' : 'Trainings'}</option>
+                <option value="event">🎟️ {language === 'ar' ? 'نشاطات وفعاليات' : language === 'ku' ? 'چالکییەکان' : 'Events'}</option>
+                <option value="volunteering">🤝 {language === 'ar' ? 'فرص تطوعية' : language === 'ku' ? 'خۆبەخشي' : 'Volunteering'}</option>
+                <option value="fellowship">🎗️ {language === 'ar' ? 'زمالات أكاديمية' : language === 'ku' ? 'زمالە' : 'Fellowships'}</option>
+                <option value="competition">🏆 {language === 'ar' ? 'مسابقات علمية' : language === 'ku' ? 'کێبڕکێ' : 'Competitions'}</option>
+                <option value="announcement">📢 {language === 'ar' ? 'إعلانات طلابية' : language === 'ku' ? 'ڕاگەیاندراو' : 'Announcements'}</option>
+              </select>
+            </div>
+
+            {/* Deadline selection */}
+            <div className="flex flex-col gap-1">
+              <label className="text-[10px] font-black text-slate-400 uppercase tracking-tight">
+                {language === 'ar' ? 'حالة التقديم والمهلة' : language === 'ku' ? 'ماوەی بەسەرچوون' : 'Deadline State'}
+              </label>
+              <select
+                value={oppDeadline}
+                onChange={(e) => setOppDeadline(e.target.value)}
+                className="w-full px-3 py-2 text-xs font-bold text-slate-200 bg-slate-900/80 border border-[#1F2E4D] rounded-xl outline-none focus:border-[#6B25C9] cursor-pointer"
+              >
+                <option value="all">📅 {language === 'ar' ? 'كل المواعيد' : language === 'ku' ? 'هەموو کاتەکان' : 'All Deadlines'}</option>
+                <option value="active">🟢 {language === 'ar' ? 'مفتوح للتقديم فقط' : language === 'ku' ? 'تەنها چالاکەکان' : 'Active Only'}</option>
+                <option value="closing_soon">⏳ {language === 'ar' ? 'يغلق قريباً (3 أيام)' : language === 'ku' ? 'بەم زووانە بەسەردەچێت' : 'Closing Soon'}</option>
+                <option value="expired">🔴 {language === 'ar' ? 'فرر منتهية فقط' : language === 'ku' ? 'تەنها بەسەرچووەکان' : 'Expired Only'}</option>
+              </select>
+            </div>
+          </div>
+
+          {/* Reset Filters Shortcut Button if any filter active */}
+          {(oppSearch || oppCategory !== 'all' || oppDeadline !== 'all') && (
+            <div className="flex justify-end pt-1">
+              <button
+                onClick={() => {
+                  setOppSearch('');
+                  setOppCategory('all');
+                  setOppDeadline('all');
+                }}
+                className="text-[9px] font-black text-slate-400 hover:text-cyan-400 bg-slate-900 px-3 py-1 rounded-md transition-colors cursor-pointer"
+              >
+                ✕ {language === 'ar' ? 'إعادة ضبط التصفية' : language === 'ku' ? 'جێبەجێکردنەوەی فلتەر' : 'Reset Filter Settings'}
+              </button>
+            </div>
+          )}
+        </div>
+      )}
 
       {/* Feed Filter Alert & Active Stories filter indicator */}
       {activeStoryFilter && (

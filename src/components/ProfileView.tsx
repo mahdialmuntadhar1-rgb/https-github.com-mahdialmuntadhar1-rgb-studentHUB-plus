@@ -21,6 +21,7 @@ interface ProfileViewProps {
   isLoggedIn: boolean;
   onLogout: () => void;
   onTriggerAuth: () => void;
+  onNavigateAdmin?: () => void;
 }
 
 export default function ProfileView({
@@ -37,7 +38,8 @@ export default function ProfileView({
   onToggleUserRole,
   isLoggedIn,
   onLogout,
-  onTriggerAuth
+  onTriggerAuth,
+  onNavigateAdmin
 }: ProfileViewProps) {
   const [activeTab, setActiveTab] = useState<'bookmarks' | 'activities'>('bookmarks');
 
@@ -139,6 +141,16 @@ export default function ProfileView({
 
           {/* Interactive Role Toggle & Logout Options */}
           <div className="flex flex-wrap items-center justify-center gap-2 mt-3.5" id="profile-actions-row">
+            {onNavigateAdmin && (
+              <button
+                onClick={onNavigateAdmin}
+                className="text-[9px] font-black text-amber-400 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/20 rounded-xl px-3 py-1.5 cursor-pointer transition-all flex items-center gap-1.5"
+                id="navigateToAdminLink"
+              >
+                <span>🕵️‍♀️</span>
+                <span>{language === 'ar' ? 'بوابة التشغيل والأتمتة' : language === 'ku' ? 'سیستەمی کۆنترۆڵ' : 'Scraper Console'}</span>
+              </button>
+            )}
             <button
               onClick={onToggleUserRole}
               className="text-[9px] font-black text-cyan-400 bg-cyan-400/10 hover:bg-cyan-400/20 border border-cyan-400/20 rounded-xl px-3 py-1.5 cursor-pointer transition-all flex items-center gap-1"

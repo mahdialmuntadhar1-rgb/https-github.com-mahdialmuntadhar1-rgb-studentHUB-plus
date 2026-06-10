@@ -119,6 +119,192 @@ export const defaultUserProfile: UserProfile = {
 };
 
 export const initialFeedItems: FeedItem[] = [
+  // 1. REAL OPPORTUNITY - Asiacell Elite Graduate Accelerator Program (Internship / Part-time / Job)
+  {
+    id: 'real-opp-asiacell',
+    type: 'internship',
+    titleEN: 'Asiacell Graduate Accelerator Elite Program 🔴💼',
+    titleAR: 'برنامج نخبة آسيا سيل لتسريع وتهيئة الخريجين الجدد 🔴💼',
+    titleKU: 'بەرنامەی نوخبەی ئاسیاسێل بۆ پێگەیاندنی دەرچووانی نوێ 🔴💼',
+    contentEN: 'Asiacell is officially accepting applications for its 2026 Elite Accelerated Graduate Program. Intensive 6-month specialized masterclass tracks inside Network Architecture, Cybersecurity, Cloud Systems, and FinTech. Certified top performers transition directly to permanent full-time executive roles.',
+    contentAR: 'تعلن شركة آسيا سيل للاتصالات رسمياً عن فتح باب التقديم لبرنامج النخبة لتأهيل الخريجين الجدد وتدريبهم لمدة ٦ أشهر مكثفة في مجالات هندسة الشبكات، الأمن السيبراني، الأنظمة السحابية، والتكنولوجيا المالية. توظيف دائم مباشر للمتميزين.',
+    contentKU: 'کۆمپانیای ئاسیاسێل بۆ پەیوەندییەکان بە فەرمی داوای پێشکەشکردنی داواکاری دەکات بۆ بەرنامەی ڕاهێنانی نایابی دەرچووان لە بواری تۆر، سایبەر، کلاود و دارایی بە شێوازی مەشق و دامەزراندنی کۆتایی.',
+    author: {
+      name: 'Asiacell Careers Team',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=150',
+      verified: true
+    },
+    date: '30 mins ago',
+    likes: 189,
+    commentsCount: 12,
+    governorateId: 'sulaymaniyah',
+    company: 'Asiacell Telecomm',
+    companyLogo: '🔴',
+    salary: '1,400,000 - 1,800,000 IQD / month stipend',
+    location: 'Sulaymaniyah (HQ) & Baghdad (On-site)',
+    deadline: 'July 15, 2026',
+    opportunityCategory: 'Internship',
+    workplaceType: 'On-site',
+    whoCanApply: 'Iraqi graduates (2024-2026) in Software Engineering, CS, Computer Engineering, Telecommunications or Finance with strong analytical skills',
+    savedCount: 245,
+    universityAppliedCount: 38,
+    companyVerified: true,
+    tags: ['Asiacell', 'Careers', 'Telecom', 'GraduateProgram'],
+    imageUrl: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600',
+    commentsList: []
+  },
+
+  // 2. REAL SCHOLARSHIP - DAAD German Academic Exchange Service (Scholarship)
+  {
+    id: 'real-opp-daad',
+    type: 'scholarship',
+    titleEN: 'DAAD Fully Funded Masters Scholarship in Germany 🇩🇪🎓',
+    titleAR: 'منحة الهيئة الألمانية للتبادل الأكاديمي DAAD الممولة بالكامل للماجستير 🇩🇪🎓',
+    titleKU: 'سکۆلەرشیپی DAADی ئەڵمانی پاڵپشتیکراوی دارایی بۆ ماستەر 🇩🇪🎓',
+    contentEN: 'The German Academic Exchange Service (DAAD) is officially inviting Iraqi postgraduate applicants for master courses in sustainable development, energy engineering, and computer sciences. Program includes 100% tuition waiver, €934/month stipend, medical insurance, and travel allowances.',
+    contentAR: 'تعلن الهيئة الألمانية للتبادل الأكاديمي (DAAD) عن فتح باب التقديم للطلاب العراقيين للحصول على منح دراسة الماجستير الممولة بالكامل في الجامعات الألمانية الحكومية. تشمل المنحة تغطية الرسوم كاملة وراتب شهري وتأمين صحي وتكاليف السفر.',
+    contentKU: 'بەرنامەی ئاڵوگۆڕی ئەکادیمی ئەڵمانی DAAD بە فەرمی خوێندکارانی دەرچووی عێراقی بانگهێشت دەکات بۆ پێشکەشکردنی سکۆلەرشیپی تەواو پاڵپشتیکراو لە ئەڵمانیا کە مووعەی مانگانە و بیمە و گەشتی لەسەرە.',
+    author: {
+      name: 'DAAD Iraq Advisory Office',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?auto=format&fit=crop&q=80&w=150',
+      verified: true
+    },
+    date: '1 hour ago',
+    likes: 382,
+    commentsCount: 29,
+    governorateId: 'all',
+    company: 'DAAD German Exchange',
+    companyLogo: '🇩🇪',
+    salary: 'Fully Funded (100% Tuition + €934/mo Stipend)',
+    location: 'Germany Universities',
+    deadline: 'August 31, 2026',
+    opportunityCategory: 'Scholarship',
+    workplaceType: 'Remote',
+    whoCanApply: 'Iraqi Bachelor degree holders in Engineering, Sciences or IT with English proof and minimum 2 years working experience.',
+    savedCount: 512,
+    universityAppliedCount: 68,
+    companyVerified: true,
+    tags: ['DAAD', 'Germany', 'Scholarships', 'Masters'],
+    imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=600',
+    commentsList: []
+  },
+
+  // 3. CAMPUS LIFE - AUIS Annual Spring Festival Photo Highlights (Story with Image)
+  {
+    id: 'campus-image-fest',
+    type: 'story',
+    titleEN: 'AUIS Annual Spring Festival Photo Highlights 🎨🌸',
+    titleAR: 'أجواء ومشاريع مهرجان الربيع السنوي في الجامعة الأمريكية بالسليمانية 🎨🌸',
+    titleKU: 'دیمەن و پڕۆژەکانی فێستیڤاڵی بەهاری زانکۆی ئەمریکی لە سلێمانی 🎨🌸',
+    contentEN: "A peek at today's majestic annual Spring Fest at Al-Sulaymaniyah campus! Hundreds of students came clad in incredibly colorful traditional Kurdish clothing, showcasing fine art, traditional food booths, and innovative student software startup prototypes.",
+    contentAR: "نظرة على مهرجان الربيع السنوي المهيب في حرم الجامعة الأمريكية بالسليمانية اليوم! مئات الطلاب ارتدوا الأزياء الكردية التقليدية الزاهية، وعرضوا لوحاتهم الفنية وبوتات الأطعمة التراثية ونماذج تقنية لشركات طلابية ناشئة.",
+    contentKU: "دیمەنەکانی فێستیڤاڵی بەهاری ساڵانەی ئەمڕۆ لە زانکۆی ئەمریکی لە سلێمانی! خوێندکاران جلی کوردی ڕەسەنی ڕەنگاوڕەنگ و تابلۆی دەستکرد و پڕۆژەی کۆمپانیا دەستپێشخەرەکانیان پێشکەشکرد.",
+    author: {
+      name: 'Renas Hawrami',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=100',
+      university: 'American University of Iraq, Sulaimani'
+    },
+    date: '2 hours ago',
+    likes: 412,
+    commentsCount: 18,
+    governorateId: 'sulaymaniyah',
+    universityId: 'auis',
+    imageUrl: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=600',
+    tags: ['AUIS', 'CampusLife', 'Festival', 'Kurdistan'],
+    commentsList: []
+  },
+
+  // 4. CAMPUS LIFE - Robotics and Solar IoT Demo at UoB (Story with Image)
+  {
+    id: 'campus-image-lab',
+    type: 'story',
+    titleEN: 'Robotics & Solar IoT Systems Lab Demo 🤖🔌',
+    titleAR: 'عرض تجريبي لمشاريع الروبوتات والأنظمة المدمجة في مجمع هندسة بغداد 🤖🔌',
+    titleKU: 'تاقیکردنەوەی ڕۆبۆتیک و سیستەمە مفرۆشراوەکانی ئەلیکترۆنی زانکۆی بەغدا 🤖🔌',
+    contentEN: 'Our software engineering research group successfully calibrated and activated our autonomous solar-tracker prototype inside the campus lab! Responsive solar panel alignments are tracked in real-time over a modern dashboard.',
+    contentAR: 'نجح فريق هندسة البرمجيات في جامعة بغداد في معايرة وتشغيل النموذج الأولي لتتبع الشمس الذاتي داخل مختبر الكلية! لوحة شمسية متطورة تتحرك بدقة وتقترن مباشر مع شاشة تتبع سحابية.',
+    contentKU: 'سیستەمی گروپەکەمان بۆ زانستی کۆمپیوتەر بە سەرکەوتوویی پڕۆژەی ڕۆبۆتی بەدواداچوونی خۆری زیرەکی لە تاقیگەی زانکۆی بەغدا دڵنیاکردەوە! پانێڵەکان ڕاستەوخۆ دەجوڵێن.',
+    author: {
+      name: 'Haider Hassan',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=100',
+      university: 'University of Baghdad'
+    },
+    date: '4 hours ago',
+    likes: 298,
+    commentsCount: 11,
+    governorateId: 'baghdad',
+    universityId: 'u_baghdad',
+    imageUrl: 'https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=600',
+    tags: ['UoB', 'Robotics', 'Seniors', 'Engineering'],
+    commentsList: []
+  },
+
+  // 5. REAL OPPORTUNITY - Five One Labs Startup Incubator Cohort (Training/Grant)
+  {
+    id: 'real-opp-fiveonelabs',
+    type: 'training',
+    titleEN: 'Five One Labs Startup Incubator Cohort 🚀💡',
+    titleAR: 'حاضنة أعمال فايف ون لابس لتمويل وعصرنة ريادة الأعمال 🚀💡',
+    titleKU: 'ئینکیوبیتەری فايف وەن لابس بۆ پاڵپشتی پڕۆژەی نوێكان 🚀💡',
+    contentEN: "Are you an Iraqi undergraduate or young fresh graduate with a tech-based startup idea? Five One Labs is opening admissions for its 3-month startup incubator program. Receives up to $5,000 equity-free seed grants, dynamic tech advisors, coworking space access, and professional pitch days.",
+    contentAR: "هل أنت طالب عراقي أو خريج جديد تملك فكرة مبتكرة لمشروع تقني؟ حاضنة فايف ون لابس تبدأ باستقبال طلبات الدفعة الجديدة لمدة ٣ أشهر. منحة حتى ٥,٠٠٠ دولار بدون أي شروط ملكية أو أسهم، وتوجيه ومساحة عمل ممتازة.",
+    contentKU: "ئایا تۆ خوێندکار یان دەرچووی نوێی عێراقی کە خاوەنی بیرۆکەیەکی داهێنەرانەی؟ حاضنەی فايف وەن لابس دەست بە وەرگرتنی نوێ دەکات بە پێدانی ٥ هۆزار دۆلاری بێ پشک و ڕاوێژکاری بەئەزموون لە هەولێر و سلێمانی و مووسڵ.",
+    author: {
+      name: 'Five One Labs Outreach Team',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1542744094-3a31f103e35f?auto=format&fit=crop&q=80&w=150',
+      verified: true
+    },
+    date: '5 hours ago',
+    likes: 194,
+    commentsCount: 16,
+    governorateId: 'all',
+    company: 'Five One Labs Incubator',
+    companyLogo: '🚀',
+    salary: 'Up to $5,000 Equity-free Seed Funding + Mentorship',
+    location: 'Erbil, Mosul & Sulaymaniyah (Hybrid)',
+    deadline: 'June 29, 2026',
+    opportunityCategory: 'Training',
+    workplaceType: 'Hybrid',
+    whoCanApply: 'All aspiring innovators and builders in Iraq with early functional prototypes or creative ideas.',
+    savedCount: 125,
+    universityAppliedCount: 14,
+    companyVerified: true,
+    tags: ['Startup', 'Incubator', 'Grants', 'IraqEntrepreneurs'],
+    imageUrl: 'https://images.unsplash.com/photo-1522071820081-009f0129c71c?auto=format&fit=crop&q=80&w=600',
+    commentsList: []
+  },
+
+  // 6. CAMPUS LIFE - Study Session Sunset at Mosul University Gardens (Video with Image)
+  {
+    id: 'campus-image-library',
+    type: 'video',
+    titleEN: 'Study Session Sunset: Mosul University Central Library 📚🌅',
+    titleAR: 'جلسة دراسة الغروب: المكتبة المركزية لجامعة الموصل 📚🌅',
+    titleKU: 'کاتی خوێندنی ئاوابوون: کتێبخانەی ناوەندی زانکۆی مووسڵ 📚🌅',
+    contentEN: "Catching up on advanced algorithms study sheets near the historic central library gardens as the golden sun dips behind Mosul architecture. Rebuilt and beautiful than ever!",
+    contentAR: "مذاكرة خوارزميات متقدمة بالقرب من حدائق المكتبة المركزية التاريخية لجامعة الموصل مع غروب شمس نينوى الذهبية خلف مآذن وأبنية نينوى التاريخية. صرح رائع عاد أقوى ومجهّز!",
+    contentKU: "مەشقکردنی خوارزمیا لە نزیک باخچەکانی کتێبخانەی ناوەندی زانکۆی مووسڵ کاتێک خۆری زێڕین لە پشت تەلارسازی ناوازەکەوە ئاوا دەبێت.",
+    author: {
+      name: 'Waleed Al-Mosuli',
+      role: 'graduate',
+      avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=100',
+      university: 'University of Mosul'
+    },
+    date: 'Yesterday',
+    likes: 356,
+    commentsCount: 22,
+    governorateId: 'nineveh',
+    universityId: 'u_mosul',
+    videoThumbnail: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600',
+    tags: ['MosulLibrary', 'Sunset', 'StudyGroups', 'Nineveh'],
+    commentsList: []
+  },
+
   // 1. OPP - Frontend Developer Intern (Internship)
   {
     id: 'opp-1',

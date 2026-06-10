@@ -63,8 +63,10 @@ export interface FeedItem {
     | 'part_time_job'
     | 'full_time_job'
     | 'volunteering'
+    | 'competitions'
     | 'competition'
-    | 'graduation_project_support';
+    | 'graduation_project_support'
+    | 'fellowship';
   
   // Localized Content
   titleEN: string;
@@ -102,6 +104,7 @@ export interface FeedItem {
   // For Jobs / Internships / Scholarships
   company?: string;
   companyLogo?: string;
+  organization?: string;
   salary?: string;
   location?: string; // Localized location string e.g. 'Baghdad'
   deadline?: string;
