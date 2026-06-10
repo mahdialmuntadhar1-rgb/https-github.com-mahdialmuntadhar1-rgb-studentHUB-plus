@@ -23,15 +23,15 @@ export const brandingThemes: Theme[] = [
     primary: '#4F46E5', // Royal Indigo
     secondary: '#06B6D4', // Iraqi Turquoise
     accent: '#F59E0B', // Warm Amber (Main CTA)
-    background: '#07111F', // Deep Midnight Navy
-    secondaryDark: '#101B3A',
+    background: '#070314', // Futuristic deep purple dark base
+    secondaryDark: '#11052C',
     surface: '#FFFFFF', // Clean White Card
     softCard: '#F8FAFC',
-    border: 'rgba(6, 182, 212, 0.15)', // Thin turquoise border low opacity
+    border: 'rgba(139, 92, 246, 0.28)', // Futuristic purple border
     text: '#F3F4F6', // Readable light color over dark navy background
     mutedText: '#94A3B8', // Muted text for dark background
-    shadow: '0 10px 25px -5px rgba(6, 182, 212, 0.12)',
-    bgGradient: 'radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.2) 0%, transparent 65%), linear-gradient(180deg, #07111F 0%, #101B3A 100%)',
+    shadow: '0 12px 30px -10px rgba(79, 70, 229, 0.14), 0 20px 42px -20px rgba(79, 70, 229, 0.06)',
+    bgGradient: 'radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.35) 0%, rgba(124, 58, 237, 0.15) 30%, rgba(13, 8, 30, 0.8) 75%, transparent 100%), radial-gradient(circle at 10% 80%, rgba(6, 182, 212, 0.12) 0%, transparent 50%), linear-gradient(180deg, #070314 0%, #11052C 35%, #0D041F 70%, #030107 100%)',
     cardText: '#0F172A' // Dark Navy text on white cards
   },
   {

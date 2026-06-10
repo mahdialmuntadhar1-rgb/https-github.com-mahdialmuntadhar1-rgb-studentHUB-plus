@@ -420,7 +420,9 @@ export default function App() {
             feedItems={filteredFeedItems}
             language={language}
             selectedGov={selectedGov}
+            setSelectedGov={setSelectedGov}
             selectedUni={selectedUni}
+            setSelectedUni={setSelectedUni}
             onLike={handleLike}
             onSave={handleSave}
             onVote={handleVote}
@@ -525,16 +527,10 @@ export default function App() {
         
         {/* Top Header Selector Component */}
         <Header
-          selectedGov={selectedGov}
-          setSelectedGov={setSelectedGov}
-          selectedUni={selectedUni}
-          setSelectedUni={setSelectedUni}
           language={language}
           setLanguage={setLanguage}
           currentUserAvatar={userProfile.avatar}
           onProfileClick={() => setActiveTab('profile')}
-          selectedTheme={selectedTheme}
-          setSelectedTheme={setSelectedTheme}
         />
 
         {/* Dynamic Inner views container */}

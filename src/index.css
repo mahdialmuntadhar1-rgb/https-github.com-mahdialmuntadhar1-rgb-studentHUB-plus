@@ -15,8 +15,8 @@
   --color-card-border: var(--border-custom);
   --color-page-bg: var(--background);
 
-  --shadow-glow-cyan: 0 0 15px rgba(6, 182, 212, 0.15);
-  --shadow-glow-purple: 0 0 20px rgba(107, 37, 201, 0.2);
+  --shadow-glow-cyan: 0 0 15px rgba(139, 92, 246, 0.4);
+  --shadow-glow-purple: 0 0 20px rgba(139, 92, 246, 0.3);
   --shadow-glow-orange: 0 0 15px rgba(217, 39, 46, 0.15);
   --shadow-glow-gold: 0 0 15px rgba(255, 210, 31, 0.2);
 }
@@ -26,16 +26,16 @@
   --primary: #4F46E5;
   --secondary: #06B6D4;
   --accent: #F59E0B;
-  --background: #07111F;
-  --secondary-dark: #101B3A;
+  --background: #070314;
+  --secondary-dark: #11052C;
   --surface: #FFFFFF;
   --soft-card: #F8FAFC;
-  --border-custom: rgba(6, 182, 212, 0.15);
+  --border-custom: rgba(139, 92, 246, 0.2);
   --text-custom: #F3F4F6;
   --card-text-custom: #0F172A;
   --muted-text: #94A3B8;
-  --shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.12);
-  --bg-gradient: radial-gradient(circle at 50% 0%, rgba(6, 182, 212, 0.2) 0%, transparent 65%), linear-gradient(180deg, #07111F 0%, #101B3A 100%);
+  --shadow: 0 12px 30px -10px rgba(79, 70, 229, 0.14), 0 20px 42px -20px rgba(79, 70, 229, 0.06);
+  --bg-gradient: radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.35) 0%, rgba(124, 58, 237, 0.15) 30%, rgba(13, 8, 30, 0.8) 75%, transparent 100%), radial-gradient(circle at 10% 80%, rgba(6, 182, 212, 0.12) 0%, transparent 50%), linear-gradient(180deg, #070314 0%, #11052C 35%, #0D041F 70%, #030107 100%);
 }
 
 body {
@@ -147,11 +147,12 @@ body .text-\[\#161A33\]:not(.bg-white *):not([id^="feed-card-"] *):not(.bg-\[\#1
 .bg-white,
 [id^="feed-card-"],
 .bg-\[\#121B2E\] {
-  background-color: var(--surface, #FFFFFF) !important;
-  color: var(--card-text-custom, #0F172A) !important;
-  box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.08), 0 4px 12px -2px rgba(7, 17, 31, 0.04) !important;
+  background-color: #F3E8FF !important; /* Premium high-contrast light lavender purple */
+  background-image: linear-gradient(145deg, #F3E8FF 0%, #E9D5FF 100%) !important; /* Soft luxurious light purple metal gradient */
+  color: #1A103C !important; /* Ultra high contrast deep-violet text */
+  box-shadow: 0 22px 50px -12px rgba(3, 1, 15, 0.35), 0 8px 24px -8px rgba(139, 92, 246, 0.15) !important; /* Clean outer glow with soft drop shadows */
   border-radius: 24px !important;
-  border: 1.5px solid rgba(6, 182, 212, 0.18) !important; /* Thin turquoise border using #06B6D4 with low opacity */
+  border: 2.5px solid rgba(139, 92, 246, 0.38) !important; /* Highly-visible premium futuristic purple border framing the postcards */
 }
 
 /* Secondary cards/boxes */
@@ -184,7 +185,7 @@ body .text-\[\#161A33\]:not(.bg-white *):not([id^="feed-card-"] *):not(.bg-\[\#1
 .bg-\[\#121B2E\]\/95 {
   background-color: var(--surface, #FFFFFF) !important;
   backdrop-filter: blur(16px) !important;
-  border: 1.5px solid rgba(6, 182, 212, 0.18) !important;
+  border: 1.5px solid rgba(139, 92, 246, 0.18) !important;
 }
 
 .bg-\[\#0B1020\]\/95 {
@@ -244,15 +245,34 @@ select option {
   color: var(--text-custom, #F3F4F6) !important;
 }
 
-/* Force all text inside cards to remain high contrast dark navy */
+/* Force all text inside cards to remain high-contrast dark navy / purple */
+[id^="feed-card-"] h1,
 [id^="feed-card-"] h2,
 [id^="feed-card-"] h3,
 [id^="feed-card-"] h4,
+[id^="feed-card-"] h5,
+[id^="feed-card-"] h6,
+[id^="feed-card-"] strong {
+  color: #120633 !important; /* Sparkling high-contrast dark purple header texts */
+}
+
 [id^="feed-card-"] p,
-[id^="feed-card-"] span:not(.text-white):not([class*="bg-indigo"]):not([class*="bg-cyan"]):not([class*="bg-emerald"]):not([class*="text-[white]"]):not([class*="bg-gradient"]),
+[id^="feed-card-"] span:not(.text-white):not([class*="bg-indigo"]):not([class*="bg-cyan"]):not([class*="bg-emerald"]):not([class*="text-[white]"]):not([class*="bg-gradient"]):not([class*="text-indigo"]):not([class*="text-emerald"]):not([class*="text-rose"]):not([class*="text-pink"]):not([class*="text-amber"]):not([class*="text-cyan"]):not([class*="text-violet"]),
 [id^="feed-card-"] label,
-[id^="feed-card-"] div:not([class*="bg-indigo"]):not([class*="bg-cyan"]):not([class*="bg-emerald"]) {
-  color: #0F172A !important; /* Dark Navy text on cards */
+[id^="feed-card-"] div:not([class*="bg-indigo"]):not([class*="bg-cyan"]):not([class*="bg-emerald"]):not([class*="bg-gradient"]):not([id^="card-header"]):not([class*="text-indigo"]):not([class*="text-emerald"]):not([class*="text-rose"]):not([class*="text-pink"]):not([class*="text-amber"]):not([class*="text-cyan"]):not([class*="text-violet"]):not([class*="text-slate-500"]) {
+  color: #2F1F58 !important; /* High contrast dark rich purple for body text */
+}
+
+/* Specific styling for nested text containers inside feed cards */
+[id^="feed-card-"] .text-slate-500,
+[id^="feed-card-"] .text-slate-600 {
+  color: #5D4A8E !important; /* Highly visible midtone purple lavender */
+}
+
+[id^="feed-card-"] .text-slate-700,
+[id^="feed-card-"] .text-slate-800,
+[id^="feed-card-"] .text-slate-900 {
+  color: #1A103C !important; /* Premium dark navy-purple for primary text list lines */
 }
 
 /* Inner block containers on postcards (RSVP, opportunities, study groups, etc) */
@@ -264,9 +284,39 @@ select option {
 [id^="feed-card-"] .bg-\[\#F7F4FF\]\/70,
 [id^="feed-card-"] div[class*="from-["],
 [id^="feed-card-"] .bg-gradient-to-br {
-  background: #F8FAFC !important; /* Very soft light gray box */
-  border: 1px solid rgba(6, 182, 212, 0.22) !important;
-  box-shadow: none !important;
+  background: #FFFFFF !important; /* Pure clean white inset container */
+  border: 1.5px solid rgba(139, 92, 246, 0.22) !important;
+  box-shadow: inset 0 1px 3px rgba(139, 92, 246, 0.08), 0 2px 6px rgba(139, 92, 246, 0.04) !important;
+}
+
+/* Inner description and sub-elements mapping */
+[id^="feed-card-"] .bg-amber-50 .text-slate-700,
+[id^="feed-card-"] .bg-amber-50 .text-slate-800 {
+  color: #B45309 !important; /* Elegant readable dark amber on white */
+}
+
+/* Styling for comments text and input fields inside card expanded section */
+[id^="feed-card-"] input[type="text"],
+[id^="feed-card-"] input select {
+  background-color: #FFFFFF !important;
+  color: #120633 !important;
+  border: 1.5px solid rgba(139, 92, 246, 0.3) !important;
+}
+
+[id^="feed-card-"] input[type="text"]::placeholder {
+  color: #8C7FA9 !important;
+}
+
+[id^="feed-card-"] .font-extrabold.text-\[\#161A33\] {
+  color: #1A103C !important; /* Dark comment author name text */
+}
+
+[id^="feed-card-"] .border-t.border-\[\#E6E1F5\] {
+  border-top: 1px solid rgba(139, 92, 246, 0.15) !important;
+}
+
+[id^="feed-card-"] .border-\[\#E6E1F5\] {
+  border-color: rgba(139, 92, 246, 0.15) !important;
 }
 
 #app-header-container {
@@ -293,12 +343,19 @@ select option {
 .bg-\[\#121B2E\] h3,
 .bg-\[\#121B2E\] h4,
 .bg-\[\#121B2E\] h5,
-.bg-\[\#121B2E\] h6,
+.bg-\[\#121B2E\] h6 {
+  color: #120633 !important;
+}
 .bg-\[\#121B2E\] p,
 .bg-\[\#121B2E\] span:not(.text-white):not([class*="bg-[#4F46E5]"]):not([class*="bg-indigo"]):not([class*="bg-cyan"]):not([class*="bg-emerald"]):not([class*="bg-gradient"]):not([class*="text-[white]"]),
 .bg-\[\#121B2E\] label,
 .bg-\[\#121B2E\] div:not(.bg-\[\#161A33\]):not([class*="bg-[#4F46E5]"]):not([class*="bg-indigo"]):not([class*="bg-cyan"]):not([class*="bg-emerald"]) {
-  color: var(--card-text-custom, #0F172A) !important;
+  color: #2F1F58 !important;
+}
+.bg-\[\#121B2E\] .text-slate-700,
+.bg-\[\#121B2E\] .text-slate-800,
+.bg-\[\#121B2E\] .text-slate-900 {
+  color: #1A103C !important;
 }
 
 .bg-\[\#121B2E\] .border-\[\#161A33\],
@@ -377,24 +434,25 @@ select option {
 /* Sleek subtle card design replacing blocky 3D elements */
 .shadow-premium-grow {
   transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
-  box-shadow: 0 10px 25px -5px rgba(6, 182, 212, 0.08) !important;
-  border: 1px solid var(--border-custom) !important;
+  box-shadow: 0 16px 36px -12px rgba(3, 1, 7, 0.65), 0 8px 18px -4px rgba(139, 92, 246, 0.25) !important;
+  border: 1.5px solid var(--border-custom) !important;
 }
 .shadow-premium-grow:hover {
   transform: translateY(-2px);
-  box-shadow: 0 16px 32px -6px rgba(6, 182, 212, 0.15) !important;
+  box-shadow: 0 24px 48px -10px rgba(3, 1, 7, 0.8), 0 12px 28px -6px rgba(139, 92, 246, 0.4) !important;
 }
 
 /* Interactive card transitions */
 .pop-card-3d {
-  background: var(--surface, #FFFFFF) !important;
-  border: 1.5px solid rgba(6, 182, 212, 0.22) !important;
-  box-shadow: 0 8px 16px -2px rgba(6, 182, 212, 0.06) !important;
+  background: #F3E8FF !important;
+  background-image: linear-gradient(145deg, #F3E8FF 0%, #E9D5FF 100%) !important;
+  border: 2px solid rgba(139, 92, 246, 0.35) !important;
+  box-shadow: 0 14px 32px -8px rgba(3, 1, 15, 0.35), 0 6px 16px -6px rgba(139, 92, 246, 0.15) !important;
   transition: all 0.2s ease;
 }
 .pop-card-3d:hover {
   transform: translateY(-2px);
-  box-shadow: 0 12px 24px -4px rgba(6, 182, 212, 0.12) !important;
+  box-shadow: 0 20px 42px -10px rgba(3, 1, 15, 0.45), 0 8px 24px -4px rgba(139, 92, 246, 0.25) !important;
 }
 
 /* Universal blocky 3D shadow remover & replacement */
@@ -404,9 +462,9 @@ select option {
 [class*="shadow-[2px_2px_0px_0px_#161A33]"],
 [class*="shadow-[4px_4px_0px_0px_#161A33]"],
 [class*="shadow-[5px_5px_0px_0px_#161A33]"] {
-  box-shadow: 0 8px 20px -3px rgba(6, 182, 212, 0.08), 0 3px 8px -2px rgba(7, 17, 31, 0.04) !important;
+  box-shadow: 0 14px 34px -10px rgba(79, 70, 229, 0.12), 0 4px 12px -3px rgba(11, 5, 26, 0.05) !important;
   border-width: 1px !important;
-  border-color: rgba(6, 182, 212, 0.2) !important;
+  border-color: rgba(139, 92, 246, 0.2) !important;
 }
 
 /* Primary buttons style using Royal Indigo (#4F46E5) with white text */
