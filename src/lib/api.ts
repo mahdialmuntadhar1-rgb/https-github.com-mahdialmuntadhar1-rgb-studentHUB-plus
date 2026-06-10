@@ -1,6 +1,7 @@
 import { Language } from '../types';
 
-const API_BASE = '/api';
+export const BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
+const API_BASE = `${BACKEND_URL}/api`;
 
 function getHeaders() {
   const headers: Record<string, string> = {
@@ -278,6 +279,16 @@ export const opportunityAutomation = {
     }
   }
 };
+
+export async function getOpportunities(lang: Language = 'ar') {
+  try {
+    const res = await fetch(`${BACKEND_URL}/api/opportunities`);
+    return await handleResponse(res, lang);
+  } catch (err: any) {
+    console.error('Error fetching opportunities:', err);
+    throw err;
+  }
+}
 
 export const outreachApi = {
   async getContacts(params: { page?: number; limit?: number; search?: string; status?: string } = {}, lang: Language = 'ar') {

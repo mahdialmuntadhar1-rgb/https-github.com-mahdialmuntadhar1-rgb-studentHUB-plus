@@ -120,6 +120,8 @@ export interface FeedItem {
   savedCount?: number;
   universityAppliedCount?: number;
   companyVerified?: boolean;
+  applyUrl?: string;
+  sourceUrl?: string;
   
   // For Events / Calendar
   eventDate?: string; // e.g., 'Thursday, June 18'

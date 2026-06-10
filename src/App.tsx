@@ -11,6 +11,8 @@ import AskFeed from './components/AskFeed';
 import ProfileView from './components/ProfileView';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
+import AdminAutomation from './components/AdminAutomation';
+import { BACKEND_URL } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
 
@@ -142,7 +144,7 @@ export default function App() {
       
       while (hasMore && attempts < 15) {
         attempts++;
-        const url = `https://rafid-api.mahdialmuntadhar1.workers.dev/api/institutions?limit=${limit}&offset=${offset}`;
+        const url = `${BACKEND_URL}/api/institutions?limit=${limit}&offset=${offset}`;
         const res = await fetch(url);
         if (!res.ok) {
           throw new Error(`Failed to fetch: ${res.statusText}`);
@@ -217,6 +219,17 @@ export default function App() {
 
   useEffect(() => {
     fetchInstitutions();
+
+    // Support #/opportunities or #opportunities route to switch tab to 'future'
+    const handleHash = () => {
+      const hash = window.location.hash;
+      if (hash === '#/opportunities' || hash === '#opportunities') {
+        setActiveTab('future');
+      }
+    };
+    window.addEventListener('hashchange', handleHash);
+    handleHash(); // Run on initial load
+    return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
   const handleRetryInstitutions = () => {
@@ -227,7 +240,7 @@ export default function App() {
   useEffect(() => {
     const fetchOpps = async () => {
       try {
-        const response = await fetch('/api/opportunities');
+        const response = await fetch(`${BACKEND_URL}/api/opportunities`);
         if (response.ok) {
           const list = await response.json();
           if (Array.isArray(list)) {
@@ -709,10 +722,11 @@ export default function App() {
         );
       case 'admin':
         return (
-          <AdminPanel
+          <AdminAutomation
             language={language}
             onBack={() => setActiveTab('profile')}
             showToast={showToast}
+            userRole={userProfile.role}
           />
         );
       default:

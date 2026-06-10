@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
+import { BACKEND_URL } from '../lib/api';
 import { HelpCircle, Sparkles, Send, MessagesSquare, CheckCircle, EyeOff, BookOpen, Clock, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
@@ -56,7 +57,7 @@ export default function AskFeed({
     setAiResponse(null);
 
     try {
-      const response = await fetch('/api/ask-ai', {
+      const response = await fetch(`${BACKEND_URL}/api/ask-ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
