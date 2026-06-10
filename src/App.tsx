@@ -433,6 +433,8 @@ export default function App() {
             onNavigateTab={setActiveTab}
             onAddNewPost={handleAddNewPost}
             isFeedLoading={isFeedLoading}
+            onAwardPoints={handleAwardPoints}
+            showToast={showToast}
           />
         );
       case 'life':

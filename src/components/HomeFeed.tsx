@@ -5,6 +5,7 @@ import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernora
 import { Sparkles, MessageSquare, Briefcase, PlusCircle, CheckCircle, Info, Image, EyeOff, MapPin, School, Palette, X, Calendar, Megaphone, HelpCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
+import StudentStories from './StudentStories';
 
 interface HomeFeedProps {
   feedItems: FeedItem[];
@@ -23,6 +24,8 @@ interface HomeFeedProps {
   onNavigateTab: (tabId: 'home' | 'life' | 'ask' | 'future' | 'profile') => void;
   onAddNewPost: (title: string, body: string, anonymous: boolean) => void;
   isFeedLoading?: boolean;
+  onAwardPoints?: (points: number) => void;
+  showToast?: (text: string, type?: 'success' | 'error' | 'info') => void;
 }
 
 // Global reuseable beautiful pulse Skeleton Loader
@@ -76,7 +79,9 @@ export default function HomeFeed({
   onAddComment,
   onNavigateTab,
   onAddNewPost,
-  isFeedLoading = false
+  isFeedLoading = false,
+  onAwardPoints,
+  showToast
 }: HomeFeedProps) {
   // Main tab selection state (Campus Life or Opportunities)
   const [activeSubTab, setActiveSubTab] = useState<'campus' | 'opportunities'>('campus');
@@ -338,6 +343,13 @@ export default function HomeFeed({
         </div>
 
       </div>
+
+      {/* Real-time Interactive Student Stories Row */}
+      <StudentStories 
+        language={language} 
+        onAwardPoints={onAwardPoints} 
+        showToast={showToast} 
+      />
 
       {/* 4. Stories Circles: social media story bubbles */}
       <div className="w-full mb-5 bg-[#121B2E] rounded-3xl border border-[#1F2E4D] p-3.5 shadow-sm" id="story-highlights-scroller-box">
