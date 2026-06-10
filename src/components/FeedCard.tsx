@@ -287,8 +287,33 @@ export default function FeedCard({
       <div className="flex-1" id={`card-body-${item.id}`}>
         {/* Localized Title */}
         {title && (
-          <h2 className="text-sm font-black text-[#161A33] tracking-tight leading-snug mb-1.5">
-            {title}
+          <h2 className="text-sm font-black text-[#161A33] tracking-tight leading-snug mb-1.5 flex flex-wrap items-center gap-1.5">
+            <span>{title}</span>
+            {['job', 'internship', 'scholarship', 'training', 'part_time_job', 'full_time_job', 'volunteering', 'competition', 'graduation_project_support', 'fellowship', 'event', 'announcement', 'exam'].includes(item.type) && (
+              <>
+                {(item.date?.includes('Recently') || item.isNew) && (
+                  <span className="text-[8px] font-black uppercase text-emerald-600 bg-emerald-100 border border-emerald-300 px-1.5 py-0.5 rounded shadow-sm leading-none shrink-0 animate-pulse">
+                    {language === 'ar' ? 'جديد ✨' : language === 'ku' ? 'نوێ ✨' : 'New ✨'}
+                  </span>
+                )}
+                {item.deadline && (
+                  (() => {
+                    try {
+                      const diffTime = new Date(item.deadline).getTime() - new Date().getTime();
+                      const diffDays = Math.ceil(diffTime / (1000 * 60 * 60 * 24));
+                      if (diffDays >= 0 && diffDays <= 5) {
+                        return (
+                          <span className="text-[8px] font-black uppercase text-amber-700 bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded shadow-sm leading-none shrink-0">
+                            {language === 'ar' ? 'قريب الإغلاق ⏳' : language === 'ku' ? 'نزیک کۆتایی ⏳' : 'Closing Soon ⏳'}
+                          </span>
+                        );
+                      }
+                    } catch (_) {}
+                    return null;
+                  })()
+                )}
+              </>
+            )}
           </h2>
         )}
 

@@ -593,6 +593,100 @@ Here is my initial guidance for you:
 });
 
 // -------------------------------------------------------------
+// Proximity Routing & Live Workers Proxying (Outreach & Automation)
+// -------------------------------------------------------------
+app.all("/api/opportunity-automation*", async (req, res) => {
+  try {
+    const targetUrl = `https://rafid-api.mahdialmuntadhar1.workers.dev${req.originalUrl}`;
+    const headers: Record<string, string> = {};
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (key.toLowerCase() !== "host") {
+        headers[key] = value as string;
+      }
+    }
+
+    const isMultipart = req.headers["content-type"]?.startsWith("multipart/form-data");
+    const method = req.method;
+
+    let body: any = undefined;
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+      if (isMultipart) {
+        // Fallback or pass-through stream logic
+        body = req;
+      } else {
+        body = JSON.stringify(req.body);
+      }
+    }
+
+    const response = await fetch(targetUrl, {
+      method,
+      headers,
+      body,
+      // Node fetch duplex parameter necessary when forwarding streams
+      ...(isMultipart ? { duplex: "half" } : {})
+    } as any);
+
+    const contentType = response.headers.get("content-type") || "";
+    res.status(response.status);
+    if (contentType.includes("application/json")) {
+      const data = await response.json();
+      res.json(data);
+    } else {
+      const text = await response.text();
+      res.send(text);
+    }
+  } catch (err: any) {
+    console.error("Proxy error for opportunity-automation:", err);
+    res.status(502).json({ success: false, error: "بوابة الأتمتة والفرص غير متصلة مؤقتاً: " + err.message });
+  }
+});
+
+app.all("/api/outreach*", async (req, res) => {
+  try {
+    const targetUrl = `https://rafid-api.mahdialmuntadhar1.workers.dev${req.originalUrl}`;
+    const headers: Record<string, string> = {};
+    for (const [key, value] of Object.entries(req.headers)) {
+      if (key.toLowerCase() !== "host") {
+        headers[key] = value as string;
+      }
+    }
+
+    const isMultipart = req.headers["content-type"]?.startsWith("multipart/form-data");
+    const method = req.method;
+
+    let body: any = undefined;
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+      if (isMultipart) {
+        body = req;
+      } else {
+        body = JSON.stringify(req.body);
+      }
+    }
+
+    const response = await fetch(targetUrl, {
+      method,
+      headers,
+      body,
+      // Node fetch duplex parameter necessary when forwarding streams
+      ...(isMultipart ? { duplex: "half" } : {})
+    } as any);
+
+    const contentType = response.headers.get("content-type") || "";
+    res.status(response.status);
+    if (contentType.includes("application/json")) {
+      const data = await response.json();
+      res.json(data);
+    } else {
+      const text = await response.text();
+      res.send(text);
+    }
+  } catch (err: any) {
+    console.error("Proxy error for outreach:", err);
+    res.status(502).json({ success: false, error: "بوابة الرسائل للتواصل غير متصلة: " + err.message });
+  }
+});
+
+// -------------------------------------------------------------
 // Vite or Static Asset Middlewares
 // -------------------------------------------------------------
 async function initServer() {

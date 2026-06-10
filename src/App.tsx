@@ -99,6 +99,121 @@ export default function App() {
     localStorage.setItem('jamiaati_feed_v2', JSON.stringify(feedItems));
   }, [feedItems]);
 
+  // Institutions Dynamic Loading States
+  const [institutions, setInstitutions] = useState<any[]>([]);
+  const [institutionsLoading, setInstitutionsLoading] = useState<boolean>(true);
+  const [institutionsError, setInstitutionsError] = useState<string | null>(null);
+
+  const normalizeGovernorate = (raw: string | null | undefined): string => {
+    if (!raw) return 'all';
+    const val = raw.trim().toLowerCase();
+    if (val === 'all iraq') return 'all';
+    if (val === 'baghdad') return 'baghdad';
+    if (val === 'nineveh' || val.includes('mosul') || val === 'nineveh (mosul)') return 'nineveh';
+    if (val === 'basra' || val === 'basrah') return 'basra';
+    if (val === 'sulaymaniyah' || val === 'sulaimani' || val === 'sulaimaniyah') return 'sulaymaniyah';
+    if (val === 'erbil' || val === 'erbil governorate') return 'erbil';
+    if (val === 'kirkuk') return 'kirkuk';
+    if (val === 'najaf') return 'najaf';
+    if (val === 'karbala' || val === 'kerbala') return 'karbala';
+    if (val === 'dhi qar' || val === 'dhi_qar' || val === 'thi qar' || val === 'ziqar') return 'dhi_qar';
+    if (val === 'babil' || val === 'babylon') return 'babil';
+    if (val === 'anbar') return 'anbar';
+    if (val === 'diyala') return 'diyala';
+    if (val === 'salahaddin' || val === 'salah ad-din' || val === 'salah_al_din' || val === 'salahaldeen' || val === 'salah al-din') return 'salah_al_din';
+    if (val === 'wasit') return 'wasit';
+    if (val === 'maysan') return 'maysan';
+    if (val === 'al-qadisiyah' || val === 'al_qadisiyah' || val === 'qadisiyah' || val === 'qadisiyyah' || val === 'diwaniyah' || val === 'al_qadisiyyah' || val === 'qadisiyah' || val === 'al-qadisiyyah') return 'al_qadisiyah';
+    if (val === 'muthanna') return 'muthanna';
+    if (val === 'duhok' || val === 'duhok governorate') return 'duhok';
+    if (val === 'halabja') return 'halabja';
+    return 'all';
+  };
+
+  const fetchInstitutions = async () => {
+    setInstitutionsLoading(true);
+    setInstitutionsError(null);
+    try {
+      let all: any[] = [];
+      let offset = 0;
+      let limit = 200;
+      let hasMore = true;
+      let attempts = 0;
+      
+      while (hasMore && attempts < 15) {
+        attempts++;
+        const url = `https://rafid-api.mahdialmuntadhar1.workers.dev/api/institutions?limit=${limit}&offset=${offset}`;
+        const res = await fetch(url);
+        if (!res.ok) {
+          throw new Error(`Failed to fetch: ${res.statusText}`);
+        }
+        const json = await res.json();
+        const list = json.institutions || [];
+        all = all.concat(list);
+        const pag = json.pagination || {};
+        offset += list.length;
+        hasMore = pag.hasMore && list.length > 0 && all.length < pag.total;
+      }
+
+      const colors = [
+        'from-blue-600 to-sky-500',
+        'from-emerald-600 to-teal-500',
+        'from-amber-600 to-indigo-500',
+        'from-rose-600 to-orange-500',
+        'from-violet-600 to-purple-500',
+        'from-cyan-600 to-blue-500'
+      ];
+
+      const mapped = all.map((inst: any) => {
+        const govId = normalizeGovernorate(inst.governorate);
+        
+        let logo = '🎓';
+        const type = (inst.type || '').toLowerCase();
+        if (type.includes('private')) logo = '🏛️';
+        else if (type.includes('college')) logo = '📖';
+        else if (type.includes('school')) logo = '🏫';
+        else if (type.includes('division') || type.includes('department')) logo = '🔬';
+        else if (type.includes('institute') || type.includes('research')) logo = '🛡️';
+        
+        const charSum = inst.id.split('').reduce((sum: number, c: string) => sum + c.charCodeAt(0), 0);
+        const color = colors[charSum % colors.length];
+
+        const nameEN = inst.name_en?.trim() || inst.name_ar?.trim() || 'Unnamed Institution';
+        let nameAR = inst.name_ar?.trim() || inst.name_en?.trim() || 'مؤسسة غير معروفة';
+        let nameKU = inst.name_ku?.trim() || inst.name_en?.trim() || inst.name_ar?.trim() || 'مؤسسەی نەناسراو';
+
+        return {
+          id: inst.id,
+          nameEN,
+          nameAR,
+          nameKU,
+          governorateId: govId,
+          logo,
+          color
+        };
+      });
+
+      // Synchronize/overwrite the exported IraqiUniversities array in-place so all downstream imports access live data
+      IraqiUniversities.length = 0;
+      IraqiUniversities.push(...mapped);
+
+      setInstitutions(mapped);
+    } catch (err: any) {
+      console.error('Failed to load institutions dynamically:', err);
+      setInstitutionsError(err.message || 'Unknown network error');
+    } finally {
+      setInstitutionsLoading(false);
+    }
+  };
+
+  useEffect(() => {
+    fetchInstitutions();
+  }, []);
+
+  const handleRetryInstitutions = () => {
+    fetchInstitutions();
+  };
+
   // Load dynamic scraped/approved opportunities on mount or activeTab swap
   useEffect(() => {
     const fetchOpps = async () => {
@@ -496,6 +611,10 @@ export default function App() {
             isFeedLoading={isFeedLoading}
             onAwardPoints={handleAwardPoints}
             showToast={showToast}
+            institutions={institutions}
+            institutionsLoading={institutionsLoading}
+            institutionsError={institutionsError}
+            onRetryInstitutions={handleRetryInstitutions}
           />
         );
       case 'life':

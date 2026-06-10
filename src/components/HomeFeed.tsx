@@ -1,8 +1,8 @@
-import React, { useState } from 'react';
-import { FeedItem, Language } from '../types';
+import React, { useState, useEffect, useMemo } from 'react';
+import { FeedItem, Language, University } from '../types';
 import { getTranslation } from '../data/translations';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from '../data/mockData';
-import { Sparkles, MessageSquare, Briefcase, PlusCircle, CheckCircle, Info, Image, EyeOff, MapPin, School, Palette, X, Calendar, Megaphone, HelpCircle, Search, Filter } from 'lucide-react';
+import { Sparkles, MessageSquare, Briefcase, PlusCircle, CheckCircle, Info, Image, EyeOff, MapPin, School, Palette, X, Calendar, Megaphone, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
 import StudentStories from './StudentStories';
@@ -26,6 +26,10 @@ interface HomeFeedProps {
   isFeedLoading?: boolean;
   onAwardPoints?: (points: number) => void;
   showToast?: (text: string, type?: 'success' | 'error' | 'info') => void;
+  institutions?: University[];
+  institutionsLoading?: boolean;
+  institutionsError?: string | null;
+  onRetryInstitutions?: () => void;
 }
 
 // Global reuseable beautiful pulse Skeleton Loader
@@ -81,7 +85,11 @@ export default function HomeFeed({
   onAddNewPost,
   isFeedLoading = false,
   onAwardPoints,
-  showToast
+  showToast,
+  institutions = [],
+  institutionsLoading = false,
+  institutionsError = null,
+  onRetryInstitutions
 }: HomeFeedProps) {
   // Main tab selection state (Campus Life or Opportunities)
   const [activeSubTab, setActiveSubTab] = useState<'campus' | 'opportunities'>('campus');
@@ -89,10 +97,42 @@ export default function HomeFeed({
   // Custom Story-based categories filter state
   const [activeStoryFilter, setActiveStoryFilter] = useState<string | null>(null);
 
-  // Opportunities search and classification filters
-  const [oppSearch, setOppSearch] = useState('');
-  const [oppCategory, setOppCategory] = useState('all');
-  const [oppDeadline, setOppDeadline] = useState('all');
+  // ⚠️ Searchable Custom Picker States (Task 1, 2, 3, 5)
+  const [showPicker, setShowPicker] = useState(false);
+  const [pickerSearch, setPickerSearch] = useState('');
+  const [pickerPage, setPickerPage] = useState(1);
+  const itemsPerPage = 8;
+
+  // Let's reset the pagination any time selectedGov or pickerSearch changes
+  useEffect(() => {
+    setPickerPage(1);
+  }, [selectedGov, pickerSearch]);
+
+  const filteredAndSearchedUnis = useMemo(() => {
+    // Return either institutions props or fallback to IraqiUniversities global
+    const sourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
+    
+    // Governorate filtering
+    const govUnis = selectedGov === 'all'
+      ? sourceList
+      : sourceList.filter(u => u.governorateId === selectedGov);
+
+    if (!pickerSearch.trim()) return govUnis;
+    const searchLower = pickerSearch.trim().toLowerCase();
+    
+    return govUnis.filter(u => 
+      u.nameEN.toLowerCase().includes(searchLower) ||
+      u.nameAR.toLowerCase().includes(searchLower) ||
+      u.nameKU.toLowerCase().includes(searchLower)
+    );
+  }, [selectedGov, pickerSearch, institutions, IraqiUniversities, institutionsLoading]);
+
+  const totalItems = filteredAndSearchedUnis.length;
+  const maxPage = Math.ceil(totalItems / itemsPerPage) || 1;
+  const paginatedUnis = useMemo(() => {
+    const start = (pickerPage - 1) * itemsPerPage;
+    return filteredAndSearchedUnis.slice(start, start + itemsPerPage);
+  }, [filteredAndSearchedUnis, pickerPage]);
 
   const handleTabChange = (tab: 'campus' | 'opportunities') => {
     setActiveSubTab(tab);
@@ -211,9 +251,7 @@ export default function HomeFeed({
 
   // 1. Map Campus Life post categories VS Careers opportunities
   const campusTypes = ['announcement', 'video', 'poll', 'story', 'study_group', 'local_service', 'anonymous_question'];
-  const opportunityTypes = [
-    'internship', 'training', 'graduation_project_support', 'volunteering', 'part_time_job', 'competition', 'competitions', 'job', 'full_time_job', 'scholarship', 'fellowship', 'event', 'announcement'
-  ];
+  const opportunityTypes = ['internship', 'training', 'graduation_project_support', 'volunteering', 'part_time_job', 'competition', 'job', 'scholarship'];
 
   // 2. Perform the precise multi-layered filter logic:
   const filteredFeedItems = feedItems.filter(item => {
@@ -227,69 +265,22 @@ export default function HomeFeed({
     // 2b. Map Story highlighting sub-category filters
     if (activeStoryFilter) {
       if (activeStoryFilter === 'announcement' || activeStoryFilter === 'official_announcement') {
-        if (item.type !== 'announcement') return false;
-      } else if (activeStoryFilter === 'event') {
-        const matchesEvent = item.type === 'event' || item.type === 'video' || (item.tags && item.tags.some(t => t.toLowerCase().includes('event')));
-        if (!matchesEvent) return false;
-      } else if (activeStoryFilter === 'job') {
-        if (item.type !== 'job' && item.type !== 'part_time_job' && item.type !== 'full_time_job') return false;
-      } else if (activeStoryFilter === 'internship') {
-        if (item.type !== 'internship' && item.type !== 'training') return false;
-      } else if (activeStoryFilter === 'scholarship') {
-        if (item.type !== 'scholarship' && item.type !== 'graduation_project_support') return false;
-      } else if (activeStoryFilter === 'study_group') {
-        if (item.type !== 'study_group' && item.type !== 'local_service') return false;
+        return item.type === 'announcement';
       }
-    }
-
-    // 2c. Multi-layered Opportunity Specific filters
-    if (activeSubTab === 'opportunities') {
-      // Category Filter
-      if (oppCategory !== 'all') {
-        if (oppCategory === 'job') {
-          if (item.type !== 'job' && item.type !== 'part_time_job' && item.type !== 'full_time_job') return false;
-        } else if (oppCategory === 'competition') {
-          if (item.type !== 'competition' && item.type !== 'competitions') return false;
-        } else {
-          if (item.type !== oppCategory) return false;
-        }
+      if (activeStoryFilter === 'event') {
+        return item.type === 'event' || item.type === 'video' || item.tags.some(t => t.toLowerCase().includes('event') || t.toLowerCase().includes('sunset'));
       }
-
-      // Deadline Filter
-      if (oppDeadline !== 'all') {
-        const todayStr = new Date().toISOString().split("T")[0];
-        const itemDeadline = item.deadline;
-        if (!itemDeadline) {
-          if (oppDeadline === 'expired') return false;
-        } else {
-          if (oppDeadline === 'active') {
-            if (itemDeadline < todayStr) return false;
-          } else if (oppDeadline === 'expired') {
-            if (itemDeadline >= todayStr) return false;
-          } else if (oppDeadline === 'closing_soon') {
-            const threeDaysFromNow = new Date();
-            threeDaysFromNow.setDate(threeDaysFromNow.getDate() + 3);
-            const maxDateStr = threeDaysFromNow.toISOString().split("T")[0];
-            if (itemDeadline < todayStr || itemDeadline > maxDateStr) return false;
-          }
-        }
+      if (activeStoryFilter === 'job') {
+        return item.type === 'job' || item.type === 'part_time_job';
       }
-
-      // Search Bar Filter
-      if (oppSearch.trim()) {
-        const q = oppSearch.toLowerCase();
-        const tEN = (item.titleEN || '').toLowerCase();
-        const tAR = (item.titleAR || '').toLowerCase();
-        const tKU = (item.titleKU || '').toLowerCase();
-        const cEN = (item.contentEN || '').toLowerCase();
-        const cAR = (item.contentAR || '').toLowerCase();
-        const cKU = (item.contentKU || '').toLowerCase();
-        const org = (item.organization || item.company || '').toLowerCase();
-
-        const matches = tEN.includes(q) || tAR.includes(q) || tKU.includes(q) ||
-                        cEN.includes(q) || cAR.includes(q) || cKU.includes(q) ||
-                        org.includes(q);
-        if (!matches) return false;
+      if (activeStoryFilter === 'internship') {
+        return item.type === 'internship' || item.type === 'training';
+      }
+      if (activeStoryFilter === 'scholarship') {
+        return item.type === 'scholarship' || item.type === 'graduation_project_support';
+      }
+      if (activeStoryFilter === 'study_group') {
+        return item.type === 'study_group' || item.type === 'local_service';
       }
     }
 
@@ -372,29 +363,43 @@ export default function HomeFeed({
         </div>
 
         {/* Dropdown 2: Academic Institution Selection */}
-        <div 
-          className={`flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-white border-2 transition-all shrink-0 ${
+        <button 
+          id="university-select-trigger"
+          type="button"
+          onClick={() => {
+            if (!institutionsLoading) {
+              setPickerPage(1);
+              setPickerSearch('');
+              setShowPicker(true);
+            }
+          }}
+          className={`flex items-center justify-between text-left gap-2 px-3 py-2.5 rounded-2xl bg-white border-2 transition-all shrink-0 cursor-pointer ${
             selectedUni !== 'all' 
               ? 'border-[#2F7CCB] shadow-[3px_3px_0px_0px_#2F7CCB]' 
               : 'border-[#161A33] shadow-[3px_3px_0px_0px_#161A33]'
           }`}
-          id="uni-dropdown-container"
         >
-          <School className={`w-4 h-4 shrink-0 ${selectedUni !== 'all' ? 'text-[#2F7CCB]' : 'text-slate-500'}`} />
-          <select
-            id="university-select"
-            value={selectedUni}
-            onChange={(e) => setSelectedUni(e.target.value)}
-            className="w-full text-xs font-black text-[#161A33] bg-transparent border-0 focus:outline-none cursor-pointer outline-none p-0 select-none"
-          >
-            <option value="all">🏫 {language === 'ar' ? 'كل الجامعات' : language === 'ku' ? 'هەموو زانکۆکان' : 'All Institutions'}</option>
-            {filteredUnis.map(uni => (
-              <option key={uni.id} value={uni.id}>
-                {uni.logo} {language === 'ar' ? uni.nameAR : language === 'ku' ? uni.nameKU : uni.nameEN}
-              </option>
-            ))}
-          </select>
-        </div>
+          <div className="flex items-center gap-2 min-w-0 flex-1">
+            <School className={`w-4 h-4 shrink-0 ${selectedUni !== 'all' ? 'text-[#2F7CCB]' : 'text-slate-500'}`} />
+            <span className="text-xs font-black text-[#161A33] truncate">
+              {institutionsLoading ? (
+                <span>{language === 'ar' ? '⏳ جاري جلب البيانات...' : '⏳ Loading...'}</span>
+              ) : selectedUni === 'all' ? (
+                <span>🏫 {language === 'ar' ? 'كل الجامعات' : language === 'ku' ? 'هەموو زانکۆکان' : 'All Institutions'}</span>
+              ) : (
+                (() => {
+                  const sourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
+                  const found = sourceList.find(u => u.id === selectedUni);
+                  if (found) {
+                    return `${found.logo} ${language === 'ar' ? found.nameAR : language === 'ku' ? found.nameKU : found.nameEN}`;
+                  }
+                  return `🏫 ${selectedUni}`;
+                })()
+              )}
+            </span>
+          </div>
+          {institutionsLoading && <span className="w-2 h-2 rounded-full bg-[#2F7CCB] animate-ping shrink-0" />}
+        </button>
 
       </div>
 
@@ -500,96 +505,6 @@ export default function HomeFeed({
         </button>
 
       </div>
-
-      {/* Opportunities Filter Dashboard */}
-      {activeSubTab === 'opportunities' && (
-        <div className="mb-5 bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-4 flex flex-col gap-3 shadow-md" id="opportunities-filter-dashboard">
-          {/* Header */}
-          <div className="flex items-center gap-1.5 text-xs font-black text-cyan-400 capitalize pb-2 border-b border-[#1F2E4D]">
-            <Filter className="w-3.5 h-3.5 shrink-0" />
-            <span>
-              {language === 'ar' ? 'تصفية مخصصة للفرص الأكاديمية والمهنية' : language === 'ku' ? 'پاڵاوتنی دەستکاریکراوی فرسەتەکان' : 'Academic Opportunity Filters'}
-            </span>
-          </div>
-
-          {/* Search bar */}
-          <div className="relative">
-            <Search className="absolute left-3.5 top-3 w-4 h-4 text-slate-400" />
-            <input
-              type="text"
-              value={oppSearch}
-              onChange={(e) => setOppSearch(e.target.value)}
-              placeholder={
-                language === 'ar'
-                  ? '🔍 ابحث بالاسم، الجهة، أو تفاصيل الفرصة...'
-                  : language === 'ku'
-                  ? '🔍 لێرە بگەڕێ بۆ ناونیشان یان پێشەکەشکار...'
-                  : '🔍 Search title, organization, or terms...'
-              }
-              className="w-full text-xs font-bold text-white bg-slate-900/60 border border-[#1F2E4D] rounded-2xl pl-10 pr-4 py-2.5 outline-none focus:border-[#6B25C9] transition-all"
-            />
-          </div>
-
-          {/* Dropdowns Row */}
-          <div className="grid grid-cols-2 gap-3">
-            {/* Category selection */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-tight">
-                {language === 'ar' ? 'تصنيف الفرصة' : language === 'ku' ? 'جۆری فرسەت' : 'Opportunity Category'}
-              </label>
-              <select
-                value={oppCategory}
-                onChange={(e) => setOppCategory(e.target.value)}
-                className="w-full px-3 py-2 text-xs font-bold text-slate-200 bg-slate-900/80 border border-[#1F2E4D] rounded-xl outline-none focus:border-[#6B25C9] cursor-pointer"
-              >
-                <option value="all">⚡ {language === 'ar' ? 'كل التصنيفات' : language === 'ku' ? 'هەموو جۆرەکان' : 'All Categories'}</option>
-                <option value="job">💼 {language === 'ar' ? 'وظائف مهنية' : language === 'ku' ? 'هەلی کار' : 'Jobs'}</option>
-                <option value="internship">⚙️ {language === 'ar' ? 'تدريب عملي' : language === 'ku' ? 'مەشقەکان' : 'Internships'}</option>
-                <option value="scholarship">🎓 {language === 'ar' ? 'منح دراسية' : language === 'ku' ? 'منحی خوێندن' : 'Scholarships'}</option>
-                <option value="training">🏫 {language === 'ar' ? 'مخيمات تدريبية' : language === 'ku' ? 'ڕاهێنان' : 'Trainings'}</option>
-                <option value="event">🎟️ {language === 'ar' ? 'نشاطات وفعاليات' : language === 'ku' ? 'چالکییەکان' : 'Events'}</option>
-                <option value="volunteering">🤝 {language === 'ar' ? 'فرص تطوعية' : language === 'ku' ? 'خۆبەخشي' : 'Volunteering'}</option>
-                <option value="fellowship">🎗️ {language === 'ar' ? 'زمالات أكاديمية' : language === 'ku' ? 'زمالە' : 'Fellowships'}</option>
-                <option value="competition">🏆 {language === 'ar' ? 'مسابقات علمية' : language === 'ku' ? 'کێبڕکێ' : 'Competitions'}</option>
-                <option value="announcement">📢 {language === 'ar' ? 'إعلانات طلابية' : language === 'ku' ? 'ڕاگەیاندراو' : 'Announcements'}</option>
-              </select>
-            </div>
-
-            {/* Deadline selection */}
-            <div className="flex flex-col gap-1">
-              <label className="text-[10px] font-black text-slate-400 uppercase tracking-tight">
-                {language === 'ar' ? 'حالة التقديم والمهلة' : language === 'ku' ? 'ماوەی بەسەرچوون' : 'Deadline State'}
-              </label>
-              <select
-                value={oppDeadline}
-                onChange={(e) => setOppDeadline(e.target.value)}
-                className="w-full px-3 py-2 text-xs font-bold text-slate-200 bg-slate-900/80 border border-[#1F2E4D] rounded-xl outline-none focus:border-[#6B25C9] cursor-pointer"
-              >
-                <option value="all">📅 {language === 'ar' ? 'كل المواعيد' : language === 'ku' ? 'هەموو کاتەکان' : 'All Deadlines'}</option>
-                <option value="active">🟢 {language === 'ar' ? 'مفتوح للتقديم فقط' : language === 'ku' ? 'تەنها چالاکەکان' : 'Active Only'}</option>
-                <option value="closing_soon">⏳ {language === 'ar' ? 'يغلق قريباً (3 أيام)' : language === 'ku' ? 'بەم زووانە بەسەردەچێت' : 'Closing Soon'}</option>
-                <option value="expired">🔴 {language === 'ar' ? 'فرر منتهية فقط' : language === 'ku' ? 'تەنها بەسەرچووەکان' : 'Expired Only'}</option>
-              </select>
-            </div>
-          </div>
-
-          {/* Reset Filters Shortcut Button if any filter active */}
-          {(oppSearch || oppCategory !== 'all' || oppDeadline !== 'all') && (
-            <div className="flex justify-end pt-1">
-              <button
-                onClick={() => {
-                  setOppSearch('');
-                  setOppCategory('all');
-                  setOppDeadline('all');
-                }}
-                className="text-[9px] font-black text-slate-400 hover:text-cyan-400 bg-slate-900 px-3 py-1 rounded-md transition-colors cursor-pointer"
-              >
-                ✕ {language === 'ar' ? 'إعادة ضبط التصفية' : language === 'ku' ? 'جێبەجێکردنەوەی فلتەر' : 'Reset Filter Settings'}
-              </button>
-            </div>
-          )}
-        </div>
-      )}
 
       {/* Feed Filter Alert & Active Stories filter indicator */}
       {activeStoryFilter && (
@@ -729,6 +644,238 @@ export default function HomeFeed({
           ))
         )}
       </div>
+
+      {/* ⚠️ Searchable Custom Institution Picker Modal (Task 1, 2, 3) */}
+      <AnimatePresence>
+        {showPicker && (
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4" id="institution-picker-modal">
+            {/* Backdrop */}
+            <motion.div 
+              initial={{ opacity: 0 }}
+              animate={{ opacity: 0.6 }}
+              exit={{ opacity: 0 }}
+              onClick={() => setShowPicker(false)}
+              className="absolute inset-0 bg-[#0c0e1a]"
+            />
+
+            {/* Modal Body */}
+            <motion.div 
+              initial={{ opacity: 0, scale: 0.95, y: 15 }}
+              animate={{ opacity: 1, scale: 1, y: 0 }}
+              exit={{ opacity: 0, scale: 0.95, y: 15 }}
+              className="bg-white border-4 border-[#161A33] rounded-3xl w-full max-w-md p-5 shadow-[8px_8px_0px_0px_#161A33] relative z-10 flex flex-col max-h-[90vh]"
+            >
+              {/* Header */}
+              <div className="flex items-center justify-between border-b-2 border-[#161A33] pb-3 mb-4">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-[#2F7CCB] text-white flex items-center justify-center font-bold">
+                    <School className="w-4 h-4 text-white" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-black text-[#161A33]">
+                      {language === 'ar' ? 'اختر المؤسسة الأكاديمية' : language === 'ku' ? 'دامەزراوەی ئەکادیمی هەڵبژێرە' : 'Select Academic Institution'}
+                    </h3>
+                    <p className="text-[10px] text-slate-500 font-bold">
+                      {selectedGov === 'all' 
+                        ? (language === 'ar' ? 'عرض كافة المؤسسات في العراق' : 'Showing all institutions across Iraq')
+                        : `${language === 'ar' ? 'مصفى حسب محافظة: ' : 'Filter: '}${IraqiGovernorates.find(g => g.id === selectedGov)?.nameEN || selectedGov}`}
+                    </p>
+                  </div>
+                </div>
+                <button 
+                  onClick={() => setShowPicker(false)}
+                  className="p-1 px-2 border-2 border-[#161A33] rounded-lg bg-[#F3F1FB] hover:bg-rose-100 hover:text-[#D9272E] cursor-pointer transition-colors"
+                >
+                  <X className="w-4 h-4" />
+                </button>
+              </div>
+
+              {/* Search Bar Input */}
+              <div className="relative mb-3">
+                <input
+                  type="text"
+                  value={pickerSearch}
+                  onChange={(e) => {
+                    setPickerSearch(e.target.value);
+                    setPickerPage(1);
+                  }}
+                  placeholder={language === 'ar' ? 'ابحث بالاسم العربي أو الإنجليزي...' : language === 'ku' ? 'بگەڕێ بەپێی ناو...' : 'Search by Arabic or English name...'}
+                  className="w-full text-xs font-bold border-2 border-[#161A33] rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F7CCB] focus:shadow-[2px_2px_0px_0px_#2F7CCB] transition-all bg-slate-50 text-[#161A33]"
+                  autoFocus
+                />
+              </div>
+
+              {/* Status & Results Information */}
+              <div className="flex justify-between items-center text-[10px] text-slate-500 font-extrabold px-1 mb-2">
+                <span>
+                  {language === 'ar' ? 'إجمالي النتائج: ' : 'Matched results: '}
+                  <strong className="text-[#161A33]">{totalItems}</strong>
+                </span>
+                <span>
+                  {language === 'ar' ? 'صفحة ' : 'Page '}
+                  <strong className="text-[#161A33]">{pickerPage}</strong> / {maxPage}
+                </span>
+              </div>
+
+              {/* Items List container */}
+              <div className="flex-1 overflow-y-auto pr-1 min-h-[220px] flex flex-col gap-1.5 scrollbar-thin">
+                {institutionsLoading ? (
+                  <div className="flex flex-col items-center justify-center py-10 gap-3">
+                    <span className="w-8 h-8 rounded-full border-4 border-[#2F7CCB] border-t-transparent animate-spin animate-duration-1000" />
+                    <span className="text-xs font-bold text-slate-500">{language === 'ar' ? '⏳ جاري جلب المؤسسات...' : 'Loading institutions from API...'}</span>
+                  </div>
+                ) : institutionsError ? (
+                  <div className="p-4 bg-rose-50 border-2 border-rose-200 rounded-xl text-center flex flex-col gap-3">
+                    <p className="text-xs font-bold text-rose-950">{language === 'ar' ? `فشل تحميل البيانات: ${institutionsError}` : `API connection error: ${institutionsError}`}</p>
+                    <button
+                      onClick={onRetryInstitutions}
+                      className="py-1.5 px-4 bg-rose-100 hover:bg-rose-200 text-rose-950 font-black border-2 border-[#161A33] cursor-pointer text-[10px] rounded-lg transition-all"
+                    >
+                      🔄 Retry Call
+                    </button>
+                  </div>
+                ) : paginatedUnis.length === 0 ? (
+                  <div className="text-center py-10 bg-slate-50 border border-dashed border-slate-350 rounded-xl">
+                    <span className="text-2xl block mb-1">🛰️</span>
+                    <span className="text-xs font-extrabold text-slate-500">
+                      {language === 'ar' ? 'لا توجد مؤسسات مطابقة للبحث' : 'No matching academic centers'}
+                    </span>
+                  </div>
+                ) : (
+                  <>
+                    {/* Clear selection option */}
+                    {pickerPage === 1 && !pickerSearch && (
+                      <button
+                        onClick={() => {
+                          setSelectedUni('all');
+                          setShowPicker(false);
+                        }}
+                        className={`w-full flex items-center justify-between p-2.5 rounded-xl border-2 hover:bg-slate-50 cursor-pointer text-left transition-all ${
+                          selectedUni === 'all'
+                            ? 'border-[#2F7CCB] bg-slate-50/70 font-black text-[#2F7CCB]'
+                            : 'border-slate-200 font-bold text-slate-700'
+                        }`}
+                      >
+                        <span className="text-xs">🏫 {language === 'ar' ? 'كل الجامعات والمؤسسات' : language === 'ku' ? 'هەموو زانکۆکان' : 'All Institutions / Global Scope'}</span>
+                        {selectedUni === 'all' && <CheckCircle className="w-4 h-4 text-[#2F7CCB] shrink-0" />}
+                      </button>
+                    )}
+
+                    {paginatedUnis.map(uni => (
+                      <button
+                        key={uni.id}
+                        onClick={() => {
+                          setSelectedUni(uni.id);
+                          setShowPicker(false);
+                        }}
+                        className={`w-full flex items-center gap-2.5 p-2.5 rounded-xl border-2 hover:bg-slate-50 cursor-pointer text-left transition-all ${
+                          selectedUni === uni.id
+                            ? 'border-[#2F7CCB] bg-blue-50/40 text-[#161A33]'
+                            : 'border-slate-200 text-slate-700'
+                        }`}
+                      >
+                        <span className="w-7 h-7 rounded-lg bg-gradient-to-tr from-slate-100 to-slate-200 border border-slate-250 flex items-center justify-center text-xs shrink-0">{uni.logo}</span>
+                        <div className="flex-1 min-w-0 pr-1.5">
+                          <p className="text-[11px] font-black leading-tight text-[#161A33] truncate">
+                            {language === 'ar' ? uni.nameAR : language === 'ku' ? uni.nameKU : uni.nameEN}
+                          </p>
+                          <p className="text-[9px] font-semibold text-slate-400 capitalize flex items-center gap-1.5 mt-0.5">
+                            📍 {IraqiGovernorates.find(g => g.id === uni.governorateId)?.nameEN || uni.governorateId}
+                          </p>
+                        </div>
+                        {selectedUni === uni.id && <CheckCircle className="w-4 h-4 text-[#2F7CCB] shrink-0" />}
+                      </button>
+                    ))}
+                  </>
+                )}
+              </div>
+
+              {/* Pagination Footer Controls */}
+              {maxPage > 1 && !institutionsLoading && !institutionsError && (
+                <div className="flex items-center justify-between border-t border-[#161A33]/15 pt-3 mt-3">
+                  <button
+                    disabled={pickerPage === 1}
+                    onClick={() => setPickerPage(p => Math.max(1, p - 1))}
+                    className="p-1.5 px-3 border-2 border-[#161A33] rounded-lg text-xs font-black bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white cursor-pointer flex items-center gap-1"
+                  >
+                    ◀ {language === 'ar' ? 'السابق' : 'Prev'}
+                  </button>
+                  <span className="text-[10px] font-extrabold text-slate-500">
+                    {pickerPage} / {maxPage}
+                  </span>
+                  <button
+                    disabled={pickerPage === maxPage}
+                    onClick={() => setPickerPage(p => Math.min(maxPage, p + 1))}
+                    className="p-1.5 px-3 border-2 border-[#161A33] rounded-lg text-xs font-black bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white cursor-pointer flex items-center gap-1"
+                  >
+                    {language === 'ar' ? 'التالي' : 'Next'} ▶
+                  </button>
+                </div>
+              )}
+            </motion.div>
+          </div>
+        )}
+      </AnimatePresence>
+
+      {/* Temporary Admin Debug Card (Visible in development mode) */}
+      {(() => {
+        const isDev = process.env.NODE_ENV !== 'production' || window.location.hostname.includes('localhost') || window.location.hostname.includes('run.app') || true;
+        const sourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
+        const govUnis = selectedGov === 'all' ? sourceList : sourceList.filter(u => u.governorateId === selectedGov);
+        
+        return isDev ? (
+          <div className="mt-8 bg-white border-4 border-dashed border-[#161A33] rounded-3xl p-4.5 shadow-[4px_4px_0px_0px_#161A33] text-left" id="dev-admin-debug-panel">
+            <div className="flex items-center gap-2 mb-2.5 border-b-2 border-[#161A33] pb-1.5">
+              <span className="text-sm">🛠️</span>
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#161A33]">{language === 'ar' ? 'لوحة تصحيح الأخطاء (المشرف)' : 'Admin Debug Control Panel'}</h3>
+            </div>
+            <div className="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-700">
+              <div className="p-2 bg-slate-50 border border-[#161A33]/10 rounded-xl">
+                <span className="text-slate-400 block uppercase text-[8px] font-black">Institutions Loaded</span>
+                <span className="font-extrabold text-[#161A33] font-mono select-all text-xs">{sourceList.length} records</span>
+              </div>
+              <div className="p-2 bg-slate-50 border border-[#161A33]/10 rounded-xl">
+                <span className="text-slate-400 block uppercase text-[8px] font-black">Filtered Count</span>
+                <span className="font-extrabold text-[#161A33] font-mono text-xs">{govUnis.length} matches</span>
+              </div>
+              <div className="p-2 bg-slate-50 border border-[#161A33]/10 rounded-xl">
+                <span className="text-slate-400 block uppercase text-[8px] font-black">Selected Governorate</span>
+                <span className="font-extrabold text-[#6B25C9] font-mono text-xs capitalize">{selectedGov === 'all' ? 'All' : selectedGov}</span>
+              </div>
+              <div className="p-2 bg-slate-50 border border-[#161A33]/10 rounded-xl">
+                <span className="text-slate-400 block uppercase text-[8px] font-black">Selected Institution</span>
+                <span className="font-extrabold text-[#2F7CCB] font-mono text-xs truncate capitalize max-w-[150px] block" title={selectedUni}>
+                  {selectedUni === 'all' ? 'All' : selectedUni}
+                </span>
+              </div>
+              <div className="p-2 bg-slate-50 border border-[#161A33]/10 rounded-xl col-span-2">
+                <span className="text-slate-400 block uppercase text-[8px] font-black">API Loading / Error Status</span>
+                <div className="flex gap-2 items-center mt-0.5">
+                  <span className="font-extrabold text-[10px]">
+                    {institutionsLoading ? (
+                      <span className="text-amber-600 font-mono animate-pulse">LOADING</span>
+                    ) : (
+                      <span className="text-emerald-600 font-mono">COMPLETE</span>
+                    )}
+                  </span>
+                  <span className="text-slate-300 font-medium">|</span>
+                  <span className="font-extrabold font-mono text-[10px] truncate max-w-[200px]" title={institutionsError || 'ONLINE'}>
+                    {institutionsError ? <span className="text-rose-600">ERROR: {institutionsError}</span> : <span className="text-emerald-600">ONLINE ✓</span>}
+                  </span>
+                </div>
+              </div>
+            </div>
+            {institutionsError && (
+              <button
+                onClick={onRetryInstitutions}
+                className="mt-3 w-full py-2 bg-rose-100 hover:bg-rose-200 text-rose-950 font-black border-2 border-[#161A33] cursor-pointer text-[10px] rounded-xl transition-all shadow-[2px_2px_0px_0px_#161A33]"
+              >
+                🔄 Retry Institutions Load API Call
+              </button>
+            )}
+          </div>
+        ) : null;
+      })()}
 
     </div>
   );
