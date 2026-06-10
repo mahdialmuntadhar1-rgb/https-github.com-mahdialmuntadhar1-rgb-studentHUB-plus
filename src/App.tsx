@@ -10,10 +10,37 @@ import FutureFeed from './components/FutureFeed';
 import AskFeed from './components/AskFeed';
 import ProfileView from './components/ProfileView';
 import AuthModal from './components/AuthModal';
+import OpportunitiesPage from './pages/OpportunitiesPage';
+import ScholarshipsPage from './pages/ScholarshipsPage';
+import AdminHighlightsPage from './pages/AdminHighlightsPage';
+import AdminOutreachPage from './pages/AdminOutreachPage';
+import AdminScholarshipsPage from './pages/AdminScholarshipsPage';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
 
 export default function App() {
+  const currentPath = window.location.pathname;
+
+  if (currentPath === '/opportunities') {
+    return <OpportunitiesPage />;
+  }
+
+  if (currentPath === '/scholarships') {
+    return <ScholarshipsPage />;
+  }
+
+  if (currentPath === '/admin/highlights') {
+    return <AdminHighlightsPage />;
+  }
+
+  if (currentPath === '/admin/outreach') {
+    return <AdminOutreachPage />;
+  }
+
+  if (currentPath === '/admin/scholarships') {
+    return <AdminScholarshipsPage />;
+  }
+
   // Locale States
   const [language, setLanguage] = useState<Language>('en');
   const [selectedGov, setSelectedGov] = useState<string>('all');
@@ -623,6 +650,10 @@ export default function App() {
             )}
           </button>
         </nav>
+
+        <div className="fixed bottom-[76px] left-1/2 z-40 -translate-x-1/2 rounded-full border border-cyan-400/20 bg-[#121B2E]/95 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-cyan-300 shadow-lg">
+          Build: Jamiaati Official Frontend - https-github - 2026-06-10 · API: rafid-api
+        </div>
 
         {/* Global Auth Modal Portal */}
         <AuthModal
