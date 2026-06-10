@@ -197,6 +197,15 @@ export default function App() {
       IraqiUniversities.length = 0;
       IraqiUniversities.push(...mapped);
 
+      // Synchronize/overwrite the exported IraqiGovernorates array in-place to reflect active governorates from dynamic loading
+      const activeGovIds = new Set(mapped.map(u => u.governorateId));
+      const originalGovs = [...IraqiGovernorates];
+      const activeGovsList = originalGovs.filter(g => activeGovIds.has(g.id));
+      if (activeGovsList.length > 0) {
+        IraqiGovernorates.length = 0;
+        IraqiGovernorates.push(...activeGovsList);
+      }
+
       setInstitutions(mapped);
     } catch (err: any) {
       console.error('Failed to load institutions dynamically:', err);

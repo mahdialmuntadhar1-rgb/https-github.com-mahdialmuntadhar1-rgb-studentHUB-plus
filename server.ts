@@ -271,7 +271,7 @@ Output only valid JSON container!`;
           original_source_url: item.link,
           published_date: runTimestamp.split("T")[0],
           imageUrl: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=600",
-          status: "pending",
+          status: "pending_review",
           workplaceType: "On-site",
           whoCanApply: "Graduates and undergraduates in Iraq. Check specific criteria on recruitment page.",
           salary: "Specified on approval",

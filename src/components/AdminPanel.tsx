@@ -56,7 +56,7 @@ interface Opportunity {
   original_source_url: string;
   published_date: string;
   imageUrl: string;
-  status: 'pending' | 'approved' | 'rejected' | 'expired';
+  status: 'pending' | 'pending_review' | 'approved' | 'rejected' | 'expired';
 }
 
 interface LogEntry {
@@ -268,6 +268,9 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
   };
 
   const isRTL = language === 'ar' || language === 'ku';
+
+  const pendingOpps = opportunities.filter(o => o.status === 'pending' || o.status === 'pending_review');
+  const nonPendingOpps = opportunities.filter(o => o.status !== 'pending' && o.status !== 'pending_review');
 
   return (
     <div id="admin-workspace-card" className="px-4 py-4 max-w-lg mx-auto flex flex-col pb-28 bg-[#0B1020] min-h-screen">
@@ -534,11 +537,11 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
                 <span>{getTranslatedLabel('pendingTitle')}</span>
               </h2>
               <span className="text-[9px] bg-[#121B2E] text-slate-300 font-extrabold border border-[#1F2E4D] px-2 py-0.5 rounded-lg leading-none">
-                {opportunities.filter(o => o.status === 'pending').length} items found
+                {pendingOpps.length} items found
               </span>
             </div>
 
-            {opportunities.filter(o => o.status === 'pending').length === 0 ? (
+            {pendingOpps.length === 0 ? (
               <div className="text-center py-12 bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-6">
                 <span className="text-3xl mb-1.5 select-none animate-pulse">🎉</span>
                 <p className="text-[11px] font-black text-white uppercase tracking-wide">
@@ -550,7 +553,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
               </div>
             ) : (
               <div className="flex flex-col gap-3.5">
-                {opportunities.filter(o => o.status === 'pending').map((o) => (
+                {pendingOpps.map((o) => (
                   <div 
                     key={o.id}
                     className="bg-[#121B2E] border-2 border-[#1F2E4D] px-3.5 py-4 rounded-3xl shadow-sm hover:shadow-cyan-950/10 hover:border-cyan-500/10 transition-all text-left"
@@ -644,7 +647,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
                 <span>Historic Decided / Expired Archive</span>
               </h4>
               <div className="flex flex-col gap-2">
-                {opportunities.filter(o => o.status !== 'pending').slice(0, 5).map(o => (
+                {nonPendingOpps.slice(0, 5).map(o => (
                   <div 
                     key={o.id} 
                     className="p-3 bg-[#121B2E]/65 border border-[#1F2E4D] rounded-2xl flex items-center justify-between text-left"

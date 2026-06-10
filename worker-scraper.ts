@@ -291,7 +291,7 @@ function cleanAndNormalizeOpportunity(item: any): any {
     contentKU: `وردەکاری دەرفەت لە سەرچاوەی فەرمیەوە: ${descCleaned}. تکایە سەردانی بەستەری سەرەکی بکەن بۆ پێشکەشکردنی داواکاری و بینینی مەرجەکان.`,
     governorateId: govKey,
     deadline: finalDeadline,
-    status: "pending"
+    status: "pending_review"
   };
 }
 

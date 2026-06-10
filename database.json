@@ -44,6 +44,116 @@
       "enabled": true,
       "last_checked": "2026-06-09T18:00:00Z",
       "error_status": null
+    },
+    {
+      "id": "mohesr-iraq-scholarships",
+      "name": "Iraqi MoHESR Scholarships",
+      "url": "https://mohesr.gov.iq/ar/category/scholarships/",
+      "type": "scholarships",
+      "category_scope": "scholarships",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "iraq-internships-hub",
+      "name": "Iraq Internships & Cooperational Training Hub",
+      "url": "https://www.iraqinternships.com/listings",
+      "type": "internships",
+      "category_scope": "internships",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "reiraq-tech-academy",
+      "name": "ReIraq Tech Training Academy",
+      "url": "https://www.reiraqtech.org/trainings",
+      "type": "trainings",
+      "category_scope": "trainings",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "iraq-tech-calendar",
+      "name": "Iraq Tech & Startup Ecosystem Calendar",
+      "url": "https://iraqstartupcalendar.org/events",
+      "type": "events",
+      "category_scope": "events",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "ircs-volunteering",
+      "name": "Iraqi Red Crescent Society Volunteering",
+      "url": "https://ircs.org.iq/volunteering",
+      "type": "volunteering",
+      "category_scope": "volunteering",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "ruwwad-iraq-fellowships",
+      "name": "Ruwwad Al-Iraq Fellowship Program",
+      "url": "https://ruwwad-iraq.net/fellowship",
+      "type": "fellowships",
+      "category_scope": "fellowships",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "iraqicpc-competition",
+      "name": "Iraq National Collegiate Programming Contest",
+      "url": "https://iraqicpc.org/competition",
+      "type": "competitions",
+      "category_scope": "competitions",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "uobaghdad-student-bulletin",
+      "name": "University of Baghdad Student Affairs Bulletin",
+      "url": "https://uobaghdad.edu.iq/news/student-announcements",
+      "type": "announcements",
+      "category_scope": "announcements",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "dirasat-gate-registration",
+      "name": "Central Admissions Registration Portal Iraq",
+      "url": "https://www.dirasat-gate.org/registration",
+      "type": "registration",
+      "category_scope": "registration",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "moedu-exam-timetables",
+      "name": "Ministry of Education Exam Timetables",
+      "url": "https://moedu.gov.iq/exams",
+      "type": "exams",
+      "category_scope": "exams",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "iraqiyouth-hub-listings",
+      "name": "Iraqi Youth Hub Mixed Announcements",
+      "url": "https://iraqiyouthhub.org/listings",
+      "type": "mixed",
+      "category_scope": "mixed",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
     }
   ],
   "opportunities": [

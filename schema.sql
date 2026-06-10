@@ -59,4 +59,15 @@ INSERT OR IGNORE INTO sources (id, name, url, type, enabled, last_checked, error
 ('un-jobs-iraq', 'United Nations Iraq Portal', 'https://iraq.un.org/en/jobs', 'jobs', 1, NULL, NULL),
 ('daad-iraq', 'DAAD German Scholarships Iraq', 'https://www.daad-iraq.org/en/', 'scholarships', 1, NULL, NULL),
 ('mhe-kurdish', 'MHESR Kurdistan Scholarships', 'https://mhe.gov.krd/', 'scholarships', 1, NULL, NULL),
-('five-one-labs', 'Five One Labs Incubator & Training', 'https://fiveonelabs.org/', 'trainings', 1, NULL, NULL);
+('five-one-labs', 'Five One Labs Incubator & Training', 'https://fiveonelabs.org/', 'trainings', 1, NULL, NULL),
+('mohesr-iraq-scholarships', 'Iraqi MoHESR Scholarships', 'https://mohesr.gov.iq/ar/category/scholarships/', 'scholarships', 1, NULL, NULL),
+('iraq-internships-hub', 'Iraq Internships & Cooperational Training Hub', 'https://www.iraqinternships.com/listings', 'internships', 1, NULL, NULL),
+('reiraq-tech-academy', 'ReIraq Tech Training Academy', 'https://www.reiraqtech.org/trainings', 'trainings', 1, NULL, NULL),
+('iraq-tech-calendar', 'Iraq Tech & Startup Ecosystem Calendar', 'https://iraqstartupcalendar.org/events', 'events', 1, NULL, NULL),
+('ircs-volunteering', 'Iraqi Red Crescent Society Volunteering', 'https://ircs.org.iq/volunteering', 'volunteering', 1, NULL, NULL),
+('ruwwad-iraq-fellowships', 'Ruwwad Al-Iraq Fellowship Program', 'https://ruwwad-iraq.net/fellowship', 'fellowships', 1, NULL, NULL),
+('iraqicpc-competition', 'Iraq National Collegiate Programming Contest', 'https://iraqicpc.org/competition', 'competitions', 1, NULL, NULL),
+('uobaghdad-student-bulletin', 'University of Baghdad Student Affairs Bulletin', 'https://uobaghdad.edu.iq/news/student-announcements', 'announcements', 1, NULL, NULL),
+('dirasat-gate-registration', 'Central Admissions Registration Portal Iraq', 'https://www.dirasat-gate.org/registration', 'registration', 1, NULL, NULL),
+('moedu-exam-timetables', 'Ministry of Education Exam Timetables', 'https://moedu.gov.iq/exams', 'exams', 1, NULL, NULL),
+('iraqiyouth-hub-listings', 'Iraqi Youth Hub Mixed Announcements', 'https://iraqiyouthhub.org/listings', 'mixed', 1, NULL, NULL);
