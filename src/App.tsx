@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Language, FeedItem, UserProfile, Comment } from './types';
-import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from './data/mockData';
+import { IraqiUniversities } from './data/mockData';
 import { getTranslation } from './data/translations';
 import { brandingThemes } from './data/themes';
 import Header from './components/Header';
@@ -12,7 +12,7 @@ import ProfileView from './components/ProfileView';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
-import { BACKEND_URL } from './lib/api';
+import { authApi, getInstitutions, postsApi } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, HelpCircle, Briefcase, User, Compass } from 'lucide-react';
 
@@ -32,12 +32,36 @@ const OPPORTUNITY_TYPES = new Set([
   'exam'
 ]);
 
+const FEED_TYPES = new Set([
+  'post',
+  'video',
+  'photo',
+  'story',
+  'poll',
+  'anonymous_question',
+  'announcement',
+  'job',
+  'internship',
+  'scholarship',
+  'training',
+  'event',
+  'study_group',
+  'local_service',
+  'part_time_job',
+  'full_time_job',
+  'volunteering',
+  'competition',
+  'graduation_project_support',
+  'fellowship',
+  'exam'
+]);
+
 function isPublicOpportunity(item: FeedItem): boolean {
   return OPPORTUNITY_TYPES.has(item.type) || Boolean(item.opportunityCategory);
 }
 
 function getStoredAuth() {
-  const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token') || '';
+  const token = localStorage.getItem('jamiaati_token') || '';
   let role = '';
 
   try {
@@ -53,13 +77,115 @@ function getStoredAuth() {
   return {
     token,
     isLoggedIn: Boolean(token),
-    isAdmin: Boolean(token && ['admin', 'staff', 'super_admin'].includes(role))
+    isAdmin: Boolean(token && ['admin', 'super_admin'].includes(role))
+  };
+}
+
+const guestUserProfile: UserProfile = {
+  id: 'guest',
+  name: 'Guest',
+  avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=200',
+  role: 'student',
+  universityId: 'all',
+  governorateId: 'all',
+  bioEN: 'Sign in to personalize your student profile.',
+  bioAR: 'سجّل دخولك لتخصيص ملفك الطلابي.',
+  bioKU: 'بچۆ ژوورەوە بۆ تایبەتمەندکردنی پڕۆفایلی خوێندکاریت.',
+  majorEN: 'Student',
+  majorAR: 'طالب',
+  majorKU: 'خوێندکار',
+  points: 0,
+  level: 1,
+  savedItemIds: [],
+  appliedJobIds: [],
+  joinedGroupIds: [],
+  rsvpedEventIds: []
+};
+
+function mapBackendUserToProfile(rawUser: any): UserProfile {
+  const user = rawUser?.user || rawUser?.profile || rawUser || {};
+  const role = String(user.role || 'student').toLowerCase();
+  const safeRole = ['student', 'graduate', 'teacher', 'staff', 'institution', 'admin', 'super_admin'].includes(role)
+    ? role
+    : 'student';
+
+  return {
+    ...guestUserProfile,
+    id: String(user.id || user.uid || user.email || 'me'),
+    name: String(user.name || user.full_name || user.email || 'Student'),
+    avatar: String(user.avatar || user.photoURL || guestUserProfile.avatar),
+    role: safeRole as any,
+    universityId: String(user.universityId || user.university_id || 'all'),
+    governorateId: String(user.governorateId || user.governorate_id || 'all'),
+    bioEN: String(user.bioEN || user.bio_en || guestUserProfile.bioEN),
+    bioAR: String(user.bioAR || user.bio_ar || guestUserProfile.bioAR),
+    bioKU: String(user.bioKU || user.bio_ku || guestUserProfile.bioKU),
+    majorEN: String(user.majorEN || user.major_en || user.major || guestUserProfile.majorEN),
+    majorAR: String(user.majorAR || user.major_ar || user.major || guestUserProfile.majorAR),
+    majorKU: String(user.majorKU || user.major_ku || user.major || guestUserProfile.majorKU),
+    points: Number(user.points || 0),
+    level: Number(user.level || 1),
+    savedItemIds: Array.isArray(user.savedItemIds) ? user.savedItemIds : [],
+    appliedJobIds: Array.isArray(user.appliedJobIds) ? user.appliedJobIds : [],
+    joinedGroupIds: Array.isArray(user.joinedGroupIds) ? user.joinedGroupIds : [],
+    rsvpedEventIds: Array.isArray(user.rsvpedEventIds) ? user.rsvpedEventIds : []
+  };
+}
+
+function mapBackendPostToFeedItem(post: any): FeedItem {
+  const type = FEED_TYPES.has(String(post?.type || '')) ? String(post.type) : 'post';
+  const content = String(post?.content || '');
+  const title = String(post?.title || '').trim();
+  const createdAt = post?.created_at || post?.createdAt || post?.date || new Date().toISOString();
+  const authorName = String(post?.author_full_name || post?.author_name || post?.author?.full_name || post?.author?.name || 'Jamiaati Student');
+  const authorAvatar = String(post?.author_avatar_url || post?.author_avatar || post?.author?.avatar_url || guestUserProfile.avatar);
+  const comments = Array.isArray(post?.comments) ? post.comments : [];
+
+  return {
+    id: String(post?.id || `post-${Date.now()}`),
+    type: type as FeedItem['type'],
+    titleEN: title,
+    titleAR: title,
+    titleKU: title,
+    contentEN: content,
+    contentAR: content,
+    contentKU: content,
+    author: {
+      name: authorName,
+      role: post?.is_verified ? 'institution' : 'student',
+      avatar: authorAvatar,
+      verified: Boolean(post?.is_verified),
+      university: String(post?.institution || '')
+    },
+    date: 'Recently',
+    rawDate: String(createdAt),
+    likes: Number(post?.likes_count || post?.likes || 0),
+    commentsCount: Number(post?.comments_count || comments.length || 0),
+    commentsList: comments.map((comment: any): Comment => ({
+      id: String(comment?.id || `comment-${Date.now()}`),
+      authorName: String(comment?.author_name || comment?.author_full_name || 'Student'),
+      authorRole: 'student',
+      authorAvatar: String(comment?.author_avatar || comment?.author_avatar_url || guestUserProfile.avatar),
+      content: String(comment?.content || ''),
+      date: 'Recently',
+      likes: Number(comment?.likes_count || 0)
+    })),
+    likedByUser: Boolean(post?.liked_by_user),
+    savedByUser: false,
+    views: Number(post?.views_count || 0),
+    tags: ['Community'],
+    imageUrl: post?.image_url || undefined,
+    governorateId: String(post?.governorate || '').toLowerCase() === 'iraq' ? 'all' : String(post?.governorate || 'all'),
+    universityId: String(post?.institution_id || 'all')
   };
 }
 
 export default function App() {
   // Locale States
-  const [language, setLanguage] = useState<Language>('ar');
+  const [language, setLanguage] = useState<Language>(() => {
+    const saved = localStorage.getItem('jamiaati_language');
+    return saved === 'ar' || saved === 'ku' || saved === 'en' ? saved : 'ar';
+  });
   const [selectedGov, setSelectedGov] = useState<string>('all');
   const [selectedUni, setSelectedUni] = useState<string>('all');
 
@@ -93,6 +219,12 @@ export default function App() {
     }
   }, [selectedTheme]);
 
+  useEffect(() => {
+    localStorage.setItem('jamiaati_language', language);
+    document.documentElement.lang = language;
+    document.documentElement.dir = language === 'en' ? 'ltr' : 'rtl';
+  }, [language]);
+
   // Toast notifications manager state
   interface ToastMessage {
     id: string;
@@ -112,7 +244,7 @@ export default function App() {
   // Navigation tab state
   const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'admin'>('home');
 
-  // Brief dynamic feed loading skeleton simulator
+  // Brief dynamic feed loading skeleton for filter transitions.
   const [isFeedLoading, setIsFeedLoading] = useState(false);
 
   useEffect(() => {
@@ -126,23 +258,19 @@ export default function App() {
   const [hasAdminAccess, setHasAdminAccess] = useState<boolean>(() => getStoredAuth().isAdmin);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
-  // Feed database state (persisted in session / local storage for active play)
-  const [feedItems, setFeedItems] = useState<FeedItem[]>(() => {
-    const saved = localStorage.getItem('jamiaati_feed_v2');
-    const parsed = saved ? JSON.parse(saved) : initialFeedItems;
-    return Array.isArray(parsed) ? parsed.filter((item: FeedItem) => !isPublicOpportunity(item)) : [];
-  });
+  // Feed posts come from the official backend. Unsupported interactions are labelled device-local.
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
 
   // User profile state (gamification & badges tracker)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('jamiaati_profile_v2');
-    return saved ? JSON.parse(saved) : defaultUserProfile;
+    try {
+      const token = localStorage.getItem('jamiaati_token');
+      const saved = localStorage.getItem('jamiaati_user');
+      return token && saved ? mapBackendUserToProfile(JSON.parse(saved)) : guestUserProfile;
+    } catch {
+      return guestUserProfile;
+    }
   });
-
-  // Sync to local states
-  useEffect(() => {
-    localStorage.setItem('jamiaati_feed_v2', JSON.stringify(feedItems));
-  }, [feedItems]);
 
   // Institutions Dynamic Loading States
   const [institutions, setInstitutions] = useState<any[]>([]);
@@ -187,12 +315,7 @@ export default function App() {
       
       while (hasMore && attempts < 15) {
         attempts++;
-        const url = `${BACKEND_URL}/api/institutions?limit=${limit}&offset=${offset}`;
-        const res = await fetch(url);
-        if (!res.ok) {
-          throw new Error(`Failed to fetch: ${res.statusText}`);
-        }
-        const json = await res.json();
+        const json = await getInstitutions({ limit, offset }, language);
         const list = json.institutions || [];
         all = all.concat(list);
         const pag = json.pagination || {};
@@ -238,19 +361,6 @@ export default function App() {
         };
       });
 
-      // Synchronize/overwrite the exported IraqiUniversities array in-place so all downstream imports access live data
-      IraqiUniversities.length = 0;
-      IraqiUniversities.push(...mapped);
-
-      // Synchronize/overwrite the exported IraqiGovernorates array in-place to reflect active governorates from dynamic loading
-      const activeGovIds = new Set(mapped.map(u => u.governorateId));
-      const originalGovs = [...IraqiGovernorates];
-      const activeGovsList = originalGovs.filter(g => activeGovIds.has(g.id));
-      if (activeGovsList.length > 0) {
-        IraqiGovernorates.length = 0;
-        IraqiGovernorates.push(...activeGovsList);
-      }
-
       setInstitutions(mapped);
     } catch (err: any) {
       console.error('Failed to load institutions dynamically:', err);
@@ -260,14 +370,58 @@ export default function App() {
     }
   };
 
+  const fetchPosts = async () => {
+    setIsFeedLoading(true);
+    try {
+      const json = await postsApi.list(language);
+      const list = Array.isArray(json?.posts) ? json.posts : Array.isArray(json) ? json : [];
+      setFeedItems(list.map(mapBackendPostToFeedItem).filter((item: FeedItem) => !isPublicOpportunity(item)));
+    } catch (err: any) {
+      console.error('Failed to load backend posts:', err);
+      setFeedItems([]);
+      showToast(
+        language === 'ar' ? 'تعذر تحميل منشورات الخادم الرسمي.' : language === 'ku' ? 'بارکردنی بابەتەکانی بەکئێندی فەرمی سەرکەوتوو نەبوو.' : 'Could not load official backend posts.',
+        'error'
+      );
+    } finally {
+      setIsFeedLoading(false);
+    }
+  };
+
   useEffect(() => {
     fetchInstitutions();
+    fetchPosts();
     const syncAuth = () => {
       const auth = getStoredAuth();
       setIsLoggedIn(auth.isLoggedIn);
       setHasAdminAccess(auth.isAdmin);
     };
     window.addEventListener('storage', syncAuth);
+    window.addEventListener('jamiaati-auth-changed', syncAuth);
+
+    const validateSession = async () => {
+      if (!localStorage.getItem('jamiaati_token')) {
+        setIsLoggedIn(false);
+        setHasAdminAccess(false);
+        setUserProfile(guestUserProfile);
+        return;
+      }
+
+      try {
+        const me = await authApi.me(language);
+        const profile = mapBackendUserToProfile(me);
+        localStorage.setItem('jamiaati_user', JSON.stringify(profile));
+        setUserProfile(profile);
+        setIsLoggedIn(true);
+        setHasAdminAccess(['admin', 'super_admin'].includes(String(profile.role).toLowerCase()));
+      } catch {
+        authApi.logout();
+        setIsLoggedIn(false);
+        setHasAdminAccess(false);
+        setUserProfile(guestUserProfile);
+      }
+    };
+    void validateSession();
 
     // Support #/opportunities or #opportunities route to switch tab to 'future'
     const handleHash = () => {
@@ -281,6 +435,7 @@ export default function App() {
     return () => {
       window.removeEventListener('hashchange', handleHash);
       window.removeEventListener('storage', syncAuth);
+      window.removeEventListener('jamiaati-auth-changed', syncAuth);
     };
   }, []);
 
@@ -289,41 +444,49 @@ export default function App() {
   };
 
   useEffect(() => {
-    localStorage.setItem('jamiaati_profile_v2', JSON.stringify(userProfile));
-  }, [userProfile]);
+    if (isLoggedIn) {
+      localStorage.setItem('jamiaati_user', JSON.stringify(userProfile));
+    }
+  }, [isLoggedIn, userProfile]);
 
   // Adjust application alignment automatically based on language direction
   const isRTL = language === 'ar' || language === 'ku';
 
   // State modification events
-  const handleLike = (id: string) => {
-    let triggeredToast = false;
+  const handleLike = async (id: string) => {
+    const previous = feedItems;
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
         const isLiked = !item.likedByUser;
-        if (!triggeredToast) {
-          triggeredToast = true;
-          if (isLiked) {
-            handleAwardPoints(5);
-            showToast(
-              language === 'ar' ? 'تم الإعجاب بالمنشور! ❤️ +٥ نقاط تفاعل' : language === 'ku' ? 'دڵخواز بوو! ❤️ +٥ خاڵی کارلێک' : 'Post Liked! ❤️ +5 pts', 
-              'success'
-            );
-          } else {
-            showToast(
-              language === 'ar' ? 'تم إلغاء الإعجاب بالمنشور' : language === 'ku' ? 'لادانی دڵخواز لە بابەتەکە' : 'Removed like from post', 
-              'info'
-            );
-          }
-        }
         return {
           ...item,
-          likes: isLiked ? item.likes + 1 : item.likes - 1,
+          likes: Math.max(0, isLiked ? item.likes + 1 : item.likes - 1),
           likedByUser: isLiked
         };
       }
       return item;
     }));
+
+    try {
+      const res = await postsApi.toggleLike(id, language);
+      setFeedItems(prev => prev.map(item => item.id === id ? {
+        ...item,
+        likes: Number(res?.likes_count ?? item.likes),
+        likedByUser: Boolean(res?.liked ?? item.likedByUser)
+      } : item));
+      showToast(
+        Boolean(res?.liked)
+          ? (language === 'ar' ? 'تم تسجيل الإعجاب في الخادم الرسمي.' : language === 'ku' ? 'دڵخوازکردن لە بەکئێندی فەرمی تۆمارکرا.' : 'Like saved to the official backend.')
+          : (language === 'ar' ? 'تم إلغاء الإعجاب في الخادم الرسمي.' : language === 'ku' ? 'دڵخوازکردن لە بەکئێندی فەرمی لابرا.' : 'Like removed from the official backend.'),
+        Boolean(res?.liked) ? 'success' : 'info'
+      );
+    } catch (err: any) {
+      setFeedItems(previous);
+      showToast(
+        err?.message || (language === 'ar' ? 'تعذر تحديث الإعجاب في الخادم الرسمي.' : language === 'ku' ? 'نوێکردنەوەی دڵخوازکردن لە بەکئێند سەرکەوتوو نەبوو.' : 'Could not update like on the official backend.'),
+        'error'
+      );
+    }
   };
 
   const handleSave = (id: string) => {
@@ -334,9 +497,8 @@ export default function App() {
         if (!triggeredToast) {
           triggeredToast = true;
           if (isSaved) {
-            handleAwardPoints(10);
             showToast(
-              language === 'ar' ? 'تم الحفظ في المحفظة الأكاديمية! 🔖 +١٠ نقاط' : language === 'ku' ? 'پاشەکەوتکرا لە جزدانی ئەکادیمی! 🔖 +١٠ خاڵ' : 'Saved to Hub Library! 🔖 +10 pts', 
+              language === 'ar' ? 'تم الحفظ على هذا الجهاز.' : language === 'ku' ? 'لەم ئامێرەدا پاشەکەوتکرا.' : 'Saved on this device.',
               'success'
             );
           } else {
@@ -364,9 +526,8 @@ export default function App() {
 
         if (!triggeredToast) {
           triggeredToast = true;
-          handleAwardPoints(25); // high reward for sharing feedback
           showToast(
-            language === 'ar' ? 'تم تسجيل رأيك الطلابي بنجاح! 📊 +٢٥ نقطة مساهمة' : language === 'ku' ? 'دەنگەکەت بە سەرکەوتوویی تۆمارکرا! 📊 +٢٥ خاڵ' : 'Feedback vote recorded! 📊 +25 pts', 
+            language === 'ar' ? 'تم تسجيل التصويت محلياً على هذا الجهاز.' : language === 'ku' ? 'دەنگەکەت ناوخۆیی لەم ئامێرەدا تۆمارکرا.' : 'Vote saved locally on this device.',
             'success'
           );
         }
@@ -394,9 +555,8 @@ export default function App() {
         if (!triggeredToast) {
           triggeredToast = true;
           if (isApplied) {
-            handleAwardPoints(50); // Massive career action reward!
             showToast(
-              language === 'ar' ? 'تم تسجيل طلب التقديم للفرصة بنجاح! 💼 +٥٠ نقطة تواصل مهني' : language === 'ku' ? 'پێشکەشکردنی داواکاری کارەکەت سەرکەوتوو بوو! 💼 +٥٠ خاڵی پیشەیی' : 'Application registered successfully! 💼 +50 Career pts', 
+              language === 'ar' ? 'تم فتح رابط التقديم إن توفر. لم يتم إرسال طلب داخل جامعتي.' : language === 'ku' ? 'ئەگەر لینک هەبێت کرایەوە. داواکاری لە جامعتي نەنێردرا.' : 'Apply link opened if available. No application was submitted inside Jamiaati.',
               'success'
             );
           } else {
@@ -423,9 +583,8 @@ export default function App() {
         if (!triggeredToast) {
           triggeredToast = true;
           if (isRsvped) {
-            handleAwardPoints(30);
             showToast(
-              language === 'ar' ? 'تم حجز تذكرتك الأكاديمية بنجاح! 🎟️ +٣٠ نقطة تفاعل' : language === 'ku' ? 'کورسیەکەت گیرا بۆ مەراسیمەکە! 🎟️ +٣٠ خاڵ' : 'Access ticket reserved! 🎟️ +30 pts', 
+              language === 'ar' ? 'تم حفظ تأكيد الحضور على هذا الجهاز.' : language === 'ku' ? 'بەشدارییەکە لەم ئامێرەدا پاشەکەوتکرا.' : 'RSVP saved on this device.',
               'success'
             );
           } else {
@@ -453,9 +612,8 @@ export default function App() {
         if (!triggeredToast) {
           triggeredToast = true;
           if (isJoined) {
-            handleAwardPoints(30);
             showToast(
-              language === 'ar' ? 'انضممت لمجموعة المراجعة! 👥 +٣٠ نقطة دراسية' : language === 'ku' ? 'پەیوەست بوویت بە گروپی گفتوگۆکە! 👥 +٣٠ خاڵی مراجعە' : 'Joined study circle! 👥 +30 Study pts', 
+              language === 'ar' ? 'تم حفظ الانضمام على هذا الجهاز.' : language === 'ku' ? 'پەیوەستبوونەکە لەم ئامێرەدا پاشەکەوتکرا.' : 'Join saved on this device.',
               'success'
             );
           } else {
@@ -475,70 +633,67 @@ export default function App() {
     }));
   };
 
-  const handleAddComment = (itemId: string, content: string) => {
-    const newComment: Comment = {
-      id: `c-${Date.now()}`,
-      authorName: userProfile.name,
-      authorRole: userProfile.role,
-      authorAvatar: userProfile.avatar,
-      content,
-      date: 'Just now'
-    };
+  const handleAddComment = async (itemId: string, content: string) => {
+    try {
+      const saved = await postsApi.addComment(itemId, content, language);
+      const newComment: Comment = {
+        id: String(saved?.id || `c-${Date.now()}`),
+        authorName: String(saved?.author_name || userProfile.name),
+        authorRole: userProfile.role,
+        authorAvatar: String(saved?.author_avatar || userProfile.avatar),
+        content: String(saved?.content || content),
+        date: 'Just now',
+        likes: Number(saved?.likes_count || 0)
+      };
 
-    handleAwardPoints(15); // reward commenting and discussion
-    showToast(
-      language === 'ar' ? 'تم نشر تعليقك الأكاديمي بنجاح! 💬 +١٥ نقطة مراجع' : language === 'ku' ? 'وەڵامەکەت بڵاوکرایەوە بە سەرکەوتوویی! 💬 +١٥ خاڵ' : 'Academic comment posted! 💬 +15 pts', 
-      'success'
-    );
+      setFeedItems(prev => prev.map(item => {
+        if (item.id === itemId) {
+          return {
+            ...item,
+            commentsCount: item.commentsCount + 1,
+            commentsList: [...item.commentsList, newComment]
+          };
+        }
+        return item;
+      }));
 
-    setFeedItems(prev => prev.map(item => {
-      if (item.id === itemId) {
-        return {
-          ...item,
-          commentsCount: item.commentsCount + 1,
-          commentsList: [...item.commentsList, newComment]
-        };
-      }
-      return item;
-    }));
+      showToast(
+        language === 'ar' ? 'تم حفظ تعليقك في الخادم الرسمي.' : language === 'ku' ? 'لێدوانەکەت لە بەکئێندی فەرمی پاشەکەوتکرا.' : 'Comment saved to the official backend.',
+        'success'
+      );
+    } catch (err: any) {
+      showToast(
+        err?.message || (language === 'ar' ? 'تعذر حفظ التعليق في الخادم الرسمي.' : language === 'ku' ? 'پاشەکەوتکردنی لێدوان لە بەکئێند سەرکەوتوو نەبوو.' : 'Could not save comment to the official backend.'),
+        'error'
+      );
+    }
   };
 
-  const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post') => {
-    const freshPost: FeedItem = {
-      id: `custom-${Date.now()}`,
-      type: customType as any,
-      titleEN: title,
-      titleAR: title,
-      titleKU: title,
-      contentEN: body,
-      contentAR: body,
-      contentKU: body,
-      author: anonymous ? {
-        name: 'Anonymous Student',
-        role: 'student',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100'
-      } : {
-        name: userProfile.name,
-        role: userProfile.role,
-        avatar: userProfile.avatar,
-        university: IraqiUniversities.find(u => u.id === userProfile.universityId)?.nameEN
-      },
-      date: 'Just now',
-      likes: 1,
-      commentsCount: 0,
-      commentsList: [],
-      likedByUser: true,
-      governorateId: selectedGov === 'all' ? userProfile.governorateId : selectedGov,
-      universityId: selectedUni === 'all' ? userProfile.universityId : selectedUni,
-      tags: ['StudentShare', customType === 'anonymous_question' ? 'Advising' : 'Life']
-    };
+  const handleAddNewPost = async (title: string, body: string, anonymous: boolean, customType = 'post') => {
+    try {
+      const institution = IraqiUniversities.find(u => u.id === (selectedUni === 'all' ? userProfile.universityId : selectedUni));
+      const saved = await postsApi.create({
+        type: customType,
+        title,
+        content: body,
+        governorate: selectedGov === 'all' ? userProfile.governorateId : selectedGov,
+        institution: institution?.nameEN || userProfile.universityId || 'Jamiaati',
+        institution_id: selectedUni === 'all' ? userProfile.universityId : selectedUni,
+        metadata: { anonymous }
+      }, language);
 
-    handleAwardPoints(40); // high points for sharing posts!
-    showToast(
-      language === 'ar' ? 'تم نشر مساهمتك بنجاح على ساحة الطلاب! ✨ +٤٠ نقطة' : language === 'ku' ? 'بڵاوکراوەکەت بڵاوکرایەوە لە ساحەی قوتابیان! ✨ +٤٠ خاڵ' : 'Contribution published successfully! ✨ +40 pts', 
-      'success'
-    );
-    setFeedItems(prev => [freshPost, ...prev]);
+      const freshPost = mapBackendPostToFeedItem(saved);
+      setFeedItems(prev => [freshPost, ...prev]);
+      showToast(
+        language === 'ar' ? 'تم حفظ المشاركة في الخادم الرسمي.' : language === 'ku' ? 'هاوبەشکراوەکە لە بەکئێندی فەرمی پاشەکەوتکرا.' : 'Post saved to the official backend.',
+        'success'
+      );
+    } catch (err: any) {
+      showToast(
+        err?.message || (language === 'ar' ? 'تعذر حفظ المشاركة في الخادم الرسمي.' : language === 'ku' ? 'پاشەکەوتکردنی هاوبەشکراوە لە بەکئێند سەرکەوتوو نەبوو.' : 'Could not save post to the official backend.'),
+        'error'
+      );
+    }
   };
 
   // Gamification engine helpers
@@ -681,12 +836,10 @@ export default function App() {
             onAddComment={handleAddComment}
             isLoggedIn={isLoggedIn}
             onLogout={() => {
+              authApi.logout();
               setIsLoggedIn(false);
               setHasAdminAccess(false);
-              localStorage.removeItem('jamiaati_token');
-              localStorage.removeItem('admin_token');
-              localStorage.removeItem('jamiaati_user');
-              localStorage.removeItem('jamiaati_logged_in');
+              setUserProfile(guestUserProfile);
               showToast(
                 language === 'ar' ? 'تم تسجيل خروجك بنجاح. نراك قريباً! 👋' : language === 'ku' ? 'خۆتۆمارکردنەکەت کۆتایی پێهات. بە هیوای دیدار! 👋' : 'Logged out successfully. See you! 👋', 
                 'info'
@@ -702,24 +855,25 @@ export default function App() {
             language={language}
             onBack={() => setActiveTab('profile')}
             showToast={showToast}
-            userRole="staff"
+            userRole={String(userProfile.role)}
           />
         ) : (
-          <ProfileView
-            user={userProfile}
-            feedItems={feedItems}
-            language={language}
-            onLike={handleLike}
-            onSave={handleSave}
-            onVote={handleVote}
-            onApply={handleApply}
-            onRsvp={handleRsvp}
-            onJoinGroup={handleJoinGroup}
-            onAddComment={handleAddComment}
-            isLoggedIn={isLoggedIn}
-            onLogout={() => setIsLoggedIn(false)}
-            onTriggerAuth={() => setIsAuthModalOpen(true)}
-          />
+          <div className="px-4 py-10 max-w-lg mx-auto flex flex-col pb-28 bg-[#0B1020] min-h-[70vh] justify-center items-center">
+            <div className="bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-6 text-center w-full">
+              <h2 className="text-base font-black text-white">
+                {language === 'ar' ? 'تسجيل دخول المدير مطلوب' : language === 'ku' ? 'چوونەژوورەوەی بەڕێوەبەر پێویستە' : 'Admin login required'}
+              </h2>
+              <p className="mt-2 text-xs text-slate-300 font-semibold">
+                {language === 'ar' ? 'يجب استخدام حساب مدير موثق من الخادم الرسمي.' : language === 'ku' ? 'دەبێت هەژماری بەڕێوەبەری پشتڕاستکراوی بەکئێند بەکاربهێنیت.' : 'Use a backend-authenticated admin account to continue.'}
+              </p>
+              <button
+                onClick={() => setIsAuthModalOpen(true)}
+                className="w-full mt-5 py-3 bg-gradient-to-r from-[#4F46E5] via-[#2563EB] to-[#06B6D4] text-xs font-black text-white rounded-2xl"
+              >
+                {language === 'ar' ? 'تسجيل الدخول' : language === 'ku' ? 'چوونەژوورەوە' : 'Sign in'}
+              </button>
+            </div>
+          </div>
         );
       default:
         return null;
@@ -835,16 +989,14 @@ export default function App() {
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
           language={language}
-          onAuthSuccess={(newUsername) => {
+          onAuthSuccess={(backendUser) => {
+            const profile = mapBackendUserToProfile(backendUser);
             const auth = getStoredAuth();
-            setIsLoggedIn(auth.isLoggedIn);
-            setHasAdminAccess(auth.isAdmin);
-            setUserProfile(prev => ({
-              ...prev,
-              name: newUsername || 'Zara Al-Iraqi'
-            }));
+            setIsLoggedIn(true);
+            setHasAdminAccess(auth.isAdmin || ['admin', 'super_admin'].includes(String(profile.role).toLowerCase()));
+            setUserProfile(profile);
             showToast(
-              language === 'ar' ? `مرحباً بك مجدداً يا ${newUsername || 'زارا'}! 👋 تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'زارا'}! 👋 دابەزاندن سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Zara'}! 👋 Signed in`, 
+              language === 'ar' ? `مرحباً بك ${profile.name}! تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیت ${profile.name}! چوونەژوورەوە سەرکەوتوو بوو` : `Welcome, ${profile.name}! Signed in`,
               'success'
             );
           }}

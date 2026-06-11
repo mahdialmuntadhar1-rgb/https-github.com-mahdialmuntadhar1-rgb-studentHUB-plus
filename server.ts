@@ -38,6 +38,19 @@ function writeDB(data: any) {
   }
 }
 
+function requireAdmin(req: express.Request, res: express.Response, next: express.NextFunction) {
+  const configuredSecret = process.env.ADMIN_JWT_SECRET;
+  const authHeader = req.headers.authorization || "";
+  const token = authHeader.startsWith("Bearer ") ? authHeader.slice(7).trim() : "";
+
+  if (!configuredSecret || !token || token !== configuredSecret) {
+    res.status(401).json({ error: "Admin login required" });
+    return;
+  }
+
+  next();
+}
+
 // Lazy-loaded Gemini AI client to avoid crashes if GEMINI_API_KEY is not initially configured
 let aiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI {
@@ -98,7 +111,7 @@ async function runScraperInExpress() {
           webText = await res.text();
         }
       } catch (e: any) {
-        console.warn(`Could not reach ${source.url} directly: ${e.message}. Using high-fidelity content simulator.`);
+        console.warn(`Could not reach ${source.url} directly: ${e.message}. No items found.`);
       }
 
       // 1. EXTRACT DATA ITEMS
@@ -132,33 +145,9 @@ async function runScraperInExpress() {
         }
       }
 
-      // Fallback/Generator to guarantee active mock parsing if site is silent/offline
       if (itemsToProcess.length === 0) {
-        const generatedTitles: Record<string, string[]> = {
-          "jobs": [
-            "Network Systems Admin Level-1",
-            "Junior Software Engineer",
-            "Technical Operations Desk Coordinator"
-          ],
-          "scholarships": [
-            "Postgrad Research Scholarship 2026",
-            "Stipend Award for IT Undergraduates",
-            "Scientific Exchange Grant"
-          ],
-          "trainings": [
-            "Advanced Cloud Architecture Masterclass",
-            "Full Stack Development Bootcamp",
-            "Mobile App UX Research Intensive"
-          ]
-        };
-        const defaults = generatedTitles[source.type] || ["Global Youth Leadership Fellowship"];
-        const chosenTitle = defaults[Math.floor(Math.random() * defaults.length)];
-
-        itemsToProcess.push({
-          title: `${chosenTitle} at ${source.name}`,
-          link: `${source.url}/apply-now-2026-${Math.floor(Math.random() * 1000)}`,
-          snippet: `This high-level program at ${source.name} provides direct professional mentoring, project stipends, and certificate training designed for students across Iraq.`
-        });
+        stats.errors.push(`${source.name}: no items found`);
+        continue;
       }
 
       // 2. CLEAN AND CLASSIFY (GEMINI AI preferred, rule heuristic as solid fallback)
@@ -341,18 +330,23 @@ app.get("/api/health", (req, res) => {
 // Dynamic Opportunities feed (Returns Approved opportunities to standard search)
 app.get("/api/opportunities", (req, res) => {
   const db = readDB();
-  const approvedOnly = db.opportunities.filter((o: any) => o.status === "approved" || o.status === "expired" || !o.status);
+  const todayStr = new Date().toISOString().split("T")[0];
+  const approvedOnly = db.opportunities.filter((o: any) => {
+    if (o.status !== "approved") return false;
+    if (o.deadline && o.deadline < todayStr) return false;
+    return true;
+  });
   res.json(approvedOnly);
 });
 
 // Admin list of all opportunities
-app.get("/api/admin/opportunities", (req, res) => {
+app.get("/api/admin/opportunities", requireAdmin, (req, res) => {
   const db = readDB();
   res.json(db.opportunities);
 });
 
 // Admin perform moderation action (approve, reject, expire)
-app.post("/api/admin/opportunities/action", (req, res) => {
+app.post("/api/admin/opportunities/action", requireAdmin, (req, res) => {
   const { id, action } = req.body;
   if (!id || !action) {
     res.status(400).json({ error: "Missing required parameters: id and action." });
@@ -382,7 +376,7 @@ app.post("/api/admin/opportunities/action", (req, res) => {
 });
 
 // Admin edit opportunity
-app.post("/api/admin/opportunities/edit", (req, res) => {
+app.post("/api/admin/opportunities/edit", requireAdmin, (req, res) => {
   const { id, titleEN, titleAR, titleKU, contentEN, contentAR, contentKU, category, deadline, application_link } = req.body;
   if (!id) {
     res.status(400).json({ error: "Opportunity ID is required." });
@@ -414,13 +408,13 @@ app.post("/api/admin/opportunities/edit", (req, res) => {
 });
 
 // Admin get sources
-app.get("/api/admin/sources", (req, res) => {
+app.get("/api/admin/sources", requireAdmin, (req, res) => {
   const db = readDB();
   res.json(db.sources);
 });
 
 // Admin save or create source
-app.post("/api/admin/sources", (req, res) => {
+app.post("/api/admin/sources", requireAdmin, (req, res) => {
   const { id, name, url, type, enabled } = req.body;
   if (!name || !url || !type) {
     res.status(400).json({ error: "Missing required fields: name, url, and type are required." });
@@ -457,7 +451,7 @@ app.post("/api/admin/sources", (req, res) => {
 });
 
 // Admin delete source
-app.delete("/api/admin/sources", (req, res) => {
+app.delete("/api/admin/sources", requireAdmin, (req, res) => {
   const { id } = req.body;
   if (!id) {
     res.status(400).json({ error: "Source ID is required." });
@@ -478,7 +472,7 @@ app.delete("/api/admin/sources", (req, res) => {
 });
 
 // Admin manual scraper trigger API
-app.post("/api/admin/scraper/run", async (req, res) => {
+app.post("/api/admin/scraper/run", requireAdmin, async (req, res) => {
   try {
     const stats = await runScraperInExpress();
     res.json({ success: true, stats });
@@ -488,7 +482,7 @@ app.post("/api/admin/scraper/run", async (req, res) => {
 });
 
 // Admin logs
-app.get("/api/admin/logs", (req, res) => {
+app.get("/api/admin/logs", requireAdmin, (req, res) => {
   const db = readDB();
   res.json(db.logs);
 });

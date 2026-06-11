@@ -66,6 +66,9 @@ export default function FeedCard({
   const resolvedGovLabel = matchedGov 
     ? (language === 'ar' ? matchedGov.nameAR : language === 'ku' ? matchedGov.nameKU : matchedGov.nameEN)
     : '';
+  const notSpecified = language === 'ar' ? 'غير محدد' : language === 'ku' ? 'دیاری نەکراوە' : 'Not specified';
+  const linkUnavailable = language === 'ar' ? 'الرابط غير متوفر' : language === 'ku' ? 'لینک بەردەست نییە' : 'Link not available';
+  const applyLinkAvailable = Boolean(item.applyUrl || item.sourceUrl);
 
   // Helper to render high-contrast, youthful Instagram-like galleries and mosaics
   const renderImageGallery = () => {
@@ -325,7 +328,7 @@ export default function FeedCard({
         {/* Media Attachments */}
         {renderImageGallery()}
 
-        {/* Video simulation */}
+        {/* Video preview */}
         {item.type === 'video' && item.videoThumbnail && (
           <div className="rounded-xl overflow-hidden mb-3 border border-[#1F2E4D] h-48 bg-gray-950 relative flex items-center justify-center">
             <img src={item.videoThumbnail} alt={title} className="w-full h-full object-cover opacity-70" referrerPolicy="no-referrer" />
@@ -409,7 +412,7 @@ export default function FeedCard({
                 <div>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <h4 className="text-[12px] font-black text-[#161A33] leading-tight">
-                      {item.company || 'Iraq Opportunity Provider'}
+                  {item.company || item.author.name || notSpecified}
                     </h4>
                     {(item.companyVerified || item.author.verified) && (
                       <span className="text-[9px] font-extrabold bg-[#FFD21F]/20 text-[#161A33] px-1.5 py-0.2 rounded border border-[#161A33]/10 flex items-center gap-0.5 leading-none shrink-0">
@@ -420,12 +423,16 @@ export default function FeedCard({
                   <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold mt-1.5">
                     <span className="flex items-center gap-0.5 text-[#2F7CCB]">
                       <MapPin className="w-3 text-[#2F7CCB]" />
-                      {item.location || 'All Iraq'}
+                      {item.location || resolvedGovLabel || notSpecified}
                     </span>
-                    <span>•</span>
-                    <span className="bg-[#6B25C9]/10 text-[#6B25C9] border border-[#6B25C9]/15 px-1.5 py-0.2 rounded text-[9px] font-black">
-                      {item.workplaceType || 'On-site'}
-                    </span>
+                    {item.workplaceType && (
+                      <>
+                        <span>•</span>
+                        <span className="bg-[#6B25C9]/10 text-[#6B25C9] border border-[#6B25C9]/15 px-1.5 py-0.2 rounded text-[9px] font-black">
+                          {item.workplaceType}
+                        </span>
+                      </>
+                    )}
                   </div>
                 </div>
               </div>
@@ -452,25 +459,21 @@ export default function FeedCard({
               </div>
             )}
 
-            {/* Campus Social Proof Block (Students who applied) */}
-            <div className="flex items-center gap-2 mt-0.5 bg-emerald-50 p-2 rounded-lg border-2 border-[#161A33] relative z-10 shadow-[2px_2px_0px_0px_#161A33]">
-              <div className="flex -space-x-1.5">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#6B25C9] to-[#2F7CCB] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">🙋‍♂️</div>
-                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#FFD21F] to-[#D9272E] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">🙋‍♀️</div>
-                <div className="w-5 h-5 rounded-full bg-white border border-[#161A33] text-[8px] flex items-center justify-center font-bold shadow-sm">✨</div>
+            {Number(item.universityAppliedCount || 0) > 0 && (
+              <div className="flex items-center gap-2 mt-0.5 bg-emerald-50 p-2 rounded-lg border-2 border-[#161A33] relative z-10 shadow-[2px_2px_0px_0px_#161A33]">
+                <p className="text-[10px] text-emerald-800 font-extrabold leading-tight">
+                  {item.universityAppliedCount} {language === 'ar' ? 'طلبات مسجلة من الطلاب' : language === 'ku' ? 'داواکاریی تۆمارکراوی خوێندکاران' : 'student applications recorded'}
+                </p>
               </div>
-              <p className="text-[10px] text-emerald-800 font-extrabold leading-tight">
-                {item.universityAppliedCount || 6} students from your university applied
-              </p>
-            </div>
+            )}
 
             {/* Saves and Badges Stats tracker */}
             <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold justify-between pt-1">
               <span className="flex items-center gap-1 bg-[#F3F7FF] text-[#161A33] border border-[#E6E1F5] px-2 py-0.5 rounded-md text-[9px] font-black uppercase">
-                🏷️ {item.opportunityCategory || 'Career'}
+                🏷️ {item.opportunityCategory || notSpecified}
               </span>
               <span className="text-[#6B25C9] flex items-center gap-0.5 bg-[#6B25C9]/10 px-2 py-0.5 rounded-lg text-[9px] font-black">
-                ⭐ {item.savedByUser ? (item.savedCount || 12) + 1 : (item.savedCount || 12)} saved by peers
+                ⭐ {item.savedByUser ? Number(item.savedCount || 0) + 1 : Number(item.savedCount || 0)} {language === 'ar' ? 'حفظ' : language === 'ku' ? 'پاشەکەوت' : 'saved'}
               </span>
             </div>
 
@@ -478,14 +481,19 @@ export default function FeedCard({
             <div className="flex gap-1.5 mt-1 pt-2 border-t border-[#E6E1F5] relative z-10 font-sans">
               <button
                 id={`apply-btn-${item.id}`}
-                onClick={() => onApply(item.id)}
+                disabled={!applyLinkAvailable}
+                onClick={() => applyLinkAvailable && onApply(item.id)}
                 className={`flex-1 py-2.5 rounded-xl text-xs font-black tracking-tight cursor-pointer transition-all flex items-center justify-center gap-1.5 transform active:scale-95 border-2 border-[#161A33] ${
-                  item.applied
+                  !applyLinkAvailable
+                    ? 'bg-slate-200 text-slate-500 shadow-[2px_2px_0px_0px_#161A33] cursor-not-allowed'
+                    : item.applied
                     ? 'bg-emerald-100 text-emerald-900 shadow-[2px_2px_0px_0px_#161A33]'
                     : 'bg-[#FFD21F] text-[#161A33] hover:bg-[#FFE052] shadow-[3px_3px_0px_0px_#161A33]'
                 }`}
               >
-                {item.applied ? (
+                {!applyLinkAvailable ? (
+                  <span>{linkUnavailable}</span>
+                ) : item.applied ? (
                   <>
                     <UserCheck className="w-4 h-4 text-emerald-950" />
                     <span>Applied Successfully!</span>

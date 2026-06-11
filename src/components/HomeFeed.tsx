@@ -612,6 +612,15 @@ export default function HomeFeed({
       </div>
 
       {/* 6. Content Feed/Cards Column */}
+      {activeSubTab === 'campus' && filteredFeedItems.length > 0 && (
+        <div className="mb-3 rounded-2xl border border-[#1F2E4D] bg-[#121B2E] px-3 py-2 text-[10px] font-bold text-slate-300">
+          {language === 'ar'
+            ? 'محتوى مجتمعي تجريبي ومحلي، وليس إعلاناً رسمياً من الجامعة.'
+            : language === 'ku'
+            ? 'ناوەڕۆکی کۆمەڵگای نموونەیی و ناوخۆییە، ڕاگەیاندنی فەرمی زانکۆ نییە.'
+            : 'Sample local community content, not official university announcements.'}
+        </div>
+      )}
       <div className="flex flex-col gap-1.5" id="mixed-feed-items-list">
         {isFeedLoading ? (
           <SkeletonLoader />

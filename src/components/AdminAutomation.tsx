@@ -88,7 +88,7 @@ export default function AdminAutomation({
   const [uploadStats, setUploadStats] = useState<any | null>(null);
 
   // Checks Authorization quickly
-  const isAdmin = userRole === 'staff';
+  const isAdmin = ['admin', 'super_admin'].includes(String(userRole || '').toLowerCase());
 
   const t = {
     title: { en: 'Opportunity Automation Center', ar: 'مركز أتمتة الفرص المتقدم', ku: 'ناوەندی خۆکارکردنی دەرفەتەکان' },
@@ -103,7 +103,7 @@ export default function AdminAutomation({
     logs: { en: 'Run Logs', ar: 'سجلات التشغيل', ku: 'لۆگی کارکردن' },
     settings: { en: 'Settings', ar: 'الإعدادات', ku: 'ڕێکخستنەکان' },
     back: { en: 'Back', ar: 'رجوع', ku: 'گەڕانەوە' },
-    noPermission: { en: 'Admin Access Only. Please authenticate with staff role.', ar: 'وصول للمسؤولين فقط. يرجى تسجيل الدخول بحساب مشرف.', ku: 'تەنها بۆ سەرپەرشتیارەکان ڕێگەپێدراوە.' }
+    noPermission: { en: 'Admin login required. Please authenticate with a backend admin account.', ar: 'تسجيل دخول المدير مطلوب. يرجى استخدام حساب مدير موثق من الخادم.', ku: 'چوونەژوورەوەی بەڕێوەبەر پێویستە. تکایە هەژماری بەڕێوەبەری پشتڕاستکراو بەکاربهێنە.' }
   };
 
   const getL = (key: keyof typeof t) => t[key][language] || t[key]['en'];

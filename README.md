@@ -39,6 +39,7 @@ That command creates Vite static assets and also bundles `server.ts` into `dist/
 ## Environment Variables
 
 - `GEMINI_API_KEY`: optional AI assistant key for local/server AI responses.
+- `VITE_API_URL`: official frontend backend base URL. Defaults in code to `https://rafid-api.mahdialmuntadhar1.workers.dev` when unset.
 - `APP_URL`: public app URL when the server needs self-referential links.
 
 Production opportunities, institutions, admin automation, and public data must come from `https://rafid-api.mahdialmuntadhar1.workers.dev`. Mock files are only for local UI structure and must not be treated as production data.

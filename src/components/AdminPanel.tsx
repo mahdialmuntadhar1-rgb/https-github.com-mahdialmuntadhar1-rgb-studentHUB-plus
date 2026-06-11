@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Language } from '../types';
-import { 
+import {
   ArrowLeft, 
   Settings, 
   Database, 
@@ -22,6 +22,7 @@ import {
   Sparkles,
   ExternalLink
 } from 'lucide-react';
+import { apiFetch } from '../lib/api';
 
 interface AdminPanelProps {
   language: Language;
@@ -93,14 +94,9 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
   // Fetch all initial data
   const loadAdminData = async () => {
     try {
-      const oppRes = await fetch('/api/admin/opportunities');
-      if (oppRes.ok) setOpportunities(await oppRes.json());
-      
-      const sRes = await fetch('/api/admin/sources');
-      if (sRes.ok) setSources(await sRes.json());
-
-      const lRes = await fetch('/api/admin/logs');
-      if (lRes.ok) setLogs(await lRes.json());
+      setOpportunities(await apiFetch('/admin/opportunities', {}, language));
+      setSources(await apiFetch('/admin/sources', {}, language));
+      setLogs(await apiFetch('/admin/logs', {}, language));
     } catch (err) {
       console.error("Failed to load admin dataset:", err);
     }
@@ -117,9 +113,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
     showToast(toastMsg, 'info');
 
     try {
-      const res = await fetch('/api/admin/scraper/run', { method: 'POST' });
-      if (res.ok) {
-        const data = await res.json();
+      const data = await apiFetch('/admin/scraper/run', { method: 'POST' }, language);
         const stats = data.stats;
         const completeMsg = language === 'ar' 
           ? `اكتمل الزحف: تم تصفح ${stats.sourcesChecked} مواقع، العثور على ${stats.itemsFound} فرر، وإضافة ${stats.itemsNew} جديدة!` 
@@ -128,9 +122,6 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
           : `Crawl Complete: Checked ${stats.sourcesChecked} sources, found ${stats.itemsFound} items, added ${stats.itemsNew} new ones.`;
         showToast(completeMsg, 'success');
         loadAdminData();
-      } else {
-        showToast('Scraping service returned an operational error.', 'error');
-      }
     } catch (err: any) {
       showToast(`Scraper network crash: ${err.message}`, 'error');
     } finally {
@@ -141,23 +132,18 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
   // Perform Opportunity Moderator Action (approve/reject/expire)
   const handleOppAction = async (id: string, action: 'approve' | 'reject' | 'expire') => {
     try {
-      const res = await fetch('/api/admin/opportunities/action', {
+      await apiFetch('/admin/opportunities/action', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id, action })
-      });
+      }, language);
 
-      if (res.ok) {
-        setOpportunities(prev => prev.map(o => o.id === id ? { ...o, status: action as any } : o));
-        const actionLabel = action === 'approve' 
-          ? (language === 'ar' ? 'تمت الموافقة والنشر بنجاح! 🎉' : language === 'ku' ? 'پەسەندکرا بنجاح! 🎉' : 'Opportunity approved & published!') 
-          : action === 'reject' 
-          ? (language === 'ar' ? 'تم رفض وإخفاء الفرصة' : 'Opportunity rejected') 
-          : (language === 'ar' ? 'تم تحديد الفرصة كمنتهية' : 'Opportunity marked expired');
-        showToast(actionLabel, 'success');
-      } else {
-        showToast('Failed to perform moderation action.', 'error');
-      }
+      setOpportunities(prev => prev.map(o => o.id === id ? { ...o, status: action as any } : o));
+      const actionLabel = action === 'approve'
+        ? (language === 'ar' ? 'تمت الموافقة والنشر بنجاح! 🎉' : language === 'ku' ? 'پەسەندکرا بنجاح! 🎉' : 'Opportunity approved & published!')
+        : action === 'reject'
+        ? (language === 'ar' ? 'تم رفض وإخفاء الفرصة' : 'Opportunity rejected')
+        : (language === 'ar' ? 'تم تحديد الفرصة كمنتهية' : 'Opportunity marked expired');
+      showToast(actionLabel, 'success');
     } catch (err) {
       showToast('Action network failure.', 'error');
     }
@@ -169,19 +155,14 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
     if (!editingOpp) return;
 
     try {
-      const res = await fetch('/api/admin/opportunities/edit', {
+      await apiFetch('/admin/opportunities/edit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(editingOpp)
-      });
+      }, language);
 
-      if (res.ok) {
-        showToast(language === 'ar' ? 'تم تعديل تفاصيل الفرصة بنجاح!' : 'Opportunity updated successfully!', 'success');
-        setEditingOpp(null);
-        loadAdminData();
-      } else {
-        showToast('Failed to save edited details.', 'error');
-      }
+      showToast(language === 'ar' ? 'تم تعديل تفاصيل الفرصة بنجاح!' : 'Opportunity updated successfully!', 'success');
+      setEditingOpp(null);
+      loadAdminData();
     } catch (err) {
       showToast('Network error during editing save.', 'error');
     }
@@ -191,15 +172,12 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
   const handleToggleSource = async (source: Source) => {
     try {
       const updated = { ...source, enabled: !source.enabled };
-      const res = await fetch('/api/admin/sources', {
+      await apiFetch('/admin/sources', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(updated)
-      });
-      if (res.ok) {
-        setSources(prev => prev.map(s => s.id === source.id ? updated : s));
-        showToast(updated.enabled ? 'Source enabled' : 'Source disabled', 'info');
-      }
+      }, language);
+      setSources(prev => prev.map(s => s.id === source.id ? updated : s));
+      showToast(updated.enabled ? 'Source enabled' : 'Source disabled', 'info');
     } catch {
       showToast('Fail update status', 'error');
     }
@@ -208,15 +186,12 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
   // Delete Source Custom Registry
   const handleDeleteSource = async (id: string) => {
     try {
-      const res = await fetch('/api/admin/sources', {
+      await apiFetch('/admin/sources', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ id })
-      });
-      if (res.ok) {
-        setSources(prev => prev.filter(s => s.id !== id));
-        showToast('Source registry deleted', 'success');
-      }
+      }, language);
+      setSources(prev => prev.filter(s => s.id !== id));
+      showToast('Source registry deleted', 'success');
     } catch {
       showToast('Delete failure', 'error');
     }
@@ -231,21 +206,15 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
     }
 
     try {
-      const res = await fetch('/api/admin/sources', {
+      await apiFetch('/admin/sources', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newSource)
-      });
+      }, language);
 
-      if (res.ok) {
-        showToast('New Crawling Website registered!', 'success');
-        setIsAddingSource(false);
-        setNewSource({ name: '', url: '', type: 'jobs', enabled: true });
-        loadAdminData();
-      } else {
-        const data = await res.json();
-        showToast(data.error || 'Failed to add source web URL', 'error');
-      }
+      showToast('New Crawling Website registered!', 'success');
+      setIsAddingSource(false);
+      setNewSource({ name: '', url: '', type: 'jobs', enabled: true });
+      loadAdminData();
     } catch {
       showToast('Registration crash', 'error');
     }

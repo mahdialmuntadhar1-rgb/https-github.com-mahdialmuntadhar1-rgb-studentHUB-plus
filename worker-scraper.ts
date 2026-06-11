@@ -70,13 +70,8 @@ async function runMainScraper(env: Env, triggerType: string): Promise<any> {
     ).all();
     sourcesList = results || [];
   } catch (err) {
-    console.error("Error reading D1 sources, fallback configured:", err);
-    // Worker fallback
-    sourcesList = [
-      { id: "asiacell", name: "Asiacell Careers Office", url: "https://www.asiacell.com/en/about-us/careers", type: "jobs" },
-      { id: "daad", name: "DAAD German Exchange Service", url: "https://www.daad-iraq.org/en/", type: "scholarships" },
-      { id: "fiveonelabs", name: "Five One Labs Incubator", url: "https://fiveonelabs.org/", type: "trainings" }
-    ];
+    console.error("Error reading D1 sources. No fallback sources will be generated:", err);
+    sourcesList = [];
   }
 
   const resultsStats = {
@@ -112,6 +107,20 @@ async function runMainScraper(env: Env, triggerType: string): Promise<any> {
       // B. Parse opportunity components
       const rawOpportunities = extractOpportunitiesFromHTML(htmlContent, source);
       resultsStats.itemsFound += rawOpportunities.length;
+
+      if (rawOpportunities.length === 0) {
+        await logScrapingActivity(env, {
+          id: `log-${Date.now()}-${source.id}`,
+          timestamp: runTimestamp,
+          source_id: source.id,
+          source_name: source.name,
+          items_found: 0,
+          items_new: 0,
+          items_duplicate: 0,
+          errors: "no items found"
+        });
+        continue;
+      }
 
       // C. Process each scraped item
       for (const rawItem of rawOpportunities) {
@@ -222,20 +231,6 @@ function extractOpportunitiesFromHTML(html: string, source: any): any[] {
       });
       count++;
     }
-  }
-
-  // If no targets were matched, generate a dynamic high-fidelity simulated scraped element matching realistic Iraq listings
-  if (items.length === 0) {
-    items.push({
-      titleEN: `New Opportunities Intake Announcement at ${source.name}`,
-      contentEN: `Freshly updated academic opening. Highly tailored for student developers, tech enthusiasts and multi-lingual candidates inside Iraq. Consult original listing for terms.`,
-      organization: source.name,
-      original_source_url: source.url,
-      application_link: source.url,
-      published_date: new Date().toISOString().split("T")[0],
-      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-      imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600"
-    });
   }
 
   return items;

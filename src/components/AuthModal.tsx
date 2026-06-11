@@ -1,14 +1,14 @@
 import React, { useState } from 'react';
 import { Language } from '../types';
-import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, Lock, User, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { authApi } from '../lib/api';
 
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   language: Language;
-  onAuthSuccess: (username: string) => void;
+  onAuthSuccess: (user: any) => void;
 }
 
 type AuthMode = 'login' | 'register' | 'forgot';
@@ -56,13 +56,13 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     return t[key][language] || t[key]['en'];
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
 
-    // Simple robust validation simulation
+    // Simple robust client-side validation before real backend auth.
     if (!email.includes('@')) {
       setError(getLabel('validationAcademicEmail'));
       setLoading(false);
@@ -81,25 +81,26 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       return;
     }
 
-    // Simulate backend response
-    setTimeout(() => {
-      setLoading(false);
+    try {
       if (mode === 'forgot') {
+        await authApi.forgotPassword(email, language);
         setSuccess(getLabel('emailSentDesc'));
       } else if (mode === 'register') {
+        const session = await authApi.register({ name: username.trim(), email, password }, language);
         setSuccess(getLabel('registerSuccess'));
-        setTimeout(() => {
-          onAuthSuccess(username || 'Zara Al-Iraqi');
-          onClose();
-        }, 1200);
+        onAuthSuccess(session.user);
+        onClose();
       } else {
+        const session = await authApi.login({ email, password }, language);
         setSuccess(getLabel('loginSuccess'));
-        setTimeout(() => {
-          onAuthSuccess('Zara Al-Iraqi');
-          onClose();
-        }, 1200);
+        onAuthSuccess(session.user);
+        onClose();
       }
-    }, 1000);
+    } catch (err: any) {
+      setError(err?.message || (language === 'ar' ? 'فشل الاتصال بالخادم الرسمي.' : language === 'ku' ? 'پەیوەندی بە ڕاژەکاری فەرمی سەرکەوتوو نەبوو.' : 'Official backend authentication failed.'));
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

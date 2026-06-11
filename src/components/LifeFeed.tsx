@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
-import { initialFeedItems } from '../data/mockData';
 import { X, Search, Heart, Sparkles, Filter, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
@@ -54,7 +53,7 @@ export default function LifeFeed({
   ];
 
   // Specific circular story list data
-  const storiesList = initialFeedItems.filter(item => item.type === 'story' || item.type === 'video');
+  const storiesList = feedItems.filter(item => item.type === 'story' || item.type === 'video');
 
   // Intelligent inline classification to avoid empty feeds
   const filteredItems = feedItems.filter(item => {
@@ -101,8 +100,13 @@ export default function LifeFeed({
         <h3 className="text-[10px] font-black uppercase text-[#6B25C9] tracking-wider mb-2.5 flex items-center gap-1">
           ✨ Campus Moments Stories
         </h3>
-        <div className="flex gap-3 overflow-x-auto pb-1.5 scrollbar-none" id="stories-circular-rail">
-          {storiesList.map((story) => (
+        {storiesList.length === 0 ? (
+          <div className="rounded-2xl border-2 border-[#161A33] bg-white p-4 text-center text-[11px] font-bold text-slate-600">
+            {language === 'ar' ? 'لا توجد قصص طلابية حالياً.' : language === 'ku' ? 'هیچ چیرۆکێکی خوێندکاری نییە لە ئێستادا.' : 'No campus stories yet.'}
+          </div>
+        ) : (
+          <div className="flex gap-3 overflow-x-auto pb-1.5 scrollbar-none" id="stories-circular-rail">
+            {storiesList.map((story) => (
             <button
               key={story.id}
               onClick={() => setSelectedStory(story)}
@@ -131,8 +135,9 @@ export default function LifeFeed({
                 {story.author.name.split(' ')[0]}
               </span>
             </button>
-          ))}
-        </div>
+            ))}
+          </div>
+        )}
       </div>
 
       {/* Horizontal horizontal chips selectors as requested */}
@@ -158,6 +163,11 @@ export default function LifeFeed({
       </div>
 
       {/* Social content feed loop */}
+      {filteredItems.length > 0 && (
+        <div className="mb-3 rounded-2xl border border-[#1F2E4D] bg-[#121B2E] px-3 py-2 text-[10px] font-bold text-slate-300">
+          {language === 'ar' ? 'محتوى مجتمعي تجريبي ومحلي، وليس إعلاناً رسمياً من الجامعة.' : language === 'ku' ? 'ناوەڕۆکی کۆمەڵگای نموونەیی و ناوخۆییە، ڕاگەیاندنی فەرمی زانکۆ نییە.' : 'Sample local community content, not official university announcements.'}
+        </div>
+      )}
       <div className="flex flex-col gap-1" id="social-visual-life-list">
         {isFeedLoading ? (
           <SkeletonLoader />
@@ -217,7 +227,7 @@ export default function LifeFeed({
                   <div className="absolute inset-0 bg-black/30 flex items-center justify-center">
                     <span className="text-[11px] font-bold text-white bg-black/60 px-3 py-1.5 rounded-full flex items-center gap-1">
                       <Eye className="w-4 h-4 text-cyan-400" />
-                      Simulated Campus Reel Loop
+                      {language === 'ar' ? 'معاينة محتوى مجتمعي' : language === 'ku' ? 'پێشبینی ناوەڕۆکی کۆمەڵگا' : 'Community content preview'}
                     </span>
                   </div>
                 </div>

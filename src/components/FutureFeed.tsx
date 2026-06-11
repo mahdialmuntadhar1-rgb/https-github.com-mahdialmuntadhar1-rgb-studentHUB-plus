@@ -211,14 +211,18 @@ export default function FutureFeed({
   };
 
   const handleLocalApply = (id: string) => {
-    onApply(id);
     setOpportunities(prev => prev.map(item => {
       if (item.id === id) {
+        const urlToOpen = item.applyUrl || item.sourceUrl;
+        if (!urlToOpen) {
+          return item;
+        }
+
+        onApply(id);
         const isApplied = !item.applied;
         
         // Open opportunity apply link safely after applying
-        const urlToOpen = item.applyUrl || item.sourceUrl;
-        if (urlToOpen && isApplied) {
+        if (isApplied) {
           try {
             window.open(urlToOpen, '_blank', 'noopener,noreferrer');
           } catch (e) {
@@ -455,8 +459,10 @@ export default function FutureFeed({
             <span className="text-[11px] font-black tracking-tight text-[#161A33] uppercase">
               {getTranslation('viewingFuture', language)}
             </span>
-            <span className="text-[9px] text-slate-500 font-extrabold leading-tight mt-0.5">
-              Your Campus Life. Your Future. Your Iraq.
+          <span className="text-[9px] text-slate-500 font-extrabold leading-tight mt-0.5">
+              {opportunities.length > 0
+                ? (language === 'ar' ? 'البيانات من مصادر منشورة ومعتمدة من الواجهة الخلفية.' : language === 'ku' ? 'داتا لە سەرچاوە پەسەندکراوەکانی بەکئێندەوەیە.' : 'Data comes from approved backend public records.')
+                : (language === 'ar' ? 'تظهر الفرص المعتمدة هنا عند توفرها.' : language === 'ku' ? 'دەرفەتە پەسەندکراوەکان لێرە دەردەکەون کاتێک هەبن.' : 'Approved opportunities appear here when available.')}
             </span>
           </div>
         </div>
@@ -648,7 +654,7 @@ export default function FutureFeed({
             {language === 'ar' ? 'لا توجد فرص معتمدة بعد' : language === 'ku' ? 'هیچ دەرفەتێکی پەسەندکراو نییە لە ئێستادا' : 'No approved opportunities yet'}
           </h3>
           <p className="text-[11px] text-slate-500 max-w-xs mt-2 mx-auto leading-relaxed">
-            {language === 'ar' ? 'الفرص المعتمدة من قبل المسؤولين ومحرك البحث الذكي ستظهر هنا فور نشرها.' : 'Opportunities moderated by administrators and our auto-crawlers will appear here once approved.'}
+            {language === 'ar' ? 'الفرص المعتمدة من الخلفية الرسمية ستظهر هنا فور نشرها.' : language === 'ku' ? 'دەرفەتە پەسەندکراوەکانی بەکئێندی فەرمی لێرە دەردەکەون کاتێک بڵاوبکرێنەوە.' : 'Official backend-approved opportunities will appear here once published.'}
           </p>
         </div>
       ) : (activeChip === 'all' && !isCustomFiltersActive) ? (

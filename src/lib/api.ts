@@ -1,7 +1,10 @@
 import { Language } from '../types';
 
-export const BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
-const API_BASE = `${BACKEND_URL}/api`;
+const DEFAULT_BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
+const RAW_BACKEND_URL = (import.meta as any).env?.VITE_API_URL || DEFAULT_BACKEND_URL;
+
+export const BACKEND_URL = String(RAW_BACKEND_URL).trim().replace(/\/+$/, '').replace(/\/api$/i, '');
+export const API_BASE = `${BACKEND_URL}/api`;
 
 function getHeaders() {
   const headers: Record<string, string> = {
@@ -12,6 +15,23 @@ function getHeaders() {
     headers['Authorization'] = `Bearer ${token}`;
   }
   return headers;
+}
+
+function saveAuthSession(data: any) {
+  const token = data?.token || data?.accessToken || data?.jwt || data?.session?.token;
+  const user = data?.user || data?.profile || data;
+
+  if (!token) {
+    throw new Error(data?.error || data?.message || 'Backend did not return an auth token.');
+  }
+
+  localStorage.setItem('jamiaati_token', token);
+  localStorage.removeItem('admin_token');
+  localStorage.setItem('jamiaati_user', JSON.stringify(user || {}));
+  localStorage.removeItem('jamiaati_logged_in');
+
+  window.dispatchEvent(new Event('jamiaati-auth-changed'));
+  return { token, user };
 }
 
 async function handleResponse(response: Response, language: Language = 'ar') {
@@ -40,6 +60,64 @@ async function handleResponse(response: Response, language: Language = 'ar') {
     return text;
   }
 }
+
+export async function apiFetch(path: string, options: RequestInit = {}, language: Language = 'ar') {
+  const endpoint = path.startsWith('/api/') ? path.slice('/api'.length) : path;
+  const url = `${API_BASE}${endpoint.startsWith('/') ? endpoint : `/${endpoint}`}`;
+  const headers = {
+    ...getHeaders(),
+    ...(options.headers || {})
+  };
+
+  return handleResponse(
+    await fetch(url, {
+      ...options,
+      headers
+    }),
+    language
+  );
+}
+
+export async function getApiHealth(lang: Language = 'ar') {
+  return apiFetch('/health', {}, lang);
+}
+
+export const authApi = {
+  async login(payload: { email: string; password: string }, lang: Language = 'ar') {
+    const data = await apiFetch('/auth/login', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }, lang);
+    return saveAuthSession(data);
+  },
+
+  async register(payload: { name: string; email: string; password: string }, lang: Language = 'ar') {
+    const data = await apiFetch('/auth/register', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }, lang);
+    return saveAuthSession(data);
+  },
+
+  async forgotPassword(email: string, lang: Language = 'ar') {
+    return apiFetch('/auth/forgot-password', {
+      method: 'POST',
+      body: JSON.stringify({ email })
+    }, lang);
+  },
+
+  async me(lang: Language = 'ar') {
+    return apiFetch('/auth/me', {}, lang);
+  },
+
+  logout() {
+    localStorage.removeItem('jamiaati_token');
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('jamiaati_user');
+    localStorage.removeItem('jamiaati_logged_in');
+    window.dispatchEvent(new Event('jamiaati-auth-changed'));
+  }
+};
 
 export const opportunityAutomation = {
   async getStatus(lang: Language = 'ar') {
@@ -282,13 +360,54 @@ export const opportunityAutomation = {
 
 export async function getOpportunities(lang: Language = 'ar') {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/opportunities`);
-    return await handleResponse(res, lang);
+    return await apiFetch('/opportunities', {}, lang);
   } catch (err: any) {
     console.error('Error fetching opportunities:', err);
     throw err;
   }
 }
+
+export async function getInstitutions(params: { limit?: number; offset?: number } = {}, lang: Language = 'ar') {
+  const query = new URLSearchParams();
+  query.set('limit', String(params.limit || 200));
+  query.set('offset', String(params.offset || 0));
+  return apiFetch(`/institutions?${query.toString()}`, {}, lang);
+}
+
+export const postsApi = {
+  async list(lang: Language = 'ar') {
+    return apiFetch('/posts', {}, lang);
+  },
+
+  async create(payload: {
+    type: string;
+    title?: string;
+    content: string;
+    governorate: string;
+    institution: string;
+    institution_id?: string;
+    image_url?: string | null;
+    metadata?: Record<string, any>;
+  }, lang: Language = 'ar') {
+    return apiFetch('/posts', {
+      method: 'POST',
+      body: JSON.stringify(payload)
+    }, lang);
+  },
+
+  async addComment(postId: string, content: string, lang: Language = 'ar') {
+    return apiFetch(`/posts/${encodeURIComponent(postId)}/comments`, {
+      method: 'POST',
+      body: JSON.stringify({ content })
+    }, lang);
+  },
+
+  async toggleLike(postId: string, lang: Language = 'ar') {
+    return apiFetch(`/posts/${encodeURIComponent(postId)}/like`, {
+      method: 'POST'
+    }, lang);
+  }
+};
 
 export const outreachApi = {
   async getContacts(params: { page?: number; limit?: number; search?: string; status?: string } = {}, lang: Language = 'ar') {

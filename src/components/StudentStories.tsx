@@ -201,9 +201,9 @@ export default function StudentStories({
   const [creatorName, setCreatorName] = useState(() => {
     try {
       const p = localStorage.getItem('jamiaati_profile_v2');
-      return p ? JSON.parse(p).name : 'Zara Al-Iraqi';
+      return p ? JSON.parse(p).name : 'Guest Student';
     } catch {
-      return 'Zara Al-Iraqi';
+      return 'Guest Student';
     }
   });
   const [selectedTemplate, setSelectedTemplate] = useState<number | 'custom'>(0);

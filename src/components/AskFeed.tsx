@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
-import { BACKEND_URL } from '../lib/api';
+import { apiFetch } from '../lib/api';
 import { HelpCircle, Sparkles, Send, MessagesSquare, CheckCircle, EyeOff, BookOpen, Clock, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
@@ -57,9 +57,8 @@ export default function AskFeed({
     setAiResponse(null);
 
     try {
-      const response = await fetch(`${BACKEND_URL}/api/ask-ai`, {
+      const data = await apiFetch('/ask-ai', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           query: askQuery,
           lang: language,
@@ -69,15 +68,16 @@ export default function AskFeed({
         })
       });
 
-      if (!response.ok) {
-        throw new Error('Connection failed');
-      }
-
-      const data = await response.json();
       setAiResponse(data.text);
     } catch (err: any) {
       console.error(err);
-      setAiResponse("⚠️ [MOCK_NETWORK_NOTICE]: I am unable to connect to the active backend. Please review your server processes. Here is local guidance: Absences over 10% invoke an 'أول إنذار' (First warning). Present a valid emergency medical note to the student registry immediately.");
+      setAiResponse(
+        language === 'ar'
+          ? 'تعذر الاتصال بخدمة المرشد حالياً. جرّب مرة أخرى بعد قليل.'
+          : language === 'ku'
+            ? 'نەتوانرا پەیوەندی بە خزمەتی ڕاوێژکارەوە بکرێت. تکایە دواتر هەوڵبدەرەوە.'
+            : 'The advisor service is unavailable right now. Please try again shortly.'
+      );
     } finally {
       setIsAiLoading(false);
     }
