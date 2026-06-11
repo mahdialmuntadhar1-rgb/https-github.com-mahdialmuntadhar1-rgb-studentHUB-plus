@@ -1,4 +1,4 @@
-﻿import { Hono } from 'hono';
+import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 
 type Bindings = {
@@ -2617,9 +2617,11 @@ type ScrapedOpportunityItem = {
   sourceUrl: string;
   category: string;
   confidenceScore: number;
+  navigationTextCleaned: boolean;
+  titleDerivedFromBody: boolean;
 };
 
-type ScrapeRejectReason = 'generic_url' | 'restricted' | 'mojibake' | 'weak_content' | 'not_specific';
+type ScrapeRejectReason = 'generic_url' | 'restricted' | 'mojibake' | 'weak_content' | 'not_specific' | 'iraq_relevance' | 'foreign_location' | 'generic_title';
 
 type ScrapedOpportunityResult = {
   item: ScrapedOpportunityItem | null;
@@ -2636,6 +2638,11 @@ type ScrapeOpportunitySourceResult = {
   restrictedRejected: number;
   genericUrlRejected: number;
   mojibakeRejected: number;
+  iraqRelevanceRejected: number;
+  foreignLocationRejected: number;
+  genericTitleRejected: number;
+  navigationTextCleaned: number;
+  titleDerivedFromBody: number;
   error?: string;
 };
 
@@ -2691,6 +2698,29 @@ const BLOCKED_OPPORTUNITY_INDEX_PATHS = new Set([
   '/job', '/jobs', '/opportunities', '/careers'
 ]);
 
+const GENERIC_OPPORTUNITY_TITLES = new Set([
+  'all events',
+  'events',
+  'university activities',
+  'university art events',
+  'university sport events',
+  'training',
+  'sport event',
+  'art events'
+]);
+
+const NAVIGATION_TEXT_PATTERNS = [
+  /\bskip to main content\b/gi,
+  /\bsearch\s+search\b/gi,
+  /\bmenu\s+close\b/gi,
+  /\blanguage\s+english\s+kurdish\b/gi,
+  /\ball events can be found\b/gi,
+  /\ball events\b/gi,
+  /\buniversity activities\b/gi,
+  /\buniversity art events\b/gi,
+  /\buniversity sport events\b/gi
+];
+
 function sourceNameForInstitution(institution: InstitutionSourceRow): string {
   return normalizeWhitespace(institution.name_en || institution.name_ar || institution.name_ku || institution.website);
 }
@@ -2703,6 +2733,130 @@ function normalizeCrawlerText(text: string): string {
   return normalizeText(text || '')
     .replace(/\s+/g, ' ')
     .trim();
+}
+
+function normalizeTitleForComparison(title: string): string {
+  return normalizeCrawlerText(title)
+    .replace(/\s*\|\s*Salahaddin University-Erbil\s*$/i, '')
+    .replace(/\s*[-–—]\s*Salahaddin University-Erbil\s*$/i, '')
+    .toLowerCase();
+}
+
+function isGenericOpportunityTitle(title: string): boolean {
+  const normalized = normalizeTitleForComparison(title);
+  return !normalized || GENERIC_OPPORTUNITY_TITLES.has(normalized);
+}
+
+function cleanExtractedTitle(title: string): string {
+  return normalizeCrawlerText(title)
+    .replace(/\s*\|\s*Salahaddin University-Erbil\s*$/i, '')
+    .replace(/\s*[-–—]\s*Salahaddin University-Erbil\s*$/i, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+    .slice(0, 180);
+}
+
+function decodeHtmlAttribute(value: string): string {
+  return value
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&amp;/g, '&')
+    .replace(/&quot;/g, '"')
+    .replace(/&#39;/g, "'")
+    .replace(/&lt;/g, '<')
+    .replace(/&gt;/g, '>');
+}
+
+function extractMetaContent(html: string, key: string): string {
+  const escapedKey = key.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const metaRegex = new RegExp(`<meta\\b(?=[^>]*(?:property|name)=["']${escapedKey}["'])(?=[^>]*content=["']([^"']+)["'])[^>]*>`, 'i');
+  const match = html.match(metaRegex);
+  return cleanExtractedTitle(decodeHtmlAttribute(match?.[1] || ''));
+}
+
+function extractHeadingCandidates(html: string): string[] {
+  const candidates: string[] = [];
+  const headingRegex = /<h[1-3]\b[^>]*>([\s\S]*?)<\/h[1-3]>/gi;
+  let match: RegExpExecArray | null;
+
+  while ((match = headingRegex.exec(html)) !== null) {
+    const heading = cleanExtractedTitle(match[1]);
+    if (heading) candidates.push(heading);
+    if (candidates.length >= 8) break;
+  }
+
+  return candidates;
+}
+
+function firstMeaningfulBodySegment(text: string): string {
+  const normalized = normalizeCrawlerText(text);
+  const beforeSiteName = normalized.match(/^(.{8,220}?)\s*\|\s*Salahaddin University-Erbil\b/i)?.[1];
+  if (beforeSiteName) return cleanExtractedTitle(beforeSiteName);
+
+  const segments = normalized
+    .split(/\s*(?:\||\n| {2,})\s*/)
+    .map((segment) => cleanExtractedTitle(segment))
+    .filter(Boolean);
+
+  return segments.find((segment) => segment.length >= 8 && !isGenericOpportunityTitle(segment) && !isNavigationOnlyText(segment)) || '';
+}
+
+function cleanNavigationText(text: string): { text: string; cleaned: boolean } {
+  let cleaned = text;
+
+  for (const pattern of NAVIGATION_TEXT_PATTERNS) {
+    cleaned = cleaned.replace(pattern, ' ');
+  }
+
+  cleaned = cleaned
+    .replace(/\bsearch\b\s+\bmenu\b/gi, ' ')
+    .replace(/\bSalahaddin University-Erbil\b/gi, ' ')
+    .replace(/\s+/g, ' ')
+    .trim();
+
+  return { text: cleaned, cleaned: cleaned !== text };
+}
+
+function isNavigationOnlyText(text: string): boolean {
+  const normalized = normalizeCrawlerText(text).toLowerCase();
+  if (!normalized) return true;
+
+  const navPhrases = [
+    'skip to main content',
+    'search',
+    'menu close',
+    'language english kurdish',
+    'all events',
+    'all events can be found',
+    'university activities',
+    'university art events',
+    'university sport events',
+    'salahaddin university-erbil'
+  ];
+  const navHits = navPhrases.filter((phrase) => normalized.includes(phrase)).length;
+  const opportunityHits = OPPORTUNITY_KEYWORDS.filter((keyword) => normalized.includes(keyword.toLowerCase())).length;
+
+  return navHits >= 3 && opportunityHits <= 1 && normalized.length < 700;
+}
+
+function deriveOpportunityTitle(html: string, text: string): { title: string; derivedFromBody: boolean } {
+  const titleCandidates = [
+    extractMetaContent(html, 'og:title'),
+    extractMetaContent(html, 'twitter:title'),
+    ...extractHeadingCandidates(html),
+    cleanExtractedTitle(html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)?.[1] || '')
+  ];
+
+  const firstSpecificCandidate = titleCandidates.find((candidate) => candidate && !isGenericOpportunityTitle(candidate));
+  if (firstSpecificCandidate) {
+    return { title: firstSpecificCandidate, derivedFromBody: false };
+  }
+
+  const bodyTitle = firstMeaningfulBodySegment(text);
+  if (bodyTitle && !isGenericOpportunityTitle(bodyTitle)) {
+    return { title: bodyTitle, derivedFromBody: true };
+  }
+
+  return { title: cleanExtractedTitle(titleCandidates.find(Boolean) || ''), derivedFromBody: false };
 }
 
 function hasMojibake(text: string): boolean {
@@ -2877,6 +3031,168 @@ function shouldRejectScrapedPage(input: { url: string; title: string; text: stri
   return null;
 }
 
+// Iraq relevance filtering functions
+function normalizeLocationText(text: string): string {
+  if (!text) return '';
+  return normalizeWhitespace(text).toLowerCase();
+}
+
+function hasIraqRelevance(text: string): boolean {
+  const normalized = normalizeLocationText(text);
+
+  // English Iraq relevance signals
+  const englishSignals = [
+    'iraq', 'iraqi', 'baghdad', 'basra', 'erbil', 'arbil', 'hawler', 'sulaymaniyah', 'sulaimani',
+    'slemani', 'duhok', 'dohuk', 'mosul', 'nineveh', 'najaf', 'karbala', 'kirkuk', 'anbar',
+    'diyala', 'wasit', 'babil', 'babylon', 'maysan', 'missan', 'muthanna', 'qadisiyah',
+    'diwaniyah', 'dhi qar', 'thi qar', 'nasiriyah', 'salahaddin', 'tikrit', 'halabja',
+    'kurdistan region', 'kri', 'federal iraq'
+  ];
+
+  // Arabic Iraq relevance signals
+  const arabicSignals = [
+    'العراق', 'عراقي', 'عراقية', 'بغداد', 'البصرة', 'أربيل', 'اربيل', 'هەولێر',
+    'السليمانية', 'سليمانية', 'دهوك', 'الموصل', 'نينوى', 'النجف', 'كربلاء', 'كركوك',
+    'الأنبار', 'الانبار', 'ديالى', 'واسط', 'بابل', 'ميسان', 'المثنى', 'القادسية',
+    'الديوانية', 'ذي قار', 'الناصرية', 'صلاح الدين', 'تكريت', 'حلبجة',
+    'إقليم كردستان', 'اقليم كردستان', 'كردستان العراق'
+  ];
+
+  // Kurdish Sorani Iraq relevance signals
+  const kurdishSignals = [
+    'عێراق', 'عیراق', 'هەولێر', 'سلێمانی', 'سلێمانیی', 'دهۆک', 'کەرکووک',
+    'هەڵەبجە', 'موسڵ', 'بەغدا', 'بەسرە', 'هەرێمی کوردستان'
+  ];
+
+  const allSignals = [...englishSignals, ...arabicSignals, ...kurdishSignals];
+  return allSignals.some(signal => normalized.includes(signal));
+}
+
+function hasForeignLocationWithoutIraq(text: string): boolean {
+  const normalized = normalizeLocationText(text);
+
+  // Foreign locations to reject (unless Iraq is also mentioned)
+  const foreignLocations = [
+    'beirut, lebanon', 'lebanon',
+    'bangkok, thailand', 'thailand',
+    'hanoi, viet nam', 'vietnam', 'viet nam',
+    'paris, france', 'france',
+    'brasilia, brazil', 'brazil',
+    'quito, ecuador', 'ecuador',
+    'mopti, mali', 'mali',
+    'choluteca, honduras', 'honduras',
+    'makati city, philippines', 'philippines',
+    'monrovia, liberia', 'liberia',
+    'vienna, austria', 'austria',
+    'bonn, germany', 'germany',
+    'damascus, syria', 'syria',
+    'amman, jordan', 'jordan',
+    'dubai, uae', 'united arab emirates', 'uae',
+    'doha, qatar', 'qatar',
+    'riyadh, saudi arabia', 'saudi arabia',
+    'istanbul, turkey', 'ankara, turkey', 'turkey',
+    'cairo, egypt', 'egypt',
+    'london, uk', 'united kingdom', 'uk',
+    'new york, usa', 'united states', 'usa', 'america'
+  ];
+
+  // Check if any foreign location is mentioned
+  const hasForeign = foreignLocations.some(loc => normalized.includes(loc));
+
+  // If foreign location found, check if Iraq is also mentioned
+  if (hasForeign) {
+    return !hasIraqRelevance(text);
+  }
+
+  return false;
+}
+
+function isRemoteOpenToIraq(text: string): boolean {
+  const normalized = normalizeLocationText(text);
+
+  // Remote/work from home signals
+  const remoteSignals = [
+    'remote', 'online', 'work from home', 'عن بعد', 'أونلاين', 'لە دوورەوە'
+  ];
+
+  const hasRemote = remoteSignals.some(signal => normalized.includes(signal));
+
+  if (!hasRemote) return false;
+
+  // Iraq eligibility signals for remote positions
+  const iraqEligibilitySignals = [
+    'iraq', 'iraqi', 'open to iraq', 'iraqis', 'arabic speakers in iraq',
+    'mena including iraq', 'middle east including iraq',
+    'العراق', 'عراقي', 'عیراق', 'عێراق'
+  ];
+
+  return iraqEligibilitySignals.some(signal => normalized.includes(signal));
+}
+
+function isInternationalOpportunityEligibleForIraqis(text: string, category: string): boolean {
+  const normalized = normalizeLocationText(text);
+  const normalizedCategory = category.toLowerCase();
+
+  // Categories that allow international applicants
+  const internationalCategories = ['scholarship', 'training', 'fellowship', 'competition', 'online course', 'course'];
+
+  if (!internationalCategories.includes(normalizedCategory)) {
+    return false;
+  }
+
+  // International eligibility signals
+  const internationalSignals = [
+    'international applicants', 'open to international', 'global applicants',
+    'worldwide', 'all nationalities', 'any nationality',
+    'international students', 'open to all countries',
+    'المتقدمين الدوليين', 'للمتقدمين من جميع الدول', 'طلاب دوليين',
+    'عالمي', 'جميع الجنسيات'
+  ];
+
+  const hasInternationalSignal = internationalSignals.some(signal => normalized.includes(signal));
+
+  // If international signal found, check if Iraq is included or mentioned
+  if (hasInternationalSignal) {
+    return hasIraqRelevance(text) || normalized.includes('international');
+  }
+
+  // For scholarships/training, allow if Iraq is specifically mentioned
+  return hasIraqRelevance(text);
+}
+
+function shouldRejectForLocationRelevance(input: { title: string; summary: string; description: string; sourceUrl: string; source?: AutomationSourceRow; category: string }): ScrapeRejectReason | null {
+  const combinedText = `${input.title} ${input.summary} ${input.description}`.toLowerCase();
+
+  // Check for foreign location without Iraq
+  if (hasForeignLocationWithoutIraq(combinedText)) {
+    return 'foreign_location';
+  }
+
+  // Check if it's a remote position open to Iraq
+  if (isRemoteOpenToIraq(combinedText)) {
+    return null; // Allow remote positions open to Iraq
+  }
+
+  // Check if it's an international opportunity eligible for Iraqis
+  if (isInternationalOpportunityEligibleForIraqis(combinedText, input.category)) {
+    return null; // Allow international opportunities eligible for Iraqis
+  }
+
+  // For jobs, require Iraq relevance
+  if (input.category === 'job' || input.category === 'internship') {
+    if (!hasIraqRelevance(combinedText)) {
+      return 'iraq_relevance';
+    }
+  }
+
+  // For other categories, check Iraq relevance
+  if (!hasIraqRelevance(combinedText)) {
+    return 'iraq_relevance';
+  }
+
+  return null;
+}
+
 function resolvePublicUrl(baseUrl: string, href: string): string | null {
   try {
     if (!href || href.startsWith('#') || href.startsWith('mailto:') || href.startsWith('tel:') || href.startsWith('javascript:')) {
@@ -2957,12 +3273,29 @@ function extractOpportunityItem(url: string, html: string, source?: AutomationSo
   if (isBlockedOpportunityUrl(url, source)) return { item: null, reason: 'generic_url' };
 
   const cleanedHtml = stripHtmlForScraping(html);
-  const text = normalizeCrawlerText(cleanedHtml).slice(0, 4000);
-  const title = normalizeCrawlerText(extractTitleFromHtml(cleanedHtml));
+  const rawText = normalizeCrawlerText(cleanedHtml).slice(0, 5000);
+  const { text, cleaned: navigationTextWasCleaned } = cleanNavigationText(rawText);
+  const titleResult = deriveOpportunityTitle(cleanedHtml, rawText);
+  const title = cleanExtractedTitle(titleResult.title);
+  if (isGenericOpportunityTitle(title)) return { item: null, reason: 'generic_title' };
+  if (isNavigationOnlyText(text.slice(0, 700))) return { item: null, reason: 'weak_content' };
+
   const category = classifyOpportunity(title, text);
   const rejectReason = shouldRejectScrapedPage({ url, title, text, category, source });
 
   if (rejectReason) return { item: null, reason: rejectReason };
+
+  // Iraq relevance filtering
+  const locationRejectReason = shouldRejectForLocationRelevance({
+    title,
+    summary: text.slice(0, 350),
+    description: text,
+    sourceUrl: url,
+    source,
+    category
+  });
+
+  if (locationRejectReason) return { item: null, reason: locationRejectReason };
 
   const dated = hasDateOrDeadlineSignal(text);
   const confidenceScore = dated ? 85 : 75;
@@ -2973,7 +3306,9 @@ function extractOpportunityItem(url: string, html: string, source?: AutomationSo
       description: text,
       sourceUrl: url,
       category,
-      confidenceScore
+      confidenceScore,
+      navigationTextCleaned: navigationTextWasCleaned,
+      titleDerivedFromBody: titleResult.derivedFromBody
     }
   };
 }
@@ -3078,6 +3413,9 @@ function incrementRejectCounter(result: ScrapeOpportunitySourceResult, reason?: 
   if (reason === 'restricted') result.restrictedRejected++;
   else if (reason === 'generic_url' || reason === 'not_specific') result.genericUrlRejected++;
   else if (reason === 'mojibake') result.mojibakeRejected++;
+  else if (reason === 'iraq_relevance') result.iraqRelevanceRejected++;
+  else if (reason === 'foreign_location') result.foreignLocationRejected++;
+  else if (reason === 'generic_title') result.genericTitleRejected++;
 }
 
 async function scrapeOpportunitySource(db: D1Database, source: AutomationSourceRow, dryRun: boolean, maxInserts = Number.POSITIVE_INFINITY): Promise<ScrapeOpportunitySourceResult> {
@@ -3090,7 +3428,12 @@ async function scrapeOpportunitySource(db: D1Database, source: AutomationSourceR
     rejectedByFilter: 0,
     restrictedRejected: 0,
     genericUrlRejected: 0,
-    mojibakeRejected: 0
+    mojibakeRejected: 0,
+    iraqRelevanceRejected: 0,
+    foreignLocationRejected: 0,
+    genericTitleRejected: 0,
+    navigationTextCleaned: 0,
+    titleDerivedFromBody: 0
   };
   const homepageUrl = normalizeUrl(source.url);
   const homepage = await fetchPublicPage(homepageUrl);
@@ -3124,6 +3467,8 @@ async function scrapeOpportunitySource(db: D1Database, source: AutomationSourceR
     }
 
     result.found++;
+    if (extracted.item.navigationTextCleaned) result.navigationTextCleaned++;
+    if (extracted.item.titleDerivedFromBody) result.titleDerivedFromBody++;
 
     if (await isDuplicateScrapedCandidate(db, source, extracted.item)) {
       result.duplicates++;
@@ -3493,6 +3838,11 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
     let restrictedRejected = 0;
     let genericUrlRejected = 0;
     let mojibakeRejected = 0;
+    let iraqRelevanceRejected = 0;
+    let foreignLocationRejected = 0;
+    let genericTitleRejected = 0;
+    let navigationTextCleaned = 0;
+    let titleDerivedFromBody = 0;
     const errors: { sourceId: string; url: string; error: string }[] = [];
     const sourceLogs: {
       sourceId: string;
@@ -3510,6 +3860,11 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
       restrictedRejected: number;
       genericUrlRejected: number;
       mojibakeRejected: number;
+      iraqRelevanceRejected: number;
+      foreignLocationRejected: number;
+      genericTitleRejected: number;
+      navigationTextCleaned: number;
+      titleDerivedFromBody: number;
       error: string | null;
     }[] = [];
     
@@ -3524,6 +3879,11 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
       restrictedRejected += result.restrictedRejected;
       genericUrlRejected += result.genericUrlRejected;
       mojibakeRejected += result.mojibakeRejected;
+      iraqRelevanceRejected += result.iraqRelevanceRejected;
+      foreignLocationRejected += result.foreignLocationRejected;
+      genericTitleRejected += result.genericTitleRejected;
+      navigationTextCleaned += result.navigationTextCleaned;
+      titleDerivedFromBody += result.titleDerivedFromBody;
       if (result.error) errors.push({ sourceId: source.id, url: source.url, error: result.error });
       sourceLogs.push({
         sourceId: source.id,
@@ -3541,6 +3901,11 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
         restrictedRejected: result.restrictedRejected,
         genericUrlRejected: result.genericUrlRejected,
         mojibakeRejected: result.mojibakeRejected,
+        iraqRelevanceRejected: result.iraqRelevanceRejected,
+        foreignLocationRejected: result.foreignLocationRejected,
+        genericTitleRejected: result.genericTitleRejected,
+        navigationTextCleaned: result.navigationTextCleaned,
+        titleDerivedFromBody: result.titleDerivedFromBody,
         error: result.error || null
       });
     }
@@ -3566,6 +3931,11 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
         restrictedRejected,
         genericUrlRejected,
         mojibakeRejected,
+        iraqRelevanceRejected,
+        foreignLocationRejected,
+        genericTitleRejected,
+        navigationTextCleaned,
+        titleDerivedFromBody,
         sources: sourceLogs,
         errors: errors.slice(0, 25)
       }),
@@ -3586,6 +3956,11 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
       restrictedRejected,
       genericUrlRejected,
       mojibakeRejected,
+      iraqRelevanceRejected,
+      foreignLocationRejected,
+      genericTitleRejected,
+      navigationTextCleaned,
+      titleDerivedFromBody,
       dryRun,
       published: false,
       status: finalStatus
@@ -3635,6 +4010,11 @@ app.post('/api/opportunity-automation/run-source/:id', authMiddleware, adminMidd
     restrictedRejected: result.restrictedRejected,
     genericUrlRejected: result.genericUrlRejected,
     mojibakeRejected: result.mojibakeRejected,
+    iraqRelevanceRejected: result.iraqRelevanceRejected,
+    foreignLocationRejected: result.foreignLocationRejected,
+    genericTitleRejected: result.genericTitleRejected,
+    navigationTextCleaned: result.navigationTextCleaned,
+    titleDerivedFromBody: result.titleDerivedFromBody,
     error: result.error || null
   };
   await c.env.DB.prepare(`
@@ -3660,6 +4040,11 @@ app.post('/api/opportunity-automation/run-source/:id', authMiddleware, adminMidd
       restrictedRejected: result.restrictedRejected,
       genericUrlRejected: result.genericUrlRejected,
       mojibakeRejected: result.mojibakeRejected,
+      iraqRelevanceRejected: result.iraqRelevanceRejected,
+      foreignLocationRejected: result.foreignLocationRejected,
+      genericTitleRejected: result.genericTitleRejected,
+      navigationTextCleaned: result.navigationTextCleaned,
+      titleDerivedFromBody: result.titleDerivedFromBody,
       sources: [sourceLog],
       errors: result.error ? [{ sourceId: source.id, url: source.url, error: result.error }] : []
     }),
@@ -3716,6 +4101,11 @@ app.post('/api/opportunity-automation/run-source/:sourceId/insert-pending', auth
     restrictedRejected: result.restrictedRejected,
     genericUrlRejected: result.genericUrlRejected,
     mojibakeRejected: result.mojibakeRejected,
+    iraqRelevanceRejected: result.iraqRelevanceRejected,
+    foreignLocationRejected: result.foreignLocationRejected,
+    genericTitleRejected: result.genericTitleRejected,
+    navigationTextCleaned: result.navigationTextCleaned,
+    titleDerivedFromBody: result.titleDerivedFromBody,
     error: result.error || null
   };
 
@@ -3745,6 +4135,11 @@ app.post('/api/opportunity-automation/run-source/:sourceId/insert-pending', auth
       restrictedRejected: result.restrictedRejected,
       genericUrlRejected: result.genericUrlRejected,
       mojibakeRejected: result.mojibakeRejected,
+      iraqRelevanceRejected: result.iraqRelevanceRejected,
+      foreignLocationRejected: result.foreignLocationRejected,
+      genericTitleRejected: result.genericTitleRejected,
+      navigationTextCleaned: result.navigationTextCleaned,
+      titleDerivedFromBody: result.titleDerivedFromBody,
       sources: [sourceLog],
       errors: result.error ? [{ sourceId: source.id, url: source.url, error: result.error }] : []
     }),
@@ -3768,6 +4163,11 @@ app.post('/api/opportunity-automation/run-source/:sourceId/insert-pending', auth
     restrictedRejected: result.restrictedRejected,
     genericUrlRejected: result.genericUrlRejected,
     mojibakeRejected: result.mojibakeRejected,
+    iraqRelevanceRejected: result.iraqRelevanceRejected,
+    foreignLocationRejected: result.foreignLocationRejected,
+    genericTitleRejected: result.genericTitleRejected,
+    navigationTextCleaned: result.navigationTextCleaned,
+    titleDerivedFromBody: result.titleDerivedFromBody,
     message: result.error || 'Manual pending insertion completed'
   }, result.error ? 502 : 200);
 });
