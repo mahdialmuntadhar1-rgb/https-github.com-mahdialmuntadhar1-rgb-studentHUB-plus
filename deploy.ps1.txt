@@ -1,0 +1,115 @@
+# ============================================================
+# Deployment Script for studentHUB Plus
+# Usage: .\deploy.ps1 [-deployTo "docker" | "gcloud" | "pm2"]
+# ============================================================
+
+param(
+    [ValidateSet("docker", "gcloud", "pm2")]
+    [string]$deployTo = "pm2"
+)
+
+# Stop on errors
+$ErrorActionPreference = "Stop"
+
+# 1. Verify we are in the correct repository
+if (-not (Test-Path ".git") -or -not (Test-Path "package.json")) {
+    Write-Host "❌ ERROR: Run this script from your repository root (where .git and package.json are)." -ForegroundColor Red
+    exit 1
+}
+Write-Host "✅ In repository root: $(Get-Location)" -ForegroundColor Green
+
+# 2. Install dependencies (if needed)
+Write-Host "📦 Ensuring dependencies are installed..." -ForegroundColor Cyan
+npm install
+
+# 3. Run tests (optional – comment out if you have no tests yet)
+# Write-Host "🧪 Running tests..." -ForegroundColor Cyan
+# npm test
+# if ($LASTEXITCODE -ne 0) { 
+#     Write-Host "⚠️ Tests failed. Do you want to continue? (y/n)" -ForegroundColor Yellow
+#     $answer = Read-Host
+#     if ($answer -ne 'y') { exit 1 }
+# }
+
+# 4. Build the application
+Write-Host "🏗️ Building production bundle..." -ForegroundColor Cyan
+npm run build
+if ($LASTEXITCODE -ne 0) {
+    Write-Host "❌ Build failed. Aborting deployment." -ForegroundColor Red
+    exit 1
+}
+Write-Host "✅ Build successful." -ForegroundColor Green
+
+# 5. Commit any outstanding changes
+$status = git status --porcelain
+if ($status) {
+    Write-Host "📝 Uncommitted changes detected. Committing..." -ForegroundColor Cyan
+    git add .
+    $commitMsg = "Deploy: $(Get-Date -Format 'yyyy-MM-dd HH:mm:ss')"
+    git commit -m $commitMsg
+    Write-Host "✅ Committed as '$commitMsg'"
+} else {
+    Write-Host "ℹ️ No uncommitted changes."
+}
+
+# 6. Push to GitHub
+Write-Host "📤 Pushing to GitHub..." -ForegroundColor Cyan
+git push
+Write-Host "✅ Pushed to GitHub." -ForegroundColor Green
+
+# 7. Deploy based on selected method
+switch ($deployTo) {
+    "pm2" {
+        Write-Host "⚙️ Deploying with PM2 (production process manager)..." -ForegroundColor Cyan
+        # Install PM2 globally if not present
+        if (-not (Get-Command pm2 -ErrorAction SilentlyContinue)) {
+            Write-Host "Installing PM2 globally..." -ForegroundColor Yellow
+            npm install -g pm2
+        }
+        # Start or restart the app
+        pm2 stop studenthub-plus 2>$null
+        pm2 start ecosystem.config.cjs
+        pm2 save
+        pm2 startup
+        Write-Host "✅ PM2 deployment complete. App is running on port 3000." -ForegroundColor Green
+        Write-Host "   Use 'pm2 logs studenthub-plus' to see logs."
+    }
+    "docker" {
+        Write-Host "🐳 Deploying with Docker..." -ForegroundColor Cyan
+        # Build and run using docker-compose
+        docker-compose up -d --build
+        Write-Host "✅ Docker deployment complete. App is running on port 3000." -ForegroundColor Green
+        Write-Host "   Use 'docker-compose logs' to see logs."
+    }
+    "gcloud" {
+        Write-Host "☁️ Deploying to Google Cloud Run..." -ForegroundColor Cyan
+        # Ensure gcloud is installed
+        if (-not (Get-Command gcloud -ErrorAction SilentlyContinue)) {
+            Write-Host "❌ gcloud CLI not found. Install Google Cloud SDK first." -ForegroundColor Red
+            exit 1
+        }
+        # Get project ID from user or env
+        $projectId = $env:GCLOUD_PROJECT_ID
+        if (-not $projectId) {
+            $projectId = Read-Host "Enter your Google Cloud Project ID"
+        }
+        # Set project
+        gcloud config set project $projectId
+        # Build and push container to Google Container Registry
+        $imageName = "gcr.io/$projectId/studenthub-plus"
+        Write-Host "Building Docker image: $imageName" -ForegroundColor Cyan
+        docker build -t $imageName .
+        docker push $imageName
+        # Deploy to Cloud Run
+        gcloud run deploy studenthub-plus `
+            --image $imageName `
+            --platform managed `
+            --region us-central1 `
+            --allow-unauthenticated `
+            --set-env-vars "NODE_ENV=production,GEMINI_API_KEY=${env:GEMINI_API_KEY},APP_URL=${env:APP_URL},SESSION_SECRET=${env:SESSION_SECRET},DATABASE_URL=${env:DATABASE_URL}"
+        Write-Host "✅ Google Cloud Run deployment complete." -ForegroundColor Green
+        Write-Host "   Get the service URL from the output above."
+    }
+}
+
+Write-Host "`n🎉 Deployment finished successfully!" -ForegroundColor Green
