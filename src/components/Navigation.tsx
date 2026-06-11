@@ -1,5 +1,4 @@
-import { Home, Compass, Plus, Briefcase, User, Bell, Search, Globe, Moon, Sun } from 'lucide-react';
-import { motion } from 'motion/react';
+import { Home, Briefcase, Globe, Moon, Sun } from 'lucide-react';
 import { useLanguage } from '../contexts/LanguageContext';
 import { useTheme } from '../contexts/ThemeContext';
 
@@ -12,11 +11,8 @@ export default function Navbar({ activeTab, setActiveTab }: NavbarProps) {
   const { language, setLanguage } = useLanguage();
 
   const tabs = [
-    { id: 'home', icon: Home, label: language === 'ar' ? 'الرئيسية' : 'Home' },
-    { id: 'discover', icon: Compass, label: language === 'ar' ? 'اكتشف' : 'Discover' },
-    { id: 'post', icon: Plus, label: language === 'ar' ? 'نشر' : 'Post', isCenter: true },
-    { id: 'opportunities', icon: Briefcase, label: language === 'ar' ? 'فرص' : 'Jobs' },
-    { id: 'profile', icon: User, label: language === 'ar' ? 'حسابي' : 'Profile' },
+    { id: 'home', icon: Home, label: language === 'ar' ? 'الرئيسية' : language === 'ku' ? 'سەرەکی' : 'Home' },
+    { id: 'opportunities', icon: Briefcase, label: language === 'ar' ? 'الفرص' : language === 'ku' ? 'هەلی کار' : 'Opportunities' },
   ];
 
   return (
@@ -24,20 +20,6 @@ export default function Navbar({ activeTab, setActiveTab }: NavbarProps) {
       {tabs.map((tab) => {
         const Icon = tab.icon;
         const isActive = activeTab === tab.id;
-
-        if (tab.isCenter) {
-            return (
-                <button
-                    key={tab.id}
-                    onClick={() => setActiveTab(tab.id)}
-                    className="relative -mt-12 group"
-                >
-                    <div className="bg-primary p-4 rounded-3xl shadow-2xl shadow-primary/40 text-white transform group-hover:scale-110 group-active:scale-95 transition-all outline outline-8 outline-surface">
-                        <Icon size={32} strokeWidth={3} />
-                    </div>
-                </button>
-            );
-        }
 
         return (
           <button
@@ -60,7 +42,7 @@ export default function Navbar({ activeTab, setActiveTab }: NavbarProps) {
   );
 }
 
-export function Header({ title, onNotificationsClick }: { title: string; onNotificationsClick?: () => void }) {
+export function Header({ title }: { title: string; onNotificationsClick?: () => void }) {
   const { language, setLanguage } = useLanguage();
   const { theme, toggleTheme } = useTheme();
 
@@ -78,12 +60,12 @@ export function Header({ title, onNotificationsClick }: { title: string; onNotif
 
       <div className="flex items-center gap-3">
         <button
-          onClick={() => setLanguage(language === 'ar' ? 'en' : 'ar')}
+          onClick={() => setLanguage(language === 'ar' ? 'ku' : language === 'ku' ? 'en' : 'ar')}
           className="p-3 bg-surface dark:bg-gray-800 text-secondary dark:text-white rounded-2xl border border-gray-50 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all active:scale-95"
-          title={language === 'ar' ? 'Switch to English' : 'التبديل إلى العربية'}
+          title="Switch language"
         >
           <Globe size={20} strokeWidth={2.5} />
-          <span className="text-[10px] font-black ml-1">{language === 'ar' ? 'EN' : 'ع'}</span>
+          <span className="text-[10px] font-black ml-1">{language === 'ar' ? 'ک' : language === 'ku' ? 'EN' : 'ع'}</span>
         </button>
         <button
           onClick={toggleTheme}
@@ -91,16 +73,6 @@ export function Header({ title, onNotificationsClick }: { title: string; onNotif
           title={theme === 'light' ? 'Switch to dark mode' : 'التبديل إلى الوضع الفاتح'}
         >
           {theme === 'light' ? <Moon size={20} strokeWidth={2.5} /> : <Sun size={20} strokeWidth={2.5} />}
-        </button>
-        <button className="p-3 bg-surface dark:bg-gray-800 text-secondary dark:text-white rounded-2xl border border-gray-50 dark:border-gray-700 hover:bg-gray-100 dark:hover:bg-gray-700 transition-all active:scale-95">
-          <Search size={20} strokeWidth={2.5} />
-        </button>
-        <button
-            onClick={onNotificationsClick}
-            className="p-3 bg-primary/5 dark:bg-primary/20 text-primary dark:text-primary-light rounded-2xl border border-primary/20 dark:border-primary/30 hover:bg-primary hover:text-white transition-all active:scale-95 relative"
-        >
-          <Bell size={20} strokeWidth={2.5} />
-          <div className="absolute top-2 left-2 w-2.5 h-2.5 bg-accent rounded-full border-2 border-white" />
         </button>
       </div>
     </header>

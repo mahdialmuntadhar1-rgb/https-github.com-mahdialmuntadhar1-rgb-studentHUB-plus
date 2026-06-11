@@ -5,7 +5,7 @@ import { ApiClient } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Mail, Lock, User, ArrowLeft, ArrowRight, Sparkles, CheckCircle2 } from 'lucide-react';
 
-export default function Auth() {
+export default function Auth({ adminOnly = false }: { adminOnly?: boolean }) {
   const { setAuthData } = useAuth();
   const [isLogin, setIsLogin] = useState(true);
   const [isLoading, setIsLoading] = useState(false);
@@ -29,8 +29,15 @@ export default function Auth() {
     try {
       if (isLogin) {
         const { token, user } = await api.login(email, password);
+        if (adminOnly && user.role !== 'admin' && user.role !== 'moderator') {
+          api.clearAuth();
+          throw new Error('Admin access only');
+        }
         setAuthData(token, user);
       } else {
+        if (adminOnly) {
+          throw new Error('Admin accounts are managed by Jamiaati backend.');
+        }
         const { token, user } = await api.register({ email, password, full_name: fullName });
         setAuthData(token, user);
       }
@@ -85,10 +92,10 @@ export default function Auth() {
              ) : (
                <>
                  <h2 className="text-3xl font-black text-secondary mb-2">
-                    {isLogin ? 'أهلاً بك مجدداً' : 'انضم إلى رافد'}
+                    {adminOnly ? 'دخول الإدارة' : isLogin ? 'أهلاً بك مجدداً' : 'انضم إلى رافد'}
                  </h2>
                  <p className="text-sm text-gray-400 font-bold">
-                    {isLogin ? 'سجل دخولك لمتابعة زملائك' : 'ابدأ رحلتك الأكاديمية مع أكبر مجتمع طلابي'}
+                    {adminOnly ? 'استخدم حساب الإدارة المرتبط بواجهة رافد الخلفية' : isLogin ? 'سجل دخولك لمتابعة زملائك' : 'ابدأ رحلتك الأكاديمية مع أكبر مجتمع طلابي'}
                  </p>
                </>
              )}
@@ -183,7 +190,7 @@ export default function Auth() {
           ) : (
             <form onSubmit={handleAuth} className="space-y-4">
               <AnimatePresence mode="wait">
-                {!isLogin && (
+                {!adminOnly && !isLogin && (
                   <motion.div
                     initial={{ opacity: 0, height: 0 }}
                     animate={{ opacity: 1, height: 'auto' }}
@@ -278,7 +285,7 @@ export default function Auth() {
             </form>
           )}
 
-          {!isForgotPassword && (
+          {!adminOnly && !isForgotPassword && (
             <div className="mt-8 text-center">
                <button 
                  onClick={() => setIsLogin(!isLogin)}

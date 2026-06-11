@@ -1,6 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 
-type Language = 'ar' | 'en';
+type Language = 'ar' | 'ku' | 'en';
 
 interface LanguageContextType {
   language: Language;
@@ -14,7 +14,7 @@ const LanguageContext = createContext<LanguageContextType | undefined>(undefined
 export function LanguageProvider({ children }: { children: React.ReactNode }) {
   const [language, setLanguageState] = useState<Language>(() => {
     const saved = localStorage.getItem('rafid_language');
-    return (saved === 'ar' || saved === 'en') ? saved : 'ar';
+    return (saved === 'ar' || saved === 'ku' || saved === 'en') ? saved : 'ar';
   });
 
   const setLanguage = (lang: Language) => {
@@ -22,8 +22,8 @@ export function LanguageProvider({ children }: { children: React.ReactNode }) {
     localStorage.setItem('rafid_language', lang);
   };
 
-  const dir = language === 'ar' ? 'rtl' : 'ltr';
-  const isRTL = language === 'ar';
+  const dir = language === 'en' ? 'ltr' : 'rtl';
+  const isRTL = language !== 'en';
 
   useEffect(() => {
     document.documentElement.dir = dir;

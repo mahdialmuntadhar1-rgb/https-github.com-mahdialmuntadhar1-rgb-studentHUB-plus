@@ -1,6 +1,6 @@
 // Cloudflare Worker API Client for Rafid Platform
 
-const API_BASE = (import.meta as any).env.VITE_API_URL || 'https://rafid-api.mahdialmuntadhar1.workers.dev';
+export const API_BASE = (import.meta as any).env.VITE_API_URL || 'https://rafid-api.mahdialmuntadhar1.workers.dev';
 
 // ─── Token storage ────────────────────────────────────────────────────────────
 
@@ -43,6 +43,23 @@ export interface RafidUser {
   role: string;
 }
 
+export interface AcademicInstitution {
+  id: string;
+  name_ar: string;
+  name_ku?: string | null;
+  name_en?: string | null;
+  governorate: string;
+  city?: string | null;
+  type: string;
+  website?: string | null;
+  active?: number;
+}
+
+export interface InstitutionsResponse {
+  institutions: AcademicInstitution[];
+  pagination: { limit: number; offset: number; total: number; hasMore: boolean };
+}
+
 // ─── Fetch helpers ────────────────────────────────────────────────────────────
 
 function authHeaders(): HeadersInit {
@@ -57,6 +74,8 @@ async function handleResponse<T>(res: Response): Promise<T> {
       const err = await res.json();
       msg = (err as any).error || msg;
     } catch {}
+    if (res.status === 401) msg = 'Admin login required';
+    if (res.status === 403) msg = 'Admin access only';
     throw new Error(msg);
   }
   return res.json();
@@ -125,6 +144,22 @@ export async function updateProfile(payload: {
   const data = await handleResponse<RafidUser>(res);
   localStorage.setItem('rafid_user', JSON.stringify(data));
   return data;
+}
+
+export async function getInstitutions(filters?: {
+  governorate?: string;
+  q?: string;
+  limit?: number;
+  offset?: number;
+}): Promise<InstitutionsResponse> {
+  const params = new URLSearchParams();
+  if (filters?.governorate) params.set('governorate', filters.governorate);
+  if (filters?.q) params.set('q', filters.q);
+  if (filters?.limit !== undefined) params.set('limit', String(filters.limit));
+  if (filters?.offset !== undefined) params.set('offset', String(filters.offset));
+
+  const res = await fetch(`${API_BASE}/api/institutions${params.toString() ? `?${params.toString()}` : ''}`);
+  return handleResponse<InstitutionsResponse>(res);
 }
 
 // ─── Posts ────────────────────────────────────────────────────────────────────
@@ -291,14 +326,156 @@ export interface SystemLog {
   timestamp: string;
 }
 
+export type HighlightCategory = 'event' | 'job' | 'internship' | 'scholarship' | 'student_club';
+export type HighlightStatus = 'pending_review' | 'approved' | 'rejected' | 'duplicate' | 'expired';
+
+export interface HighlightItem {
+  id: string;
+  category: HighlightCategory;
+  title: string;
+  organization?: string | null;
+  governorate?: string | null;
+  city?: string | null;
+  university_id?: string | null;
+  source_name?: string | null;
+  source_url?: string | null;
+  apply_url?: string | null;
+  event_date?: string | null;
+  deadline?: string | null;
+  summary?: string | null;
+  full_description_optional?: string | null;
+  image_url?: string | null;
+  language?: string | null;
+  status?: HighlightStatus;
+  duplicate_key?: string | null;
+  confidence_score?: number;
+  raw_text?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface HighlightSource {
+  id: string;
+  name: string;
+  source_url: string;
+  category: HighlightCategory;
+  governorate_scope?: string | null;
+  university_scope?: string | null;
+  source_type: string;
+  enabled: number | boolean;
+  trusted_source: number | boolean;
+  auto_publish: number | boolean;
+  scraping_priority: number;
+  last_checked_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export async function getHighlights(filters?: {
+  category?: HighlightCategory | '';
+  governorate?: string;
+  university_id?: string;
+  source?: string;
+}): Promise<HighlightItem[]> {
+  const params = new URLSearchParams();
+  if (filters?.category) params.set('category', filters.category);
+  if (filters?.governorate) params.set('governorate', filters.governorate);
+  if (filters?.university_id) params.set('university_id', filters.university_id);
+  if (filters?.source) params.set('source', filters.source);
+
+  const res = await fetch(`${API_BASE}/api/highlights${params.toString() ? '?' + params.toString() : ''}`);
+  return handleResponse<HighlightItem[]>(res);
+}
+
+export async function getAdminHighlights(filters?: {
+  status?: HighlightStatus | '';
+  category?: HighlightCategory | '';
+  governorate?: string;
+  university_id?: string;
+}): Promise<HighlightItem[]> {
+  const params = new URLSearchParams();
+  if (filters?.status) params.set('status', filters.status);
+  if (filters?.category) params.set('category', filters.category);
+  if (filters?.governorate) params.set('governorate', filters.governorate);
+  if (filters?.university_id) params.set('university_id', filters.university_id);
+
+  const res = await fetch(`${API_BASE}/api/admin/highlights${params.toString() ? '?' + params.toString() : ''}`, {
+    headers: { ...authHeaders() },
+  });
+  return handleResponse<HighlightItem[]>(res);
+}
+
+export async function createAdminHighlight(payload: Partial<HighlightItem> & { title: string; category: HighlightCategory }): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/highlights`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+  await handleResponse<{ success: boolean }>(res);
+}
+
+export async function updateAdminHighlight(id: string, payload: Partial<HighlightItem>): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/highlights/${id}/edit`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+  await handleResponse<{ success: boolean }>(res);
+}
+
+export async function setHighlightStatus(id: string, action: 'approve' | 'reject' | 'mark-duplicate'): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/highlights/${id}/${action}`, {
+    method: 'POST',
+    headers: { ...authHeaders() },
+  });
+  await handleResponse<{ success: boolean }>(res);
+}
+
+export async function getHighlightSources(): Promise<HighlightSource[]> {
+  const res = await fetch(`${API_BASE}/api/admin/highlight-sources`, {
+    headers: { ...authHeaders() },
+  });
+  return handleResponse<HighlightSource[]>(res);
+}
+
+export async function createHighlightSource(payload: Partial<HighlightSource> & {
+  name: string;
+  source_url: string;
+  category: HighlightCategory;
+}): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/highlight-sources`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+  await handleResponse<{ success: boolean }>(res);
+}
+
+export async function setHighlightSourceEnabled(id: string, enabled: boolean): Promise<void> {
+  const res = await fetch(`${API_BASE}/api/admin/highlight-sources/${id}/toggle`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify({ enabled }),
+  });
+  await handleResponse<{ success: boolean; enabled: boolean }>(res);
+}
+
+export async function runHighlightImport(): Promise<{ success: boolean; sourcesChecked: number; itemsAdded: number; duplicatesFound: number }> {
+  const res = await fetch(`${API_BASE}/api/admin/highlight-import/run`, {
+    method: 'POST',
+    headers: { ...authHeaders() },
+  });
+  return handleResponse<{ success: boolean; sourcesChecked: number; itemsAdded: number; duplicatesFound: number }>(res);
+}
+
 // In-Memory/LocalStorage storage keys for simulation
 const USERS_STORAGE_KEY = 'rafid_simulated_users';
 const LOGS_STORAGE_KEY = 'rafid_simulated_logs';
 const RESETS_STORAGE_KEY = 'rafid_simulated_resets';
 
-// Core mock/seed dataset for beautiful visuals
+// Core mock/seed dataset for local-only visuals. Real admin permissions come from backend auth.
 const SEED_USERS: AdminUser[] = [
-  { id: 'u1', email: 'safaribosafar@gmail.com', role: 'admin', created_at: new Date('2026-05-25T10:00:00Z').toISOString(), permissions: { canUpload: true } },
+  { id: 'u1', email: 'demo.student@jamiaati.local', role: 'user', created_at: new Date('2026-05-25T10:00:00Z').toISOString(), permissions: { canUpload: false } },
   { id: 'u2', email: 'ahmed.iraqi@uobaghdad.edu.iq', role: 'user', created_at: new Date('2026-05-24T12:00:00Z').toISOString(), permissions: { canUpload: true } },
   { id: 'u3', email: 'zahra.karbala@uofk.edu.iq', role: 'user', created_at: new Date('2026-05-23T15:30:00Z').toISOString(), permissions: { canUpload: false } },
   { id: 'u4', email: 'mustafa.basra@uobasrah.edu.iq', role: 'user', created_at: new Date('2026-05-22T08:15:00Z').toISOString(), permissions: { canUpload: true } },
@@ -557,5 +734,389 @@ export const ApiClient = {
         deletedUserId: userId,
       });
     }
+  },
+};
+
+export type OutreachContactStatus = 'active' | 'unsubscribed' | 'bounced' | 'invalid' | 'duplicate';
+export type OutreachCampaignStatus = 'draft' | 'scheduled' | 'sending' | 'paused' | 'completed' | 'failed';
+export type OutreachRecipientStatus = 'pending' | 'queued' | 'sent' | 'failed' | 'bounced' | 'skipped' | 'unsubscribed';
+
+export interface OutreachContact {
+  id: string;
+  institution_name?: string | null;
+  contact_name?: string | null;
+  email: string;
+  phone?: string | null;
+  department?: string | null;
+  governorate?: string | null;
+  institution_type?: string | null;
+  language?: string | null;
+  source?: string | null;
+  status: OutreachContactStatus;
+  notes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface OutreachTemplate {
+  id: string;
+  name: string;
+  subject_template: string;
+  html_template: string;
+  text_template: string;
+  language?: string | null;
+  created_by?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface OutreachCampaign {
+  id: string;
+  name: string;
+  template_id: string;
+  status: OutreachCampaignStatus;
+  segment_filter_json?: string | null;
+  total_recipients: number;
+  sent_count: number;
+  failed_count: number;
+  bounced_count: number;
+  unsubscribed_count: number;
+  created_at?: string;
+  started_at?: string | null;
+  completed_at?: string | null;
+}
+
+export interface OutreachRecipient {
+  id: string;
+  campaign_id: string;
+  contact_id: string;
+  email: string;
+  personalized_subject: string;
+  personalized_html: string;
+  personalized_text: string;
+  status: OutreachRecipientStatus;
+  provider_message_id?: string | null;
+  error_message?: string | null;
+  sent_at?: string | null;
+  opened_at?: string | null;
+  clicked_at?: string | null;
+}
+
+export interface OutreachImportSummary {
+  totalRows: number;
+  imported: number;
+  updated: number;
+  duplicates: number;
+  invalidEmails: number;
+}
+
+export async function getOutreachDashboard() {
+  const response = await fetch(`${API_BASE}/api/outreach/dashboard`, { headers: { ...authHeaders() } });
+  return handleResponse<{
+    contacts: { status: OutreachContactStatus; count: number }[];
+    recentCampaigns: OutreachCampaign[];
+    config: { dryRun: boolean; providerConfigured: boolean; dnsVerifiedManually: boolean };
+  }>(response);
+}
+
+export async function importOutreachContacts(csv: string) {
+  const response = await fetch(`${API_BASE}/api/outreach/contacts/import`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'text/csv', ...authHeaders() },
+    body: csv,
+  });
+  return handleResponse<OutreachImportSummary>(response);
+}
+
+export async function getOutreachContacts(filters?: Record<string, string>) {
+  const params = new URLSearchParams();
+  Object.entries(filters || {}).forEach(([key, value]) => {
+    if (value) params.set(key, value);
+  });
+  const response = await fetch(`${API_BASE}/api/outreach/contacts${params.toString() ? `?${params}` : ''}`, { headers: { ...authHeaders() } });
+  return handleResponse<OutreachContact[]>(response);
+}
+
+export async function patchOutreachContact(id: string, payload: Partial<OutreachContact>) {
+  const response = await fetch(`${API_BASE}/api/outreach/contacts/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<{ success: boolean }>(response);
+}
+
+export async function getOutreachTemplates() {
+  const response = await fetch(`${API_BASE}/api/outreach/templates`, { headers: { ...authHeaders() } });
+  return handleResponse<OutreachTemplate[]>(response);
+}
+
+export async function createOutreachTemplate(payload: Omit<OutreachTemplate, 'id'>) {
+  const response = await fetch(`${API_BASE}/api/outreach/templates`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<{ success: boolean }>(response);
+}
+
+export async function patchOutreachTemplate(id: string, payload: Partial<OutreachTemplate>) {
+  const response = await fetch(`${API_BASE}/api/outreach/templates/${id}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<{ success: boolean }>(response);
+}
+
+export async function getOutreachCampaigns() {
+  const response = await fetch(`${API_BASE}/api/outreach/campaigns`, { headers: { ...authHeaders() } });
+  return handleResponse<OutreachCampaign[]>(response);
+}
+
+export async function createOutreachCampaign(payload: { name: string; template_id: string; segment_filter_json?: Record<string, string> }) {
+  const response = await fetch(`${API_BASE}/api/outreach/campaigns`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+  return handleResponse<{ id: string; success: boolean }>(response);
+}
+
+export async function getOutreachCampaign(id: string) {
+  const response = await fetch(`${API_BASE}/api/outreach/campaigns/${id}`, { headers: { ...authHeaders() } });
+  return handleResponse<{ campaign: OutreachCampaign; recipients: OutreachRecipient[] }>(response);
+}
+
+export async function previewOutreachCampaign(id: string) {
+  const response = await fetch(`${API_BASE}/api/outreach/campaigns/${id}/preview`, {
+    method: 'POST',
+    headers: { ...authHeaders() },
+  });
+  return handleResponse<{ placeholders: string[]; samples: { subject: string; html: string; text: string; contact: OutreachContact }[] }>(response);
+}
+
+export async function outreachCampaignAction(id: string, action: 'send-test' | 'start' | 'pause' | 'resume' | 'retry-failed' | 'stop') {
+  const response = await fetch(`${API_BASE}/api/outreach/campaigns/${id}/${action}`, {
+    method: 'POST',
+    headers: { ...authHeaders() },
+  });
+  return handleResponse<{ success: boolean; dryRun?: boolean; providerMessageId?: string }>(response);
+}
+
+export function outreachExportUrl(kind: 'contacts' | 'campaign', id?: string) {
+  const path = kind === 'contacts' ? '/api/outreach/contacts/export' : `/api/outreach/campaigns/${id}/export`;
+  return `${API_BASE}${path}`;
+}
+
+export type AutomationStatus = 'pending_review' | 'approved' | 'rejected' | 'duplicate' | 'expired';
+
+export interface OpportunityAutomationSource {
+  id: string;
+  name: string;
+  url: string;
+  source_type: string;
+  category_scope: string;
+  country_scope?: string | null;
+  governorate_scope?: string | null;
+  language?: string | null;
+  is_active: number | boolean;
+  crawl_frequency_hours: number;
+  last_checked_at?: string | null;
+  last_success_at?: string | null;
+  last_error?: string | null;
+  notes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface OpportunityCandidate {
+  id: string;
+  source_id?: string | null;
+  title: string;
+  organization?: string | null;
+  category: string;
+  description?: string | null;
+  summary?: string | null;
+  eligibility?: string | null;
+  deadline?: string | null;
+  published_date?: string | null;
+  apply_url?: string | null;
+  source_url?: string | null;
+  image_url?: string | null;
+  country?: string | null;
+  governorate?: string | null;
+  city?: string | null;
+  language?: string | null;
+  salary_or_funding?: string | null;
+  confidence_score?: number;
+  duplicate_key?: string | null;
+  status: AutomationStatus;
+  rejection_reason?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface OpportunityRunLog {
+  id: string;
+  started_at: string;
+  finished_at?: string | null;
+  status: string;
+  sources_checked: number;
+  items_found: number;
+  items_inserted: number;
+  duplicates_found: number;
+  errors_json?: string | null;
+}
+
+export interface AutomationStatusResponse {
+  sources: { total: number; active: number };
+  candidates: { total: number; pending: number | null; approved: number | null };
+  lastRun: OpportunityRunLog | null;
+  dryRun: boolean;
+}
+
+export interface AutomationCandidatesResponse {
+  candidates: OpportunityCandidate[];
+  pagination: { page: number; limit: number; total: number; totalPages: number };
+}
+
+export interface AutomationImportResult {
+  summary: { total: number; imported: number; duplicates: number; expired: number; errors: number };
+  errors: string[];
+}
+
+function buildQuery(params?: Record<string, string | number | boolean | undefined | null>) {
+  const search = new URLSearchParams();
+  Object.entries(params || {}).forEach(([key, value]) => {
+    if (value !== undefined && value !== null && value !== '') search.set(key, String(value));
+  });
+  return search.toString();
+}
+
+function arrayFromResponse<T>(data: unknown, keys: string[]): T[] {
+  if (Array.isArray(data)) return data as T[];
+  if (!data || typeof data !== 'object') return [];
+  for (const key of keys) {
+    const value = (data as Record<string, unknown>)[key];
+    if (Array.isArray(value)) return value as T[];
+  }
+  return [];
+}
+
+function normalizeCandidatesResponse(data: unknown, fallbackPage = 1, fallbackLimit = 20): AutomationCandidatesResponse {
+  const candidates = arrayFromResponse<OpportunityCandidate>(data, ['candidates', 'items', 'data', 'results']);
+  const rawPagination = data && typeof data === 'object' ? (data as any).pagination : null;
+  return {
+    candidates,
+    pagination: {
+      page: Number(rawPagination?.page || fallbackPage),
+      limit: Number(rawPagination?.limit || fallbackLimit),
+      total: Number(rawPagination?.total || candidates.length),
+      totalPages: Number(rawPagination?.totalPages || Math.max(1, Math.ceil(candidates.length / fallbackLimit))),
+    },
+  };
+}
+
+export const opportunityAutomation = {
+  getStatus: async () => {
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/status`, { headers: { ...authHeaders() } });
+    return handleResponse<AutomationStatusResponse>(res);
+  },
+  getStats: async () => {
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/stats`, { headers: { ...authHeaders() } });
+    return handleResponse<{
+      byStatus: { status: AutomationStatus; count: number }[];
+      byCategory: { category: string; count: number }[];
+      byGovernorate: { governorate: string; count: number }[];
+      sourceStats: { source_type: string; count: number }[];
+    }>(res);
+  },
+  getSources: async (params?: Record<string, string | number | boolean>) => {
+    const query = buildQuery(params);
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/sources${query ? `?${query}` : ''}`, { headers: { ...authHeaders() } });
+    const data = await handleResponse<unknown>(res);
+    return arrayFromResponse<OpportunityAutomationSource>(data, ['sources', 'items', 'data', 'results']);
+  },
+  createSource: async (data: Partial<OpportunityAutomationSource> & { name: string; url: string; source_type: string; category_scope: string }) => {
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/sources`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(data),
+    });
+    return handleResponse<{ id: string; success: boolean }>(res);
+  },
+  updateSource: async (id: string, data: Partial<OpportunityAutomationSource>) => {
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/sources/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(data),
+    });
+    return handleResponse<{ success: boolean }>(res);
+  },
+  deleteSource: async (id: string) => {
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/sources/${id}`, { method: 'DELETE', headers: { ...authHeaders() } });
+    return handleResponse<{ success: boolean }>(res);
+  },
+  runNow: async () => {
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/run-now`, { method: 'POST', headers: { ...authHeaders() } });
+    return handleResponse<{ success: boolean; dryRun: boolean }>(res);
+  },
+  runSource: async (id: string) => {
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/run-source/${id}`, { method: 'POST', headers: { ...authHeaders() } });
+    return handleResponse<{ success: boolean; sourceId: string; dryRun: boolean; message?: string }>(res);
+  },
+  importCsv: async (file: File | string) => {
+    const body = typeof file === 'string' ? file : await file.text();
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/import-csv`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'text/csv', ...authHeaders() },
+      body,
+    });
+    return handleResponse<AutomationImportResult>(res);
+  },
+  getCandidates: async (params?: Record<string, string | number | boolean>) => {
+    const query = buildQuery(params);
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates${query ? `?${query}` : ''}`, { headers: { ...authHeaders() } });
+    const data = await handleResponse<unknown>(res);
+    return normalizeCandidatesResponse(data, Number(params?.page || 1), Number(params?.limit || 20));
+  },
+  getCandidate: async (id: string) => {
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates/${id}`, { headers: { ...authHeaders() } });
+    return handleResponse<OpportunityCandidate>(res);
+  },
+  updateCandidate: async (id: string, data: Partial<OpportunityCandidate>) => {
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates/${id}`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify(data),
+    });
+    return handleResponse<{ success: boolean }>(res);
+  },
+  approveCandidate: async (id: string) => {
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates/${id}/approve`, { method: 'POST', headers: { ...authHeaders() } });
+    return handleResponse<{ success: boolean; dryRun: boolean; published: boolean }>(res);
+  },
+  rejectCandidate: async (id: string, reason?: string) => {
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates/${id}/reject`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json', ...authHeaders() },
+      body: JSON.stringify({ reason }),
+    });
+    return handleResponse<{ success: boolean }>(res);
+  },
+  markDuplicate: async (id: string) => {
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates/${id}/mark-duplicate`, { method: 'POST', headers: { ...authHeaders() } });
+    return handleResponse<{ success: boolean }>(res);
+  },
+  markExpired: async (id: string) => {
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates/${id}/mark-expired`, { method: 'POST', headers: { ...authHeaders() } });
+    return handleResponse<{ success: boolean }>(res);
+  },
+  getLogs: async (params?: Record<string, string | number | boolean>) => {
+    const query = buildQuery(params);
+    const res = await fetch(`${API_BASE}/api/opportunity-automation/logs${query ? `?${query}` : ''}`, { headers: { ...authHeaders() } });
+    const data = await handleResponse<unknown>(res);
+    return arrayFromResponse<OpportunityRunLog>(data, ['logs', 'items', 'data', 'results']);
   },
 };
