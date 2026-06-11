@@ -13,3 +13,7 @@ _fix_backup_*/
 _fix_backup_chunk3_*/
 audit/
 # Local dependencies and build output
+# Local preparation reports and backups
+_deploy_prep_chunk6_*/
+_fix_backup_chunk6_*/
+CHUNK_1_PRODUCTION_AUDIT.md
