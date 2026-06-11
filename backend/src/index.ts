@@ -2619,6 +2619,26 @@ type ScrapedOpportunityItem = {
   confidenceScore: number;
 };
 
+type ScrapeRejectReason = 'generic_url' | 'restricted' | 'mojibake' | 'weak_content' | 'not_specific';
+
+type ScrapedOpportunityResult = {
+  item: ScrapedOpportunityItem | null;
+  reason?: ScrapeRejectReason;
+};
+
+type ScrapeOpportunitySourceResult = {
+  checked: number;
+  found: number;
+  inserted: number;
+  wouldInsert: number;
+  duplicates: number;
+  rejectedByFilter: number;
+  restrictedRejected: number;
+  genericUrlRejected: number;
+  mojibakeRejected: number;
+  error?: string;
+};
+
 const OPPORTUNITY_KEYWORDS = [
   'job', 'jobs', 'vacancy', 'vacancies', 'hiring', 'career', 'careers', 'position', 'positions',
   'apply', 'application', 'deadline', 'scholarship', 'scholarships', 'grant', 'fellowship',
@@ -2641,6 +2661,36 @@ const GENERIC_PATH_SEGMENTS = [
   'archive', 'web_archive.php'
 ];
 
+const BLOCKED_OPPORTUNITY_PATH_PATTERNS = [
+  /\/job-location(?:\/|$)/i,
+  /\/jobs-location(?:\/|$)/i,
+  /\/job-category(?:\/|$)/i,
+  /\/jobs-category(?:\/|$)/i,
+  /\/category(?:\/|$)/i,
+  /\/tag(?:\/|$)/i,
+  /\/search(?:\/|$)/i,
+  /\/page(?:\/|$)/i,
+  /\/author(?:\/|$)/i,
+  /\/blog(?:\/|$)/i,
+  /\/article(?:\/|$)/i,
+  /\/news(?:\/|$)/i,
+  /\/login(?:\/|$)/i,
+  /\/register(?:\/|$)/i,
+  /\/account(?:\/|$)/i,
+  /\/dashboard(?:\/|$)/i,
+  /\/post-job(?:\/|$)/i,
+  /\/submit(?:\/|$)/i,
+  /\/employer(?:\/|$)/i,
+  /\/company(?:\/|$)/i,
+  /\/companies(?:\/|$)/i,
+  /\/candidate(?:\/|$)/i,
+  /\/profile(?:\/|$)/i
+];
+
+const BLOCKED_OPPORTUNITY_INDEX_PATHS = new Set([
+  '/job', '/jobs', '/opportunities', '/careers'
+]);
+
 function sourceNameForInstitution(institution: InstitutionSourceRow): string {
   return normalizeWhitespace(institution.name_en || institution.name_ar || institution.name_ku || institution.website);
 }
@@ -2649,8 +2699,18 @@ function normalizeComparableUrl(url: string): string {
   return normalizeUrl(url).replace(/\/+$/, '').toLowerCase();
 }
 
+function normalizeCrawlerText(text: string): string {
+  return normalizeText(text || '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
 function hasMojibake(text: string): boolean {
-  return /[╪┘Γ�]/.test(text) || text.includes('Ø') || text.includes('Ù');
+  const normalized = text || '';
+  if (/[╪┘Γ�ØÙ█âêû]/.test(normalized)) return true;
+  const corruptedMatches = normalized.match(/[╪┘Γ�ØÙ█âêû]/g) || [];
+  const boxDrawingMatches = normalized.match(/[\u2500-\u257f]/g) || [];
+  return corruptedMatches.length >= 3 || boxDrawingMatches.length >= 3;
 }
 
 function stripHtmlForScraping(html: string): string {
@@ -2681,16 +2741,37 @@ function hasDateOrDeadlineSignal(text: string): boolean {
     || lower.includes('يغلق');
 }
 
-function isGenericOrUnsafeUrl(url: string): boolean {
+function sourceLooksLikeHonJob(source?: AutomationSourceRow): boolean {
+  const haystack = `${source?.name || ''} ${source?.url || ''}`.toLowerCase();
+  return haystack.includes('honjob.com') || haystack.includes('honjob');
+}
+
+function isHonJobSpecificPublicJobUrl(url: string): boolean {
+  try {
+    const parsed = new URL(normalizeUrl(url));
+    const host = parsed.hostname.replace(/^www\./, '').toLowerCase();
+    const segments = parsed.pathname.split('/').filter(Boolean);
+    return host === 'honjob.com' && segments.length === 2 && segments[0].toLowerCase() === 'job' && segments[1].trim().length > 0;
+  } catch {
+    return false;
+  }
+}
+
+function isBlockedOpportunityUrl(url: string, source?: AutomationSourceRow): boolean {
   try {
     const parsed = new URL(normalizeUrl(url));
     const path = parsed.pathname.replace(/\/+$/, '').toLowerCase();
+    const search = parsed.search.toLowerCase();
     const lastSegment = path.split('/').filter(Boolean).pop() || '';
 
     if (!path || path === '/') return true;
+    if (BLOCKED_OPPORTUNITY_INDEX_PATHS.has(path)) return true;
+    if (BLOCKED_OPPORTUNITY_PATH_PATTERNS.some((pattern) => pattern.test(`${path}/`))) return true;
     if (GENERIC_PATH_SEGMENTS.includes(lastSegment)) return true;
     if (path.includes('login') || path.includes('register-candidate')) return true;
     if (path.includes('wp-login') || path.includes('admin')) return true;
+    if (search.includes('login') || search.includes('register') || search.includes('s=')) return true;
+    if (sourceLooksLikeHonJob(source) && !isHonJobSpecificPublicJobUrl(url)) return true;
 
     return false;
   } catch {
@@ -2698,17 +2779,102 @@ function isGenericOrUnsafeUrl(url: string): boolean {
   }
 }
 
-function isLikelySpecificOpportunityUrl(url: string): boolean {
+function isGenericOrUnsafeUrl(url: string): boolean {
+  return isBlockedOpportunityUrl(url);
+}
+
+function isLikelyDetailOpportunityUrl(url: string, category?: string, source?: AutomationSourceRow): boolean {
   try {
     const parsed = new URL(normalizeUrl(url));
     const path = parsed.pathname.toLowerCase();
+    const segments = path.split('/').filter(Boolean);
 
-    if (isGenericOrUnsafeUrl(url)) return false;
+    if (isBlockedOpportunityUrl(url, source)) return false;
+    if (sourceLooksLikeHonJob(source)) return isHonJobSpecificPublicJobUrl(url);
+    if (category === 'job' && !/job|vacanc|career|position|فرصة|وظيفة|تعيين/.test(path)) return false;
 
-    return /\/\d{4}\/|\/20[2-9][0-9]|id=|p=|node\/|news20|_news|job|vacanc|career|scholar|training|course|event|admission|registration|اعلان|وظيفة|منحة|تدريب|قبول|تسجيل/.test(path + parsed.search.toLowerCase());
+    return segments.length >= 2 && /\/\d{4}\/|\/20[2-9][0-9]|id=|p=|node\/|news20|_news|job|vacanc|career|scholar|training|course|event|admission|registration|اعلان|وظيفة|منحة|تدريب|قبول|تسجيل/.test(path + parsed.search.toLowerCase());
   } catch {
     return false;
   }
+}
+
+function isLikelySpecificOpportunityUrl(url: string): boolean {
+  return isLikelyDetailOpportunityUrl(url);
+}
+
+function isRestrictedOrLoginRequiredText(text: string): boolean {
+  const normalized = normalizeCrawlerText(text).toLowerCase();
+  if (!normalized) return false;
+
+  const hardRestrictedPatterns = [
+    /this page is restricted for registered users only/i,
+    /please login to view this page/i,
+    /login to view this page/i,
+    /registered users only/i,
+    /login\s*\/\s*register/i,
+    /الدخول\s*\/\s*التسجيل/,
+    /تسجيل الدخول/,
+    /يرجى تسجيل الدخول/,
+    /الرجاء تسجيل الدخول/,
+    /يجب تسجيل الدخول/,
+    /هذه الصفحة مقيدة/,
+    /هذه الصفحة للمستخدمين المسجلين/,
+    /نشر الوظيفة\s+الدخول\s*\/\s*التسجيل/,
+    /\bdashboard\b/i,
+    /\bmy account\b/i,
+    /لوحة القياس/,
+    /لوحة التحكم/
+  ];
+  if (hardRestrictedPatterns.some((pattern) => pattern.test(text))) return true;
+
+  const loginSignals = ['login', 'register', 'sign in', 'my account', 'dashboard', 'تسجيل الدخول', 'التسجيل', 'الدخول'];
+  const opportunitySignals = OPPORTUNITY_KEYWORDS.filter((keyword) => normalized.includes(keyword.toLowerCase())).length;
+  const loginSignalCount = loginSignals.filter((signal) => normalized.includes(signal.toLowerCase())).length;
+  const shortText = normalized.length < 900;
+
+  return loginSignalCount >= 3 && (shortText || opportunitySignals <= 1);
+}
+
+function hasUsefulOpportunityBody(text: string): boolean {
+  const normalized = normalizeCrawlerText(text);
+  if (normalized.length < 220) return false;
+  if (isRestrictedOrLoginRequiredText(normalized)) return false;
+
+  const lower = normalized.toLowerCase();
+  const navSignals = ['home', 'menu', 'login', 'register', 'dashboard', 'privacy policy', 'terms', 'copyright', 'الرئيسية', 'القائمة', 'تسجيل الدخول'];
+  const navSignalCount = navSignals.filter((signal) => lower.includes(signal.toLowerCase())).length;
+  if (navSignalCount >= 5 && normalized.length < 1200) return false;
+
+  return hasOpportunitySignal(normalized);
+}
+
+function hasMeaningfulOpportunitySignals(url: string, title: string, text: string, source?: AutomationSourceRow): boolean {
+  const normalized = normalizeCrawlerText(`${title} ${text}`);
+  const lower = normalized.toLowerCase();
+  let signals = 0;
+
+  if (source?.name && !['unknown', 'source'].includes(source.name.toLowerCase())) signals++;
+  if (source?.governorate_scope || /\b(baghdad|basra|erbil|najaf|karbala|mosul|duhok|sulaymaniyah|iraq)\b|بغداد|البصرة|اربيل|أربيل|النجف|كربلاء|الموصل|دهوك|السليمانية/.test(lower)) signals++;
+  if (hasDateOrDeadlineSignal(normalized)) signals++;
+  if (/\b(salary|paid|funding|stipend|grant)\b|راتب|أجر|تمويل|منحة|مكافأة/.test(lower)) signals++;
+  if (/\b(apply|application|submit|send cv|email|form|apply now)\b|قدم|التقديم|استمارة|ارسل|إرسال|البريد/.test(lower) || /https?:\/\/|mailto:/.test(text)) signals++;
+  if (normalized.length >= 700) signals++;
+  if (/\b(company|organization|employer|department|university|institute|ngo)\b|شركة|منظمة|جهة|جامعة|مؤسسة|قسم/.test(lower)) signals++;
+  if (isLikelyDetailOpportunityUrl(url, classifyOpportunity(title, text), source) && hasOpportunitySignal(`${title} ${text}`)) signals++;
+
+  return signals >= 2;
+}
+
+function shouldRejectScrapedPage(input: { url: string; title: string; text: string; category: string; source?: AutomationSourceRow }): ScrapeRejectReason | null {
+  if (isBlockedOpportunityUrl(input.url, input.source)) return 'generic_url';
+  if (!input.title || input.title.length < 8) return 'weak_content';
+  if (hasMojibake(`${input.title} ${input.text}`)) return 'mojibake';
+  if (isRestrictedOrLoginRequiredText(input.text)) return 'restricted';
+  if (!isLikelyDetailOpportunityUrl(input.url, input.category, input.source) && !hasDateOrDeadlineSignal(input.text)) return 'not_specific';
+  if (!hasUsefulOpportunityBody(input.text)) return 'weak_content';
+  if (!hasMeaningfulOpportunitySignals(input.url, input.title, input.text, input.source)) return 'weak_content';
+  return null;
 }
 
 function resolvePublicUrl(baseUrl: string, href: string): string | null {
@@ -2739,7 +2905,7 @@ function extractTitleFromHtml(html: string): string {
   return normalizeText(title || '').slice(0, 180);
 }
 
-function extractRelevantLinks(baseUrl: string, html: string): string[] {
+function extractRelevantLinks(baseUrl: string, html: string, source?: AutomationSourceRow): string[] {
   const links = new Set<string>();
   const anchorRegex = /<a\b[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
   let match: RegExpExecArray | null;
@@ -2749,7 +2915,7 @@ function extractRelevantLinks(baseUrl: string, html: string): string[] {
     const label = normalizeText(match[2]);
     const resolved = resolvePublicUrl(baseUrl, href);
     if (!resolved) continue;
-    if (isGenericOrUnsafeUrl(resolved)) continue;
+    if (isBlockedOpportunityUrl(resolved, source)) continue;
     if (!pageLooksRelevant(resolved, label)) continue;
 
     links.add(resolved);
@@ -2787,30 +2953,28 @@ async function fetchPublicPage(url: string): Promise<string | null> {
   }
 }
 
-function extractOpportunityItem(url: string, html: string): ScrapedOpportunityItem | null {
-  if (isGenericOrUnsafeUrl(url)) return null;
+function extractOpportunityItem(url: string, html: string, source?: AutomationSourceRow): ScrapedOpportunityResult {
+  if (isBlockedOpportunityUrl(url, source)) return { item: null, reason: 'generic_url' };
 
   const cleanedHtml = stripHtmlForScraping(html);
-  const text = normalizeText(cleanedHtml).slice(0, 2500);
-  const title = extractTitleFromHtml(cleanedHtml);
+  const text = normalizeCrawlerText(cleanedHtml).slice(0, 4000);
+  const title = normalizeCrawlerText(extractTitleFromHtml(cleanedHtml));
+  const category = classifyOpportunity(title, text);
+  const rejectReason = shouldRejectScrapedPage({ url, title, text, category, source });
 
-  if (!title || title.length < 8) return null;
-  if (hasMojibake(`${title} ${text}`)) return null;
-  if (!hasOpportunitySignal(`${url} ${title} ${text}`)) return null;
+  if (rejectReason) return { item: null, reason: rejectReason };
 
-  const specificUrl = isLikelySpecificOpportunityUrl(url);
   const dated = hasDateOrDeadlineSignal(text);
-
-  if (!specificUrl && !dated) return null;
-
   const confidenceScore = dated ? 85 : 75;
 
   return {
-    title,
-    description: text,
-    sourceUrl: url,
-    category: classifyOpportunity(title, text),
-    confidenceScore
+    item: {
+      title,
+      description: text,
+      sourceUrl: url,
+      category,
+      confidenceScore
+    }
   };
 }
 
@@ -2903,40 +3067,81 @@ async function insertScrapedCandidate(db: D1Database, source: AutomationSourceRo
   return 'inserted';
 }
 
-async function scrapeOpportunitySource(db: D1Database, source: AutomationSourceRow): Promise<{ checked: number; found: number; inserted: number; duplicates: number; error?: string }> {
+async function isDuplicateScrapedCandidate(db: D1Database, source: AutomationSourceRow, item: ScrapedOpportunityItem): Promise<boolean> {
+  const duplicateKey = await generateDuplicateKey(item.title, source.name, '', item.sourceUrl);
+  const existing = await db.prepare('SELECT id FROM opportunity_candidates WHERE duplicate_key = ? LIMIT 1').bind(duplicateKey).first();
+  return !!existing;
+}
+
+function incrementRejectCounter(result: ScrapeOpportunitySourceResult, reason?: ScrapeRejectReason) {
+  result.rejectedByFilter++;
+  if (reason === 'restricted') result.restrictedRejected++;
+  else if (reason === 'generic_url' || reason === 'not_specific') result.genericUrlRejected++;
+  else if (reason === 'mojibake') result.mojibakeRejected++;
+}
+
+async function scrapeOpportunitySource(db: D1Database, source: AutomationSourceRow, dryRun: boolean, maxInserts = Number.POSITIVE_INFINITY): Promise<ScrapeOpportunitySourceResult> {
+  const result: ScrapeOpportunitySourceResult = {
+    checked: 0,
+    found: 0,
+    inserted: 0,
+    wouldInsert: 0,
+    duplicates: 0,
+    rejectedByFilter: 0,
+    restrictedRejected: 0,
+    genericUrlRejected: 0,
+    mojibakeRejected: 0
+  };
   const homepageUrl = normalizeUrl(source.url);
   const homepage = await fetchPublicPage(homepageUrl);
 
   if (!homepage) {
     await db.prepare('UPDATE opportunity_sources SET last_checked_at = CURRENT_TIMESTAMP, last_error = ? WHERE id = ?').bind('Could not fetch usable public HTML page', source.id).run();
-    return { checked: 1, found: 0, inserted: 0, duplicates: 0, error: 'Could not fetch usable public HTML page' };
+    return { ...result, checked: 1, error: 'Could not fetch usable public HTML page' };
   }
 
-  const urls = extractRelevantLinks(homepageUrl, homepage).slice(0, 20);
+  const urls = extractRelevantLinks(homepageUrl, homepage, source).slice(0, 20);
   const seen = new Set<string>();
-
-  let checked = 0;
-  let found = 0;
-  let inserted = 0;
-  let duplicates = 0;
 
   for (const url of urls) {
     const comparable = normalizeComparableUrl(url);
     if (seen.has(comparable)) continue;
     seen.add(comparable);
-    checked++;
+    result.checked++;
+
+    if (isBlockedOpportunityUrl(url, source)) {
+      incrementRejectCounter(result, 'generic_url');
+      continue;
+    }
 
     const html = await fetchPublicPage(url);
     if (!html) continue;
 
-    const item = extractOpportunityItem(url, html);
-    if (!item) continue;
+    const extracted = extractOpportunityItem(url, html, source);
+    if (!extracted.item) {
+      incrementRejectCounter(result, extracted.reason);
+      continue;
+    }
 
-    found++;
+    result.found++;
 
-    const result = await insertScrapedCandidate(db, source, item);
-    if (result === 'inserted') inserted++;
-    else duplicates++;
+    if (await isDuplicateScrapedCandidate(db, source, extracted.item)) {
+      result.duplicates++;
+      continue;
+    }
+
+    if (dryRun) {
+      result.wouldInsert++;
+      continue;
+    }
+
+    if (result.inserted >= maxInserts) break;
+
+    const insertResult = await insertScrapedCandidate(db, source, extracted.item);
+    if (insertResult === 'inserted') result.inserted++;
+    else result.duplicates++;
+
+    if (result.inserted >= maxInserts) break;
   }
 
   await db.prepare(`
@@ -2947,7 +3152,7 @@ async function scrapeOpportunitySource(db: D1Database, source: AutomationSourceR
     WHERE id = ?
   `).bind(source.id).run();
 
-  return { checked, found, inserted, duplicates };
+  return result;
 }
 
 // GET /api/opportunity-automation/status
@@ -3282,34 +3487,60 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
     let sourcesChecked = 0;
     let itemsFound = 0;
     let itemsInserted = 0;
+    let wouldInsert = 0;
     let duplicatesFound = 0;
+    let rejectedByFilter = 0;
+    let restrictedRejected = 0;
+    let genericUrlRejected = 0;
+    let mojibakeRejected = 0;
     const errors: { sourceId: string; url: string; error: string }[] = [];
     const sourceLogs: {
       sourceId: string;
       sourceName: string;
       url: string;
       category_scope: string;
+      dryRun: boolean;
+      checked: number;
       found: number;
+      inserted: number;
+      wouldInsert: number;
       candidate_count: number;
       duplicate_count: number;
+      rejectedByFilter: number;
+      restrictedRejected: number;
+      genericUrlRejected: number;
+      mojibakeRejected: number;
       error: string | null;
     }[] = [];
     
     for (const source of sources.results || []) {
-      const result = await scrapeOpportunitySource(c.env.DB, source);
+      const result = await scrapeOpportunitySource(c.env.DB, source, dryRun);
       sourcesChecked++;
       itemsFound += result.found;
       itemsInserted += result.inserted;
+      wouldInsert += result.wouldInsert;
       duplicatesFound += result.duplicates;
+      rejectedByFilter += result.rejectedByFilter;
+      restrictedRejected += result.restrictedRejected;
+      genericUrlRejected += result.genericUrlRejected;
+      mojibakeRejected += result.mojibakeRejected;
       if (result.error) errors.push({ sourceId: source.id, url: source.url, error: result.error });
       sourceLogs.push({
         sourceId: source.id,
         sourceName: source.name,
         url: source.url,
         category_scope: source.category_scope,
+        dryRun,
+        checked: result.checked,
         found: result.found,
+        inserted: result.inserted,
+        wouldInsert: result.wouldInsert,
         candidate_count: result.inserted,
         duplicate_count: result.duplicates,
+        rejectedByFilter: result.rejectedByFilter,
+        restrictedRejected: result.restrictedRejected,
+        genericUrlRejected: result.genericUrlRejected,
+        mojibakeRejected: result.mojibakeRejected,
         error: result.error || null
       });
     }
@@ -3326,7 +3557,18 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
       itemsFound,
       itemsInserted,
       duplicatesFound,
-      JSON.stringify({ sources: sourceLogs, errors: errors.slice(0, 25) }),
+      JSON.stringify({
+        dryRun,
+        inserted: itemsInserted,
+        wouldInsert,
+        duplicates: duplicatesFound,
+        rejectedByFilter,
+        restrictedRejected,
+        genericUrlRejected,
+        mojibakeRejected,
+        sources: sourceLogs,
+        errors: errors.slice(0, 25)
+      }),
       logId
     ).run();
     
@@ -3337,7 +3579,13 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
       sourcesChecked,
       itemsFound,
       itemsInserted,
+      inserted: itemsInserted,
+      wouldInsert,
       duplicatesFound,
+      rejectedByFilter,
+      restrictedRejected,
+      genericUrlRejected,
+      mojibakeRejected,
       dryRun,
       published: false,
       status: finalStatus
@@ -3370,15 +3618,23 @@ app.post('/api/opportunity-automation/run-source/:id', authMiddleware, adminMidd
     VALUES (?, ?, 'running', 1, 0, 0, 0)
   `).bind(logId, startedAt).run();
 
-  const result = await scrapeOpportunitySource(c.env.DB, source);
+  const result = await scrapeOpportunitySource(c.env.DB, source, dryRun);
   const sourceLog = {
     sourceId: source.id,
     sourceName: source.name,
     url: source.url,
     category_scope: source.category_scope,
+    dryRun,
+    checked: result.checked,
     found: result.found,
+    inserted: result.inserted,
+    wouldInsert: result.wouldInsert,
     candidate_count: result.inserted,
     duplicate_count: result.duplicates,
+    rejectedByFilter: result.rejectedByFilter,
+    restrictedRejected: result.restrictedRejected,
+    genericUrlRejected: result.genericUrlRejected,
+    mojibakeRejected: result.mojibakeRejected,
     error: result.error || null
   };
   await c.env.DB.prepare(`
@@ -3391,7 +3647,22 @@ app.post('/api/opportunity-automation/run-source/:id', authMiddleware, adminMidd
     result.found,
     result.inserted,
     result.duplicates,
-    JSON.stringify({ sources: [sourceLog], errors: result.error ? [{ sourceId: source.id, url: source.url, error: result.error }] : [] }),
+    JSON.stringify({
+      dryRun,
+      sourceId: source.id,
+      sourceName: source.name,
+      checked: result.checked,
+      found: result.found,
+      inserted: result.inserted,
+      wouldInsert: result.wouldInsert,
+      duplicates: result.duplicates,
+      rejectedByFilter: result.rejectedByFilter,
+      restrictedRejected: result.restrictedRejected,
+      genericUrlRejected: result.genericUrlRejected,
+      mojibakeRejected: result.mojibakeRejected,
+      sources: [sourceLog],
+      errors: result.error ? [{ sourceId: source.id, url: source.url, error: result.error }] : []
+    }),
     logId
   ).run();
   
@@ -3403,6 +3674,101 @@ app.post('/api/opportunity-automation/run-source/:id', authMiddleware, adminMidd
     published: false,
     ...result,
     message: result.error || 'Source run completed'
+  }, result.error ? 502 : 200);
+});
+
+// POST /api/opportunity-automation/run-source/:sourceId/insert-pending
+app.post('/api/opportunity-automation/run-source/:sourceId/insert-pending', authMiddleware, adminMiddleware, async (c) => {
+  const sourceId = c.req.param('sourceId');
+  const body = await c.req.json().catch(() => ({}));
+
+  if (body.confirm !== 'INSERT_PENDING_ONLY') {
+    return c.json({ error: 'Confirmation required', requiredConfirm: 'INSERT_PENDING_ONLY' }, 400);
+  }
+
+  const source = await c.env.DB.prepare('SELECT * FROM opportunity_sources WHERE id = ?').bind(sourceId).first<AutomationSourceRow>();
+  if (!source) {
+    return c.json({ error: 'Source not found' }, 404);
+  }
+
+  const logId = crypto.randomUUID();
+  const startedAt = new Date().toISOString();
+  await c.env.DB.prepare(`
+    INSERT INTO opportunity_run_logs (id, started_at, status, sources_checked, items_found, items_inserted, duplicates_found)
+    VALUES (?, ?, 'running', 1, 0, 0, 0)
+  `).bind(logId, startedAt).run();
+
+  const result = await scrapeOpportunitySource(c.env.DB, source, false, 25);
+  const sourceLog = {
+    sourceId: source.id,
+    sourceName: source.name,
+    url: source.url,
+    category_scope: source.category_scope,
+    dryRun: false,
+    manualInsertPending: true,
+    approvedAutomatically: false,
+    published: false,
+    checked: result.checked,
+    found: result.found,
+    inserted: result.inserted,
+    duplicates: result.duplicates,
+    rejectedByFilter: result.rejectedByFilter,
+    restrictedRejected: result.restrictedRejected,
+    genericUrlRejected: result.genericUrlRejected,
+    mojibakeRejected: result.mojibakeRejected,
+    error: result.error || null
+  };
+
+  await c.env.DB.prepare(`
+    UPDATE opportunity_run_logs
+    SET finished_at = CURRENT_TIMESTAMP, status = ?, sources_checked = 1,
+        items_found = ?, items_inserted = ?, duplicates_found = ?, errors_json = ?
+    WHERE id = ?
+  `).bind(
+    result.error ? 'failed' : 'success',
+    result.found,
+    result.inserted,
+    result.duplicates,
+    JSON.stringify({
+      manualInsertPending: true,
+      approvedAutomatically: false,
+      published: false,
+      dryRun: false,
+      maxInsertedPerRequest: 25,
+      sourceId: source.id,
+      sourceName: source.name,
+      checked: result.checked,
+      found: result.found,
+      inserted: result.inserted,
+      duplicates: result.duplicates,
+      rejectedByFilter: result.rejectedByFilter,
+      restrictedRejected: result.restrictedRejected,
+      genericUrlRejected: result.genericUrlRejected,
+      mojibakeRejected: result.mojibakeRejected,
+      sources: [sourceLog],
+      errors: result.error ? [{ sourceId: source.id, url: source.url, error: result.error }] : []
+    }),
+    logId
+  ).run();
+
+  return c.json({
+    success: !result.error,
+    logId,
+    sourceId: source.id,
+    sourceName: source.name,
+    dryRun: false,
+    manualInsertPending: true,
+    approvedAutomatically: false,
+    published: false,
+    checked: result.checked,
+    found: result.found,
+    inserted: result.inserted,
+    duplicates: result.duplicates,
+    rejectedByFilter: result.rejectedByFilter,
+    restrictedRejected: result.restrictedRejected,
+    genericUrlRejected: result.genericUrlRejected,
+    mojibakeRejected: result.mojibakeRejected,
+    message: result.error || 'Manual pending insertion completed'
   }, result.error ? 502 : 200);
 });
 
