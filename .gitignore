@@ -6,3 +6,10 @@ coverage/
 *.log
 .env*
 !.env.example
+# Local audit and fix backups
+_audit_public_readiness/
+_smoke_report_chunk4_*/
+_fix_backup_*/
+_fix_backup_chunk3_*/
+audit/
+# Local dependencies and build output

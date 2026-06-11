@@ -1,6 +1,8 @@
 import { Language } from '../types';
 
-export const BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
+export const BACKEND_URL =
+  ((import.meta as any).env?.VITE_API_URL as string | undefined) ||
+  'https://rafid-api.mahdialmuntadhar1.workers.dev';
 const API_BASE = `${BACKEND_URL}/api`;
 
 function getHeaders() {
@@ -16,12 +18,12 @@ function getHeaders() {
 
 async function handleResponse(response: Response, language: Language = 'ar') {
   if (response.status === 401) {
-    alert(language === 'ar' ? 'قم بتسجيل الدخول كمسؤول أولاً.' : language === 'ku' ? 'تکایە بچۆ ژوورەوە وەک سەرپەرشتیار.' : 'Admin login required.');
+    alert(language === 'ar' ? 'Ù‚Ù… Ø¨ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ ÙƒÙ…Ø³Ø¤ÙˆÙ„ Ø£ÙˆÙ„Ø§Ù‹.' : language === 'ku' ? 'ØªÚ©Ø§ÛŒÛ• Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ• ÙˆÛ•Ú© Ø³Û•Ø±Ù¾Û•Ø±Ø´ØªÛŒØ§Ø±.' : 'Admin login required.');
     window.location.href = '#/login';
     throw new Error('Admin login required');
   }
   if (response.status === 403) {
-    alert(language === 'ar' ? 'وصول للمسؤولين فقط!' : language === 'ku' ? 'تەنها بۆ بەڕێوەبەران ڕێگەپێدراوە!' : 'Admin access only');
+    alert(language === 'ar' ? 'ÙˆØµÙˆÙ„ Ù„Ù„Ù…Ø³Ø¤ÙˆÙ„ÙŠÙ† ÙÙ‚Ø·!' : language === 'ku' ? 'ØªÛ•Ù†Ù‡Ø§ Ø¨Û† Ø¨Û•Ú•ÛŽÙˆÛ•Ø¨Û•Ø±Ø§Ù† Ú•ÛŽÚ¯Û•Ù¾ÛŽØ¯Ø±Ø§ÙˆÛ•!' : 'Admin access only');
     throw new Error('Admin access only');
   }
 
@@ -29,17 +31,47 @@ async function handleResponse(response: Response, language: Language = 'ar') {
   if (contentType && contentType.includes('application/json')) {
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.message || data.error || (language === 'ar' ? 'حدث خطأ في الخادم' : 'Server error occurred'));
+      throw new Error(data.message || data.error || (language === 'ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø®Ø§Ø¯Ù…' : 'Server error occurred'));
     }
     return data;
   } else {
     const text = await response.text();
     if (!response.ok) {
-      throw new Error(text || (language === 'ar' ? 'حدث خطأ غير معروف' : 'Unknown error occurred'));
+      throw new Error(text || (language === 'ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£ ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ' : 'Unknown error occurred'));
     }
     return text;
   }
 }
+
+
+export const authApi = {
+  async login(email: string, password: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email, password }),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async register(name: string, email: string, password: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ name, email, password }),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async forgotPassword(email: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    return await handleResponse(res, lang);
+  },
+};
 
 export const opportunityAutomation = {
   async getStatus(lang: Language = 'ar') {
