@@ -12,6 +12,29 @@ database_id = "30febf83-135b-4888-8e5a-461105bb590a"
 binding = "BUCKET"
 bucket_name = "rafid-uploads"
 
+[[queues.producers]]
+binding = "OUTREACH_QUEUE"
+queue = "outreach-email"
+
+[[queues.consumers]]
+queue = "outreach-email"
+max_batch_size = 1
+
 [vars]
 JWT_SECRET = "rafid-super-secret-jwt-key-minimum-32-characters-long"
 R2_PUBLIC_URL = "https://pub-46ad7eec395049ed8054c8804be9d032.r2.dev"
+EMAIL_PROVIDER = "resend"
+EMAIL_FROM_NAME = "Jamiaati"
+EMAIL_FROM_ADDRESS = "outreach@example.com"
+EMAIL_REPLY_TO = "hello@example.com"
+PUBLIC_APP_URL = "https://https-github.mahdialmuntadhar1.workers.dev"
+ADMIN_TEST_EMAIL = "admin@example.com"
+DRY_RUN = "true"
+TEST_MODE = "false"
+BATCH_SIZE = "25"
+DELAY_SECONDS = "30"
+MAX_PER_DAY = "500"
+DRY_RUN_AUTOMATION = "true"
+
+[triggers]
+crons = ["0 */6 * * *", "0 2 * * *"]

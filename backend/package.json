@@ -3,12 +3,12 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "wrangler dev",
-    "deploy": "wrangler deploy",
-    "db:init": "wrangler d1 execute rafid-db --file=./schema.sql",
-    "db:init:remote": "wrangler d1 execute rafid-db --remote --file=./schema.sql",
-    "db:seed": "npx tsx seed.ts > seed.sql && wrangler d1 execute rafid-db --file=./seed.sql",
-    "db:seed:remote": "npx tsx seed.ts > seed.sql && wrangler d1 execute rafid-db --remote --file=./seed.sql"
+    "dev": "wrangler dev --config ./wrangler.toml",
+    "deploy": "wrangler deploy --config ./wrangler.toml",
+    "db:init": "wrangler d1 execute rafid-db --config ./wrangler.toml --file=./schema.sql",
+    "db:init:remote": "wrangler d1 execute rafid-db --config ./wrangler.toml --remote --file=./schema.sql",
+    "db:seed": "npx tsx seed.ts > seed.sql && wrangler d1 execute rafid-db --config ./wrangler.toml --file=./seed.sql",
+    "db:seed:remote": "npx tsx seed.ts > seed.sql && wrangler d1 execute rafid-db --config ./wrangler.toml --remote --file=./seed.sql"
   },
   "dependencies": {
     "hono": "^4.6.0"
@@ -16,6 +16,6 @@
   "devDependencies": {
     "@cloudflare/workers-types": "^4.20241127.0",
     "typescript": "^5.5.0",
-    "wrangler": "^3.80.0"
+    "wrangler": "4.95.0"
   }
 }
