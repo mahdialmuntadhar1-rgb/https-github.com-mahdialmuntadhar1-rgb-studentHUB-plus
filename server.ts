@@ -1,73 +1,37 @@
 ﻿import express from "express";
-import session from "express-session";
-import passport from "./src/lib/auth.js";
-import pool from "./src/lib/db.js";
-import isAdmin from "./src/middleware/admin.js";
-import { registerSchema } from "./src/lib/validation.js";
-import bcrypt from "bcrypt";
+import path from "path";
+import fs from "fs";
+import { createServer as createViteServer } from "vite";
+import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
+
+import rateLimit from 'express-rate-limit';
+import helmet from 'helmet';
+import compression from 'compression';
+import morgan from 'morgan';
 dotenv.config();
 
 const app = express();
-const PORT = process.env.PORT || 3000;
+// ========== PRODUCTION MIDDLEWARE ==========
+app.use(helmet());
+app.use(compression());
+app.use(morgan('combined'));
 
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
+const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, message: 'Too many requests' });
+app.use('/api/', limiter);
 
-app.use(session({
-  secret: process.env.SESSION_SECRET || 'fallback-secret',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { secure: process.env.NODE_ENV === 'production', httpOnly: true }
-}));
-
-app.use(passport.initialize());
-app.use(passport.session());
-
-// Health check
 app.get('/health', (req, res) => {
   res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
 });
 
-// Authentication endpoints
-app.post('/api/register', async (req, res) => {
-  const result = registerSchema.safeParse(req.body);
-  if (!result.success) return res.status(400).json({ errors: result.error.errors });
-  const { email, password, name } = result.data;
-  try {
-    const hashed = await bcrypt.hash(password, 10);
-    await pool.query(
-      'INSERT INTO users (email, password_hash, name, role) VALUES ($1, $2, $3, $4)',
-      [email, hashed, name || null, 'user']
-    );
-    res.status(201).json({ message: 'User created' });
-  } catch (err) {
-    if (err.code === '23505') return res.status(409).json({ error: 'Email already exists' });
-    console.error(err);
-    res.status(500).json({ error: 'Registration failed' });
-  }
+app.use((err, req, res, next) => {
+  console.error(err.stack);
+  res.status(500).json({ error: 'Internal server error' });
 });
+// ========== END MIDDLEWARE ==========
+const PORT = 3000;
 
-app.post('/api/login', passport.authenticate('local'), (req, res) => {
-  res.json({ message: 'Logged in', user: { id: req.user.id, email: req.user.email, role: req.user.role } });
-});
-
-app.post('/api/logout', (req, res) => {
-  req.logout(() => res.json({ message: 'Logged out' }));
-});
-
-app.get('/api/me', (req, res) => {
-  if (req.isAuthenticated()) return res.json(req.user);
-  res.status(401).json({ error: 'Not authenticated' });
-});
-
-app.get('/api/admin/users', isAdmin, async (req, res) => {
-  const result = await pool.query('SELECT id, email, role FROM users');
-  res.json(result.rows);
-});
-
-// ----- YOUR ORIGINAL ROUTES (preserved) -----
 app.use(express.json());
 
 // -------------------------------------------------------------
@@ -764,6 +728,7 @@ async function initServer() {
     });
   }
 
+  app.listen(PORT, "0.0.0.0", () => {
     console.log(`[OK] Full-stack Dev/Production Server active on http://0.0.0.0:${PORT}`);
   });
 }
@@ -771,14 +736,4 @@ async function initServer() {
 initServer().catch((error) => {
   console.error("Failed to start server:", error);
 });
-// ----- END OF ORIGINAL ROUTES -----
 
-// Global error handler
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Internal server error' });
-});
-
-app.listen(PORT, () => {
-  console.log(`Server running on http://localhost:${PORT}`);
-});
