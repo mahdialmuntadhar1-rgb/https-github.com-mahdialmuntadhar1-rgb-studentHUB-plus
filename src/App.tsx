@@ -14,11 +14,52 @@ import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
 import { BACKEND_URL } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
-import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
+import { Home, HelpCircle, Briefcase, User, Compass } from 'lucide-react';
+
+const OPPORTUNITY_TYPES = new Set([
+  'announcement',
+  'job',
+  'internship',
+  'scholarship',
+  'training',
+  'event',
+  'part_time_job',
+  'full_time_job',
+  'volunteering',
+  'competition',
+  'graduation_project_support',
+  'fellowship',
+  'exam'
+]);
+
+function isPublicOpportunity(item: FeedItem): boolean {
+  return OPPORTUNITY_TYPES.has(item.type) || Boolean(item.opportunityCategory);
+}
+
+function getStoredAuth() {
+  const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token') || '';
+  let role = '';
+
+  try {
+    const raw = localStorage.getItem('jamiaati_user');
+    if (raw) {
+      const user = JSON.parse(raw);
+      role = String(user?.role || user?.user?.role || '').toLowerCase();
+    }
+  } catch {
+    localStorage.removeItem('jamiaati_user');
+  }
+
+  return {
+    token,
+    isLoggedIn: Boolean(token),
+    isAdmin: Boolean(token && ['admin', 'staff', 'super_admin'].includes(role))
+  };
+}
 
 export default function App() {
   // Locale States
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('ar');
   const [selectedGov, setSelectedGov] = useState<string>('all');
   const [selectedUni, setSelectedUni] = useState<string>('all');
 
@@ -81,13 +122,15 @@ export default function App() {
   }, [selectedGov, selectedUni, activeTab]);
 
   // Auth States
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => localStorage.getItem('jamiaati_logged_in') !== 'false');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => getStoredAuth().isLoggedIn);
+  const [hasAdminAccess, setHasAdminAccess] = useState<boolean>(() => getStoredAuth().isAdmin);
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Feed database state (persisted in session / local storage for active play)
   const [feedItems, setFeedItems] = useState<FeedItem[]>(() => {
     const saved = localStorage.getItem('jamiaati_feed_v2');
-    return saved ? JSON.parse(saved) : initialFeedItems;
+    const parsed = saved ? JSON.parse(saved) : initialFeedItems;
+    return Array.isArray(parsed) ? parsed.filter((item: FeedItem) => !isPublicOpportunity(item)) : [];
   });
 
   // User profile state (gamification & badges tracker)
@@ -219,6 +262,12 @@ export default function App() {
 
   useEffect(() => {
     fetchInstitutions();
+    const syncAuth = () => {
+      const auth = getStoredAuth();
+      setIsLoggedIn(auth.isLoggedIn);
+      setHasAdminAccess(auth.isAdmin);
+    };
+    window.addEventListener('storage', syncAuth);
 
     // Support #/opportunities or #opportunities route to switch tab to 'future'
     const handleHash = () => {
@@ -229,72 +278,15 @@ export default function App() {
     };
     window.addEventListener('hashchange', handleHash);
     handleHash(); // Run on initial load
-    return () => window.removeEventListener('hashchange', handleHash);
+    return () => {
+      window.removeEventListener('hashchange', handleHash);
+      window.removeEventListener('storage', syncAuth);
+    };
   }, []);
 
   const handleRetryInstitutions = () => {
     fetchInstitutions();
   };
-
-  // Load dynamic scraped/approved opportunities on mount or activeTab swap
-  useEffect(() => {
-    const fetchOpps = async () => {
-      try {
-        const response = await fetch(`${BACKEND_URL}/api/opportunities`);
-        if (response.ok) {
-          const list = await response.json();
-          if (Array.isArray(list)) {
-            const dbFeedItems = list.map((item: any) => ({
-              id: item.id,
-              type: item.category || 'job',
-              titleEN: item.titleEN,
-              titleAR: item.titleAR,
-              titleKU: item.titleKU,
-              contentEN: item.contentEN,
-              contentAR: item.contentAR,
-              contentKU: item.contentKU,
-              author: {
-                name: item.organization || 'Scraped Recruiter',
-                role: 'institution' as const,
-                avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
-                verified: true
-              },
-              date: item.published_date ? `Scraped on ${item.published_date}` : 'Recently scraped 🔔',
-              likes: 12,
-              commentsCount: 0,
-              commentsList: [],
-              governorateId: item.governorateId || 'all',
-              universityId: 'all',
-              tags: ['Scraped', item.category || 'career'],
-              company: item.organization,
-              companyLogo: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
-              location: item.location || 'Iraq',
-              deadline: item.deadline || 'August 2026',
-              imageUrl: item.imageUrl,
-              opportunityCategory: (item.category === 'internship' ? 'Internship' : 
-                                     item.category === 'scholarship' ? 'Scholarship' : 
-                                     item.category === 'training' ? 'Training' : 
-                                     item.category === 'volunteering' ? 'Volunteering' : 
-                                     item.category === 'competition' ? 'Competition' : 
-                                     item.category === 'graduation_support' ? 'Graduation project support' : 'Full-time graduate job') as any,
-              workplaceType: item.workplaceType || 'On-site',
-              whoCanApply: item.whoCanApply || 'Iraqi students',
-              salary: item.salary || 'Recruiter structured'
-            }));
-
-            // Filter out existing dbFeedItems duplicates based on ID starting with 'scraped-'
-            setFeedItems(prev => {
-              const staticItems = prev.filter(p => !p.id.startsWith('scraped-'));
-              return [...dbFeedItems, ...staticItems];
-            });
-          }
-        }
-      } catch (err) {
-        console.error("Error loading approved scraped opportunities:", err);
-      }
-    };
-    fetchOpps();
-  }, [activeTab]);
 
   useEffect(() => {
     localStorage.setItem('jamiaati_profile_v2', JSON.stringify(userProfile));
@@ -562,25 +554,6 @@ export default function App() {
     });
   };
 
-  // Simulating user switches Roles inside their profile
-  const handleRoleToggle = () => {
-    const roles: ('student' | 'graduate' | 'teacher' | 'staff')[] = ['student', 'graduate', 'teacher', 'staff'];
-    const currentIdx = roles.indexOf(userProfile.role as any);
-    const nextIdx = (currentIdx + 1) % roles.length;
-    const nextRole = roles[nextIdx];
-
-    setUserProfile(prev => ({
-      ...prev,
-      role: nextRole,
-      name: nextRole === 'teacher' ? 'Dr. Yousif Al-Hamadani' : nextRole === 'staff' ? 'Admin Layla' : defaultUserProfile.name,
-      avatar: nextRole === 'teacher' 
-        ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200' 
-        : nextRole === 'staff' 
-        ? 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'
-        : defaultUserProfile.avatar
-    }));
-  };
-
   // Absolute central filtering query based on Governorate and university selections
   const matchesGovAndUni = (item: FeedItem) => {
     // Standard feed filtering rules: matches selected filters OR contains standard global scope tags
@@ -706,27 +679,46 @@ export default function App() {
             onRsvp={handleRsvp}
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
-            onToggleUserRole={handleRoleToggle}
             isLoggedIn={isLoggedIn}
             onLogout={() => {
               setIsLoggedIn(false);
-              localStorage.setItem('jamiaati_logged_in', 'false');
+              setHasAdminAccess(false);
+              localStorage.removeItem('jamiaati_token');
+              localStorage.removeItem('admin_token');
+              localStorage.removeItem('jamiaati_user');
+              localStorage.removeItem('jamiaati_logged_in');
               showToast(
                 language === 'ar' ? 'تم تسجيل خروجك بنجاح. نراك قريباً! 👋' : language === 'ku' ? 'خۆتۆمارکردنەکەت کۆتایی پێهات. بە هیوای دیدار! 👋' : 'Logged out successfully. See you! 👋', 
                 'info'
               );
             }}
             onTriggerAuth={() => setIsAuthModalOpen(true)}
-            onNavigateAdmin={() => setActiveTab('admin')}
+            onNavigateAdmin={hasAdminAccess ? () => setActiveTab('admin') : undefined}
           />
         );
       case 'admin':
-        return (
+        return hasAdminAccess ? (
           <AdminAutomation
             language={language}
             onBack={() => setActiveTab('profile')}
             showToast={showToast}
-            userRole={userProfile.role}
+            userRole="staff"
+          />
+        ) : (
+          <ProfileView
+            user={userProfile}
+            feedItems={feedItems}
+            language={language}
+            onLike={handleLike}
+            onSave={handleSave}
+            onVote={handleVote}
+            onApply={handleApply}
+            onRsvp={handleRsvp}
+            onJoinGroup={handleJoinGroup}
+            onAddComment={handleAddComment}
+            isLoggedIn={isLoggedIn}
+            onLogout={() => setIsLoggedIn(false)}
+            onTriggerAuth={() => setIsAuthModalOpen(true)}
           />
         );
       default:
@@ -844,8 +836,9 @@ export default function App() {
           onClose={() => setIsAuthModalOpen(false)}
           language={language}
           onAuthSuccess={(newUsername) => {
-            setIsLoggedIn(true);
-            localStorage.setItem('jamiaati_logged_in', 'true');
+            const auth = getStoredAuth();
+            setIsLoggedIn(auth.isLoggedIn);
+            setHasAdminAccess(auth.isAdmin);
             setUserProfile(prev => ({
               ...prev,
               name: newUsername || 'Zara Al-Iraqi'

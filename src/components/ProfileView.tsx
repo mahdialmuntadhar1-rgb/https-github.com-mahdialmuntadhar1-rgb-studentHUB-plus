@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { FeedItem, UserProfile, Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
-import { Award, Bookmark, ArrowRightLeft, Briefcase, GraduationCap, Calendar, Users, Star, Grid } from 'lucide-react';
+import { Bookmark, Star, Grid } from 'lucide-react';
 import { motion } from 'motion/react';
 import FeedCard from './FeedCard';
 
@@ -17,7 +17,7 @@ interface ProfileViewProps {
   onRsvp: (id: string) => void;
   onJoinGroup: (id: string) => void;
   onAddComment: (id: string, commentText: string) => void;
-  onToggleUserRole: () => void;
+  onToggleUserRole?: () => void;
   isLoggedIn: boolean;
   onLogout: () => void;
   onTriggerAuth: () => void;
@@ -151,13 +151,14 @@ export default function ProfileView({
                 <span>{language === 'ar' ? 'بوابة التشغيل والأتمتة' : language === 'ku' ? 'سیستەمی کۆنترۆڵ' : 'Scraper Console'}</span>
               </button>
             )}
-            <button
-              onClick={onToggleUserRole}
-              className="text-[9px] font-black text-cyan-400 bg-cyan-400/10 hover:bg-cyan-400/20 border border-cyan-400/20 rounded-xl px-3 py-1.5 cursor-pointer transition-all flex items-center gap-1"
-            >
-              <ArrowRightLeft className="w-3 h-3 text-cyan-400" />
-              <span>{getTranslation('switchRoleBtn', language)}</span>
-            </button>
+            {onToggleUserRole && (
+              <button
+                onClick={onToggleUserRole}
+                className="text-[9px] font-black text-cyan-400 bg-cyan-400/10 hover:bg-cyan-400/20 border border-cyan-400/20 rounded-xl px-3 py-1.5 cursor-pointer transition-all flex items-center gap-1"
+              >
+                <span>{getTranslation('switchRoleBtn', language)}</span>
+              </button>
+            )}
             <button
               onClick={onLogout}
               className="text-[9px] font-black text-red-400 bg-red-400/10 hover:bg-red-400/20 border border-red-500/10 rounded-xl px-3 py-1.5 cursor-pointer transition-colors flex items-center gap-1"

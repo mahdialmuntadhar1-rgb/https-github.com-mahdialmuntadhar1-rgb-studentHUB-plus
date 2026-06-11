@@ -1,20 +1,44 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# جامعتي | Jamiaati Student Hub
 
-# Run and deploy your AI Studio app
+Jamiaati is a mobile-first Iraqi student hub for universities, institutes, student life, opportunities, training, and scholarships.
 
-This contains everything you need to run your app locally.
+## Production Targets
 
-View your app in AI Studio: https://ai.studio/apps/deae2ed9-a6b5-4abd-a9bb-8da43c92c619
+- Live frontend: https://idiot.mahdialmuntadhar1.workers.dev/
+- Official backend API: https://rafid-api.mahdialmuntadhar1.workers.dev
+- Public opportunities endpoint: `GET https://rafid-api.mahdialmuntadhar1.workers.dev/api/opportunities`
 
-## Run Locally
+## App Structure
 
-**Prerequisites:**  Node.js
+- Frontend entry: `src/main.tsx`
+- Main app shell: `src/App.tsx`
+- API client: `src/lib/api.ts`
+- Local Express development/server bundle: `server.ts`
+- Worker scraper source: `worker-scraper.ts`
 
+This repository is a mixed frontend plus local Node/Express helper build. The public production data source must be the official `rafid-api` Worker, not mock files.
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+## Commands
+
+- Install: `npm install`
+- Local dev: `npm run dev`
+- Frontend/server build: `npm run build`
+- Type/lint check: `npm run lint`
+- Start bundled server: `npm run start`
+
+## Deployment Notes
+
+The current build command is:
+
+```bash
+npm run build
+```
+
+That command creates Vite static assets and also bundles `server.ts` into `dist/server.cjs`. The live frontend is a Cloudflare Workers URL; confirm deployment configuration before publishing because this repo does not include a `wrangler.toml`.
+
+## Environment Variables
+
+- `GEMINI_API_KEY`: optional AI assistant key for local/server AI responses.
+- `APP_URL`: public app URL when the server needs self-referential links.
+
+Production opportunities, institutions, admin automation, and public data must come from `https://rafid-api.mahdialmuntadhar1.workers.dev`. Mock files are only for local UI structure and must not be treated as production data.

@@ -121,10 +121,10 @@ export default function FutureFeed({
         avatar: imgUrl || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
         verified: true
       },
-      date: item.published_date ? `Posted on ${item.published_date}` : 'Recently posted 🔔',
-      likes: Number(item.likes || 12),
+      date: item.published_date ? `Posted on ${item.published_date}` : '',
+      likes: Number(item.likes || 0),
       likedByUser: false,
-      savedCount: Number(item.saved_count || 15),
+      savedCount: Number(item.saved_count || 0),
       savedByUser: false,
       commentsCount: 0,
       commentsList: [],
@@ -138,12 +138,12 @@ export default function FutureFeed({
       deadline: item.deadline || '',
       imageUrl: imgUrl,
       opportunityCategory: displayCategory as any,
-      workplaceType: item.workplaceType || 'On-site',
-      whoCanApply: item.whoCanApply || 'Interested applicants',
-      salary: item.salary || 'Recruiter structured',
+      workplaceType: item.workplaceType || undefined,
+      whoCanApply: item.whoCanApply || '',
+      salary: item.salary || '',
       applyUrl,
       sourceUrl,
-      universityAppliedCount: Number(item.applied_count || 5),
+      universityAppliedCount: Number(item.applied_count || 0),
       applied: false
     };
   };
@@ -278,22 +278,13 @@ export default function FutureFeed({
   };
 
   // Quick deadlines database
-  const timelineReminders = [
-    {
-      titleEN: "Iraq Cybersecurity CTF Application",
-      titleAR: "مسابقة الأمن السيبراني الوطنية",
-      titleKU: "کۆتا مۆڵەتی کێبڕکێی سیبرانی",
-      date: "July 5, 2026",
-      urgent: true
-    },
-    {
-      titleEN: "Hunar Tech Frontend Internship",
-      titleAR: "تدريب هُنر التكنولوجي للبرمجة",
-      titleKU: "مەشقی فرۆنتێند لە کۆمپانیای هۆنەر",
-      date: "June 30, 2026",
-      urgent: false
-    }
-  ];
+  const timelineReminders: Array<{
+    titleEN: string;
+    titleAR: string;
+    titleKU: string;
+    date: string;
+    urgent: boolean;
+  }> = [];
 
   // Logic to identify if item is an opportunity card
   const getIsOpportunity = (item: FeedItem) => {
@@ -560,7 +551,7 @@ export default function FutureFeed({
       </div>
 
       {/* Deadlines Alert list (Rendered only on general view with no search) */}
-      {!isCustomFiltersActive && (
+      {!isCustomFiltersActive && timelineReminders.length > 0 && (
         <div className="bg-white border-2 border-[#161A33] rounded-3xl p-3.5 mb-5 shadow-[3px_3px_0px_0px_#161A33]" id="deadlines-ticker-panel">
           <h3 className="text-[10px] font-black uppercase text-[#D9272E] tracking-wider mb-2.5 flex items-center gap-1.5 leading-none">
             <BellRing className="w-4 h-4 text-[#D9272E] animate-bounce" /> {getTranslation('upcomingDeadlines', language)}

@@ -47,11 +47,11 @@ export default function AdminAutomation({
   
   // State for automation settings & stats
   const [stats, setStats] = useState<any>({
-    total_scraped: 148,
-    duplicates_blocked: 84,
-    pending_review: 12,
-    approved: 42,
-    errors_prevented: 10
+    total_scraped: 0,
+    duplicates_blocked: 0,
+    pending_review: 0,
+    approved: 0,
+    errors_prevented: 0
   });
   const [status, setStatus] = useState<any>({
     status: 'idle',
@@ -123,7 +123,13 @@ export default function AdminAutomation({
       const statusData = await opportunityAutomation.getStatus(language);
       if (statusData) setStatus(statusData);
     } catch (_) {
-      // Keep beautiful mock stats if live backend has no schema registered initially
+      setStats({
+        total_scraped: 0,
+        duplicates_blocked: 0,
+        pending_review: 0,
+        approved: 0,
+        errors_prevented: 0
+      });
     }
   };
 
@@ -442,10 +448,10 @@ export default function AdminAutomation({
             {/* Core Counter Grid */}
             <div className="grid grid-cols-2 gap-3.5">
               {[
-                { label: 'Scraped Count', count: stats.total_scraped || stats.itemsFound || 148, desc: 'Incoming total indexed', emoji: '📥' },
-                { label: 'Duplicates Prevented', count: stats.duplicates_blocked || stats.itemsDuplicate || 84, desc: 'Identical urls filtered', emoji: '🛡️' },
-                { label: 'Pending Moderation', count: stats.pending_review || stats.itemsNew || 12, desc: 'Awaiting administrator action', emoji: '⏳' },
-                { label: 'Deployed live', count: stats.approved || 42, desc: 'Published to the feed', emoji: '✨' }
+                { label: 'Scraped Count', count: stats.total_scraped ?? stats.itemsFound ?? 0, desc: 'Incoming total indexed', emoji: '📥' },
+                { label: 'Duplicates Prevented', count: stats.duplicates_blocked ?? stats.itemsDuplicate ?? 0, desc: 'Identical urls filtered', emoji: '🛡️' },
+                { label: 'Pending Moderation', count: stats.pending_review ?? stats.itemsNew ?? 0, desc: 'Awaiting administrator action', emoji: '⏳' },
+                { label: 'Deployed live', count: stats.approved ?? 0, desc: 'Published to the feed', emoji: '✨' }
               ].map((c, idx) => (
                 <div key={idx} className="bg-white border-2 border-[#161A33] rounded-2xl p-4 shadow-[2px_2px_0px_0px_#161A33] flex flex-col justify-between">
                   <div className="flex justify-between items-start">

@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
-import { Governorate, University, Language } from '../types';
-import { IraqiGovernorates, IraqiUniversities } from '../data/mockData';
-import { MapPin, School, Bell, Languages, Check, BookOpen, Palette } from 'lucide-react';
+import { Language } from '../types';
+import { Bell, BookOpen } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getTranslation } from '../data/translations';
 import { brandingThemes } from '../data/themes';
@@ -25,12 +24,8 @@ export default function Header({
   currentUserAvatar,
   onProfileClick
 }: Omit<HeaderProps, 'selectedGov' | 'setSelectedGov' | 'selectedUni' | 'setSelectedUni' | 'selectedTheme' | 'setSelectedTheme'> & Partial<HeaderProps>) {
-  const [showNotificationCount, setShowNotificationCount] = useState(true);
-  const [notifications, setNotifications] = useState([
-    { id: 1, text: "Ahmad replied to your syllabus question.", time: "10m ago" },
-    { id: 2, text: "New Internships listed: Zain Iraq Software Dev.", time: "1h ago" },
-    { id: 3, text: "Salahaddin University updated final exam calendar.", time: "3h ago" }
-  ]);
+  const [showNotificationCount, setShowNotificationCount] = useState(false);
+  const [notifications, setNotifications] = useState<Array<{ id: number; text: string; time: string }>>([]);
   const [showNotifications, setShowNotifications] = useState(false);
 
   const getLanguageLabel = (lang: Language) => {
@@ -133,7 +128,7 @@ export default function Header({
           <button
             id="profile-avatar-trigger"
             onClick={onProfileClick}
-            className="w-7' w-7 h-7 rounded-lg border border-[#6B25C9]/40 overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer shrink-0"
+            className="w-7 h-7 rounded-lg border border-[#6B25C9]/40 overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer shrink-0"
           >
             <img src={currentUserAvatar} alt="Zara Al-Iraqi Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           </button>

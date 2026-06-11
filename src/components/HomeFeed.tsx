@@ -1,7 +1,7 @@
 import React, { useState, useEffect, useMemo } from 'react';
 import { FeedItem, Language, University } from '../types';
 import { getTranslation } from '../data/translations';
-import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from '../data/mockData';
+import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
 import { Sparkles, MessageSquare, Briefcase, PlusCircle, CheckCircle, Info, Image, EyeOff, MapPin, School, Palette, X, Calendar, Megaphone, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
@@ -819,7 +819,7 @@ export default function HomeFeed({
 
       {/* Temporary Admin Debug Card (Visible in development mode) */}
       {(() => {
-        const isDev = process.env.NODE_ENV !== 'production' || window.location.hostname.includes('localhost') || window.location.hostname.includes('run.app') || true;
+        const isDev = Boolean((import.meta as any).env?.DEV) || window.location.hostname.includes('localhost');
         const sourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
         const govUnis = selectedGov === 'all' ? sourceList : sourceList.filter(u => u.governorateId === selectedGov);
         

@@ -1,0 +1,7 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" role="img" aria-label="Jamiaati">
+  <rect width="64" height="64" rx="16" fill="#0B1020"/>
+  <path d="M12 22 32 12l20 10-20 10-20-10Z" fill="#06B6D4"/>
+  <path d="M20 30v10c0 5 24 5 24 0V30l-12 6-12-6Z" fill="#4F46E5"/>
+  <path d="M50 24v15" stroke="#FFD21F" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="50" cy="44" r="4" fill="#FFD21F"/>
+</svg>
