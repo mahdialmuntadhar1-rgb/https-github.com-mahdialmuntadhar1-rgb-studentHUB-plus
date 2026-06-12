@@ -96,7 +96,18 @@ export default function App() {
   // Feed database state (persisted in session / local storage for active play)
   const [feedItems, setFeedItems] = useState<FeedItem[]>(() => {
     const saved = localStorage.getItem('jamiaati_feed_v2');
-    return saved ? JSON.parse(saved) : initialFeedItems;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Keep only user-created custom posts and discard any leaked scraped/mock/highlight records
+          return parsed.filter((item: any) => item.id && String(item.id).startsWith('custom-'));
+        }
+      } catch (e) {
+        console.error("Error reading custom feed from storage:", e);
+      }
+    }
+    return [];
   });
 
   // User profile state (gamification & badges tracker)
@@ -105,9 +116,10 @@ export default function App() {
     return saved ? JSON.parse(saved) : defaultUserProfile;
   });
 
-  // Sync to local states
+  // Sync to local states - save only user-created custom posts
   useEffect(() => {
-    localStorage.setItem('jamiaati_feed_v2', JSON.stringify(feedItems));
+    const customOnly = feedItems.filter(item => item.id && String(item.id).startsWith('custom-'));
+    localStorage.setItem('jamiaati_feed_v2', JSON.stringify(customOnly));
   }, [feedItems]);
 
   // Institutions Dynamic Loading States
@@ -229,11 +241,17 @@ export default function App() {
   useEffect(() => {
     fetchInstitutions();
 
-    // Support #/opportunities or #opportunities route to switch tab to 'future'
+    // Support hash-based back-navigation routing
     const handleHash = () => {
       const hash = window.location.hash;
       if (hash === '#/opportunities' || hash === '#opportunities') {
         setActiveTab('future');
+        setSelectedSection(null);
+      } else if (hash.startsWith('#/section/')) {
+        const sec = hash.substring('#/section/'.length);
+        setSelectedSection(sec || null);
+      } else if (hash === '' || hash === '#/') {
+        setSelectedSection(null);
       }
     };
     window.addEventListener('hashchange', handleHash);
@@ -241,45 +259,67 @@ export default function App() {
     return () => window.removeEventListener('hashchange', handleHash);
   }, []);
 
+  // Synchronize selectedSection changes with URL hash for browser history back support
+  useEffect(() => {
+    const currentHash = window.location.hash;
+    if (selectedSection) {
+      const expected = `#/section/${selectedSection}`;
+      if (currentHash !== expected) {
+        window.location.hash = expected;
+      }
+    } else {
+      if (currentHash.startsWith('#/section/')) {
+        window.location.hash = '';
+      }
+    }
+  }, [selectedSection]);
+
   const handleRetryInstitutions = () => {
     fetchInstitutions();
   };
 
-  // Load dynamic scraped/approved opportunities on mount or activeTab swap
+  // Synchronised dynamic fetcher of live highlights & opportunities from the backend
   useEffect(() => {
-    const fetchOpps = async () => {
+    const fetchLiveFeed = async () => {
       try {
-        const response = await fetch(`${BACKEND_URL}/api/opportunities`);
-        if (response.ok) {
-          const list = await response.json();
+        const [oppsResponse, highlightsResponse] = await Promise.all([
+          fetch(`${BACKEND_URL}/api/opportunities`),
+          fetch(`${BACKEND_URL}/api/highlights`)
+        ]);
+
+        let dbItems: FeedItem[] = [];
+
+        // 1. Process Opportunities
+        if (oppsResponse.ok) {
+          const list = await oppsResponse.json();
           if (Array.isArray(list)) {
-            const dbFeedItems = list.map((item: any) => ({
-              id: item.id,
-              type: item.category || 'job',
-              titleEN: item.titleEN,
-              titleAR: item.titleAR,
-              titleKU: item.titleKU,
-              contentEN: item.contentEN,
-              contentAR: item.contentAR,
-              contentKU: item.contentKU,
+            const mappedOpps = list.map((item: any) => ({
+              id: String(item.id || `scraped-${Date.now()}-${Math.random()}`),
+              type: (item.category || item.type || 'job') as any,
+              titleEN: item.title || item.titleEN || 'Untitled Opportunity',
+              titleAR: item.title || item.titleAR || 'فرصة غير معنونة',
+              titleKU: item.title || item.titleKU || 'هەلی بێ ناونیشان',
+              contentEN: item.description || item.summary || item.contentEN || 'Check original portal for instructions.',
+              contentAR: item.description || item.summary || item.contentAR || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
+              contentKU: item.description || item.summary || item.contentKU || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
               author: {
-                name: item.organization || 'Scraped Recruiter',
+                name: item.organization || item.institution_name || 'Scraped Recruiter',
                 role: 'institution' as const,
-                avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+                avatar: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
                 verified: true
               },
-              date: item.published_date ? `Scraped on ${item.published_date}` : 'Recently scraped 🔔',
-              likes: 12,
+              date: item.published_date ? `Posted on ${item.published_date}` : 'Recently scraped 🔔',
+              likes: item.likes || 12,
               commentsCount: 0,
               commentsList: [],
-              governorateId: item.governorateId || 'all',
-              universityId: 'all',
-              tags: ['Scraped', item.category || 'career'],
-              company: item.organization,
-              companyLogo: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
-              location: item.location || 'Iraq',
+              governorateId: item.governorateId || item.governorate || 'all',
+              universityId: item.universityId || item.university_id || 'all',
+              tags: item.tags || ['scraped', item.category || 'career'],
+              company: item.organization || item.institution_name,
+              companyLogo: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+              location: item.location || item.city || 'Iraq',
               deadline: item.deadline || 'August 2026',
-              imageUrl: item.imageUrl,
+              imageUrl: item.imageUrl || item.image_url,
               opportunityCategory: (item.category === 'internship' ? 'Internship' : 
                                      item.category === 'scholarship' ? 'Scholarship' : 
                                      item.category === 'training' ? 'Training' : 
@@ -287,22 +327,72 @@ export default function App() {
                                      item.category === 'competition' ? 'Competition' : 
                                      item.category === 'graduation_support' ? 'Graduation project support' : 'Full-time graduate job') as any,
               workplaceType: item.workplaceType || 'On-site',
-              whoCanApply: item.whoCanApply || 'Iraqi students',
-              salary: item.salary || 'Recruiter structured'
+              whoCanApply: item.eligibility || item.whoCanApply || 'Iraqi students',
+              salary: item.salary || item.salary_or_funding || 'Recruiter structured'
             }));
-
-            // Filter out existing dbFeedItems duplicates based on ID starting with 'scraped-'
-            setFeedItems(prev => {
-              const staticItems = prev.filter(p => !p.id.startsWith('scraped-'));
-              return [...dbFeedItems, ...staticItems];
-            });
+            dbItems = [...dbItems, ...mappedOpps];
           }
         }
+
+        // 2. Process Highlights
+        if (highlightsResponse.ok) {
+          const hList = await highlightsResponse.json();
+          if (Array.isArray(hList)) {
+            const mappedHighlights = hList.map((item: any) => ({
+              id: String(item.id || `highlight-${Date.now()}-${Math.random()}`),
+              type: (item.category || 'news') as any,
+              titleEN: item.title || item.titleEN || 'Campus Notification',
+              titleAR: item.title || item.titleAR || 'تنبيه جامعي',
+              titleKU: item.title || item.titleKU || 'ئاگاداری خوێندکاران',
+              contentEN: item.summary || item.contentEN || 'Check original university channel for details.',
+              contentAR: item.summary || item.contentAR || 'يرجى مراجعة القناة الرسمية للمزيد من التفاصيل.',
+              contentKU: item.summary || item.contentKU || 'تکایە سەرچاوەی فەرمی ببینە بۆ زانیاری.',
+              author: {
+                name: item.organization || 'Academic Center Feed',
+                role: 'institution' as const,
+                avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+                verified: true
+              },
+              date: item.created_at ? `Posted on ${new Date(item.created_at).toLocaleDateString()}` : 'Recently posted 🔔',
+              likes: item.likes || 15,
+              commentsCount: 0,
+              commentsList: [],
+              governorateId: item.governorate || item.governorateId || 'all',
+              universityId: item.university_id || item.universityId || 'all',
+              tags: ['Campus', item.category || 'highlights'],
+              imageUrl: item.image_url || item.imageUrl,
+              application_link: item.apply_url || item.source_url || item.application_link,
+              deadline: item.deadline || undefined,
+            }));
+            dbItems = [...dbItems, ...mappedHighlights];
+          }
+        }
+
+        setFeedItems(prev => {
+          const customOnly = prev.filter(p => p.id && String(p.id).startsWith('custom-'));
+          if (dbItems.length > 0) {
+            // Live backend listings exist! We show only live + custom posts. We do not mix mock data.
+            return [...customOnly, ...dbItems];
+          } else {
+            // Live backend listings are empty or failed, so fallback to mock details cleanly.
+            return [...customOnly, ...initialFeedItems];
+          }
+        });
+
       } catch (err) {
-        console.error("Error loading approved scraped opportunities:", err);
+        console.error("Error loading approved scraped opportunities and highlights:", err);
+        // Fallback to initialFeedItems in case of complete API/fetch issues
+        setFeedItems(prev => {
+          const customOnly = prev.filter(p => p.id && String(p.id).startsWith('custom-'));
+          const withoutLive = prev.filter(p => p.id && !String(p.id).startsWith('custom-') && !String(p.id).startsWith('scraped-') && !String(p.id).startsWith('highlight-'));
+          if (withoutLive.length === 0) {
+            return [...customOnly, ...initialFeedItems];
+          }
+          return prev;
+        });
       }
     };
-    fetchOpps();
+    fetchLiveFeed();
   }, [activeTab]);
 
   useEffect(() => {

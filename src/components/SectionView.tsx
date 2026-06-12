@@ -272,14 +272,8 @@ export default function SectionView({
         // Construct query parameters elegantly following user specs
         const params = new URLSearchParams();
         
-        // 1. Category / Type filtering
-        if (queryEndpoint === 'opportunities') {
-          // Opportunities pages should call type=scholarship, not category=scholarship
-          params.append('type', targetVal);
-        } else {
-          // Highlights pages can use category
-          params.append('category', targetVal);
-        }
+        // Category filtering
+        params.append('category', targetVal);
 
         // 2. Governorate filtering
         if (selectedGov && selectedGov !== 'all') {

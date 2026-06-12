@@ -99,10 +99,7 @@ export default function HomeFeed({
   isAdminMode = false,
   onSelectSection
 }: HomeFeedProps) {
-  // Main tab selection state (Campus Life or Opportunities)
-  const [activeSubTab, setActiveSubTab] = useState<'campus' | 'opportunities'>('campus');
-  
-  // Custom Story-based categories filter state
+   // Custom Story-based categories filter state
   const [activeStoryFilter, setActiveStoryFilter] = useState<string | null>(null);
 
   // Dynamic Hero Configuration with real-time updates support (localStorage + event listeners)
@@ -221,11 +218,6 @@ export default function HomeFeed({
     return filteredAndSearchedUnis.slice(start, start + itemsPerPage);
   }, [filteredAndSearchedUnis, pickerPage]);
 
-  const handleTabChange = (tab: 'campus' | 'opportunities') => {
-    setActiveSubTab(tab);
-    setActiveStoryFilter(null);
-  };
-
   // New post publisher collapsible state
   const [showPublisher, setShowPublisher] = useState(false);
   const [postTitle, setPostTitle] = useState('');
@@ -239,8 +231,8 @@ export default function HomeFeed({
       id: 'scholarship',
       emoji: '🎓',
       labelEN: 'Scholarships',
-      labelAR: 'المنح الدراسية',
-      labelKU: 'منح دراسية',
+      labelAR: 'المنح',
+      labelKU: 'بورسیەکان',
       color: 'from-pink-500 to-rose-500',
       tabType: 'opportunities',
       filterType: 'scholarship'
@@ -249,8 +241,8 @@ export default function HomeFeed({
       id: 'job',
       emoji: '💼',
       labelEN: 'Jobs',
-      labelAR: 'الوظائف والفرص',
-      labelKU: 'هەلی کار',
+      labelAR: 'الوظائف',
+      labelKU: 'کارەکان',
       color: 'from-emerald-500 to-teal-500',
       tabType: 'opportunities',
       filterType: 'job'
@@ -266,6 +258,16 @@ export default function HomeFeed({
       filterType: 'internship'
     },
     {
+      id: 'training',
+      emoji: '🏫',
+      labelEN: 'Trainings',
+      labelAR: 'التدريب',
+      labelKU: 'ڕاهێنان',
+      color: 'from-cyan-500 to-blue-500',
+      tabType: 'opportunities',
+      filterType: 'training'
+    },
+    {
       id: 'event',
       emoji: '🎟️',
       labelEN: 'Events',
@@ -278,12 +280,22 @@ export default function HomeFeed({
     {
       id: 'news',
       emoji: '📰',
-      labelEN: 'Uni News',
-      labelAR: 'أخبار الجامعة',
+      labelEN: 'News',
+      labelAR: 'الأخبار',
       labelKU: 'هەواڵەکان',
       color: 'from-amber-500 to-rose-500',
       tabType: 'campus',
       filterType: 'news'
+    },
+    {
+      id: 'announcement',
+      emoji: '📢',
+      labelEN: 'Announcements',
+      labelAR: 'الإعلانات',
+      labelKU: 'ڕاگەیاندنەکان',
+      color: 'from-teal-500 to-emerald-500',
+      tabType: 'campus',
+      filterType: 'announcement'
     },
     {
       id: 'exam',
@@ -291,7 +303,7 @@ export default function HomeFeed({
       labelEN: 'Exams',
       labelAR: 'الامتحانات',
       labelKU: 'تاقیکردنەوەکان',
-      color: 'from-indigo-500 to-cyan-500',
+      color: 'from-[#2F7CCB] to-indigo-500',
       tabType: 'campus',
       filterType: 'exam'
     },
@@ -299,7 +311,7 @@ export default function HomeFeed({
       id: 'registration',
       emoji: '📌',
       labelEN: 'Registration',
-      labelAR: 'التسجيل والقبول',
+      labelAR: 'التسجيل',
       labelKU: 'تۆمارکردن',
       color: 'from-fuchsia-500 to-pink-500',
       tabType: 'campus',
@@ -309,8 +321,8 @@ export default function HomeFeed({
       id: 'student_club',
       emoji: '👥',
       labelEN: 'Student Clubs',
-      labelAR: 'نوادي الطلاب',
-      labelKU: 'یانەی خوێندکاران',
+      labelAR: 'النوادي الطلابية',
+      labelKU: 'یانە خوێندکارییەکان',
       color: 'from-violet-500 to-fuchsia-500',
       tabType: 'campus',
       filterType: 'student_club'
@@ -346,42 +358,11 @@ export default function HomeFeed({
     setTimeout(() => setMessage(''), 3000);
   };
 
-  // 1. Map Campus Life post categories VS Careers opportunities
-  const campusTypes = ['announcement', 'video', 'poll', 'story', 'study_group', 'local_service', 'anonymous_question'];
-  const opportunityTypes = ['internship', 'training', 'graduation_project_support', 'volunteering', 'part_time_job', 'competition', 'job', 'scholarship'];
-
-  // 2. Perform the precise multi-layered filter logic:
+  // Filter out any opportunities/careers listings from the main home feed, allowing only social, campus posts, and highlights.
+  const opportunityTypes = ['job', 'scholarship', 'internship', 'training', 'fellowship', 'volunteering', 'competition', 'part_time_job', 'graduation_project_support'];
   const filteredFeedItems = feedItems.filter(item => {
-    // 2a. Determine if appropriate for chosen sub-tab (Campus Life vs. Opportunities)
-    const matchesTab = activeSubTab === 'campus' 
-      ? campusTypes.includes(item.type) 
-      : opportunityTypes.includes(item.type);
-
-    if (!matchesTab) return false;
-
-    // 2b. Map Story highlighting sub-category filters
-    if (activeStoryFilter) {
-      if (activeStoryFilter === 'announcement' || activeStoryFilter === 'official_announcement') {
-        return item.type === 'announcement';
-      }
-      if (activeStoryFilter === 'event') {
-        return item.type === 'event' || item.type === 'video' || item.tags.some(t => t.toLowerCase().includes('event') || t.toLowerCase().includes('sunset'));
-      }
-      if (activeStoryFilter === 'job') {
-        return item.type === 'job' || item.type === 'part_time_job';
-      }
-      if (activeStoryFilter === 'internship') {
-        return item.type === 'internship' || item.type === 'training';
-      }
-      if (activeStoryFilter === 'scholarship') {
-        return item.type === 'scholarship' || item.type === 'graduation_project_support';
-      }
-      if (activeStoryFilter === 'study_group') {
-        return item.type === 'study_group' || item.type === 'local_service';
-      }
-    }
-
-    return true;
+    const isOpportunity = opportunityTypes.includes(item.type);
+    return !isOpportunity;
   });
 
   return (
@@ -660,15 +641,6 @@ export default function HomeFeed({
                 onClick={() => {
                   if (onSelectSection) {
                     onSelectSection(story.id);
-                  } else {
-                    // Switch sub-tab appropriately based on story characteristics
-                    setActiveSubTab(story.tabType as any);
-                    // Toggle active category specific filter
-                    if (activeStoryFilter === story.filterType) {
-                      setActiveStoryFilter(null);
-                    } else {
-                      setActiveStoryFilter(story.filterType);
-                    }
                   }
                 }}
               >
@@ -704,38 +676,7 @@ export default function HomeFeed({
         </div>
       </div>
 
-      {/* 5. Main Switcher Tabs: Campus Life vs. Opportunities */}
-      <div className="mb-5 bg-[#121B2E] border border-[#1F2E4D] p-1 rounded-2xl flex items-center gap-1" id="homepage-tab-section">
-        
-        {/* Tab 1: Campus Life */}
-        <button
-          onClick={() => handleTabChange('campus')}
-          className={`flex-1 py-3 px-3 rounded-xl font-black text-xs transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${
-            activeSubTab === 'campus'
-              ? 'bg-[#6B25C9] text-white shadow-md shadow-[#6B25C9]/20'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/20'
-          }`}
-          id="tab-campus-life-trigger"
-        >
-          <MessageSquare className="w-4 h-4" />
-          <span>{language === 'ar' ? 'حياة الحرم الجامعي' : language === 'ku' ? 'ژیانی زانکۆ' : 'Campus Life'}</span>
-        </button>
 
-        {/* Tab 2: Opportunities */}
-        <button
-          onClick={() => handleTabChange('opportunities')}
-          className={`flex-1 py-3 px-3 rounded-xl font-black text-xs transition-all duration-200 cursor-pointer flex items-center justify-center gap-2 ${
-            activeSubTab === 'opportunities'
-              ? 'bg-[#6B25C9] text-white shadow-md shadow-[#6B25C9]/20'
-              : 'text-slate-400 hover:text-white hover:bg-slate-800/20'
-          }`}
-          id="tab-opportunities-trigger"
-        >
-          <Briefcase className="w-4 h-4" />
-          <span>{language === 'ar' ? 'الفرص والمهن' : language === 'ku' ? 'هەلی کار و ڕاهێنان' : 'Opportunities'}</span>
-        </button>
-
-      </div>
 
       {/* Feed Filter Alert & Active Stories filter indicator */}
       {activeStoryFilter && (
@@ -801,9 +742,7 @@ export default function HomeFeed({
                 onChange={e => setPostBody(e.target.value)}
                 required
                 rows={3}
-                placeholder={activeSubTab === 'opportunities' 
-                  ? (language === 'ar' ? 'تفاصيل الفرصة أو التدريب الشاغر...' : 'Opportunity details: description, requirements...') 
-                  : (language === 'ar' ? 'اكتب ما تفكر به لمشاركته مع الكلية...' : 'Write your campus moment or query...')}
+                placeholder={language === 'ar' ? 'اكتب ما تفكر به لمشاركته مع الكلية...' : language === 'ku' ? 'ئەمڕۆ چی لە زانکۆ ڕوودەدات؟...' : 'What is happening on campus today?'}
                 className="w-full text-xs font-semibold text-[#161A33] bg-white border border-[#E6E1F5] rounded-xl p-3.5 focus:bg-[#F3F7FF] focus:outline-none focus:border-[#6B25C9] transition-colors resize-none"
               />
 
