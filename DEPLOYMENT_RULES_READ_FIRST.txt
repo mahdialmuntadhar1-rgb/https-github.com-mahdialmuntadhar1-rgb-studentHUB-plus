@@ -1,0 +1,26 @@
+﻿FRONTEND / BACKEND DEPLOYMENT RULES
+
+PRODUCTION FRONTEND:
+https://idiot.mahdialmuntadhar1.workers.dev/
+Worker name: idiot
+Known good version:
+b6275aac-a173-4c17-bbfd-b9799770b55f
+
+BAD MIXED VERSION:
+754a9bad-9c3b-4a64-861e-2c510bb32f24
+
+STAGING FRONTEND:
+https://https-github.mahdialmuntadhar1.workers.dev/
+Worker name: https-github
+
+BACKEND:
+https://rafid-api.mahdialmuntadhar1.workers.dev
+Worker name: rafid-api
+
+RULES:
+1. Never run plain wrangler deploy from root.
+2. Never deploy current mixed local frontend directly to idiot.
+3. Test on https-github first.
+4. Deploy to idiot only with scripts\deploy-frontend-PRODUCTION-IDIOT-CONFIRM.ps1.
+5. Backend deploy uses scripts\deploy-backend-RAFID-API-ONLY.ps1.
+6. If idiot breaks, run scripts\ROLLBACK-IDIOT-TO-GOOD-VERSION.ps1.

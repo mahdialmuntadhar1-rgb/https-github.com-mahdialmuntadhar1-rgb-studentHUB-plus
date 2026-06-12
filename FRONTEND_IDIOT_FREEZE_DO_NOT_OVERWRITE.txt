@@ -1,0 +1,14 @@
+﻿FRONTEND FREEZE NOTE
+
+Correct public frontend:
+https://idiot.mahdialmuntadhar1.workers.dev/
+
+Restored good Worker version:
+b6275aac-a173-4c17-bbfd-b9799770b55f
+
+Bad overwritten version:
+754a9bad-9c3b-4a64-861e-2c510bb32f24
+
+Do not deploy the current mixed local frontend to idiot.
+Backend rafid-api is safe and should not be rolled back.
+D1 posts moderation is active; old posts are pending_review.
