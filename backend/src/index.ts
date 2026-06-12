@@ -943,6 +943,8 @@ app.delete('/api/follow/:userId', authMiddleware, async (c) => {
 
 const HIGHLIGHT_CATEGORIES = ['event', 'job', 'internship', 'scholarship', 'student_club'] as const;
 type HighlightCategory = typeof HIGHLIGHT_CATEGORIES[number];
+const PUBLIC_HIGHLIGHT_CATEGORIES = ['event', 'news', 'announcement', 'exam', 'registration', 'student_club', 'activity'] as const;
+const PUBLIC_OPPORTUNITY_TYPES = ['job', 'scholarship', 'internship', 'training', 'fellowship', 'volunteering', 'competition'] as const;
 
 const GOVERNORATE_ALIASES: Record<string, string[]> = {
   Baghdad: ['baghdad', 'Ø¨ØºØ¯Ø§Ø¯'],
@@ -1228,13 +1230,43 @@ function bindOptional(value: unknown): string | number | null {
   return value as string | number | null;
 }
 
+function parsePublicPagination(
+  limitValue: string | undefined,
+  offsetValue: string | undefined,
+  pageValue: string | undefined,
+  defaultLimit: number
+): { limit: number; offset: number } {
+  const parsedLimit = Number.parseInt(limitValue || '', 10);
+  const limit = Number.isFinite(parsedLimit) && parsedLimit > 0 ? Math.min(parsedLimit, 100) : defaultLimit;
+
+  const parsedOffset = Number.parseInt(offsetValue || '', 10);
+  if (Number.isFinite(parsedOffset) && parsedOffset >= 0) {
+    return { limit, offset: parsedOffset };
+  }
+
+  const parsedPage = Number.parseInt(pageValue || '', 10);
+  const page = Number.isFinite(parsedPage) && parsedPage > 0 ? parsedPage : 1;
+  return { limit, offset: (page - 1) * limit };
+}
+
 app.get('/api/highlights', async (c) => {
   await expireOldHighlights(c.env.DB);
 
-  const category = c.req.query('category');
+  const category = c.req.query('category')?.trim();
   const governorate = c.req.query('governorate');
   const universityId = c.req.query('university_id');
+  const institutionId = c.req.query('institution_id');
   const source = c.req.query('source');
+  const { limit, offset } = parsePublicPagination(
+    c.req.query('limit'),
+    c.req.query('offset'),
+    c.req.query('page'),
+    100
+  );
+
+  if (category && !PUBLIC_HIGHLIGHT_CATEGORIES.includes(category as typeof PUBLIC_HIGHLIGHT_CATEGORIES[number])) {
+    return c.json([]);
+  }
 
   let query =
     `SELECT id, category, title, organization, governorate, city, university_id,
@@ -1244,9 +1276,9 @@ app.get('/api/highlights', async (c) => {
      WHERE status = 'approved'
        AND (deadline IS NULL OR deadline >= date('now'))
        AND (event_date IS NULL OR event_date >= date('now'))`;
-  const params: string[] = [];
+  const params: Array<string | number> = [];
 
-  if (category && HIGHLIGHT_CATEGORIES.includes(category as HighlightCategory)) {
+  if (category) {
     query += ' AND category = ?';
     params.push(category);
   }
@@ -1254,16 +1286,17 @@ app.get('/api/highlights', async (c) => {
     query += ' AND governorate = ?';
     params.push(normalizeGovernorate(governorate) || governorate);
   }
-  if (universityId) {
+  if (universityId || institutionId) {
     query += ' AND university_id = ?';
-    params.push(universityId);
+    params.push(universityId || institutionId || '');
   }
   if (source) {
     query += ' AND source_name = ?';
     params.push(source);
   }
 
-  query += ' ORDER BY COALESCE(event_date, deadline, created_at) ASC LIMIT 100';
+  query += ' ORDER BY COALESCE(event_date, deadline, created_at) ASC LIMIT ? OFFSET ?';
+  params.push(limit, offset);
   const stmt = c.env.DB.prepare(query);
   const result = await (params.length ? stmt.bind(...params) : stmt).all();
   return c.json(result.results);
@@ -1488,9 +1521,26 @@ app.post('/api/admin/highlight-import/run', authMiddleware, adminMiddleware, asy
 // â”€â”€â”€ OPPORTUNITIES ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
 app.get('/api/opportunities', async (c) => {
-  const type = c.req.query('type');
+  const type = (c.req.query('type') || c.req.query('category'))?.trim();
   const institution = c.req.query('institution');
   const city = c.req.query('city');
+  const governorate = c.req.query('governorate');
+  const universityId = c.req.query('university_id');
+  const institutionId = c.req.query('institution_id');
+  const { limit, offset } = parsePublicPagination(
+    c.req.query('limit'),
+    c.req.query('offset'),
+    c.req.query('page'),
+    50
+  );
+
+  if (type && !PUBLIC_OPPORTUNITY_TYPES.includes(type as typeof PUBLIC_OPPORTUNITY_TYPES[number])) {
+    return c.json([]);
+  }
+
+  if (universityId || institutionId) {
+    return c.json([]);
+  }
 
   let query = `
     SELECT
@@ -1516,11 +1566,15 @@ app.get('/api/opportunities', async (c) => {
     FROM opportunity_candidates
     WHERE status = 'approved'
   `;
-  const params: string[] = [];
+  const params: Array<string | number> = [];
 
   if (type) {
     query += ' AND category = ?';
     params.push(type);
+  }
+  if (governorate) {
+    query += ' AND governorate = ?';
+    params.push(normalizeGovernorate(governorate) || governorate);
   }
   if (institution) {
     query += ' AND organization = ?';
@@ -1531,7 +1585,8 @@ app.get('/api/opportunities', async (c) => {
     params.push(city);
   }
 
-  query += ' ORDER BY updated_at DESC, created_at DESC LIMIT 50';
+  query += ' ORDER BY updated_at DESC, created_at DESC LIMIT ? OFFSET ?';
+  params.push(limit, offset);
 
   const stmt = c.env.DB.prepare(query);
   const result = await (params.length > 0 ? stmt.bind(...params) : stmt).all();
