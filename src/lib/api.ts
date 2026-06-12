@@ -1,6 +1,6 @@
 import { Language } from '../types';
 
-const API_BASE = '/api';
+const API_BASE = (import.meta as any).env.VITE_API_URL || 'https://rafid-api.mahdialmuntadhar1.workers.dev';
 
 function getHeaders() {
   const headers: Record<string, string> = {
@@ -43,7 +43,7 @@ async function handleResponse(response: Response, language: Language = 'ar') {
 export const opportunityAutomation = {
   async getStatus(lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/opportunity-automation/status`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/status`, {
         headers: getHeaders(),
       });
       return await handleResponse(res, lang);
@@ -55,7 +55,7 @@ export const opportunityAutomation = {
 
   async getStats(lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/opportunity-automation/stats`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/stats`, {
         headers: getHeaders(),
       });
       return await handleResponse(res, lang);
@@ -74,7 +74,7 @@ export const opportunityAutomation = {
       if (params.type) query.append('type', params.type);
       if (params.active !== undefined) query.append('active', params.active.toString());
 
-      const res = await fetch(`${API_BASE}/opportunity-automation/sources?${query.toString()}`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/sources?${query.toString()}`, {
         headers: getHeaders(),
       });
       return await handleResponse(res, lang);
@@ -85,7 +85,7 @@ export const opportunityAutomation = {
 
   async createSource(data: any, lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/opportunity-automation/sources`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/sources`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify(data),
@@ -98,7 +98,7 @@ export const opportunityAutomation = {
 
   async updateSource(id: string, data: any, lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/opportunity-automation/sources/${id}`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/sources/${id}`, {
         method: 'PATCH',
         headers: getHeaders(),
         body: JSON.stringify(data),
@@ -111,7 +111,7 @@ export const opportunityAutomation = {
 
   async deleteSource(id: string, lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/opportunity-automation/sources/${id}`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/sources/${id}`, {
         method: 'DELETE',
         headers: getHeaders(),
       });
@@ -123,7 +123,7 @@ export const opportunityAutomation = {
 
   async runNow(lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/opportunity-automation/run-now`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/run-now`, {
         method: 'POST',
         headers: getHeaders(),
       });
@@ -135,7 +135,7 @@ export const opportunityAutomation = {
 
   async runSource(id: string, lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/opportunity-automation/run-source/${id}`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/run-source/${id}`, {
         method: 'POST',
         headers: getHeaders(),
       });
@@ -154,7 +154,7 @@ export const opportunityAutomation = {
       const headers = getHeaders();
       delete headers['Content-Type'];
 
-      const res = await fetch(`${API_BASE}/opportunity-automation/import-csv`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/import-csv`, {
         method: 'POST',
         headers,
         body: formData,
@@ -179,7 +179,7 @@ export const opportunityAutomation = {
       if (params.deadline) query.append('deadline', params.deadline);
       if (params.source) query.append('source', params.source);
 
-      const res = await fetch(`${API_BASE}/opportunity-automation/candidates?${query.toString()}`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates?${query.toString()}`, {
         headers: getHeaders(),
       });
       return await handleResponse(res, lang);
@@ -190,7 +190,7 @@ export const opportunityAutomation = {
 
   async getCandidate(id: string, lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/opportunity-automation/candidates/${id}`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates/${id}`, {
         headers: getHeaders(),
       });
       return await handleResponse(res, lang);
@@ -201,7 +201,7 @@ export const opportunityAutomation = {
 
   async updateCandidate(id: string, data: any, lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/opportunity-automation/candidates/${id}`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates/${id}`, {
         method: 'PATCH',
         headers: getHeaders(),
         body: JSON.stringify(data),
@@ -214,7 +214,7 @@ export const opportunityAutomation = {
 
   async approveCandidate(id: string, lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/opportunity-automation/candidates/${id}/approve`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates/${id}/approve`, {
         method: 'POST',
         headers: getHeaders(),
       });
@@ -226,7 +226,7 @@ export const opportunityAutomation = {
 
   async rejectCandidate(id: string, reason?: string, lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/opportunity-automation/candidates/${id}/reject`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates/${id}/reject`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({ reason }),
@@ -239,7 +239,7 @@ export const opportunityAutomation = {
 
   async markDuplicate(id: string, lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/opportunity-automation/candidates/${id}/mark-duplicate`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates/${id}/mark-duplicate`, {
         method: 'POST',
         headers: getHeaders(),
       });
@@ -251,7 +251,7 @@ export const opportunityAutomation = {
 
   async markExpired(id: string, lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/opportunity-automation/candidates/${id}/mark-expired`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/candidates/${id}/mark-expired`, {
         method: 'POST',
         headers: getHeaders(),
       });
@@ -269,7 +269,7 @@ export const opportunityAutomation = {
       if (params.status) query.append('status', params.status);
       if (params.source) query.append('source', params.source);
 
-      const res = await fetch(`${API_BASE}/opportunity-automation/logs?${query.toString()}`, {
+      const res = await fetch(`${API_BASE}/api/opportunity-automation/logs?${query.toString()}`, {
         headers: getHeaders(),
       });
       return await handleResponse(res, lang);
@@ -288,7 +288,7 @@ export const outreachApi = {
       if (params.search) query.append('search', params.search);
       if (params.status) query.append('status', params.status);
 
-      const res = await fetch(`${API_BASE}/outreach/contacts?${query.toString()}`, {
+      const res = await fetch(`${API_BASE}/api/outreach/contacts?${query.toString()}`, {
         headers: getHeaders(),
       });
       return await handleResponse(res, lang);
@@ -303,7 +303,7 @@ export const outreachApi = {
       if (params.page) query.append('page', params.page.toString());
       if (params.limit) query.append('limit', params.limit.toString());
 
-      const res = await fetch(`${API_BASE}/outreach/campaigns?${query.toString()}`, {
+      const res = await fetch(`${API_BASE}/api/outreach/campaigns?${query.toString()}`, {
         headers: getHeaders(),
       });
       return await handleResponse(res, lang);
@@ -314,7 +314,7 @@ export const outreachApi = {
 
   async sendTestEmail(email: string, templateId: string, lang: Language = 'ar') {
     try {
-      const res = await fetch(`${API_BASE}/outreach/send-test`, {
+      const res = await fetch(`${API_BASE}/api/outreach/send-test`, {
         method: 'POST',
         headers: getHeaders(),
         body: JSON.stringify({ email, templateId }),
@@ -333,7 +333,7 @@ export const outreachApi = {
       const headers = getHeaders();
       delete headers['Content-Type'];
 
-      const res = await fetch(`${API_BASE}/outreach/import-csv`, {
+      const res = await fetch(`${API_BASE}/api/outreach/import-csv`, {
         method: 'POST',
         headers,
         body: formData,
@@ -348,8 +348,16 @@ export const outreachApi = {
 // Highlight API functions
 const HIGHLIGHT_API_BASE = (import.meta as any).env.VITE_API_URL || 'https://rafid-api.mahdialmuntadhar1.workers.dev';
 
-export type HighlightCategory = 'event' | 'job' | 'internship' | 'scholarship' | 'student_club';
+export type HighlightCategory = 'news' | 'event' | 'announcement' | 'exam' | 'registration' | 'student_club' | 'activity' | 'job' | 'internship' | 'scholarship';
 export type HighlightStatus = 'pending_review' | 'approved' | 'rejected' | 'duplicate' | 'expired';
+
+// SCRAPER ROUTING RULES (for future implementation):
+// University website news/events/announcements/exams/registration/student activities:
+//   → insert into highlight_items with status='pending_review'
+// Jobs/scholarships/internships/trainings/fellowships/volunteering/competitions:
+//   → insert into opportunity_candidates with status='pending_review'
+// Keep original language in: title, summary, description/full_description_optional, raw_text, language
+// Do not translate, strip Arabic/Kurdish characters, or use escape/unescape/btoa/atob/Buffer decoding
 
 export interface HighlightItem {
   id: string;
@@ -433,9 +441,23 @@ export async function getHighlights(filters?: {
   return handleHighlightResponse<HighlightItem[]>(response);
 }
 
-export async function getBackendOpportunities(): Promise<BackendOpportunity[]> {
-  const response = await fetch(`${API_BASE}/api/opportunities`);
+export async function getBackendOpportunities(filters?: {
+  category?: string;
+  governorate?: string;
+  limit?: number;
+}): Promise<BackendOpportunity[]> {
+  const params = new URLSearchParams();
+  if (filters?.category) params.set('category', filters.category);
+  if (filters?.governorate && filters.governorate !== 'all') params.set('governorate', filters.governorate);
+  if (filters?.limit) params.set('limit', filters.limit.toString());
+
+  const response = await fetch(`${API_BASE}/api/opportunities${params.toString() ? `?${params}` : ''}`);
   return handleHighlightResponse<BackendOpportunity[]>(response);
+}
+
+export async function getInstitutions(): Promise<any[]> {
+  const response = await fetch(`${API_BASE}/api/institutions`);
+  return handleHighlightResponse<any[]>(response);
 }
 
 export async function getAdminHighlights(filters?: {

@@ -18,6 +18,7 @@ import AdminOutreachPage from './pages/AdminOutreachPage';
 import AdminScholarshipsPage from './pages/AdminScholarshipsPage';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
+import { getHighlights, getBackendOpportunities, HighlightItem, BackendOpportunity } from './lib/api';
 
 export default function App() {
   const currentPath = window.location.pathname;
@@ -114,6 +115,11 @@ export default function App() {
     const saved = localStorage.getItem('jamiaati_feed_v2');
     return saved ? JSON.parse(saved) : initialFeedItems;
   });
+
+  // Live backend data states
+  const [highlights, setHighlights] = useState<HighlightItem[]>([]);
+  const [backendOpportunities, setBackendOpportunities] = useState<BackendOpportunity[]>([]);
+  const [liveDataLoading, setLiveDataLoading] = useState(false);
 
   // User profile state (gamification & badges tracker)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -254,7 +260,7 @@ export default function App() {
   useEffect(() => {
     const fetchOpps = async () => {
       try {
-        const response = await fetch('/api/opportunities');
+        const response = await fetch(`${(import.meta as any).env.VITE_API_URL || 'https://rafid-api.mahdialmuntadhar1.workers.dev'}/api/opportunities`);
         if (response.ok) {
           const list = await response.json();
           if (Array.isArray(list)) {
@@ -309,6 +315,119 @@ export default function App() {
     };
     fetchOpps();
   }, [activeTab]);
+
+  // Fetch highlights for Campus Life tab
+  useEffect(() => {
+    if (activeTab === 'life') {
+      setLiveDataLoading(true);
+      const campusLifeCategories: Array<'news' | 'event' | 'announcement' | 'exam' | 'registration' | 'student_club' | 'activity'> = ['news', 'event', 'announcement', 'exam', 'registration', 'student_club', 'activity'];
+      
+      Promise.all(campusLifeCategories.map(cat => 
+        getHighlights({ category: cat }).catch(() => [])
+      ))
+        .then((results) => {
+          const allHighlights = results.flat();
+          setHighlights(allHighlights);
+          
+          // Merge highlights into feedItems
+          const highlightFeedItems: FeedItem[] = allHighlights.map((hl: HighlightItem) => ({
+            id: hl.id,
+            type: hl.category === 'news' ? 'post' : hl.category === 'event' ? 'event' : hl.category === 'announcement' ? 'post' : 'post',
+            titleEN: hl.title,
+            titleAR: hl.title,
+            titleKU: hl.title,
+            contentEN: hl.summary || '',
+            contentAR: hl.summary || '',
+            contentKU: hl.summary || '',
+            author: {
+              name: hl.organization || hl.source_name || 'University',
+              role: 'institution',
+              avatar: hl.image_url || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+              verified: true
+            },
+            date: hl.event_date || hl.created_at || 'Recently',
+            likes: 0,
+            commentsCount: 0,
+            commentsList: [],
+            governorateId: normalizeGovernorate(hl.governorate),
+            universityId: hl.university_id || 'all',
+            tags: [hl.category, hl.language || 'ar'],
+            imageUrl: hl.image_url,
+            location: hl.city || hl.governorate || 'Iraq'
+          }));
+
+          setFeedItems(prev => {
+            const existingIds = new Set(prev.map(item => item.id));
+            const newItems = highlightFeedItems.filter(item => !existingIds.has(item.id));
+            return [...newItems, ...prev];
+          });
+        })
+        .catch(err => {
+          console.error("Error loading highlights:", err);
+        })
+        .finally(() => {
+          setLiveDataLoading(false);
+        });
+    }
+  }, [activeTab, selectedGov]);
+
+  // Fetch backend opportunities for Future tab
+  useEffect(() => {
+    if (activeTab === 'future') {
+      setLiveDataLoading(true);
+      const opportunityCategories = ['job', 'scholarship', 'internship', 'training', 'fellowship', 'volunteering', 'competition'];
+      
+      Promise.all(opportunityCategories.map(cat => 
+        getBackendOpportunities({ category: cat, limit: 20 }).catch(() => [])
+      ))
+        .then((results) => {
+          const allOpps = results.flat();
+          setBackendOpportunities(allOpps);
+          
+          // Merge opportunities into feedItems
+          const opportunityFeedItems: FeedItem[] = allOpps.map((opp: BackendOpportunity) => ({
+            id: opp.id,
+            type: opp.type === 'job' ? 'job' : opp.type === 'scholarship' ? 'scholarship' : opp.type === 'internship' ? 'internship' : opp.type === 'training' ? 'training' : 'job',
+            titleEN: opp.title,
+            titleAR: opp.title,
+            titleKU: opp.title,
+            contentEN: opp.tags || '',
+            contentAR: opp.tags || '',
+            contentKU: opp.tags || '',
+            author: {
+              name: opp.institution_name,
+              role: 'institution',
+              avatar: opp.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+              verified: true
+            },
+            date: opp.created_at || 'Recently',
+            likes: 0,
+            commentsCount: 0,
+            commentsList: [],
+            governorateId: normalizeGovernorate(opp.governorate),
+            universityId: 'all',
+            tags: [opp.type, 'opportunity'],
+            company: opp.institution_name,
+            companyLogo: opp.institution_logo,
+            location: opp.city || opp.governorate || 'Iraq',
+            deadline: opp.deadline,
+            opportunityCategory: opp.type.charAt(0).toUpperCase() + opp.type.slice(1) as any
+          }));
+
+          setFeedItems(prev => {
+            const existingIds = new Set(prev.map(item => item.id));
+            const newItems = opportunityFeedItems.filter(item => !existingIds.has(item.id));
+            return [...newItems, ...prev];
+          });
+        })
+        .catch(err => {
+          console.error("Error loading backend opportunities:", err);
+        })
+        .finally(() => {
+          setLiveDataLoading(false);
+        });
+    }
+  }, [activeTab, selectedGov]);
 
   useEffect(() => {
     localStorage.setItem('jamiaati_profile_v2', JSON.stringify(userProfile));
