@@ -182,7 +182,7 @@ const rateLimitMiddleware = async (c: any, next: any) => {
 
   try {
     const now = new Date().toISOString();
-    
+
     // Get current rate limit record
     const record = await c.env.DB.prepare('SELECT * FROM rate_limits WHERE ip_address = ?')
       .bind(ip)
@@ -261,7 +261,7 @@ app.post('/api/auth/register', rateLimitMiddleware, async (c) => {
 
     const token = await signJWT({ userId: id, email }, c.env.JWT_SECRET);
     const user = { id, email, full_name: fullName, role: 'student' };
-    
+
     // In production, send email with verification link
     // For now, return the token for development
     return c.json({ success: true, token, user }, 201);
@@ -527,6 +527,10 @@ app.get('/api/posts', rateLimitMiddleware, async (c) => {
     query += ' WHERE 1=1';
   }
 
+  // Only show approved posts to public
+  query += ' AND p.status = ?';
+  params.push('approved');
+
   if (governorate) {
     query += ' AND p.governorate = ?';
     params.push(governorate);
@@ -616,8 +620,8 @@ app.post('/api/posts', authMiddleware, rateLimitMiddleware, async (c) => {
   const id = crypto.randomUUID();
   await c.env.DB.prepare(
     `INSERT INTO posts
-       (id, author_id, type, content, title, image_url, governorate, institution, institution_id, is_verified, metadata)
-     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+       (id, author_id, type, content, title, image_url, governorate, institution, institution_id, is_verified, metadata, status)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
   )
     .bind(
       id,
@@ -630,7 +634,8 @@ app.post('/api/posts', authMiddleware, rateLimitMiddleware, async (c) => {
       institution,
       institution_id || 'manual',
       is_verified ? 1 : 0,
-      metadata ? JSON.stringify(metadata) : '{}'
+      metadata ? JSON.stringify(metadata) : '{}',
+      'pending_review'
     )
     .run();
 
@@ -1621,7 +1626,7 @@ app.get('/api/search', rateLimitMiddleware, async (c) => {
 
 app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (c) => {
   const userRole = (c as any).get('userRole');
-  
+
   // Get total users
   const usersResult = await c.env.DB.prepare('SELECT COUNT(*) as count FROM profiles')
     .first<{ count: number }>();
@@ -1672,7 +1677,7 @@ app.delete('/api/admin/posts/:id', authMiddleware, adminMiddleware, async (c) =>
     const post = await c.env.DB.prepare('SELECT author_id FROM posts WHERE id = ?')
       .bind(postId)
       .first<{ author_id: string }>();
-    
+
     if (!post) {
       return c.json({ error: 'Ø§Ù„Ù…Ù†Ø´ÙˆØ± ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯' }, 404);
     }
@@ -1744,12 +1749,12 @@ app.put('/api/admin/users/:id/role', authMiddleware, adminMiddleware, async (c) 
 app.get('/api/chat/rooms', authMiddleware, async (c) => {
   const userId = c.get('userId');
   const rooms = await c.env.DB.prepare(
-    `SELECT cr.*, 
-            CASE 
+    `SELECT cr.*,
+            CASE
               WHEN cr.user1_id = ? THEN u2.full_name
               ELSE u1.full_name
             END as other_user_name,
-            CASE 
+            CASE
               WHEN cr.user1_id = ? THEN u2.avatar_url
               ELSE u1.avatar_url
             END as other_user_avatar,
@@ -2621,7 +2626,7 @@ type ScrapedOpportunityItem = {
   titleDerivedFromBody: boolean;
 };
 
-type ScrapeRejectReason = 'generic_url' | 'restricted' | 'mojibake' | 'weak_content' | 'not_specific' | 'iraq_relevance' | 'foreign_location' | 'generic_title';
+type ScrapeRejectReason = 'generic_url' | 'restricted' | 'mojibake' | 'weak_content' | 'not_specific' | 'iraq_relevance' | 'foreign_location' | 'generic_title' | 'generic_archive';
 
 type ScrapedOpportunityResult = {
   item: ScrapedOpportunityItem | null;
@@ -2641,6 +2646,7 @@ type ScrapeOpportunitySourceResult = {
   iraqRelevanceRejected: number;
   foreignLocationRejected: number;
   genericTitleRejected: number;
+  genericArchiveRejected: number;
   navigationTextCleaned: number;
   titleDerivedFromBody: number;
   error?: string;
@@ -2681,6 +2687,12 @@ const BLOCKED_OPPORTUNITY_PATH_PATTERNS = [
   /\/blog(?:\/|$)/i,
   /\/article(?:\/|$)/i,
   /\/news(?:\/|$)/i,
+  /\/events(?:\/|$)/i,
+  /\/event(?:\/|$)/i,
+  /\/announcements(?:\/|$)/i,
+  /\/announcement(?:\/|$)/i,
+  /\/activities(?:\/|$)/i,
+  /\/activity(?:\/|$)/i,
   /\/login(?:\/|$)/i,
   /\/register(?:\/|$)/i,
   /\/account(?:\/|$)/i,
@@ -2695,15 +2707,27 @@ const BLOCKED_OPPORTUNITY_PATH_PATTERNS = [
 ];
 
 const BLOCKED_OPPORTUNITY_INDEX_PATHS = new Set([
-  '/job', '/jobs', '/opportunities', '/careers'
+  '/job', '/jobs', '/opportunities', '/careers', '/event', '/events', '/news', '/announcements', '/activities'
 ]);
 
 const GENERIC_OPPORTUNITY_TITLES = new Set([
   'all events',
   'events',
+  'news',
+  'announcements',
+  'activities',
   'university activities',
-  'university art events',
   'university sport events',
+  'university art events',
+  'conferences',
+  'workshops',
+  'trainings',
+  'jobs',
+  'scholarships',
+  'opportunities',
+  'read more',
+  'learn more',
+  'view all',
   'training',
   'sport event',
   'art events'
@@ -2745,6 +2769,25 @@ function normalizeTitleForComparison(title: string): string {
 function isGenericOpportunityTitle(title: string): boolean {
   const normalized = normalizeTitleForComparison(title);
   return !normalized || GENERIC_OPPORTUNITY_TITLES.has(normalized);
+}
+
+function isGenericArchivePage(url: string, title: string): boolean {
+  // Check if URL looks like a generic archive/category page
+  try {
+    const parsed = new URL(normalizeUrl(url));
+    const path = parsed.pathname.replace(/\/+$/, '').toLowerCase();
+    
+    // Check against blocked index paths
+    if (BLOCKED_OPPORTUNITY_INDEX_PATHS.has(path)) return true;
+    
+    // Check against blocked path patterns
+    if (BLOCKED_OPPORTUNITY_PATH_PATTERNS.some((pattern) => pattern.test(`${path}/`))) return true;
+  } catch {
+    // If URL parsing fails, check title only
+  }
+  
+  // Check if title is generic
+  return isGenericOpportunityTitle(title);
 }
 
 function cleanExtractedTitle(title: string): string {
@@ -3277,6 +3320,10 @@ function extractOpportunityItem(url: string, html: string, source?: AutomationSo
   const { text, cleaned: navigationTextWasCleaned } = cleanNavigationText(rawText);
   const titleResult = deriveOpportunityTitle(cleanedHtml, rawText);
   const title = cleanExtractedTitle(titleResult.title);
+  
+  // Check for generic archive pages before any other processing
+  if (isGenericArchivePage(url, title)) return { item: null, reason: 'generic_archive' };
+  
   if (isGenericOpportunityTitle(title)) return { item: null, reason: 'generic_title' };
   if (isNavigationOnlyText(text.slice(0, 700))) return { item: null, reason: 'weak_content' };
 
@@ -3416,6 +3463,7 @@ function incrementRejectCounter(result: ScrapeOpportunitySourceResult, reason?: 
   else if (reason === 'iraq_relevance') result.iraqRelevanceRejected++;
   else if (reason === 'foreign_location') result.foreignLocationRejected++;
   else if (reason === 'generic_title') result.genericTitleRejected++;
+  else if (reason === 'generic_archive') result.genericArchiveRejected++;
 }
 
 async function scrapeOpportunitySource(db: D1Database, source: AutomationSourceRow, dryRun: boolean, maxInserts = Number.POSITIVE_INFINITY): Promise<ScrapeOpportunitySourceResult> {
@@ -3432,6 +3480,7 @@ async function scrapeOpportunitySource(db: D1Database, source: AutomationSourceR
     iraqRelevanceRejected: 0,
     foreignLocationRejected: 0,
     genericTitleRejected: 0,
+    genericArchiveRejected: 0,
     navigationTextCleaned: 0,
     titleDerivedFromBody: 0
   };
@@ -3505,7 +3554,7 @@ app.get('/api/opportunity-automation/status', authMiddleware, adminMiddleware, a
   const sources = await c.env.DB.prepare('SELECT COUNT(*) as total, SUM(CASE WHEN is_active = 1 THEN 1 ELSE 0 END) as active FROM opportunity_sources').first() as any;
   const candidates = await c.env.DB.prepare('SELECT COUNT(*) as total, SUM(CASE WHEN status = "pending_review" THEN 1 ELSE 0 END) as pending, SUM(CASE WHEN status = "approved" THEN 1 ELSE 0 END) as approved FROM opportunity_candidates').first() as any;
   const lastRun = await c.env.DB.prepare('SELECT * FROM opportunity_run_logs ORDER BY started_at DESC LIMIT 1').first() as any;
-  
+
   return c.json({
     sources: sources || { total: 0, active: 0 },
     candidates: candidates || { total: 0, pending: 0, approved: 0 },
@@ -3519,10 +3568,10 @@ app.get('/api/opportunity-automation/sources', authMiddleware, adminMiddleware, 
   const governorate = c.req.query('governorate');
   const category = c.req.query('category');
   const activeOnly = c.req.query('active') === 'true';
-  
+
   let query = 'SELECT * FROM opportunity_sources WHERE 1=1';
   const params: any[] = [];
-  
+
   if (governorate) {
     query += ' AND governorate_scope = ?';
     params.push(governorate);
@@ -3534,9 +3583,9 @@ app.get('/api/opportunity-automation/sources', authMiddleware, adminMiddleware, 
   if (activeOnly) {
     query += ' AND is_active = 1';
   }
-  
+
   query += ' ORDER BY created_at DESC';
-  
+
   const sources = await c.env.DB.prepare(query).bind(...params).all();
   return c.json(sources.results);
 });
@@ -3545,19 +3594,19 @@ app.get('/api/opportunity-automation/sources', authMiddleware, adminMiddleware, 
 app.post('/api/opportunity-automation/sources', authMiddleware, adminMiddleware, async (c) => {
   const body = await c.req.json();
   const { name, url, source_type, category_scope, country_scope, governorate_scope, language, crawl_frequency_hours, notes } = body;
-  
+
   if (!name || !url || !source_type || !category_scope) {
     return c.json({ error: 'name, url, source_type, and category_scope are required' }, 400);
   }
-  
+
   const id = crypto.randomUUID();
   const normalizedUrl = normalizeUrl(url);
-  
+
   await c.env.DB.prepare(`
     INSERT INTO opportunity_sources (id, name, url, source_type, category_scope, country_scope, governorate_scope, language, crawl_frequency_hours, notes)
     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
   `).bind(id, name, normalizedUrl, source_type, category_scope, country_scope || null, governorate_scope || null, language || null, crawl_frequency_hours || 24, notes || null).run();
-  
+
   return c.json({ id, success: true }, 201);
 });
 
@@ -3565,32 +3614,32 @@ app.post('/api/opportunity-automation/sources', authMiddleware, adminMiddleware,
 app.patch('/api/opportunity-automation/sources/:id', authMiddleware, adminMiddleware, async (c) => {
   const body = await c.req.json();
   const sourceId = c.req.param('id');
-  
+
   const allowed = ['name', 'url', 'source_type', 'category_scope', 'country_scope', 'governorate_scope', 'language', 'is_active', 'crawl_frequency_hours', 'notes', 'last_error'];
   const updates: string[] = [];
   const params: any[] = [];
-  
+
   for (const field of allowed) {
     if (body[field] !== undefined) {
       updates.push(`${field} = ?`);
       params.push(body[field]);
     }
   }
-  
+
   if (updates.length === 0) {
     return c.json({ error: 'No valid fields to update' }, 400);
   }
-  
+
   if (body.url) {
     const idx = updates.indexOf('url = ?');
     if (idx !== -1) {
       params[idx] = normalizeUrl(body.url);
     }
   }
-  
+
   params.push(sourceId);
   await c.env.DB.prepare(`UPDATE opportunity_sources SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).bind(...params).run();
-  
+
   return c.json({ success: true });
 });
 
@@ -3607,29 +3656,29 @@ app.post('/api/opportunity-automation/import-csv', authMiddleware, adminMiddlewa
   if (size > 5 * 1024 * 1024) {
     return c.json({ error: 'CSV is too large. Limit is 5 MB.' }, 413);
   }
-  
+
   const csvText = await c.req.text();
   const lines = csvText.split('\n').filter(line => line.trim());
   if (lines.length < 2) {
     return c.json({ error: 'CSV must have at least a header and one data row' }, 400);
   }
-  
+
   const headers = lines[0].split(',').map(h => h.trim().toLowerCase().replace(/"/g, ''));
   const requiredColumns = ['title', 'category'];
   const missing = requiredColumns.filter(col => !headers.includes(col));
   if (missing.length > 0) {
     return c.json({ error: `Missing required columns: ${missing.join(', ')}` }, 400);
   }
-  
+
   const summary = { total: 0, imported: 0, duplicates: 0, expired: 0, errors: 0 };
   const errors: string[] = [];
-  
+
   for (let i = 1; i < lines.length; i++) {
     summary.total++;
     const values = lines[i].split(',').map(v => v.trim().replace(/^"|"$/g, ''));
     const row: Record<string, string> = {};
     headers.forEach((h, idx) => row[h] = values[idx] || '');
-    
+
     try {
       const title = row.title;
       const organization = row.organization || '';
@@ -3649,13 +3698,13 @@ app.post('/api/opportunity-automation/import-csv', authMiddleware, adminMiddlewa
       const salary_or_funding = row.salary_or_funding || '';
       const source_name = row.source_name?.trim() || 'Manual Import';
       const sourceRecordUrl = source_url || apply_url ? normalizeUrl(source_url || apply_url) : 'manual_csv';
-      
+
       // Check if expired
       if (deadline && isExpired(deadline)) {
         summary.expired++;
         continue;
       }
-      
+
       // Find or create source
       let sourceId = await c.env.DB.prepare('SELECT id FROM opportunity_sources WHERE name = ? LIMIT 1').bind(source_name).first() as any;
       if (!sourceId) {
@@ -3666,30 +3715,30 @@ app.post('/api/opportunity-automation/import-csv', authMiddleware, adminMiddlewa
         `).bind(newSourceId, source_name, sourceRecordUrl, 'manual_csv', 'mixed', country, governorate || null, language || null).run();
         sourceId = { id: newSourceId };
       }
-      
+
       // Generate duplicate key
       const duplicateKey = await hashDuplicateKey(`${title}|${organization}|${deadline || ''}|${source_url}`);
-      
+
       // Check for duplicates
       const existing = await c.env.DB.prepare('SELECT id FROM opportunity_candidates WHERE duplicate_key = ?').bind(duplicateKey).first();
       if (existing) {
         summary.duplicates++;
         continue;
       }
-      
+
       const candidateId = crypto.randomUUID();
       await c.env.DB.prepare(`
         INSERT INTO opportunity_candidates (id, source_id, title, organization, category, description, summary, eligibility, deadline, published_date, apply_url, source_url, image_url, country, governorate, city, language, salary_or_funding, duplicate_key, status)
         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'pending_review')
       `).bind(candidateId, sourceId.id, title, organization, category, description, summary_text, eligibility, deadline, published_date, apply_url, source_url, image_url, country, governorate, city, language, salary_or_funding, duplicateKey).run();
-      
+
       summary.imported++;
     } catch (e: any) {
       summary.errors++;
       errors.push(`Row ${i + 1}: ${e.message}`);
     }
   }
-  
+
   return c.json({ summary, errors: errors.slice(0, 10) });
 });
 
@@ -3701,10 +3750,10 @@ app.get('/api/opportunity-automation/candidates', authMiddleware, adminMiddlewar
   const page = Math.max(parseInt(c.req.query('page') || '1'), 1);
   const limit = Math.min(parseInt(c.req.query('limit') || '50'), 100);
   const offset = (page - 1) * limit;
-  
+
   let query = 'SELECT * FROM opportunity_candidates WHERE status = ?';
   const params: any[] = [status];
-  
+
   if (category) {
     query += ' AND category = ?';
     params.push(category);
@@ -3713,13 +3762,13 @@ app.get('/api/opportunity-automation/candidates', authMiddleware, adminMiddlewar
     query += ' AND governorate = ?';
     params.push(governorate);
   }
-  
+
   query += ' ORDER BY created_at DESC LIMIT ? OFFSET ?';
   params.push(limit, offset);
-  
+
   const candidates = await c.env.DB.prepare(query).bind(...params).all();
   const countResult = await c.env.DB.prepare('SELECT COUNT(*) as count FROM opportunity_candidates WHERE status = ?').bind(status).first() as any;
-  
+
   return c.json({
     candidates: candidates.results,
     pagination: {
@@ -3744,40 +3793,40 @@ app.get('/api/opportunity-automation/candidates/:id', authMiddleware, adminMiddl
 app.patch('/api/opportunity-automation/candidates/:id', authMiddleware, adminMiddleware, async (c) => {
   const body = await c.req.json();
   const candidateId = c.req.param('id');
-  
+
   const allowed = ['title', 'organization', 'category', 'description', 'summary', 'eligibility', 'deadline', 'published_date', 'apply_url', 'source_url', 'image_url', 'country', 'governorate', 'city', 'language', 'salary_or_funding', 'confidence_score'];
   const updates: string[] = [];
   const params: any[] = [];
-  
+
   for (const field of allowed) {
     if (body[field] !== undefined) {
       updates.push(`${field} = ?`);
       params.push(body[field]);
     }
   }
-  
+
   if (updates.length === 0) {
     return c.json({ error: 'No valid fields to update' }, 400);
   }
-  
+
   params.push(candidateId);
   await c.env.DB.prepare(`UPDATE opportunity_candidates SET ${updates.join(', ')}, updated_at = CURRENT_TIMESTAMP WHERE id = ?`).bind(...params).run();
-  
+
   return c.json({ success: true });
 });
 
 // POST /api/opportunity-automation/candidates/:id/approve
 app.post('/api/opportunity-automation/candidates/:id/approve', authMiddleware, adminMiddleware, async (c) => {
   const candidateId = c.req.param('id');
-  
+
   const candidate = await c.env.DB.prepare('SELECT * FROM opportunity_candidates WHERE id = ?').bind(candidateId).first() as any;
   if (!candidate) {
     return c.json({ error: 'Candidate not found' }, 404);
   }
-  
+
   // Update candidate status
   await c.env.DB.prepare("UPDATE opportunity_candidates SET status = 'approved', updated_at = CURRENT_TIMESTAMP WHERE id = ?").bind(candidateId).run();
-  
+
   return c.json({ success: true, published: true });
 });
 
@@ -3786,27 +3835,27 @@ app.post('/api/opportunity-automation/candidates/:id/reject', authMiddleware, ad
   const body = await c.req.json();
   const candidateId = c.req.param('id');
   const reason = body.reason || 'Rejected by admin';
-  
+
   await c.env.DB.prepare("UPDATE opportunity_candidates SET status = 'rejected', rejection_reason = ?, updated_at = CURRENT_TIMESTAMP WHERE id = ?").bind(reason, candidateId).run();
-  
+
   return c.json({ success: true });
 });
 
 // POST /api/opportunity-automation/candidates/:id/mark-duplicate
 app.post('/api/opportunity-automation/candidates/:id/mark-duplicate', authMiddleware, adminMiddleware, async (c) => {
   const candidateId = c.req.param('id');
-  
+
   await c.env.DB.prepare("UPDATE opportunity_candidates SET status = 'duplicate', updated_at = CURRENT_TIMESTAMP WHERE id = ?").bind(candidateId).run();
-  
+
   return c.json({ success: true });
 });
 
 // POST /api/opportunity-automation/candidates/:id/mark-expired
 app.post('/api/opportunity-automation/candidates/:id/mark-expired', authMiddleware, adminMiddleware, async (c) => {
   const candidateId = c.req.param('id');
-  
+
   await c.env.DB.prepare("UPDATE opportunity_candidates SET status = 'expired', updated_at = CURRENT_TIMESTAMP WHERE id = ?").bind(candidateId).run();
-  
+
   return c.json({ success: true });
 });
 
@@ -3815,12 +3864,12 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
   const dryRun = truthy(c.env.DRY_RUN_AUTOMATION);
   const logId = crypto.randomUUID();
   const startedAt = new Date().toISOString();
-  
+
   await c.env.DB.prepare(`
     INSERT INTO opportunity_run_logs (id, started_at, status, sources_checked, items_found, items_inserted, duplicates_found)
     VALUES (?, ?, 'running', 0, 0, 0, 0)
   `).bind(logId, startedAt).run();
-  
+
   try {
     const sourceSync = await syncInstitutionOpportunitySources(c.env.DB);
     const sources = await c.env.DB.prepare(`
@@ -3841,6 +3890,7 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
     let iraqRelevanceRejected = 0;
     let foreignLocationRejected = 0;
     let genericTitleRejected = 0;
+    let genericArchiveRejected = 0;
     let navigationTextCleaned = 0;
     let titleDerivedFromBody = 0;
     const errors: { sourceId: string; url: string; error: string }[] = [];
@@ -3863,11 +3913,12 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
       iraqRelevanceRejected: number;
       foreignLocationRejected: number;
       genericTitleRejected: number;
+      genericArchiveRejected: number;
       navigationTextCleaned: number;
       titleDerivedFromBody: number;
       error: string | null;
     }[] = [];
-    
+
     for (const source of sources.results || []) {
       const result = await scrapeOpportunitySource(c.env.DB, source, dryRun);
       sourcesChecked++;
@@ -3882,6 +3933,7 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
       iraqRelevanceRejected += result.iraqRelevanceRejected;
       foreignLocationRejected += result.foreignLocationRejected;
       genericTitleRejected += result.genericTitleRejected;
+      genericArchiveRejected += result.genericArchiveRejected;
       navigationTextCleaned += result.navigationTextCleaned;
       titleDerivedFromBody += result.titleDerivedFromBody;
       if (result.error) errors.push({ sourceId: source.id, url: source.url, error: result.error });
@@ -3904,6 +3956,7 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
         iraqRelevanceRejected: result.iraqRelevanceRejected,
         foreignLocationRejected: result.foreignLocationRejected,
         genericTitleRejected: result.genericTitleRejected,
+        genericArchiveRejected: result.genericArchiveRejected,
         navigationTextCleaned: result.navigationTextCleaned,
         titleDerivedFromBody: result.titleDerivedFromBody,
         error: result.error || null
@@ -3911,9 +3964,9 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
     }
 
     const finalStatus = errors.length ? 'partial_success' : 'success';
-    
+
     await c.env.DB.prepare(`
-      UPDATE opportunity_run_logs 
+      UPDATE opportunity_run_logs
       SET finished_at = CURRENT_TIMESTAMP, status = ?, sources_checked = ?, items_found = ?, items_inserted = ?, duplicates_found = ?, errors_json = ?
       WHERE id = ?
     `).bind(
@@ -3941,7 +3994,7 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
       }),
       logId
     ).run();
-    
+
     return c.json({
       success: true,
       logId,
@@ -3967,11 +4020,11 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
     });
   } catch (e: any) {
     await c.env.DB.prepare(`
-      UPDATE opportunity_run_logs 
+      UPDATE opportunity_run_logs
       SET finished_at = CURRENT_TIMESTAMP, status = 'failed', errors_json = ?
       WHERE id = ?
     `).bind(JSON.stringify({ error: e.message }), logId).run();
-    
+
     return c.json({ error: 'Automation run failed', message: e.message }, 500);
   }
 });
@@ -3980,12 +4033,12 @@ app.post('/api/opportunity-automation/run-now', authMiddleware, adminMiddleware,
 app.post('/api/opportunity-automation/run-source/:id', authMiddleware, adminMiddleware, async (c) => {
   const sourceId = c.req.param('id');
   const dryRun = truthy(c.env.DRY_RUN_AUTOMATION);
-  
+
   const source = await c.env.DB.prepare('SELECT * FROM opportunity_sources WHERE id = ?').bind(sourceId).first<AutomationSourceRow>();
   if (!source) {
     return c.json({ error: 'Source not found' }, 404);
   }
-  
+
   const logId = crypto.randomUUID();
   const startedAt = new Date().toISOString();
   await c.env.DB.prepare(`
@@ -4013,6 +4066,7 @@ app.post('/api/opportunity-automation/run-source/:id', authMiddleware, adminMidd
     iraqRelevanceRejected: result.iraqRelevanceRejected,
     foreignLocationRejected: result.foreignLocationRejected,
     genericTitleRejected: result.genericTitleRejected,
+    genericArchiveRejected: result.genericArchiveRejected,
     navigationTextCleaned: result.navigationTextCleaned,
     titleDerivedFromBody: result.titleDerivedFromBody,
     error: result.error || null
@@ -4050,7 +4104,7 @@ app.post('/api/opportunity-automation/run-source/:id', authMiddleware, adminMidd
     }),
     logId
   ).run();
-  
+
   return c.json({
     success: !result.error,
     logId,
@@ -4104,6 +4158,7 @@ app.post('/api/opportunity-automation/run-source/:sourceId/insert-pending', auth
     iraqRelevanceRejected: result.iraqRelevanceRejected,
     foreignLocationRejected: result.foreignLocationRejected,
     genericTitleRejected: result.genericTitleRejected,
+    genericArchiveRejected: result.genericArchiveRejected,
     navigationTextCleaned: result.navigationTextCleaned,
     titleDerivedFromBody: result.titleDerivedFromBody,
     error: result.error || null
@@ -4185,7 +4240,7 @@ app.get('/api/opportunity-automation/stats', authMiddleware, adminMiddleware, as
   const byCategory = await c.env.DB.prepare('SELECT category, COUNT(*) as count FROM opportunity_candidates GROUP BY category').all();
   const byGovernorate = await c.env.DB.prepare('SELECT governorate, COUNT(*) as count FROM opportunity_candidates WHERE governorate IS NOT NULL GROUP BY governorate').all();
   const sourceStats = await c.env.DB.prepare('SELECT source_type, COUNT(*) as count FROM opportunity_sources GROUP BY source_type').all();
-  
+
   return c.json({
     byStatus: byStatus.results,
     byCategory: byCategory.results,
