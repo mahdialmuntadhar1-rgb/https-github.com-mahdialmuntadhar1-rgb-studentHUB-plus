@@ -1,7 +1,8 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
+import { getOpportunities } from '../lib/api';
 import { 
   Calendar, 
   ChevronRight, 
@@ -39,6 +40,9 @@ interface FutureFeedProps {
   onAddComment: (id: string, commentText: string) => void;
   onBackToHome: () => void;
   isFeedLoading?: boolean;
+  onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
+  onDeleteFeedItem?: (id: string) => void;
+  isAdminMode?: boolean;
 }
 
 export default function FutureFeed({
@@ -54,8 +58,190 @@ export default function FutureFeed({
   onJoinGroup,
   onAddComment,
   onBackToHome,
-  isFeedLoading = false
+  isFeedLoading = false,
+  onEditFeedItem,
+  onDeleteFeedItem,
+  isAdminMode = false
 }: FutureFeedProps) {
+  const [opportunities, setOpportunities] = useState<FeedItem[]>([]);
+  const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [error, setError] = useState<string | null>(null);
+
+  // Safe mapper for backend opportunities to FeedItem shape
+  const mapBackendOpportunity = (item: any): FeedItem => {
+    const categoryRaw = (item.category || item.type || 'job').toLowerCase();
+    
+    let displayCategory = 'Full-time graduate job';
+    if (categoryRaw.includes('intern')) {
+      displayCategory = 'Internship';
+    } else if (categoryRaw.includes('scholar')) {
+      displayCategory = 'Scholarship';
+    } else if (categoryRaw.includes('train')) {
+      displayCategory = 'Training';
+    } else if (categoryRaw.includes('volun')) {
+      displayCategory = 'Volunteering';
+    } else if (categoryRaw.includes('compete') || categoryRaw.includes('competition')) {
+      displayCategory = 'Competition';
+    } else if (categoryRaw.includes('exam')) {
+      displayCategory = 'Exam';
+    } else if (categoryRaw.includes('announc')) {
+      displayCategory = 'Announcement';
+    } else if (categoryRaw.includes('fellow')) {
+      displayCategory = 'Fellowship';
+    } else if (categoryRaw.includes('graduation') || categoryRaw.includes('project')) {
+      displayCategory = 'Graduation project support';
+    }
+
+    const titleEN = item.titleEN || item.title || item.title_en || 'Public Opportunity';
+    const titleAR = item.titleAR || item.title_ar || item.title || titleEN;
+    const titleKU = item.titleKU || item.title_ku || item.title || titleEN;
+
+    const contentEN = item.contentEN || item.description || item.summary || item.description_en || 'View details of this public opportunity.';
+    const contentAR = item.contentAR || item.description_ar || item.description || item.summary || contentEN;
+    const contentKU = item.contentKU || item.description_ku || item.description || item.summary || contentEN;
+
+    const orgName = item.organization || item.institution_name || item.company || 'Recruiter/Provider';
+    const gov = item.governorateId || item.governorate || 'all';
+    const country = item.country || 'Iraq';
+    const city = item.city || '';
+    
+    const locationParts = [city, gov !== 'all' ? gov : '', country].filter(Boolean);
+    const locationStr = locationParts.length > 0 ? locationParts.join(', ') : 'Iraq';
+
+    const applyUrl = item.apply_url || item.application_link || item.original_source_url || item.source_url || '';
+    const sourceUrl = item.source_url || item.original_source_url || item.application_link || '';
+    const imgUrl = item.image_url || item.imageUrl || '';
+
+    return {
+      id: String(item.id),
+      type: categoryRaw,
+      titleEN,
+      titleAR,
+      titleKU,
+      contentEN,
+      contentAR,
+      contentKU,
+      author: {
+        name: orgName,
+        role: 'institution' as const,
+        avatar: imgUrl || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+        verified: true
+      },
+      date: item.published_date ? `Posted on ${item.published_date}` : 'Recently posted 🔔',
+      likes: Number(item.likes || 12),
+      likedByUser: false,
+      savedCount: Number(item.saved_count || 15),
+      savedByUser: false,
+      commentsCount: 0,
+      commentsList: [],
+      governorateId: gov,
+      country: country,
+      universityId: 'all',
+      tags: [categoryRaw, displayCategory],
+      company: orgName,
+      companyLogo: imgUrl || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+      location: locationStr,
+      deadline: item.deadline || '',
+      imageUrl: imgUrl,
+      opportunityCategory: displayCategory as any,
+      workplaceType: item.workplaceType || 'On-site',
+      whoCanApply: item.whoCanApply || 'Interested applicants',
+      salary: item.salary || 'Recruiter structured',
+      application_link: applyUrl,
+      original_source_url: sourceUrl,
+      universityAppliedCount: Number(item.applied_count || 5),
+      applied: false
+    };
+  };
+
+  // Fetch opportunities from backend
+  useEffect(() => {
+    let active = true;
+    const fetchOpps = async () => {
+      setIsLoading(true);
+      setError(null);
+      try {
+        const data = await getOpportunities(language);
+        if (active) {
+          if (Array.isArray(data)) {
+            setOpportunities(data.map(mapBackendOpportunity));
+          } else {
+            setOpportunities([]);
+          }
+        }
+      } catch (err: any) {
+        if (active) {
+          setError(err.message || 'Failed to fetch opportunities from backend.');
+        }
+      } finally {
+        if (active) {
+          setIsLoading(false);
+        }
+      }
+    };
+    fetchOpps();
+    return () => {
+      active = false;
+    };
+  }, [language]);
+
+  // Action wrapper overrides to keep visual states reactive inside the loaded list
+  const handleLocalLike = (id: string) => {
+    onLike(id);
+    setOpportunities(prev => prev.map(item => {
+      if (item.id === id) {
+        const isLiked = !item.likedByUser;
+        return {
+          ...item,
+          likes: isLiked ? item.likes + 1 : item.likes - 1,
+          likedByUser: isLiked
+        };
+      }
+      return item;
+    }));
+  };
+
+  const handleLocalSave = (id: string) => {
+    onSave(id);
+    setOpportunities(prev => prev.map(item => {
+      if (item.id === id) {
+        const isSaved = !item.savedByUser;
+        return {
+          ...item,
+          savedCount: isSaved ? (item.savedCount || 0) + 1 : Math.max(0, (item.savedCount || 1) - 1),
+          savedByUser: isSaved
+        };
+      }
+      return item;
+    }));
+  };
+
+  const handleLocalApply = (id: string) => {
+    onApply(id);
+    setOpportunities(prev => prev.map(item => {
+      if (item.id === id) {
+        const isApplied = !item.applied;
+        
+        // Open opportunity apply link safely after applying
+        const urlToOpen = item.application_link || item.original_source_url;
+        if (urlToOpen && isApplied) {
+          try {
+            window.open(urlToOpen, '_blank', 'noopener,noreferrer');
+          } catch (e) {
+            console.error('Failed to open programmatic URL:', e);
+          }
+        }
+
+        return {
+          ...item,
+          applied: isApplied,
+          universityAppliedCount: isApplied ? (item.universityAppliedCount || 0) + 1 : Math.max(0, (item.universityAppliedCount || 1) - 1)
+        };
+      }
+      return item;
+    }));
+  };
+
   const [activeChip, setActiveChip] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   
@@ -126,7 +312,7 @@ export default function FutureFeed({
   };
 
   // Filter logic across Search + Governorate + Country + Deadline
-  const filteredBaseOpportunities = feedItems.filter(item => {
+  const filteredBaseOpportunities = opportunities.filter(item => {
     const isOpp = getIsOpportunity(item) || item.type === 'study_group';
     if (!isOpp) return false;
 
@@ -437,8 +623,49 @@ export default function FutureFeed({
       </div>
 
       {/* Board Layouts: 6 Sections displayed when "all" chip is active AND no filters are selected */}
-      {isFeedLoading ? (
+      {error ? (
+        <div className="text-[#D9272E] bg-white border-2 border-[#D9272E] rounded-3xl p-8 text-center shadow-[3px_3px_0px_0px_#D9272E] mb-5">
+          <div className="text-4xl mb-3">⚠️</div>
+          <h3 className="font-extrabold text-sm uppercase tracking-wide">
+            {language === 'ar' ? 'فشل تحميل الفرص العامة' : language === 'ku' ? 'بارکردنی دەرفەتەکان سەرکەوتوو نەبوو' : 'Failed to load opportunities'}
+          </h3>
+          <p className="text-[11px] text-slate-500 max-w-xs mt-2 mx-auto leading-relaxed">
+            {error}
+          </p>
+          <button
+            onClick={() => {
+              let active = true;
+              setIsLoading(true);
+              setError(null);
+              getOpportunities(language).then(data => {
+                if (active) {
+                  setOpportunities(Array.isArray(data) ? data.map(mapBackendOpportunity) : []);
+                  setIsLoading(false);
+                }
+              }).catch(err => {
+                if (active) {
+                  setError(err.message || 'Failed to fetch');
+                  setIsLoading(false);
+                }
+              });
+            }}
+            className="mt-4 bg-[#D9272E] text-white border-2 border-[#161A33] font-black text-xs px-4 py-2 rounded-xl transition-all active:scale-95 cursor-pointer shadow-[2px_2px_0px_0px_#161A33]"
+          >
+            {language === 'ar' ? 'إعادة المحاولة 🔄' : language === 'ku' ? 'دووبارە هەوڵبدەرەوە 🔄' : 'Retry Loading 🔄'}
+          </button>
+        </div>
+      ) : (isFeedLoading || isLoading) ? (
         <SkeletonLoader />
+      ) : opportunities.length === 0 ? (
+        <div className="text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-8 text-center shadow-[3px_3px_0px_0px_#161A33] mb-5">
+          <div className="text-4xl mb-3">🔭</div>
+          <h3 className="font-extrabold text-[#161A33] text-sm uppercase tracking-wide">
+            {language === 'ar' ? 'لا توجد فرص معتمدة بعد' : language === 'ku' ? 'هیچ دەرفەتێکی پەسەندکراو نییە لە ئێستادا' : 'No approved opportunities yet'}
+          </h3>
+          <p className="text-[11px] text-slate-500 max-w-xs mt-2 mx-auto leading-relaxed">
+            {language === 'ar' ? 'الفرص المعتمدة من قبل المسؤولين ومحرك البحث الذكي ستظهر هنا فور نشرها.' : 'Opportunities moderated by administrators and our auto-crawlers will appear here once approved.'}
+          </p>
+        </div>
       ) : (activeChip === 'all' && !isCustomFiltersActive) ? (
         <div className="flex flex-col gap-6" id="serious-career-future-dashboard">
           
@@ -474,13 +701,16 @@ export default function FutureFeed({
                      key={item.id}
                      item={item}
                      language={language}
-                     onLike={onLike}
-                     onSave={onSave}
+                     onLike={handleLocalLike}
+                     onSave={handleLocalSave}
                      onVote={onVote}
-                     onApply={onApply}
+                     onApply={handleLocalApply}
                      onRsvp={onRsvp}
                      onJoinGroup={onJoinGroup}
                      onAddComment={onAddComment}
+                     onEditFeedItem={onEditFeedItem}
+                     onDeleteFeedItem={onDeleteFeedItem}
+                     isAdminMode={isAdminMode}
                    />
                 ))}
               </div>
@@ -508,13 +738,16 @@ export default function FutureFeed({
                      key={item.id}
                      item={item}
                      language={language}
-                     onLike={onLike}
-                     onSave={onSave}
+                     onLike={handleLocalLike}
+                     onSave={handleLocalSave}
                      onVote={onVote}
-                     onApply={onApply}
+                     onApply={handleLocalApply}
                      onRsvp={onRsvp}
                      onJoinGroup={onJoinGroup}
                      onAddComment={onAddComment}
+                     onEditFeedItem={onEditFeedItem}
+                     onDeleteFeedItem={onDeleteFeedItem}
+                     isAdminMode={isAdminMode}
                    />
                 ))}
               </div>
@@ -533,13 +766,16 @@ export default function FutureFeed({
                   key={item.id}
                   item={item}
                   language={language}
-                  onLike={onLike}
-                  onSave={onSave}
+                  onLike={handleLocalLike}
+                  onSave={handleLocalSave}
                   onVote={onVote}
-                  onApply={onApply}
+                  onApply={handleLocalApply}
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onEditFeedItem={onEditFeedItem}
+                  onDeleteFeedItem={onDeleteFeedItem}
+                  isAdminMode={isAdminMode}
                 />
               ))}
             </div>
@@ -557,13 +793,16 @@ export default function FutureFeed({
                   key={item.id}
                   item={item}
                   language={language}
-                  onLike={onLike}
-                  onSave={onSave}
+                  onLike={handleLocalLike}
+                  onSave={handleLocalSave}
                   onVote={onVote}
-                  onApply={onApply}
+                  onApply={handleLocalApply}
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onEditFeedItem={onEditFeedItem}
+                  onDeleteFeedItem={onDeleteFeedItem}
+                  isAdminMode={isAdminMode}
                 />
               ))}
             </div>
@@ -581,13 +820,16 @@ export default function FutureFeed({
                   key={item.id}
                   item={item}
                   language={language}
-                  onLike={onLike}
-                  onSave={onSave}
+                  onLike={handleLocalLike}
+                  onSave={handleLocalSave}
                   onVote={onVote}
-                  onApply={onApply}
+                  onApply={handleLocalApply}
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onEditFeedItem={onEditFeedItem}
+                  onDeleteFeedItem={onDeleteFeedItem}
+                  isAdminMode={isAdminMode}
                 />
               ))}
             </div>
@@ -605,13 +847,16 @@ export default function FutureFeed({
                   key={item.id}
                   item={item}
                   language={language}
-                  onLike={onLike}
-                  onSave={onSave}
+                  onLike={handleLocalLike}
+                  onSave={handleLocalSave}
                   onVote={onVote}
-                  onApply={onApply}
+                  onApply={handleLocalApply}
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onEditFeedItem={onEditFeedItem}
+                  onDeleteFeedItem={onDeleteFeedItem}
+                  isAdminMode={isAdminMode}
                 />
               ))}
             </div>
@@ -638,13 +883,16 @@ export default function FutureFeed({
                   key={item.id}
                   item={item}
                   language={language}
-                  onLike={onLike}
-                  onSave={onSave}
+                  onLike={handleLocalLike}
+                  onSave={handleLocalSave}
                   onVote={onVote}
-                  onApply={onApply}
+                  onApply={handleLocalApply}
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onEditFeedItem={onEditFeedItem}
+                  onDeleteFeedItem={onDeleteFeedItem}
+                  isAdminMode={isAdminMode}
                 />
               ))}
               

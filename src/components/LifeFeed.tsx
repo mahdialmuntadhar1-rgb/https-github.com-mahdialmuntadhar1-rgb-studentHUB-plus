@@ -21,6 +21,9 @@ interface LifeFeedProps {
   onAddComment: (id: string, commentText: string) => void;
   onShowAll: () => void;
   isFeedLoading?: boolean;
+  onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
+  onDeleteFeedItem?: (id: string) => void;
+  isAdminMode?: boolean;
 }
 
 export default function LifeFeed({
@@ -36,7 +39,10 @@ export default function LifeFeed({
   onJoinGroup,
   onAddComment,
   onShowAll,
-  isFeedLoading = false
+  isFeedLoading = false,
+  onEditFeedItem,
+  onDeleteFeedItem,
+  isAdminMode = false
 }: LifeFeedProps) {
   const [activeChip, setActiveChip] = useState<'all' | 'video' | 'photo' | 'story' | 'poll' | 'clubs' | 'nearby' | 'trending'>('all');
   const [selectedStory, setSelectedStory] = useState<null | FeedItem>(null);
@@ -182,6 +188,9 @@ export default function LifeFeed({
               onRsvp={onRsvp}
               onJoinGroup={onJoinGroup}
               onAddComment={onAddComment}
+              onEditFeedItem={onEditFeedItem}
+              onDeleteFeedItem={onDeleteFeedItem}
+              isAdminMode={isAdminMode}
             />
           ))
         )}

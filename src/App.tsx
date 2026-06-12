@@ -9,40 +9,15 @@ import LifeFeed from './components/LifeFeed';
 import FutureFeed from './components/FutureFeed';
 import AskFeed from './components/AskFeed';
 import ProfileView from './components/ProfileView';
+import SectionView from './components/SectionView';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
-import OpportunitiesPage from './pages/OpportunitiesPage';
-import ScholarshipsPage from './pages/ScholarshipsPage';
-import AdminHighlightsPage from './pages/AdminHighlightsPage';
-import AdminOutreachPage from './pages/AdminOutreachPage';
-import AdminScholarshipsPage from './pages/AdminScholarshipsPage';
+import AdminAutomation from './components/AdminAutomation';
+import { BACKEND_URL } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
-import { getHighlights, getBackendOpportunities, HighlightItem, BackendOpportunity } from './lib/api';
 
 export default function App() {
-  const currentPath = window.location.pathname;
-
-  if (currentPath === '/opportunities') {
-    return <OpportunitiesPage />;
-  }
-
-  if (currentPath === '/scholarships') {
-    return <ScholarshipsPage />;
-  }
-
-  if (currentPath === '/admin/highlights') {
-    return <AdminHighlightsPage />;
-  }
-
-  if (currentPath === '/admin/outreach') {
-    return <AdminOutreachPage />;
-  }
-
-  if (currentPath === '/admin/scholarships') {
-    return <AdminScholarshipsPage />;
-  }
-
   // Locale States
   const [language, setLanguage] = useState<Language>('en');
   const [selectedGov, setSelectedGov] = useState<string>('all');
@@ -97,6 +72,14 @@ export default function App() {
   // Navigation tab state
   const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'admin'>('home');
 
+  // Selected Section state for horizontal stories
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
+
+  // Clear selected section when switching top-level tabs
+  useEffect(() => {
+    setSelectedSection(null);
+  }, [activeTab]);
+
   // Brief dynamic feed loading skeleton simulator
   const [isFeedLoading, setIsFeedLoading] = useState(false);
 
@@ -113,17 +96,19 @@ export default function App() {
   // Feed database state (persisted in session / local storage for active play)
   const [feedItems, setFeedItems] = useState<FeedItem[]>(() => {
     const saved = localStorage.getItem('jamiaati_feed_v2');
-    return saved ? JSON.parse(saved) : initialFeedItems;
+    if (saved) {
+      try {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) {
+          // Keep only user-created custom posts and discard any leaked scraped/mock/highlight records
+          return parsed.filter((item: any) => item.id && String(item.id).startsWith('custom-'));
+        }
+      } catch (e) {
+        console.error("Error reading custom feed from storage:", e);
+      }
+    }
+    return [];
   });
-
-  // Live backend data states
-  const [highlights, setHighlights] = useState<HighlightItem[]>([]);
-  const [backendOpportunities, setBackendOpportunities] = useState<BackendOpportunity[]>([]);
-  const [liveDataLoading, setLiveDataLoading] = useState(false);
-
-  // Separate state for live backend items (FeedItem format)
-  const [liveCampusLifeItems, setLiveCampusLifeItems] = useState<FeedItem[]>([]);
-  const [liveOpportunityItems, setLiveOpportunityItems] = useState<FeedItem[]>([]);
 
   // User profile state (gamification & badges tracker)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -131,28 +116,11 @@ export default function App() {
     return saved ? JSON.parse(saved) : defaultUserProfile;
   });
 
-  // Sync to local states
+  // Sync to local states - save only user-created custom posts
   useEffect(() => {
-    localStorage.setItem('jamiaati_feed_v2', JSON.stringify(feedItems));
+    const customOnly = feedItems.filter(item => item.id && String(item.id).startsWith('custom-'));
+    localStorage.setItem('jamiaati_feed_v2', JSON.stringify(customOnly));
   }, [feedItems]);
-
-  // Clean localStorage pollution on load
-  useEffect(() => {
-    const saved = localStorage.getItem('jamiaati_feed_v2');
-    if (saved) {
-      try {
-        const items = JSON.parse(saved);
-        const pollutedPrefixes = ['demo-two-tabs-', 'demo-approved-', 'live-highlight-', 'live-opportunity-', 'scraped-'];
-        const cleanedItems = items.filter((item: FeedItem) => 
-          !pollutedPrefixes.some(prefix => item.id.startsWith(prefix))
-        );
-        localStorage.setItem('jamiaati_feed_v2', JSON.stringify(cleanedItems));
-        setFeedItems(cleanedItems);
-      } catch (err) {
-        console.error('Error cleaning localStorage:', err);
-      }
-    }
-  }, []);
 
   // Institutions Dynamic Loading States
   const [institutions, setInstitutions] = useState<any[]>([]);
@@ -197,7 +165,7 @@ export default function App() {
       
       while (hasMore && attempts < 15) {
         attempts++;
-        const url = `https://rafid-api.mahdialmuntadhar1.workers.dev/api/institutions?limit=${limit}&offset=${offset}`;
+        const url = `${BACKEND_URL}/api/institutions?limit=${limit}&offset=${offset}`;
         const res = await fetch(url);
         if (!res.ok) {
           throw new Error(`Failed to fetch: ${res.statusText}`);
@@ -272,47 +240,86 @@ export default function App() {
 
   useEffect(() => {
     fetchInstitutions();
+
+    // Support hash-based back-navigation routing
+    const handleHash = () => {
+      const hash = window.location.hash;
+      if (hash === '#/opportunities' || hash === '#opportunities') {
+        setActiveTab('future');
+        setSelectedSection(null);
+      } else if (hash.startsWith('#/section/')) {
+        const sec = hash.substring('#/section/'.length);
+        setSelectedSection(sec || null);
+      } else if (hash === '' || hash === '#/') {
+        setSelectedSection(null);
+      }
+    };
+    window.addEventListener('hashchange', handleHash);
+    handleHash(); // Run on initial load
+    return () => window.removeEventListener('hashchange', handleHash);
   }, []);
+
+  // Synchronize selectedSection changes with URL hash for browser history back support
+  useEffect(() => {
+    const currentHash = window.location.hash;
+    if (selectedSection) {
+      const expected = `#/section/${selectedSection}`;
+      if (currentHash !== expected) {
+        window.location.hash = expected;
+      }
+    } else {
+      if (currentHash.startsWith('#/section/')) {
+        window.location.hash = '';
+      }
+    }
+  }, [selectedSection]);
 
   const handleRetryInstitutions = () => {
     fetchInstitutions();
   };
 
-  // Load dynamic scraped/approved opportunities on mount or activeTab swap
+  // Synchronised dynamic fetcher of live highlights & opportunities from the backend
   useEffect(() => {
-    const fetchOpps = async () => {
+    const fetchLiveFeed = async () => {
       try {
-        const response = await fetch(`${(import.meta as any).env.VITE_API_URL || 'https://rafid-api.mahdialmuntadhar1.workers.dev'}/api/opportunities`);
-        if (response.ok) {
-          const list = await response.json();
+        const [oppsResponse, highlightsResponse] = await Promise.all([
+          fetch(`${BACKEND_URL}/api/opportunities`),
+          fetch(`${BACKEND_URL}/api/highlights`)
+        ]);
+
+        let dbItems: FeedItem[] = [];
+
+        // 1. Process Opportunities
+        if (oppsResponse.ok) {
+          const list = await oppsResponse.json();
           if (Array.isArray(list)) {
-            const dbFeedItems = list.map((item: any) => ({
-              id: item.id,
-              type: item.category || 'job',
-              titleEN: item.titleEN,
-              titleAR: item.titleAR,
-              titleKU: item.titleKU,
-              contentEN: item.contentEN,
-              contentAR: item.contentAR,
-              contentKU: item.contentKU,
+            const mappedOpps = list.map((item: any) => ({
+              id: String(item.id || `scraped-${Date.now()}-${Math.random()}`),
+              type: (item.category || item.type || 'job') as any,
+              titleEN: item.title || item.titleEN || 'Untitled Opportunity',
+              titleAR: item.title || item.titleAR || 'فرصة غير معنونة',
+              titleKU: item.title || item.titleKU || 'هەلی بێ ناونیشان',
+              contentEN: item.description || item.summary || item.contentEN || 'Check original portal for instructions.',
+              contentAR: item.description || item.summary || item.contentAR || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
+              contentKU: item.description || item.summary || item.contentKU || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
               author: {
-                name: item.organization || 'Scraped Recruiter',
+                name: item.organization || item.institution_name || 'Scraped Recruiter',
                 role: 'institution' as const,
-                avatar: item.imageUrl || undefined,
+                avatar: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
                 verified: true
               },
-              date: item.published_date ? `Scraped on ${item.published_date}` : 'Recently scraped 🔔',
-              likes: 12,
+              date: item.published_date ? `Posted on ${item.published_date}` : 'Recently scraped 🔔',
+              likes: item.likes || 12,
               commentsCount: 0,
               commentsList: [],
-              governorateId: item.governorateId || 'all',
-              universityId: 'all',
-              tags: ['Scraped', item.category || 'career'],
-              company: item.organization,
-              companyLogo: item.imageUrl || undefined,
-              location: item.location || 'Iraq',
+              governorateId: item.governorateId || item.governorate || 'all',
+              universityId: item.universityId || item.university_id || 'all',
+              tags: item.tags || ['scraped', item.category || 'career'],
+              company: item.organization || item.institution_name,
+              companyLogo: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+              location: item.location || item.city || 'Iraq',
               deadline: item.deadline || 'August 2026',
-              imageUrl: item.imageUrl || undefined,
+              imageUrl: item.imageUrl || item.image_url,
               opportunityCategory: (item.category === 'internship' ? 'Internship' : 
                                      item.category === 'scholarship' ? 'Scholarship' : 
                                      item.category === 'training' ? 'Training' : 
@@ -320,136 +327,73 @@ export default function App() {
                                      item.category === 'competition' ? 'Competition' : 
                                      item.category === 'graduation_support' ? 'Graduation project support' : 'Full-time graduate job') as any,
               workplaceType: item.workplaceType || 'On-site',
-              whoCanApply: item.whoCanApply || 'Iraqi students',
-              salary: item.salary || 'Recruiter structured'
+              whoCanApply: item.eligibility || item.whoCanApply || 'Iraqi students',
+              salary: item.salary || item.salary_or_funding || 'Recruiter structured'
             }));
-
-            // Deduplicate by id and store in separate state
-            const uniqueItems = dbFeedItems.filter((item, index, self) => 
-              index === self.findIndex(i => i.id === item.id)
-            );
-            setLiveOpportunityItems(uniqueItems);
+            dbItems = [...dbItems, ...mappedOpps];
           }
         }
+
+        // 2. Process Highlights
+        if (highlightsResponse.ok) {
+          const hList = await highlightsResponse.json();
+          if (Array.isArray(hList)) {
+            const mappedHighlights = hList.map((item: any) => ({
+              id: String(item.id || `highlight-${Date.now()}-${Math.random()}`),
+              type: (item.category || 'news') as any,
+              titleEN: item.title || item.titleEN || 'Campus Notification',
+              titleAR: item.title || item.titleAR || 'تنبيه جامعي',
+              titleKU: item.title || item.titleKU || 'ئاگاداری خوێندکاران',
+              contentEN: item.summary || item.contentEN || 'Check original university channel for details.',
+              contentAR: item.summary || item.contentAR || 'يرجى مراجعة القناة الرسمية للمزيد من التفاصيل.',
+              contentKU: item.summary || item.contentKU || 'تکایە سەرچاوەی فەرمی ببینە بۆ زانیاری.',
+              author: {
+                name: item.organization || 'Academic Center Feed',
+                role: 'institution' as const,
+                avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+                verified: true
+              },
+              date: item.created_at ? `Posted on ${new Date(item.created_at).toLocaleDateString()}` : 'Recently posted 🔔',
+              likes: item.likes || 15,
+              commentsCount: 0,
+              commentsList: [],
+              governorateId: item.governorate || item.governorateId || 'all',
+              universityId: item.university_id || item.universityId || 'all',
+              tags: ['Campus', item.category || 'highlights'],
+              imageUrl: item.image_url || item.imageUrl,
+              application_link: item.apply_url || item.source_url || item.application_link,
+              deadline: item.deadline || undefined,
+            }));
+            dbItems = [...dbItems, ...mappedHighlights];
+          }
+        }
+
+        setFeedItems(prev => {
+          const customOnly = prev.filter(p => p.id && String(p.id).startsWith('custom-'));
+          if (dbItems.length > 0) {
+            // Live backend listings exist! We show only live + custom posts. We do not mix mock data.
+            return [...customOnly, ...dbItems];
+          } else {
+            // Live backend listings are empty or failed, so fallback to mock details cleanly.
+            return [...customOnly, ...initialFeedItems];
+          }
+        });
+
       } catch (err) {
-        console.error("Error loading approved scraped opportunities:", err);
+        console.error("Error loading approved scraped opportunities and highlights:", err);
+        // Fallback to initialFeedItems in case of complete API/fetch issues
+        setFeedItems(prev => {
+          const customOnly = prev.filter(p => p.id && String(p.id).startsWith('custom-'));
+          const withoutLive = prev.filter(p => p.id && !String(p.id).startsWith('custom-') && !String(p.id).startsWith('scraped-') && !String(p.id).startsWith('highlight-'));
+          if (withoutLive.length === 0) {
+            return [...customOnly, ...initialFeedItems];
+          }
+          return prev;
+        });
       }
     };
-    fetchOpps();
+    fetchLiveFeed();
   }, [activeTab]);
-
-  // Fetch highlights for Campus Life tab
-  useEffect(() => {
-    if (activeTab === 'life') {
-      setLiveDataLoading(true);
-      const campusLifeCategories: Array<'news' | 'event' | 'announcement' | 'exam' | 'registration' | 'student_club' | 'activity'> = ['news', 'event', 'announcement', 'exam', 'registration', 'student_club', 'activity'];
-      
-      Promise.all(campusLifeCategories.map(cat => 
-        getHighlights({ category: cat }).catch(() => [])
-      ))
-        .then((results) => {
-          const allHighlights = results.flat();
-          setHighlights(allHighlights);
-          
-          // Map highlights to FeedItem format and store in separate state
-          const highlightFeedItems: FeedItem[] = allHighlights.map((hl: HighlightItem) => ({
-            id: hl.id,
-            type: hl.category === 'news' ? 'post' : hl.category === 'event' ? 'event' : hl.category === 'announcement' ? 'post' : 'post',
-            titleEN: hl.title,
-            titleAR: hl.title,
-            titleKU: hl.title,
-            contentEN: hl.summary || '',
-            contentAR: hl.summary || '',
-            contentKU: hl.summary || '',
-            author: {
-              name: hl.organization || hl.source_name || 'University',
-              role: 'institution',
-              avatar: hl.image_url || undefined,
-              verified: true
-            },
-            date: hl.event_date || hl.created_at || 'Recently',
-            likes: 0,
-            commentsCount: 0,
-            commentsList: [],
-            governorateId: normalizeGovernorate(hl.governorate),
-            universityId: hl.university_id || 'all',
-            tags: [hl.category, hl.language || 'ar'],
-            imageUrl: hl.image_url || undefined,
-            location: hl.city || hl.governorate || 'Iraq'
-          }));
-
-          // Deduplicate by id and store in separate state
-          const uniqueItems = highlightFeedItems.filter((item, index, self) => 
-            index === self.findIndex(i => i.id === item.id)
-          );
-          setLiveCampusLifeItems(uniqueItems);
-        })
-        .catch(err => {
-          console.error("Error loading highlights:", err);
-        })
-        .finally(() => {
-          setLiveDataLoading(false);
-        });
-    }
-  }, [activeTab, selectedGov]);
-
-  // Fetch backend opportunities for Future tab
-  useEffect(() => {
-    if (activeTab === 'future') {
-      setLiveDataLoading(true);
-      const opportunityCategories = ['job', 'scholarship', 'internship', 'training', 'fellowship', 'volunteering', 'competition'];
-      
-      Promise.all(opportunityCategories.map(cat => 
-        getBackendOpportunities({ category: cat, limit: 20 }).catch(() => [])
-      ))
-        .then((results) => {
-          const allOpps = results.flat();
-          setBackendOpportunities(allOpps);
-          
-          // Map opportunities to FeedItem format and store in separate state
-          const opportunityFeedItems: FeedItem[] = allOpps.map((opp: BackendOpportunity) => ({
-            id: opp.id,
-            type: opp.type === 'job' ? 'job' : opp.type === 'scholarship' ? 'scholarship' : opp.type === 'internship' ? 'internship' : opp.type === 'training' ? 'training' : 'job',
-            titleEN: opp.title,
-            titleAR: opp.title,
-            titleKU: opp.title,
-            contentEN: opp.tags || '',
-            contentAR: opp.tags || '',
-            contentKU: opp.tags || '',
-            author: {
-              name: opp.institution_name,
-              role: 'institution',
-              avatar: opp.institution_logo || undefined,
-              verified: true
-            },
-            date: opp.created_at || 'Recently',
-            likes: 0,
-            commentsCount: 0,
-            commentsList: [],
-            governorateId: normalizeGovernorate(opp.governorate),
-            universityId: 'all',
-            tags: [opp.type, 'opportunity'],
-            company: opp.institution_name,
-            companyLogo: opp.institution_logo || undefined,
-            location: opp.city || opp.governorate || 'Iraq',
-            deadline: opp.deadline,
-            opportunityCategory: opp.type.charAt(0).toUpperCase() + opp.type.slice(1) as any
-          }));
-
-          // Deduplicate by id and merge with existing liveOpportunityItems
-          const uniqueItems = opportunityFeedItems.filter((item, index, self) => 
-            index === self.findIndex(i => i.id === item.id)
-          );
-          setLiveOpportunityItems(uniqueItems);
-        })
-        .catch(err => {
-          console.error("Error loading backend opportunities:", err);
-        })
-        .finally(() => {
-          setLiveDataLoading(false);
-        });
-    }
-  }, [activeTab, selectedGov]);
 
   useEffect(() => {
     localStorage.setItem('jamiaati_profile_v2', JSON.stringify(userProfile));
@@ -487,6 +431,30 @@ export default function App() {
       }
       return item;
     }));
+  };
+
+  const handleEditFeedItem = (id: string, updatedFields: Partial<FeedItem>) => {
+    setFeedItems(prev => prev.map(item => {
+      if (item.id === id) {
+        return {
+          ...item,
+          ...updatedFields
+        };
+      }
+      return item;
+    }));
+    showToast(
+      language === 'ar' ? 'تم تحديث المنشور بنجاح! ✏️' : 'Post updated successfully by admin! ✏️', 
+      'success'
+    );
+  };
+
+  const handleDeleteFeedItem = (id: string) => {
+    setFeedItems(prev => prev.filter(item => item.id !== id));
+    showToast(
+      language === 'ar' ? 'تم حذف المنشور بنجاح! 🗑️' : 'Post deleted successfully by admin! 🗑️', 
+      'success'
+    );
   };
 
   const handleSave = (id: string) => {
@@ -666,7 +634,7 @@ export default function App() {
     }));
   };
 
-  const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post') => {
+  const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post', imageUrl?: string) => {
     const freshPost: FeedItem = {
       id: `custom-${Date.now()}`,
       type: customType as any,
@@ -676,6 +644,7 @@ export default function App() {
       contentEN: body,
       contentAR: body,
       contentKU: body,
+      imageUrl: imageUrl || undefined,
       author: anonymous ? {
         name: 'Anonymous Student',
         role: 'student',
@@ -766,6 +735,30 @@ export default function App() {
 
   // Router dispatcher
   const renderActiveView = () => {
+    if (selectedSection) {
+      return (
+        <SectionView
+          sectionId={selectedSection}
+          language={language}
+          selectedGov={selectedGov}
+          setSelectedGov={setSelectedGov}
+          selectedUni={selectedUni}
+          setSelectedUni={setSelectedUni}
+          onBackToHome={() => setSelectedSection(null)}
+          onLike={handleLike}
+          onSave={handleSave}
+          onVote={handleVote}
+          onApply={handleApply}
+          onRsvp={handleRsvp}
+          onJoinGroup={handleJoinGroup}
+          onAddComment={handleAddComment}
+          onEditFeedItem={handleEditFeedItem}
+          onDeleteFeedItem={handleDeleteFeedItem}
+          isAdminMode={userProfile.role === 'staff'}
+        />
+      );
+    }
+
     switch (activeTab) {
       case 'home':
         return (
@@ -792,12 +785,16 @@ export default function App() {
             institutionsLoading={institutionsLoading}
             institutionsError={institutionsError}
             onRetryInstitutions={handleRetryInstitutions}
+            onEditFeedItem={handleEditFeedItem}
+            onDeleteFeedItem={handleDeleteFeedItem}
+            isAdminMode={userProfile.role === 'staff'}
+            onSelectSection={setSelectedSection}
           />
         );
       case 'life':
         return (
           <LifeFeed
-            feedItems={liveCampusLifeItems.length > 0 ? liveCampusLifeItems.filter(matchesGovAndUni) : filteredFeedItems}
+            feedItems={filteredFeedItems}
             language={language}
             selectedGov={selectedGov}
             selectedUni={selectedUni}
@@ -810,6 +807,9 @@ export default function App() {
             onAddComment={handleAddComment}
             onShowAll={handleShowAllLife}
             isFeedLoading={isFeedLoading}
+            onEditFeedItem={handleEditFeedItem}
+            onDeleteFeedItem={handleDeleteFeedItem}
+            isAdminMode={userProfile.role === 'staff'}
           />
         );
       case 'ask':
@@ -828,12 +828,15 @@ export default function App() {
             onAddComment={handleAddComment}
             onAddNewPost={handleAddNewPost}
             isFeedLoading={isFeedLoading}
+            onEditFeedItem={handleEditFeedItem}
+            onDeleteFeedItem={handleDeleteFeedItem}
+            isAdminMode={userProfile.role === 'staff'}
           />
         );
       case 'future':
         return (
           <FutureFeed
-            feedItems={liveOpportunityItems.length > 0 ? liveOpportunityItems.filter(matchesGovAndUni) : filteredFeedItems}
+            feedItems={filteredFeedItems}
             language={language}
             selectedGov={selectedGov}
             selectedUni={selectedUni}
@@ -846,6 +849,9 @@ export default function App() {
             onAddComment={handleAddComment}
             onBackToHome={handleBackToHomeFuture}
             isFeedLoading={isFeedLoading}
+            onEditFeedItem={handleEditFeedItem}
+            onDeleteFeedItem={handleDeleteFeedItem}
+            isAdminMode={userProfile.role === 'staff'}
           />
         );
       case 'profile':
@@ -873,14 +879,18 @@ export default function App() {
             }}
             onTriggerAuth={() => setIsAuthModalOpen(true)}
             onNavigateAdmin={() => setActiveTab('admin')}
+            onEditFeedItem={handleEditFeedItem}
+            onDeleteFeedItem={handleDeleteFeedItem}
+            isAdminMode={userProfile.role === 'staff'}
           />
         );
       case 'admin':
         return (
-          <AdminPanel
+          <AdminAutomation
             language={language}
             onBack={() => setActiveTab('profile')}
             showToast={showToast}
+            userRole={userProfile.role}
           />
         );
       default:
@@ -991,10 +1001,6 @@ export default function App() {
             )}
           </button>
         </nav>
-
-        <div className="fixed bottom-[76px] left-1/2 z-40 -translate-x-1/2 rounded-full border border-cyan-400/20 bg-[#121B2E]/95 px-3 py-1 text-[9px] font-black uppercase tracking-wider text-cyan-300 shadow-lg">
-          Build: Jamiaati Official Frontend - https-github - 2026-06-10 · API: rafid-api
-        </div>
 
         {/* Global Auth Modal Portal */}
         <AuthModal

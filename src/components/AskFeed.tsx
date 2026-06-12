@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
+import { BACKEND_URL } from '../lib/api';
 import { HelpCircle, Sparkles, Send, MessagesSquare, CheckCircle, EyeOff, BookOpen, Clock, Loader2, AlertCircle } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
@@ -20,6 +21,9 @@ interface AskFeedProps {
   onAddComment: (id: string, commentText: string) => void;
   onAddNewPost: (title: string, body: string, anonymous: boolean, customType?: string) => void;
   isFeedLoading?: boolean;
+  onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
+  onDeleteFeedItem?: (id: string) => void;
+  isAdminMode?: boolean;
 }
 
 export default function AskFeed({
@@ -35,7 +39,10 @@ export default function AskFeed({
   onJoinGroup,
   onAddComment,
   onAddNewPost,
-  isFeedLoading = false
+  isFeedLoading = false,
+  onEditFeedItem,
+  onDeleteFeedItem,
+  isAdminMode = false
 }: AskFeedProps) {
   const [askQuery, setAskQuery] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -56,7 +63,7 @@ export default function AskFeed({
     setAiResponse(null);
 
     try {
-      const response = await fetch('/api/ask-ai', {
+      const response = await fetch(`${BACKEND_URL}/api/ask-ai`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
@@ -288,6 +295,9 @@ export default function AskFeed({
               onRsvp={onRsvp}
               onJoinGroup={onJoinGroup}
               onAddComment={onAddComment}
+              onEditFeedItem={onEditFeedItem}
+              onDeleteFeedItem={onDeleteFeedItem}
+              isAdminMode={isAdminMode}
             />
           ))
         )}

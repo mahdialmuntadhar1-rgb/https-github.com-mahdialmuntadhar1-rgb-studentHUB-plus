@@ -1,6 +1,7 @@
 import { Language } from '../types';
 
-const API_BASE = (import.meta as any).env.VITE_API_URL || 'https://rafid-api.mahdialmuntadhar1.workers.dev';
+export const BACKEND_URL = (import.meta as any).env.VITE_API_URL || 'https://rafid-api.mahdialmuntadhar1.workers.dev';
+const API_BASE = BACKEND_URL;
 
 function getHeaders() {
   const headers: Record<string, string> = {
@@ -453,6 +454,10 @@ export async function getBackendOpportunities(filters?: {
 
   const response = await fetch(`${API_BASE}/api/opportunities${params.toString() ? `?${params}` : ''}`);
   return handleHighlightResponse<BackendOpportunity[]>(response);
+}
+
+export async function getOpportunities(lang: Language = 'en'): Promise<BackendOpportunity[]> {
+  return getBackendOpportunities();
 }
 
 export async function getInstitutions(): Promise<any[]> {
