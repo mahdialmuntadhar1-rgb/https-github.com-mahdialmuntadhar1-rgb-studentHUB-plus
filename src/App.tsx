@@ -121,6 +121,10 @@ export default function App() {
   const [backendOpportunities, setBackendOpportunities] = useState<BackendOpportunity[]>([]);
   const [liveDataLoading, setLiveDataLoading] = useState(false);
 
+  // Separate state for live backend items (FeedItem format)
+  const [liveCampusLifeItems, setLiveCampusLifeItems] = useState<FeedItem[]>([]);
+  const [liveOpportunityItems, setLiveOpportunityItems] = useState<FeedItem[]>([]);
+
   // User profile state (gamification & badges tracker)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('jamiaati_profile_v2');
@@ -131,6 +135,24 @@ export default function App() {
   useEffect(() => {
     localStorage.setItem('jamiaati_feed_v2', JSON.stringify(feedItems));
   }, [feedItems]);
+
+  // Clean localStorage pollution on load
+  useEffect(() => {
+    const saved = localStorage.getItem('jamiaati_feed_v2');
+    if (saved) {
+      try {
+        const items = JSON.parse(saved);
+        const pollutedPrefixes = ['demo-two-tabs-', 'demo-approved-', 'live-highlight-', 'live-opportunity-', 'scraped-'];
+        const cleanedItems = items.filter((item: FeedItem) => 
+          !pollutedPrefixes.some(prefix => item.id.startsWith(prefix))
+        );
+        localStorage.setItem('jamiaati_feed_v2', JSON.stringify(cleanedItems));
+        setFeedItems(cleanedItems);
+      } catch (err) {
+        console.error('Error cleaning localStorage:', err);
+      }
+    }
+  }, []);
 
   // Institutions Dynamic Loading States
   const [institutions, setInstitutions] = useState<any[]>([]);
@@ -276,7 +298,7 @@ export default function App() {
               author: {
                 name: item.organization || 'Scraped Recruiter',
                 role: 'institution' as const,
-                avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+                avatar: item.imageUrl || undefined,
                 verified: true
               },
               date: item.published_date ? `Scraped on ${item.published_date}` : 'Recently scraped 🔔',
@@ -287,10 +309,10 @@ export default function App() {
               universityId: 'all',
               tags: ['Scraped', item.category || 'career'],
               company: item.organization,
-              companyLogo: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+              companyLogo: item.imageUrl || undefined,
               location: item.location || 'Iraq',
               deadline: item.deadline || 'August 2026',
-              imageUrl: item.imageUrl,
+              imageUrl: item.imageUrl || undefined,
               opportunityCategory: (item.category === 'internship' ? 'Internship' : 
                                      item.category === 'scholarship' ? 'Scholarship' : 
                                      item.category === 'training' ? 'Training' : 
@@ -302,11 +324,11 @@ export default function App() {
               salary: item.salary || 'Recruiter structured'
             }));
 
-            // Filter out existing dbFeedItems duplicates based on ID starting with 'scraped-'
-            setFeedItems(prev => {
-              const staticItems = prev.filter(p => !p.id.startsWith('scraped-'));
-              return [...dbFeedItems, ...staticItems];
-            });
+            // Deduplicate by id and store in separate state
+            const uniqueItems = dbFeedItems.filter((item, index, self) => 
+              index === self.findIndex(i => i.id === item.id)
+            );
+            setLiveOpportunityItems(uniqueItems);
           }
         }
       } catch (err) {
@@ -329,7 +351,7 @@ export default function App() {
           const allHighlights = results.flat();
           setHighlights(allHighlights);
           
-          // Merge highlights into feedItems
+          // Map highlights to FeedItem format and store in separate state
           const highlightFeedItems: FeedItem[] = allHighlights.map((hl: HighlightItem) => ({
             id: hl.id,
             type: hl.category === 'news' ? 'post' : hl.category === 'event' ? 'event' : hl.category === 'announcement' ? 'post' : 'post',
@@ -342,7 +364,7 @@ export default function App() {
             author: {
               name: hl.organization || hl.source_name || 'University',
               role: 'institution',
-              avatar: hl.image_url || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+              avatar: hl.image_url || undefined,
               verified: true
             },
             date: hl.event_date || hl.created_at || 'Recently',
@@ -352,15 +374,15 @@ export default function App() {
             governorateId: normalizeGovernorate(hl.governorate),
             universityId: hl.university_id || 'all',
             tags: [hl.category, hl.language || 'ar'],
-            imageUrl: hl.image_url,
+            imageUrl: hl.image_url || undefined,
             location: hl.city || hl.governorate || 'Iraq'
           }));
 
-          setFeedItems(prev => {
-            const existingIds = new Set(prev.map(item => item.id));
-            const newItems = highlightFeedItems.filter(item => !existingIds.has(item.id));
-            return [...newItems, ...prev];
-          });
+          // Deduplicate by id and store in separate state
+          const uniqueItems = highlightFeedItems.filter((item, index, self) => 
+            index === self.findIndex(i => i.id === item.id)
+          );
+          setLiveCampusLifeItems(uniqueItems);
         })
         .catch(err => {
           console.error("Error loading highlights:", err);
@@ -384,7 +406,7 @@ export default function App() {
           const allOpps = results.flat();
           setBackendOpportunities(allOpps);
           
-          // Merge opportunities into feedItems
+          // Map opportunities to FeedItem format and store in separate state
           const opportunityFeedItems: FeedItem[] = allOpps.map((opp: BackendOpportunity) => ({
             id: opp.id,
             type: opp.type === 'job' ? 'job' : opp.type === 'scholarship' ? 'scholarship' : opp.type === 'internship' ? 'internship' : opp.type === 'training' ? 'training' : 'job',
@@ -397,7 +419,7 @@ export default function App() {
             author: {
               name: opp.institution_name,
               role: 'institution',
-              avatar: opp.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+              avatar: opp.institution_logo || undefined,
               verified: true
             },
             date: opp.created_at || 'Recently',
@@ -408,17 +430,17 @@ export default function App() {
             universityId: 'all',
             tags: [opp.type, 'opportunity'],
             company: opp.institution_name,
-            companyLogo: opp.institution_logo,
+            companyLogo: opp.institution_logo || undefined,
             location: opp.city || opp.governorate || 'Iraq',
             deadline: opp.deadline,
             opportunityCategory: opp.type.charAt(0).toUpperCase() + opp.type.slice(1) as any
           }));
 
-          setFeedItems(prev => {
-            const existingIds = new Set(prev.map(item => item.id));
-            const newItems = opportunityFeedItems.filter(item => !existingIds.has(item.id));
-            return [...newItems, ...prev];
-          });
+          // Deduplicate by id and merge with existing liveOpportunityItems
+          const uniqueItems = opportunityFeedItems.filter((item, index, self) => 
+            index === self.findIndex(i => i.id === item.id)
+          );
+          setLiveOpportunityItems(uniqueItems);
         })
         .catch(err => {
           console.error("Error loading backend opportunities:", err);
@@ -775,7 +797,7 @@ export default function App() {
       case 'life':
         return (
           <LifeFeed
-            feedItems={filteredFeedItems}
+            feedItems={liveCampusLifeItems.length > 0 ? liveCampusLifeItems.filter(matchesGovAndUni) : filteredFeedItems}
             language={language}
             selectedGov={selectedGov}
             selectedUni={selectedUni}
@@ -811,7 +833,7 @@ export default function App() {
       case 'future':
         return (
           <FutureFeed
-            feedItems={filteredFeedItems}
+            feedItems={liveOpportunityItems.length > 0 ? liveOpportunityItems.filter(matchesGovAndUni) : filteredFeedItems}
             language={language}
             selectedGov={selectedGov}
             selectedUni={selectedUni}
