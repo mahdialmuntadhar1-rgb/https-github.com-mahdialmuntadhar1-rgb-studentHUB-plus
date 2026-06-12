@@ -1635,22 +1635,42 @@ app.get('/api/search', rateLimitMiddleware, async (c) => {
 
   const searchTerm = `%${query}%`;
   const results: any = {
+    highlights: [],
     posts: [],
     institutions: [],
     opportunities: []
   };
 
-  // Search posts (title and content)
-  const posts = await c.env.DB.prepare(
-    `SELECT p.*, pr.full_name AS author_full_name, pr.avatar_url AS author_avatar_url
-     FROM posts p
-     LEFT JOIN profiles pr ON p.author_id = pr.id
-     WHERE p.title LIKE ? OR p.content LIKE ?
-     ORDER BY p.created_at DESC LIMIT 20`
+  // Public search must never expose pending/moderation data. Posts are
+  // intentionally excluded until their public status contract is stable.
+
+  const highlights = await c.env.DB.prepare(
+    `SELECT
+       id,
+       category,
+       title,
+       organization,
+       governorate,
+       city,
+       university_id,
+       source_name,
+       source_url,
+       apply_url,
+       event_date,
+       deadline,
+       summary,
+       image_url,
+       language,
+       created_at
+     FROM highlight_items
+     WHERE status = 'approved'
+       AND (title LIKE ? OR summary LIKE ? OR organization LIKE ?)
+     ORDER BY updated_at DESC, created_at DESC
+     LIMIT 20`
   )
-    .bind(searchTerm, searchTerm)
+    .bind(searchTerm, searchTerm, searchTerm)
     .all();
-  results.posts = posts.results;
+  results.highlights = highlights.results;
 
   // Search institutions (from profiles)
   const institutions = await c.env.DB.prepare(
@@ -1664,13 +1684,35 @@ app.get('/api/search', rateLimitMiddleware, async (c) => {
     .all();
   results.institutions = institutions.results;
 
-  // Search opportunities (title)
+  // Search approved opportunity candidates with public-safe fields only.
   const opportunities = await c.env.DB.prepare(
-    `SELECT * FROM opportunities
-     WHERE title LIKE ? OR institution_name LIKE ?
-     ORDER BY created_at DESC LIMIT 20`
+    `SELECT
+       id,
+       title,
+       category AS type,
+       organization AS institution_name,
+       image_url AS institution_logo,
+       governorate,
+       city,
+       deadline,
+       summary,
+       description,
+       eligibility,
+       published_date,
+       apply_url,
+       source_url,
+       country,
+       language,
+       salary_or_funding,
+       created_at,
+       updated_at
+     FROM opportunity_candidates
+     WHERE status = 'approved'
+       AND (title LIKE ? OR summary LIKE ? OR organization LIKE ?)
+     ORDER BY updated_at DESC, created_at DESC
+     LIMIT 20`
   )
-    .bind(searchTerm, searchTerm)
+    .bind(searchTerm, searchTerm, searchTerm)
     .all();
   results.opportunities = opportunities.results;
 

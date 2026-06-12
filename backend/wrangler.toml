@@ -21,7 +21,8 @@ queue = "outreach-email"
 max_batch_size = 1
 
 [vars]
-JWT_SECRET = "rafid-super-secret-jwt-key-minimum-32-characters-long"
+# JWT_SECRET is intentionally not stored in this file.
+# Set it with: npx wrangler secret put JWT_SECRET --config ./wrangler.toml
 R2_PUBLIC_URL = "https://pub-46ad7eec395049ed8054c8804be9d032.r2.dev"
 EMAIL_PROVIDER = "resend"
 EMAIL_FROM_NAME = "Jamiaati"
