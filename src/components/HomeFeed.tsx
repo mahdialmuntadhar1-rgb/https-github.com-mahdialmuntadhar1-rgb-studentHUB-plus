@@ -30,6 +30,10 @@ interface HomeFeedProps {
   institutionsLoading?: boolean;
   institutionsError?: string | null;
   onRetryInstitutions?: () => void;
+  onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
+  onDeleteFeedItem?: (id: string) => void;
+  isAdminMode?: boolean;
+  onSelectSection?: (sectionId: string) => void;
 }
 
 // Global reuseable beautiful pulse Skeleton Loader
@@ -89,13 +93,96 @@ export default function HomeFeed({
   institutions = [],
   institutionsLoading = false,
   institutionsError = null,
-  onRetryInstitutions
+  onRetryInstitutions,
+  onEditFeedItem,
+  onDeleteFeedItem,
+  isAdminMode = false,
+  onSelectSection
 }: HomeFeedProps) {
   // Main tab selection state (Campus Life or Opportunities)
   const [activeSubTab, setActiveSubTab] = useState<'campus' | 'opportunities'>('campus');
   
   // Custom Story-based categories filter state
   const [activeStoryFilter, setActiveStoryFilter] = useState<string | null>(null);
+
+  // Dynamic Hero Configuration with real-time updates support (localStorage + event listeners)
+  const [heroBg, setHeroBg] = useState(() => localStorage.getItem('jamiaati_hero_bg') || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600');
+  
+  const [heroTitleEN, setHeroTitleEN] = useState(() => localStorage.getItem('jamiaati_hero_title_en') || 'Master Your Campus Journey!');
+  const [heroTitleAR, setHeroTitleAR] = useState(() => localStorage.getItem('jamiaati_hero_title_ar') || 'تميّز وابنِ مستقبلك الأكاديمي!');
+  const [heroTitleKU, setHeroTitleKU] = useState(() => localStorage.getItem('jamiaati_hero_title_ku') || 'داهاتوویەکی پڕشنگدار بنيات بنێ!');
+  
+  const [heroDescEN, setHeroDescEN] = useState(() => localStorage.getItem('jamiaati_hero_desc_en') || 'The ultimate collegiate hub for premium opportunities & academic resources');
+  const [heroDescAR, setHeroDescAR] = useState(() => localStorage.getItem('jamiaati_hero_desc_ar') || 'البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب');
+  const [heroDescKU, setHeroDescKU] = useState(() => localStorage.getItem('jamiaati_hero_desc_ku') || 'یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق');
+
+  const [heroTagEN, setHeroTagEN] = useState(() => localStorage.getItem('jamiaati_hero_tag_en') || 'PORTAL ACCELERATION');
+  const [heroTagAR, setHeroTagAR] = useState(() => localStorage.getItem('jamiaati_hero_tag_ar') || 'بوابة هويتنا الأكاديمية');
+  const [heroTagKU, setHeroTagKU] = useState(() => localStorage.getItem('jamiaati_hero_tag_ku') || 'دەروازەی ئەکادیمی عێراق');
+
+  useEffect(() => {
+    const handleHeroSync = () => {
+      setHeroBg(localStorage.getItem('jamiaati_hero_bg') || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600');
+      setHeroTitleEN(localStorage.getItem('jamiaati_hero_title_en') || 'Master Your Campus Journey!');
+      setHeroTitleAR(localStorage.getItem('jamiaati_hero_title_ar') || 'تميّز وابنِ مستقبلك الأكاديمي!');
+      setHeroTitleKU(localStorage.getItem('jamiaati_hero_title_ku') || 'داهاتوویەکی پڕشنگدار بنيات بنێ!');
+      setHeroDescEN(localStorage.getItem('jamiaati_hero_desc_en') || 'The ultimate collegiate hub for premium opportunities & academic resources');
+      setHeroDescAR(localStorage.getItem('jamiaati_hero_desc_ar') || 'البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب');
+      setHeroDescKU(localStorage.getItem('jamiaati_hero_desc_ku') || 'یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق');
+      setHeroTagEN(localStorage.getItem('jamiaati_hero_tag_en') || 'PORTAL ACCELERATION');
+      setHeroTagAR(localStorage.getItem('jamiaati_hero_tag_ar') || 'بوابة هويتنا الأكاديمية');
+      setHeroTagKU(localStorage.getItem('jamiaati_hero_tag_ku') || 'دەروازەی ئەکادیمی عێراق');
+    };
+    window.addEventListener('jamiaati_hero_updated', handleHeroSync);
+    return () => window.removeEventListener('jamiaati_hero_updated', handleHeroSync);
+  }, []);
+
+  // Admin Hero Custom editing states
+  const [isEditingHero, setIsEditingHero] = useState(false);
+  const [formHeroBg, setFormHeroBg] = useState(heroBg);
+  const [formTitleEN, setFormTitleEN] = useState(heroTitleEN);
+  const [formTitleAR, setFormTitleAR] = useState(heroTitleAR);
+  const [formTitleKU, setFormTitleKU] = useState(heroTitleKU);
+  const [formDescEN, setFormDescEN] = useState(heroDescEN);
+  const [formDescAR, setFormDescAR] = useState(heroDescAR);
+  const [formDescKU, setFormDescKU] = useState(heroDescKU);
+  const [formTagEN, setFormTagEN] = useState(heroTagEN);
+  const [formTagAR, setFormTagAR] = useState(heroTagAR);
+  const [formTagKU, setFormTagKU] = useState(heroTagKU);
+
+  const handleStartEditingHero = () => {
+    setFormHeroBg(heroBg);
+    setFormTitleEN(heroTitleEN);
+    setFormTitleAR(heroTitleAR);
+    setFormTitleKU(heroTitleKU);
+    setFormDescEN(heroDescEN);
+    setFormDescAR(heroDescAR);
+    setFormDescKU(heroDescKU);
+    setFormTagEN(heroTagEN);
+    setFormTagAR(heroTagAR);
+    setFormTagKU(heroTagKU);
+    setIsEditingHero(true);
+  };
+
+  const handleSaveHeroCustomization = (e: React.FormEvent) => {
+    e.preventDefault();
+    localStorage.setItem('jamiaati_hero_bg', formHeroBg);
+    localStorage.setItem('jamiaati_hero_title_en', formTitleEN);
+    localStorage.setItem('jamiaati_hero_title_ar', formTitleAR);
+    localStorage.setItem('jamiaati_hero_title_ku', formTitleKU);
+    localStorage.setItem('jamiaati_hero_desc_en', formDescEN);
+    localStorage.setItem('jamiaati_hero_desc_ar', formDescAR);
+    localStorage.setItem('jamiaati_hero_desc_ku', formDescKU);
+    localStorage.setItem('jamiaati_hero_tag_en', formTagEN);
+    localStorage.setItem('jamiaati_hero_tag_ar', formTagAR);
+    localStorage.setItem('jamiaati_hero_tag_ku', formTagKU);
+    
+    window.dispatchEvent(new Event('jamiaati_hero_updated'));
+    setIsEditingHero(false);
+    if (showToast) {
+      showToast(language === 'ar' ? 'تم حفظ التغييرات على الغلاف والبطاقة بنجاح! 💫' : 'Hero settings saved successfully! 💫', 'success');
+    }
+  };
 
   // ⚠️ Searchable Custom Picker States (Task 1, 2, 3, 5)
   const [showPicker, setShowPicker] = useState(false);
@@ -146,30 +233,20 @@ export default function HomeFeed({
   const [anonymous, setAnonymous] = useState(false);
   const [message, setMessage] = useState('');
 
-  // Story definition representing the 7 required elements
+  // Story definition representing the required elements of section view clicks
   const storyHighlightsData = [
     {
-      id: 'h_news',
-      emoji: '📰',
-      labelEN: 'Uni News',
-      labelAR: 'أخبار الجامعة',
-      labelKU: 'هەواڵەکان',
-      color: 'from-amber-500 to-rose-500',
-      tabType: 'campus',
-      filterType: 'announcement'
+      id: 'scholarship',
+      emoji: '🎓',
+      labelEN: 'Scholarships',
+      labelAR: 'المنح الدراسية',
+      labelKU: 'منح دراسية',
+      color: 'from-pink-500 to-rose-500',
+      tabType: 'opportunities',
+      filterType: 'scholarship'
     },
     {
-      id: 'h_events',
-      emoji: '🎟️',
-      labelEN: 'Events',
-      labelAR: 'الفعاليات',
-      labelKU: 'چالاکییەکان',
-      color: 'from-purple-500 to-blue-500',
-      tabType: 'campus',
-      filterType: 'event'
-    },
-    {
-      id: 'h_jobs',
+      id: 'job',
       emoji: '💼',
       labelEN: 'Jobs',
       labelAR: 'الوظائف والفرص',
@@ -179,7 +256,7 @@ export default function HomeFeed({
       filterType: 'job'
     },
     {
-      id: 'h_internships',
+      id: 'internship',
       emoji: '⚙️',
       labelEN: 'Internships',
       labelAR: 'فرص التدريب',
@@ -189,34 +266,54 @@ export default function HomeFeed({
       filterType: 'internship'
     },
     {
-      id: 'h_scholarships',
-      emoji: '🎓',
-      labelEN: 'Scholarships',
-      labelAR: 'المنح الدراسية',
-      labelKU: 'منح دراسية',
-      color: 'from-pink-550 to-rose-500',
-      tabType: 'opportunities',
-      filterType: 'scholarship'
+      id: 'event',
+      emoji: '🎟️',
+      labelEN: 'Events',
+      labelAR: 'الفعاليات',
+      labelKU: 'چالاکییەکان',
+      color: 'from-purple-500 to-blue-500',
+      tabType: 'campus',
+      filterType: 'event'
     },
     {
-      id: 'h_clubs',
+      id: 'news',
+      emoji: '📰',
+      labelEN: 'Uni News',
+      labelAR: 'أخبار الجامعة',
+      labelKU: 'هەواڵەکان',
+      color: 'from-amber-500 to-rose-500',
+      tabType: 'campus',
+      filterType: 'news'
+    },
+    {
+      id: 'exam',
+      emoji: '📝',
+      labelEN: 'Exams',
+      labelAR: 'الامتحانات',
+      labelKU: 'تاقیکردنەوەکان',
+      color: 'from-indigo-500 to-cyan-500',
+      tabType: 'campus',
+      filterType: 'exam'
+    },
+    {
+      id: 'registration',
+      emoji: '📌',
+      labelEN: 'Registration',
+      labelAR: 'التسجيل والقبول',
+      labelKU: 'تۆمارکردن',
+      color: 'from-fuchsia-500 to-pink-500',
+      tabType: 'campus',
+      filterType: 'registration'
+    },
+    {
+      id: 'student_club',
       emoji: '👥',
       labelEN: 'Student Clubs',
       labelAR: 'نوادي الطلاب',
       labelKU: 'یانەی خوێندکاران',
       color: 'from-violet-500 to-fuchsia-500',
       tabType: 'campus',
-      filterType: 'study_group'
-    },
-    {
-      id: 'h_announcements',
-      emoji: '📢',
-      labelEN: 'Alerts',
-      labelAR: 'الإعلانات',
-      labelKU: 'ڕاگەیاندنەکان',
-      color: 'from-red-500 to-amber-500',
-      tabType: 'campus',
-      filterType: 'official_announcement'
+      filterType: 'student_club'
     }
   ];
 
@@ -291,48 +388,178 @@ export default function HomeFeed({
     <div className="px-3.5 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-[#0B1020]" id="home-feed-container">
       
       {/* 2. Compact, Student-Friendly Modern Hero Section */}
-      <div 
-        className="mb-5 relative rounded-3xl overflow-hidden border-2 border-[#161A33] shadow-[4px_4px_0px_0px_#161A33] min-h-[148px] flex flex-col justify-end p-4 text-white" 
-        id="homepage-academic-banner-hero"
-      >
-        <img 
-          src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600" 
-          alt="Iraqi Academic Campus" 
-          className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
-          referrerPolicy="no-referrer"
-        />
-        <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-0" />
-        
-        <div className="relative z-10 select-none">
-          <div className="inline-flex items-center gap-1.5 bg-[#FFD21F] text-[#161A33] text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full mb-1.5 border border-[#161A33]/15">
-            <span>✨ {language === 'ar' ? 'بوابة هويتنا الأكاديمية' : language === 'ku' ? 'دەروازەی ئەکادیمی عێراق' : 'PORTAL ACCELERATION'}</span>
+      {isEditingHero ? (
+        <form onSubmit={handleSaveHeroCustomization} className="mb-5 bg-[#121B2E] rounded-3xl p-5 border-2 border-[#FFD21F] shadow-[3px_3px_0px_0px_#FFD21F] text-left text-white flex flex-col gap-3" id="admin-hero-editor-form">
+          <div className="flex items-center justify-between border-b border-[#1F2E4D] pb-2">
+            <h3 className="text-xs font-black text-[#FFD21F] uppercase flex items-center gap-1.5">
+              <Palette className="w-4 h-4" />
+              <span>Customize Hero Banner</span>
+            </h3>
+            <button type="button" onClick={() => setIsEditingHero(false)} className="text-slate-400 hover:text-white font-bold text-[10px] uppercase cursor-pointer">
+              Cancel
+            </button>
           </div>
           
-          <h2 className="text-sm md:text-base font-black tracking-tight leading-tight uppercase text-white drop-shadow-md">
-            {language === 'ar' ? (
-              <>تميّز وابنِ <span className="text-[#FFD21F]">مستقبلك الأكاديمي!</span> 🚀</>
-            ) : language === 'ku' ? (
-              <>داهاتوویەکی <span className="text-[#FFD21F]">پڕشنگدار بنيات بنێ!</span> 🚀</>
-            ) : (
-              <>Master Your <span className="text-[#FFD21F]">Campus Journey!</span> 🚀</>
-            )}
-          </h2>
-          
-          <p className="text-[10px] text-slate-200 mt-1 font-medium leading-tight max-w-[300px] drop-shadow-sm">
-            {language === 'ar' ? 'البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب' : language === 'ku' ? 'یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق' : 'The ultimate collegiate hub for premium opportunities & academic resources'}
-          </p>
+          <div className="flex flex-col gap-1">
+            <label className="text-[9px] uppercase font-black text-slate-400">Hero BG Image URL</label>
+            <input 
+              type="text" 
+              className="bg-[#0B1020] border border-[#1F2E4D] text-xs px-2.5 py-1.5 rounded-xl text-white focus:outline-none focus:border-[#FFD21F] w-full"
+              placeholder="https://images.unsplash.com/..."
+              value={formHeroBg}
+              onChange={(e) => setFormHeroBg(e.target.value)}
+            />
+          </div>
 
-          <div className="mt-2.5 flex items-center justify-between">
-            <span className="text-[9px] font-black bg-white text-[#161A33] px-3 py-1 rounded-lg shadow-sm border border-[#161A33]/20 flex items-center gap-1">
-              <span>{language === 'ar' ? 'عِراقنا بلمحة 🇮🇶' : language === 'ku' ? 'عێراقی ئەکادیمی 🇮🇶' : 'Iraq Academia 🇮🇶'}</span>
-            </span>
-            <span className="text-[8px] font-mono font-bold text-[#FFD21F] bg-black/40 px-1.5 py-0.5 rounded border border-white/10 flex items-center gap-1 select-none">
-              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-              ● {language === 'ar' ? 'رسمي ومباشر' : language === 'ku' ? 'ڕاستەوخۆ' : 'OFFICIAL LIVE'}
-            </span>
+          <div className="grid grid-cols-3 gap-2">
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[8px] uppercase font-black text-slate-400">Tag (EN)</label>
+              <input 
+                type="text" 
+                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2 py-1 rounded-lg text-white font-bold focus:outline-none focus:border-[#FFD21F]"
+                value={formTagEN} 
+                onChange={e => setFormTagEN(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Tag (AR)</label>
+              <input 
+                type="text" 
+                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2 py-1 rounded-lg text-white font-bold text-right font-sans focus:outline-none focus:border-[#FFD21F]"
+                value={formTagAR} 
+                onChange={e => setFormTagAR(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Tag (KU)</label>
+              <input 
+                type="text" 
+                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2 py-1 rounded-lg text-white font-bold text-right font-sans focus:outline-none focus:border-[#FFD21F]"
+                value={formTagKU} 
+                onChange={e => setFormTagKU(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 border-t border-[#1F2E4D]/60 pt-2 pb-1">
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[8px] uppercase font-black text-slate-400">Title (EN)</label>
+              <input 
+                type="text" 
+                className="bg-[#0B1020] border border-[#1F2E4D] text-xs px-2.5 py-1 rounded-lg text-white font-black focus:outline-none focus:border-[#FFD21F]"
+                value={formTitleEN} 
+                onChange={e => setFormTitleEN(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Title (AR)</label>
+              <input 
+                type="text" 
+                className="bg-[#0B1020] border border-[#1F2E4D] text-xs px-2.5 py-1 rounded-lg text-white font-black text-right font-sans focus:outline-none focus:border-[#FFD21F]"
+                value={formTitleAR} 
+                onChange={e => setFormTitleAR(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Title (KU)</label>
+              <input 
+                type="text" 
+                className="bg-[#0B1020] border border-[#1F2E4D] text-xs px-2.5 py-1 rounded-lg text-white font-black text-right font-sans focus:outline-none focus:border-[#FFD21F]"
+                value={formTitleKU} 
+                onChange={e => setFormTitleKU(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <div className="flex flex-col gap-2 border-t border-[#1F2E4D]/60 pt-2">
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[8px] uppercase font-black text-slate-400">Subtitle (EN)</label>
+              <textarea 
+                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2.5 py-1 rounded-lg text-white h-11 resize-none font-medium focus:outline-none focus:border-[#FFD21F]"
+                value={formDescEN} 
+                onChange={e => setFormDescEN(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Subtitle (AR)</label>
+              <textarea 
+                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2.5 py-1 rounded-lg text-white h-11 resize-none text-right font-medium font-sans focus:outline-none focus:border-[#FFD21F]"
+                value={formDescAR} 
+                onChange={e => setFormDescAR(e.target.value)}
+              />
+            </div>
+            <div className="flex flex-col gap-0.5">
+              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Subtitle (KU)</label>
+              <textarea 
+                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2.5 py-1 rounded-lg text-white h-11 resize-none text-right font-medium font-sans focus:outline-none focus:border-[#FFD21F]"
+                value={formDescKU} 
+                onChange={e => setFormDescKU(e.target.value)}
+              />
+            </div>
+          </div>
+
+          <button 
+            type="submit"
+            className="w-full bg-[#FFD21F] hover:bg-[#FFD21F]/90 text-slate-950 font-black text-xs py-2 rounded-xl border border-slate-950 shadow-[2px_2px_0px_0px_#1B2E4D] cursor-pointer select-none text-center"
+          >
+            Save Customized Hero Settings ✨
+          </button>
+        </form>
+      ) : (
+        <div 
+          className="mb-5 relative rounded-3xl overflow-hidden border-2 border-[#161A33] shadow-[4px_4px_0px_0px_#161A33] min-h-[148px] flex flex-col justify-end p-4 text-white" 
+          id="homepage-academic-banner-hero"
+        >
+          <img 
+            src={heroBg} 
+            alt="Iraqi Academic Campus" 
+            className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
+            referrerPolicy="no-referrer"
+          />
+          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-0" />
+          
+          {isAdminMode && (
+            <button 
+              type="button"
+              onClick={handleStartEditingHero}
+              className="absolute top-3.5 right-3.5 z-20 bg-slate-950/80 hover:bg-slate-950 text-[#FFD21F] hover:scale-105 p-2 rounded-xl border border-white/20 cursor-pointer shadow-md transition-all flex items-center gap-1 text-[10px] font-black pointer-events-auto select-none"
+            >
+              <Palette className="w-3.5 h-3.5" />
+              <span>EDIT HERO</span>
+            </button>
+          )}
+
+          <div className="relative z-10 select-none">
+            <div className="inline-flex items-center gap-1.5 bg-[#FFD21F] text-[#161A33] text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full mb-1.5 border border-[#161A33]/15">
+              <span>✨ {language === 'ar' ? heroTagAR : language === 'ku' ? heroTagKU : heroTagEN}</span>
+            </div>
+            
+            <h2 className="text-sm md:text-base font-black tracking-tight leading-tight uppercase text-white drop-shadow-md">
+              {language === 'ar' ? (
+                <>{heroTitleAR} 🚀</>
+              ) : language === 'ku' ? (
+                <>{heroTitleKU} 🚀</>
+              ) : (
+                <>{heroTitleEN} 🚀</>
+              )}
+            </h2>
+            
+            <p className="text-[10px] text-slate-200 mt-1 font-medium leading-tight max-w-[300px] drop-shadow-sm">
+              {language === 'ar' ? heroDescAR : language === 'ku' ? heroDescKU : heroDescEN}
+            </p>
+
+            <div className="mt-2.5 flex items-center justify-between">
+              <span className="text-[9px] font-black bg-white text-[#161A33] px-3 py-1 rounded-lg shadow-sm border border-[#161A33]/20 flex items-center gap-1">
+                <span>{language === 'ar' ? 'عِراقنا بلمحة 🇮🇶' : language === 'ku' ? 'عێراقی ئەکادیمی 🇮🇶' : 'Iraq Academia 🇮🇶'}</span>
+              </span>
+              <span className="text-[8px] font-mono font-bold text-[#FFD21F] bg-black/40 px-1.5 py-0.5 rounded border border-white/10 flex items-center gap-1 select-none">
+                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+                ● {language === 'ar' ? 'رسمي ومباشر' : language === 'ku' ? 'ڕاستەوخۆ' : 'OFFICIAL LIVE'}
+              </span>
+            </div>
           </div>
         </div>
-      </div>
+      )}
 
       {/* 3. Filter Row: Side by Side Governorate & Academic Institution dropdowns */}
       <div className="grid grid-cols-2 gap-3.5 mb-5" id="home-filter-row">
@@ -431,13 +658,17 @@ export default function HomeFeed({
                 key={story.id} 
                 className="flex flex-col items-center gap-1.5 snap-start cursor-pointer shrink-0"
                 onClick={() => {
-                  // Switch sub-tab appropriately based on story characteristics
-                  setActiveSubTab(story.tabType as any);
-                  // Toggle active category specific filter
-                  if (activeStoryFilter === story.filterType) {
-                    setActiveStoryFilter(null);
+                  if (onSelectSection) {
+                    onSelectSection(story.id);
                   } else {
-                    setActiveStoryFilter(story.filterType);
+                    // Switch sub-tab appropriately based on story characteristics
+                    setActiveSubTab(story.tabType as any);
+                    // Toggle active category specific filter
+                    if (activeStoryFilter === story.filterType) {
+                      setActiveStoryFilter(null);
+                    } else {
+                      setActiveStoryFilter(story.filterType);
+                    }
                   }
                 }}
               >
@@ -640,6 +871,9 @@ export default function HomeFeed({
               onRsvp={onRsvp}
               onJoinGroup={onJoinGroup}
               onAddComment={onAddComment}
+              onEditFeedItem={onEditFeedItem}
+              onDeleteFeedItem={onDeleteFeedItem}
+              isAdminMode={isAdminMode}
             />
           ))
         )}

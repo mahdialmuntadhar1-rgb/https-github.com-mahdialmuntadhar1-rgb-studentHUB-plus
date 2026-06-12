@@ -22,6 +22,7 @@ interface StudentStory {
   uniKU: string;
   avatarEmoji: string;
   avatarColor: string; // e.g. bg-purple-500
+  avatarUrl?: string; // Optional real photo URL
   slides: StorySlide[];
   isSeen?: boolean;
 }
@@ -37,20 +38,23 @@ const studentStoriesMockData: StudentStory[] = [
     uniKU: 'زانکۆی بەغدا 🩺',
     avatarEmoji: '👩‍⚕️',
     avatarColor: 'bg-emerald-500',
+    avatarUrl: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
     slides: [
       {
         textEN: "Morning lab session checking microscopic cells! Midterms are so close 😭🔬",
         textAR: "جلسة المختبر الصباحية لفحص الخلايا المجهرية! الامتحانات النصفية باتت قريبة جداً 😭🔬",
-        textKU: "کۆبوونەوەی تاقیگەی بەیانیان بۆ پشکنینی خانە وردبینەکان! تاقیکردنەوەکان نزیکن 😭🔬",
+        textKU: "کۆبوونەوەی تاقیگەی بەیانیان بۆ پشکنینی خانە وردبینەکان! تاقیکندرەوەکان نزیکن 😭🔬",
         emoji: '🔬',
-        bgColor: 'from-emerald-600 via-teal-700 to-cyan-800'
+        bgColor: 'from-emerald-700 via-teal-800 to-cyan-900',
+        bgImage: 'https://images.unsplash.com/photo-1576085898323-218337e3e43c?auto=format&fit=crop&q=80&w=600'
       },
       {
         textEN: "Kurdistan study escape this weekend is planned! Need that fresh mountain air 🏔️✨",
         textAR: "تم التخطيط لرحلة دراسية إلى كوردستان عطلة نهاية هذا الأسبوع! أحتاج هواء الجبل النقي 🏔️✨",
         textKU: "گەشتی خوێندن بۆ کوردستان بۆ کۆتایی ئەم هەفتەیە پلان بۆ داڕێژراوە! پێویستم بە هەوای چیا هەیە 🏔️✨",
         emoji: '🏞️',
-        bgColor: 'from-teal-600 to-indigo-700'
+        bgColor: 'from-teal-700 to-indigo-800',
+        bgImage: 'https://images.unsplash.com/photo-1464822759023-fed622ff2c3b?auto=format&fit=crop&q=80&w=600'
       }
     ]
   },
@@ -64,13 +68,15 @@ const studentStoriesMockData: StudentStory[] = [
     uniKU: 'زانکۆی موستەنسریە 💻',
     avatarEmoji: '👨‍💻',
     avatarColor: 'bg-cyan-500',
+    avatarUrl: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200',
     slides: [
       {
         textEN: "Building our AI-powered student assistant with Gemini API! App is almost alive! 🤖🚀",
         textAR: "نبني مساعدنا الطلابي المدعوم بالذكاء الاصطناعي مع Gemini API! التطبيق على وشك النجاح العملي! 🤖🚀",
         textKU: "دروستکردنی یاریدەدەری قوتابی لەسەر بنەمای ژیری دەستکرد بە بەکارهێنانی Gemini! بەرنامەکە نزیکە لە دەرچوون! 🤖🚀",
         emoji: '🤖',
-        bgColor: 'from-cyan-600 via-blue-750 to-indigo-850'
+        bgColor: 'from-cyan-700 via-blue-800 to-indigo-900',
+        bgImage: 'https://images.unsplash.com/photo-1618005182384-a83a8bd57fbe?auto=format&fit=crop&q=80&w=600'
       }
     ]
   },
@@ -84,20 +90,23 @@ const studentStoriesMockData: StudentStory[] = [
     uniKU: 'زانکۆی سلێمانی 🏔️',
     avatarEmoji: '👩‍🎨',
     avatarColor: 'bg-indigo-500',
+    avatarUrl: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
     slides: [
       {
         textEN: "Sunset over Mount Goizha from campus was stunning today! Beautiful breezes 🌄☕",
         textAR: "غروب الشمس فوق جبل كويجة من الحرم الجامعي كان مذهلاً اليوم! نسمات منعشة 🌄☕",
         textKU: "ئاوابوونی خۆر بەسەر چیای گۆیژە لە کەمپەسەوە ئەمڕۆ سەرنجڕاکێش بوو! کاتێکی دڵگیر 🌄☕",
         emoji: '🌅',
-        bgColor: 'from-indigo-600 via-purple-700 to-pink-600'
+        bgColor: 'from-indigo-700 via-purple-800 to-pink-700',
+        bgImage: 'https://images.unsplash.com/photo-1501854140801-50d01698950b?auto=format&fit=crop&q=80&w=600'
       },
       {
         textEN: "Midterm study sessions with traditional Kurdish tea! Best fuel ever! 🫖📚",
         textAR: "جلسات دراسة الامتحانات النصفية مع الشاي الكردي التقليدي! أفضل دافع على الإطلاق! 🫖📚",
         textKU: "خوێندنی تاقیکردنەوەکان لەگەڵ چای کوردی ڕەسەن! باشترین وزە بەخش! 🫖📚",
         emoji: '🫖',
-        bgColor: 'from-purple-600 to-rose-600'
+        bgColor: 'from-purple-700 to-rose-700',
+        bgImage: 'https://images.unsplash.com/photo-1576092768241-dec231879fc3?auto=format&fit=crop&q=80&w=600'
       }
     ]
   },
@@ -111,13 +120,15 @@ const studentStoriesMockData: StudentStory[] = [
     uniKU: 'زانکۆی بەسرە 🌴',
     avatarEmoji: '👨‍⚕️',
     avatarColor: 'bg-amber-500',
+    avatarUrl: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
     slides: [
       {
         textEN: "Long shift in clinical practice! Basra Heat is here but we keep smiling! 🩺🥤",
         textAR: "نوبة عمل طويلة في التدريب السريري! حرارة البصرة مرتفعة ولكننا مستمرون بالابتسام! 🩺🥤",
         textKU: "کارێکی درێژخایەن لە پراکتیکی پزیشکی! گەرمای بەسرە زۆرە بەڵام پێکەنینمان بەردەوامە! 🩺🥤",
         emoji: '🌴',
-        bgColor: 'from-amber-500 via-orange-600 to-rose-600'
+        bgColor: 'from-amber-650 via-orange-700 to-rose-700',
+        bgImage: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600'
       }
     ]
   },
@@ -131,13 +142,15 @@ const studentStoriesMockData: StudentStory[] = [
     uniKU: 'زانکۆی نەهرەین 🔬',
     avatarEmoji: '👩‍🔬',
     avatarColor: 'bg-rose-500',
+    avatarUrl: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
     slides: [
       {
         textEN: "Setting up our chemical reaction samples. They look like glowing gems! 🧪💎",
         textAR: "نقوم بإعداد عينات التفاعل الكيميائي. تبدو مثل مجوهرات متوهجة! 🧪💎",
         textKU: "ئامادەکردنی نمونەی کارلێکی کیمیایی. وەک گەوهەری درەوشاوە دەردەکەون! 🧪💎",
         emoji: '🧪',
-        bgColor: 'from-rose-500 via-purple-600 to-indigo-700'
+        bgColor: 'from-rose-500 via-purple-600 to-indigo-700',
+        bgImage: 'https://images.unsplash.com/photo-1596524430615-b46475ddff6e?auto=format&fit=crop&q=80&w=600'
       }
     ]
   },
@@ -151,13 +164,15 @@ const studentStoriesMockData: StudentStory[] = [
     uniKU: 'زانکۆی سەڵاحەدین 🏰',
     avatarEmoji: '👨‍🎓',
     avatarColor: 'bg-violet-500',
+    avatarUrl: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
     slides: [
       {
         textEN: "Beautiful morning at the historic Erbil Citadel before lectures start 🎒🏰",
         textAR: "صباح جميل في قلعة أربيل التاريخية قبل بدء المحاضرات اليومية 🎒🏰",
         textKU: "بەیانییەکی جوان لە قەڵای مێژوویی هەولێر پێش دەستپێکردنی وانەکان 🎒🏰",
         emoji: '🏰',
-        bgColor: 'from-violet-600 via-indigo-600 to-purple-800'
+        bgColor: 'from-violet-600 via-indigo-600 to-purple-800',
+        bgImage: 'https://images.unsplash.com/photo-1596463059386-4418116ded9c?auto=format&fit=crop&q=80&w=600'
       }
     ]
   }
@@ -184,12 +199,81 @@ export default function StudentStories({
     const savedCustom = localStorage.getItem('jamiaati_custom_stories');
     const customStories: StudentStory[] = savedCustom ? JSON.parse(savedCustom) : [];
     
-    const combined = [...studentStoriesMockData, ...customStories];
+    // Merge administrator story modifications
+    const editedDefaultsStr = localStorage.getItem('jamiaati_edited_default_stories');
+    const editedDefaults = editedDefaultsStr ? JSON.parse(editedDefaultsStr) : [];
+    
+    const preparedDefaultStories = studentStoriesMockData.map(defaultStory => {
+      const editMatch = editedDefaults.find((e: any) => e.id === defaultStory.id);
+      if (editMatch) {
+        return {
+          ...defaultStory,
+          nameEN: editMatch.name,
+          nameAR: editMatch.name,
+          nameKU: editMatch.name,
+          avatarUrl: editMatch.avatar,
+          slides: defaultStory.slides.map((s, idx) => idx === 0 ? {
+            ...s,
+            textEN: editMatch.text,
+            textAR: editMatch.text,
+            textKU: editMatch.text
+          } : s)
+        };
+      }
+      return defaultStory;
+    });
+
+    const combined = [...preparedDefaultStories, ...customStories];
     return combined.map(story => ({
       ...story,
       isSeen: seenIds.includes(story.id)
     }));
   });
+
+  // Listen for administrator updates to story photos/text in real-time
+  useEffect(() => {
+    const handleSync = () => {
+      const savedSeen = localStorage.getItem('jamiaati_seen_stories');
+      const seenIds = savedSeen ? JSON.parse(savedSeen) : [];
+      
+      const savedCustom = localStorage.getItem('jamiaati_custom_stories');
+      const customStories: StudentStory[] = savedCustom ? JSON.parse(savedCustom) : [];
+      
+      const editedDefaultsStr = localStorage.getItem('jamiaati_edited_default_stories');
+      const editedDefaults = editedDefaultsStr ? JSON.parse(editedDefaultsStr) : [];
+      
+      const preparedDefaultStories = studentStoriesMockData.map(defaultStory => {
+        const editMatch = editedDefaults.find((e: any) => e.id === defaultStory.id);
+        if (editMatch) {
+          return {
+            ...defaultStory,
+            nameEN: editMatch.name,
+            nameAR: editMatch.name,
+            nameKU: editMatch.name,
+            avatarUrl: editMatch.avatar,
+            slides: defaultStory.slides.map((s, idx) => idx === 0 ? {
+              ...s,
+              textEN: editMatch.text,
+              textAR: editMatch.text,
+              textKU: editMatch.text
+            } : s)
+          };
+        }
+        return defaultStory;
+      });
+
+      const combined = [...preparedDefaultStories, ...customStories];
+      setStories(combined.map(story => ({
+        ...story,
+        isSeen: seenIds.includes(story.id)
+      })));
+    };
+
+    window.addEventListener('jamiaati_stories_updated', handleSync);
+    return () => {
+      window.removeEventListener('jamiaati_stories_updated', handleSync);
+    };
+  }, []);
 
   const [activeStoryIdx, setActiveStoryIdx] = useState<number | null>(null);
   const [activeSlideIdx, setActiveSlideIdx] = useState<number>(0);

@@ -21,6 +21,9 @@ interface AskFeedProps {
   onAddComment: (id: string, commentText: string) => void;
   onAddNewPost: (title: string, body: string, anonymous: boolean, customType?: string) => void;
   isFeedLoading?: boolean;
+  onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
+  onDeleteFeedItem?: (id: string) => void;
+  isAdminMode?: boolean;
 }
 
 export default function AskFeed({
@@ -36,7 +39,10 @@ export default function AskFeed({
   onJoinGroup,
   onAddComment,
   onAddNewPost,
-  isFeedLoading = false
+  isFeedLoading = false,
+  onEditFeedItem,
+  onDeleteFeedItem,
+  isAdminMode = false
 }: AskFeedProps) {
   const [askQuery, setAskQuery] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -289,6 +295,9 @@ export default function AskFeed({
               onRsvp={onRsvp}
               onJoinGroup={onJoinGroup}
               onAddComment={onAddComment}
+              onEditFeedItem={onEditFeedItem}
+              onDeleteFeedItem={onDeleteFeedItem}
+              isAdminMode={isAdminMode}
             />
           ))
         )}

@@ -40,6 +40,9 @@ interface FutureFeedProps {
   onAddComment: (id: string, commentText: string) => void;
   onBackToHome: () => void;
   isFeedLoading?: boolean;
+  onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
+  onDeleteFeedItem?: (id: string) => void;
+  isAdminMode?: boolean;
 }
 
 export default function FutureFeed({
@@ -55,7 +58,10 @@ export default function FutureFeed({
   onJoinGroup,
   onAddComment,
   onBackToHome,
-  isFeedLoading = false
+  isFeedLoading = false,
+  onEditFeedItem,
+  onDeleteFeedItem,
+  isAdminMode = false
 }: FutureFeedProps) {
   const [opportunities, setOpportunities] = useState<FeedItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
@@ -702,6 +708,9 @@ export default function FutureFeed({
                      onRsvp={onRsvp}
                      onJoinGroup={onJoinGroup}
                      onAddComment={onAddComment}
+                     onEditFeedItem={onEditFeedItem}
+                     onDeleteFeedItem={onDeleteFeedItem}
+                     isAdminMode={isAdminMode}
                    />
                 ))}
               </div>
@@ -736,6 +745,9 @@ export default function FutureFeed({
                      onRsvp={onRsvp}
                      onJoinGroup={onJoinGroup}
                      onAddComment={onAddComment}
+                     onEditFeedItem={onEditFeedItem}
+                     onDeleteFeedItem={onDeleteFeedItem}
+                     isAdminMode={isAdminMode}
                    />
                 ))}
               </div>
@@ -761,6 +773,9 @@ export default function FutureFeed({
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onEditFeedItem={onEditFeedItem}
+                  onDeleteFeedItem={onDeleteFeedItem}
+                  isAdminMode={isAdminMode}
                 />
               ))}
             </div>
@@ -785,6 +800,9 @@ export default function FutureFeed({
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onEditFeedItem={onEditFeedItem}
+                  onDeleteFeedItem={onDeleteFeedItem}
+                  isAdminMode={isAdminMode}
                 />
               ))}
             </div>
@@ -809,6 +827,9 @@ export default function FutureFeed({
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onEditFeedItem={onEditFeedItem}
+                  onDeleteFeedItem={onDeleteFeedItem}
+                  isAdminMode={isAdminMode}
                 />
               ))}
             </div>
@@ -833,6 +854,9 @@ export default function FutureFeed({
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onEditFeedItem={onEditFeedItem}
+                  onDeleteFeedItem={onDeleteFeedItem}
+                  isAdminMode={isAdminMode}
                 />
               ))}
             </div>
@@ -866,6 +890,9 @@ export default function FutureFeed({
                   onRsvp={onRsvp}
                   onJoinGroup={onJoinGroup}
                   onAddComment={onAddComment}
+                  onEditFeedItem={onEditFeedItem}
+                  onDeleteFeedItem={onDeleteFeedItem}
+                  isAdminMode={isAdminMode}
                 />
               ))}
               

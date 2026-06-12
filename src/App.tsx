@@ -9,6 +9,7 @@ import LifeFeed from './components/LifeFeed';
 import FutureFeed from './components/FutureFeed';
 import AskFeed from './components/AskFeed';
 import ProfileView from './components/ProfileView';
+import SectionView from './components/SectionView';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
@@ -70,6 +71,14 @@ export default function App() {
 
   // Navigation tab state
   const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'admin'>('home');
+
+  // Selected Section state for horizontal stories
+  const [selectedSection, setSelectedSection] = useState<string | null>(null);
+
+  // Clear selected section when switching top-level tabs
+  useEffect(() => {
+    setSelectedSection(null);
+  }, [activeTab]);
 
   // Brief dynamic feed loading skeleton simulator
   const [isFeedLoading, setIsFeedLoading] = useState(false);
@@ -332,6 +341,30 @@ export default function App() {
       }
       return item;
     }));
+  };
+
+  const handleEditFeedItem = (id: string, updatedFields: Partial<FeedItem>) => {
+    setFeedItems(prev => prev.map(item => {
+      if (item.id === id) {
+        return {
+          ...item,
+          ...updatedFields
+        };
+      }
+      return item;
+    }));
+    showToast(
+      language === 'ar' ? 'تم تحديث المنشور بنجاح! ✏️' : 'Post updated successfully by admin! ✏️', 
+      'success'
+    );
+  };
+
+  const handleDeleteFeedItem = (id: string) => {
+    setFeedItems(prev => prev.filter(item => item.id !== id));
+    showToast(
+      language === 'ar' ? 'تم حذف المنشور بنجاح! 🗑️' : 'Post deleted successfully by admin! 🗑️', 
+      'success'
+    );
   };
 
   const handleSave = (id: string) => {
@@ -611,6 +644,30 @@ export default function App() {
 
   // Router dispatcher
   const renderActiveView = () => {
+    if (selectedSection) {
+      return (
+        <SectionView
+          sectionId={selectedSection}
+          language={language}
+          selectedGov={selectedGov}
+          setSelectedGov={setSelectedGov}
+          selectedUni={selectedUni}
+          setSelectedUni={setSelectedUni}
+          onBackToHome={() => setSelectedSection(null)}
+          onLike={handleLike}
+          onSave={handleSave}
+          onVote={handleVote}
+          onApply={handleApply}
+          onRsvp={handleRsvp}
+          onJoinGroup={handleJoinGroup}
+          onAddComment={handleAddComment}
+          onEditFeedItem={handleEditFeedItem}
+          onDeleteFeedItem={handleDeleteFeedItem}
+          isAdminMode={userProfile.role === 'staff'}
+        />
+      );
+    }
+
     switch (activeTab) {
       case 'home':
         return (
@@ -637,6 +694,10 @@ export default function App() {
             institutionsLoading={institutionsLoading}
             institutionsError={institutionsError}
             onRetryInstitutions={handleRetryInstitutions}
+            onEditFeedItem={handleEditFeedItem}
+            onDeleteFeedItem={handleDeleteFeedItem}
+            isAdminMode={userProfile.role === 'staff'}
+            onSelectSection={setSelectedSection}
           />
         );
       case 'life':
@@ -655,6 +716,9 @@ export default function App() {
             onAddComment={handleAddComment}
             onShowAll={handleShowAllLife}
             isFeedLoading={isFeedLoading}
+            onEditFeedItem={handleEditFeedItem}
+            onDeleteFeedItem={handleDeleteFeedItem}
+            isAdminMode={userProfile.role === 'staff'}
           />
         );
       case 'ask':
@@ -673,6 +737,9 @@ export default function App() {
             onAddComment={handleAddComment}
             onAddNewPost={handleAddNewPost}
             isFeedLoading={isFeedLoading}
+            onEditFeedItem={handleEditFeedItem}
+            onDeleteFeedItem={handleDeleteFeedItem}
+            isAdminMode={userProfile.role === 'staff'}
           />
         );
       case 'future':
@@ -691,6 +758,9 @@ export default function App() {
             onAddComment={handleAddComment}
             onBackToHome={handleBackToHomeFuture}
             isFeedLoading={isFeedLoading}
+            onEditFeedItem={handleEditFeedItem}
+            onDeleteFeedItem={handleDeleteFeedItem}
+            isAdminMode={userProfile.role === 'staff'}
           />
         );
       case 'profile':
@@ -718,6 +788,9 @@ export default function App() {
             }}
             onTriggerAuth={() => setIsAuthModalOpen(true)}
             onNavigateAdmin={() => setActiveTab('admin')}
+            onEditFeedItem={handleEditFeedItem}
+            onDeleteFeedItem={handleDeleteFeedItem}
+            isAdminMode={userProfile.role === 'staff'}
           />
         );
       case 'admin':

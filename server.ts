@@ -338,11 +338,115 @@ app.get("/api/health", (req, res) => {
   res.json({ status: "ok", time: new Date().toISOString() });
 });
 
-// Dynamic Opportunities feed (Returns Approved opportunities to standard search)
+// Dynamic Opportunities feed (Returns Approved opportunities to standard search with query filtering)
 app.get("/api/opportunities", (req, res) => {
   const db = readDB();
-  const approvedOnly = db.opportunities.filter((o: any) => o.status === "approved" || o.status === "expired" || !o.status);
-  res.json(approvedOnly);
+  
+  // 1. Core Filtering: Filter for approved/expired opportunities
+  let list = db.opportunities || [];
+  
+  // Enforce approved or expired status for search feed
+  list = list.filter((o: any) => o.status === "approved" || o.status === "expired" || !o.status);
+  
+  // Map category constraint
+  const allowedCategories = ["job", "scholarship", "internship", "training", "fellowship", "volunteering", "competition"];
+  list = list.filter((o: any) => allowedCategories.includes(o.category));
+
+  // 2. Query Parameters Filters
+  const { type, category, governorate, university_id, institution_id, limit, offset } = req.query;
+
+  // Filter by category or type specifically
+  const catFilter = category || type;
+  if (catFilter) {
+    list = list.filter((o: any) => o.category?.toLowerCase() === String(catFilter).toLowerCase());
+  }
+
+  // Filter by governorate (handles "all" nicely)
+  if (governorate && governorate !== "all") {
+    list = list.filter((o: any) => 
+      o.governorateId?.toLowerCase() === String(governorate).toLowerCase() || 
+      o.governorate?.toLowerCase() === String(governorate).toLowerCase() ||
+      o.governorateId === "all" ||
+      o.governorate === "All Iraq"
+    );
+  }
+
+  // Filter by university_id or institution_id
+  const uniFilter = university_id || institution_id;
+  if (uniFilter && uniFilter !== "all") {
+    list = list.filter((o: any) => 
+      o.universityId?.toLowerCase() === String(uniFilter).toLowerCase() ||
+      o.university_id?.toLowerCase() === String(uniFilter).toLowerCase() ||
+      o.universityId === "all" ||
+      o.university_id === "all"
+    );
+  }
+
+  // 3. Pagination Support (offset/limit)
+  let result = list;
+  const start = offset ? parseInt(String(offset), 10) : 0;
+  const size = limit ? parseInt(String(limit), 10) : result.length;
+  
+  if (!isNaN(start) && !isNaN(size)) {
+    result = result.slice(start, start + size);
+  }
+
+  res.json(result);
+});
+
+// Dynamic Highlights feed (Returns academic newsletters and notifications)
+app.get("/api/highlights", (req, res) => {
+  const db = readDB();
+  
+  // 1. Core Filtering: Filter for approved/expired highlights from database (if matching status)
+  let list = db.opportunities || [];
+  
+  // Enforce approved status
+  list = list.filter((o: any) => o.status === "approved" || o.status === "expired" || !o.status);
+  
+  // Map highlights categories
+  const allowedCategories = ["event", "news", "announcement", "exam", "registration", "student_club", "activity"];
+  list = list.filter((o: any) => allowedCategories.includes(o.category));
+
+  // 2. Query Parameters Filters
+  const { category, governorate, university_id, institution_id, limit, offset } = req.query;
+
+  // Filter by category specifically
+  if (category) {
+    list = list.filter((o: any) => o.category?.toLowerCase() === String(category).toLowerCase());
+  }
+
+  // Filter by governorate
+  if (governorate && governorate !== "all") {
+    list = list.filter((o: any) => 
+      o.governorateId?.toLowerCase() === String(governorate).toLowerCase() || 
+      o.governorate?.toLowerCase() === String(governorate).toLowerCase() ||
+      o.governorateId === "all" ||
+      o.governorate === "All Iraq"
+    );
+  }
+
+  // Filter by university
+  const uniFilter = university_id || institution_id;
+  if (uniFilter && uniFilter !== "all") {
+    list = list.filter((o: any) => 
+      o.universityId?.toLowerCase() === String(uniFilter).toLowerCase() ||
+      o.university_id?.toLowerCase() === String(uniFilter).toLowerCase() ||
+      o.universityId === "all" ||
+      o.university_id === "all"
+    );
+  }
+
+  // 3. Pagination Support (offset/limit)
+  let result = list;
+  const start = offset ? parseInt(String(offset), 10) : 0;
+  const size = limit ? parseInt(String(limit), 10) : result.length;
+  
+  if (!isNaN(start) && !isNaN(size)) {
+    result = result.slice(start, start + size);
+  }
+
+  res.json(result);
 });
 
 // Admin list of all opportunities
