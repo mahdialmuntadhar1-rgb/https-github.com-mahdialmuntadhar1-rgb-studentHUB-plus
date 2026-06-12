@@ -1,35 +1,13 @@
-﻿import express from "express";
+import express from "express";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
 
-
-import rateLimit from 'express-rate-limit';
-import helmet from 'helmet';
-import compression from 'compression';
-import morgan from 'morgan';
 dotenv.config();
 
 const app = express();
-// ========== PRODUCTION MIDDLEWARE ==========
-app.use(helmet());
-app.use(compression());
-app.use(morgan('combined'));
-
-const limiter = rateLimit({ windowMs: 15 * 60 * 1000, max: 100, message: 'Too many requests' });
-app.use('/api/', limiter);
-
-app.get('/health', (req, res) => {
-  res.status(200).json({ status: 'ok', timestamp: new Date().toISOString() });
-});
-
-app.use((err, req, res, next) => {
-  console.error(err.stack);
-  res.status(500).json({ error: 'Internal server error' });
-});
-// ========== END MIDDLEWARE ==========
 const PORT = 3000;
 
 app.use(express.json());
@@ -255,10 +233,10 @@ Output only valid JSON container!`;
 
         // Robust rule fallback for translation + normalizations
         if (!titleAR) {
-          titleAR = `ÙØ±ØµØ© Ù…Ù…ØªØ§Ø²Ø© Ù„Ø¯Ù‰ ${source.name}: ${titleEN}`;
-          titleKU = `Ø¯Û•Ø±ÙÛ•ØªÛŽÚ©ÛŒ Ø¨Ø§Ø´ Ù„Ø§ÛŒ ${source.name}: ${titleEN}`;
-          descAR = `ØªÙ… Ø¬Ù…Ø¹ Ù‡Ø°Ù‡ Ø§Ù„ÙØ±ØµØ© ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ Ù…Ù† Ø§Ù„Ù…ÙƒØ§ØªØ¨ Ø§Ù„Ù…Ø¹ØªÙ…Ø¯Ø© Ù„Ø¯Ù‰ ${source.name}. Ù„Ù„Ø§Ø·Ù„Ø§Ø¹ Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø¹Ø§ÙŠÙŠØ± Ø§Ù„ÙƒØ§Ù…Ù„Ø© ÙˆØ´Ø±ÙˆØ· Ø§Ù„ØªØ³Ø¬ÙŠÙ„ ÙŠØ±Ø¬Ù‰ Ø²ÙŠØ§Ø±Ø© Ø§Ù„Ø±Ø§Ø¨Ø· Ø§Ù„Ù…Ø±ÙÙ‚ Ù„Ù„ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ù…Ø¨Ø§Ø´Ø±.`;
-          descKU = `Ø¦Û•Ù… Ø¯Û•Ø±ÙÛ•ØªÛ• Ø¨Û• Ø´ÛŽÙˆÛ•ÛŒÛ•Ú©ÛŒ Ø®Û†Ú©Ø§Ø± Ù„Û• Ø¨Û•Ø´ÛŒ ÙÛ•Ø±Ù…ÛŒ Ù„Ø§ÛŒ ${source.name} ÙˆÛ•Ø±Ú¯ÛŒØ±Ø§ÙˆÛ•. Ø¨Û† Ø¯ÚµÙ†ÛŒØ§Ø¨ÙˆÙˆÙ† Ù…Û•Ø±Ø¬Û•Ú©Ø§Ù† Ø¨Ø®ÙˆÛŽÙ†Û•Ø±Û•ÙˆÛ• Ù„Û• Ú•ÛŽÚ¯Û•ÛŒ Ø¨Û•Ø³ØªÛ•Ø±ÛŒ Ù‡Ø§ÙˆÙ¾ÛŽÚ†.`;
+          titleAR = `فرصة ممتازة لدى ${source.name}: ${titleEN}`;
+          titleKU = `دەرفەتێکی باش لای ${source.name}: ${titleEN}`;
+          descAR = `تم جمع هذه الفرصة تلقائياً من المكاتب المعتمدة لدى ${source.name}. للاطلاع على المعايير الكاملة وشروط التسجيل يرجى زيارة الرابط المرفق للتسجيل المباشر.`;
+          descKU = `ئەم دەرفەتە بە شێوەیەکی خۆکار لە بەشی فەرمی لای ${source.name} وەرگیراوە. بۆ دڵنیابوون مەرجەکان بخوێنەرەوە لە ڕێگەی بەستەری هاوپێچ.`;
 
           const lowerText = (titleEN + " " + descEN).toLowerCase();
           if (lowerText.includes("intern") || lowerText.includes("co-op")) category = "internship";
@@ -533,29 +511,29 @@ app.post("/api/ask-ai", async (req, res) => {
     setTimeout(() => {
       let mockAnswer = "";
       if (lang === "ar") {
-        mockAnswer = `### Ø£Ù‡Ù„Ø§Ù‹ Ø¨Ùƒ ÙŠØ§ Ø²Ù…ÙŠÙ„(Ø©) ÙÙŠ ØªØ·Ø¨ÙŠÙ‚ Ø¬Ø§Ù…Ø¹ØªÙƒ! ðŸ‘‹ (Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ ÙÙŠ ÙˆØ¶Ø¹ Ø§Ù„Ø§Ø³ØªØ¹Ø¯Ø§Ø¯)
+        mockAnswer = `### أهلاً بك يا زميل(ة) في تطبيق جامعتك! 👋 (الذكاء الاصطناعي في وضع الاستعداد)
 
-Ø´ÙƒØ±Ø§Ù‹ Ù„Ø³Ø¤Ø§Ù„Ùƒ Ø­ÙˆÙ„ **"${query}"** ÙÙŠ Ø¬Ø§Ù…Ø¹Ø© **${university === 'all' ? 'Ø¹Ø±Ø§Ù‚ÙŠØ©' : university}**. 
+شكراً لسؤالك حول **"${query}"** في جامعة **${university === 'all' ? 'عراقية' : university}**. 
 
-Ø¨ØµÙØªÙŠ Ù…Ø±Ø´Ø¯Ùƒ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØŒ Ø¥Ù„ÙŠÙƒ ØªÙˆØ¬ÙŠÙ‡ Ø£ÙˆÙ„ÙŠ Ø³Ø±ÙŠØ¹:
-1. **Ø§Ù„ØºÙŠØ§Ø¨Ø§Øª ÙˆØ§Ù„Ø¥Ù†Ø°Ø§Ø±Ø§Øª:** Ø±Ø§Ø¬Ø¹ Ù…ÙƒØªØ¨ Ù…Ø¹Ø§ÙˆÙ† Ø§Ù„Ø¹Ù…ÙŠØ¯ Ù„Ø´Ø¤ÙˆÙ† Ø§Ù„Ø·Ù„Ø¨Ø© ÙÙˆØ±Ø§Ù‹ ÙˆÙ‚Ø¯Ù… Ø·Ù„Ø¨Ø§Ù‹ Ø±Ø³Ù…ÙŠØ§Ù‹ Ø¥Ø°Ø§ ÙƒØ§Ù† Ù„Ø¯ÙŠÙƒ Ø¹Ø°Ø± Ø·Ø¨ÙŠ Ù…Ø¹ØªÙ…Ø¯ Ù…Ù† Ù…Ø³ØªØ´ÙÙ‰ Ø­ÙƒÙˆÙ…ÙŠ.
-2. **Ø§Ù„ØªØ¯Ø±ÙŠØ¨ ÙˆØ§Ù„Ù…Ø³ØªÙ‚Ø¨Ù„:** ØªÙÙ‚Ø¯ Ø¬Ø²Ø¡ **"Ù…Ø³ØªÙ‚Ø¨Ù„Ùƒ"** ÙÙŠ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ù„Ù„ØªÙ‚Ø¯ÙŠÙ… Ø¹Ù„Ù‰ Ø£Ø­Ø¯Ø« Ø§Ù„ÙØ±Øµ Ø§Ù„ØªØ¯Ø±ÙŠØ¨ÙŠØ© ÙˆØ§Ù„Ù…Ù†Ø­ Ø§Ù„Ù…ØªØ§Ø­Ø© Ù„Ø·Ù„Ø§Ø¨ Ù…Ø­Ø§ÙØ¸Ø© **${governorate}**.
-3. **Ù„Ù„Ø§Ø³ØªØ²Ø§Ø¯Ø©:** ÙˆØ§ÙƒØ¨ Ø§Ù„Ù…Ù†Ø§Ù‚Ø´Ø§Øª ÙÙŠ ØªØ¨ÙˆÙŠØ¨ **"Ø§Ø³Ø£Ù„"** Ù„Ù…Ø´Ø§Ø±ÙƒØ© Ø²Ù…Ù„Ø§Ø¦Ùƒ Ù…Ù† Ù†ÙØ³ Ø§Ù„Ù‚Ø³Ù… Ø§Ù„Ø¢Ø±Ø§Ø¡.
+بصفتي مرشدك الأكاديمي، إليك توجيه أولي سريع:
+1. **الغيابات والإنذارات:** راجع مكتب معاون العميد لشؤون الطلبة فوراً وقدم طلباً رسمياً إذا كان لديك عذر طبي معتمد من مستشفى حكومي.
+2. **التدريب والمستقبل:** تفقد جزء **"مستقبلك"** في التطبيق للتقديم على أحدث الفرص التدريبية والمنح المتاحة لطلاب محافظة **${governorate}**.
+3. **للاستزادة:** واكب المناقشات في تبويب **"اسأل"** لمشاركة زملائك من نفس القسم الآراء.
 
-*(Ù…Ù„Ø§Ø­Ø¸Ø©: Ù‡Ø°Ø§ Ø±Ø¯ Ù†Ø§Ø¨Ø¹ Ù…Ù† Ù†Ø¸Ø§Ù… Ø§Ù„Ù…Ø¹Ø§Ù„Ø¬Ø© Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ© Ø§Ù„Ù…ØµØºØ±ØŒ Ù„ØªÙØ¹ÙŠÙ„ ÙƒØ§Ù…Ù„ Ù‚Ø¯Ø±Ø§Øª Ø°ÙƒØ§Ø¡ GeminiØŒ ÙŠØ±Ø¬Ù‰ ØªÙ‡ÙŠØ¦Ø© Ù…ÙØªØ§Ø­ GEMINI_API_KEY ÙÙŠ Ù„ÙˆØ­Ø© Ø¶Ø¨Ø· Ø§Ù„Ø£Ø³Ø±Ø§Ø±).*`;
+*(ملاحظة: هذا رد نابع من نظام المعالجة الأكاديمية المصغر، لتفعيل كامل قدرات ذكاء Gemini، يرجى تهيئة مفتاح GEMINI_API_KEY في لوحة ضبط الأسرار).*`;
       } else if (lang === "ku") {
-        mockAnswer = `### Ø³ÚµØ§Ùˆ Ù‡Ø§ÙˆÚ•ÛŽÛŒ Ø²Ø§Ù†Ú©Û†! ðŸ‘‹ (ÙˆÛ•ÚµØ§Ù…ÛŒ Ø¦Ø§Ù…Ø§Ø¯Û•Ú©Ø±Ø§ÙˆÛŒ Ø®ÛŽØ±Ø§)
+        mockAnswer = `### سڵاو هاوڕێی زانکۆ! 👋 (وەڵامی ئامادەکراوی خێرا)
 
-Ø³ÙˆÙ¾Ø§Ø³ Ø¨Û† Ù¾Ø±Ø³ÛŒØ§Ø±Û•Ú©Û•Øª Ø¯Û•Ø±Ø¨Ø§Ø±Û•ÛŒ **"${query}"** Ù„Û• Ø®ÙˆÛŽÙ†Ø¯Ù†Ú¯Û•/Ø²Ø§Ù†Ú©Û†ÛŒ **${university === 'all' ? 'Ø¹ÛŽØ±Ø§Ù‚' : university}**.
+سوپاس بۆ پرسیارەکەت دەربارەی **"${query}"** لە خوێندنگە/زانکۆی **${university === 'all' ? 'عێراق' : university}**.
 
-ÙˆÛ•Ú© Ú•Ø§ÙˆÛŽÚ˜Ú©Ø§Ø±ÛŒ Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒ ØªÛ†:
-1. **Ø¦Ø§Ù…Ø§Ø¯Û•Ù†Û•Ø¨ÙˆÙˆÙ†:** Ø³Û•Ø±Ø¯Ø§Ù†ÛŒ ÛŒØ§Ø±ÛŒØ¯Û•Ø¯Û•Ø±ÛŒ Ú•Ø§Ú¯Ø± Ø¨Ú©Û• Ø¨Û† Ú©Ø§Ø±ÙˆØ¨Ø§Ø±ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±Ø§Ù† Ø¨Û•Ù¾Û•Ù„Û• Ø¦Û•Ú¯Û•Ø± Ù…Û†ÚµÛ•ØªÛŒ Ù¾Ø²ÛŒØ´Ú©ÛŒØª Ù‡Û•ÛŒÛ•.
-2. **Ø¯Ø§Ù‡Ø§ØªÙˆÙˆØª:** Ø³Û•Ø±Ø¯Ø§Ù†ÛŒ Ø¨Û•Ø´ÛŒ **"Ø¯Ø§Ù‡Ø§ØªÙˆÙˆØª"** Ø¨Ú©Û• Ø¨Û† Ø¯Û†Ø²ÛŒÙ†Û•ÙˆÛ•ÛŒ Ù‡Û•Ù„ÛŒ Ú©Ø§Ø± Ùˆ Ù…Û•Ø´Ù‚ Ù„Û• Ù¾Ø§Ø±ÛŽØ²Ú¯Ø§ÛŒ **${governorate}**.
-3. **Ù‡Ø§ÙˆÚ©Ø§Ø±ÛŒ:** Ù„Û• Ø¨Û•Ø´ÛŒ **"Ø¨Ù¾Ø±Ø³Û•"** Ù‡Ø§ÙˆÚ©Ø§Ø±ÛŒ ÙˆÛ•Ø±Ø¨Ú¯Ø±Û• Ù„Û• Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±Ø§Ù†ÛŒ ØªØ±.
+وەک ڕاوێژکاری ئەکادیمی تۆ:
+1. **ئامادەنەبوون:** سەردانی یاریدەدەری ڕاگر بکە بۆ کاروباری خوێندکاران بەپەلە ئەگەر مۆڵەتی پزیشکیت هەیە.
+2. **داهاتووت:** سەردانی بەشی **"داهاتووت"** بکە بۆ دۆزینەوەی هەلی کار و مەشق لە پارێزگای **${governorate}**.
+3. **هاوکاری:** لە بەشی **"بپرسە"** هاوکاری وەربگرە لە خوێندکارانی تر.
 
-*(ØªÛŽØ¨ÛŒÙ†ÛŒ: Ø¨Û† Ú†Ø§Ù„Ø§Ú©Ú©Ø±Ø¯Ù†ÛŒ ØªÙ‡â€ŒÙˆØ§ÙˆÛŒ Ø³ÛŒØ³ØªÙ‡â€ŒÙ…ÛŒ Ù„ÛŽÚ©Ø¯Ø§Ù†Ù‡â€ŒÙˆÙ‡â€ŒÛŒ Ø²ÛŒØ±Û•Ú©ÛŒ GeminiØŒ ØªÚ©Ø§ÛŒÛ• Ú©Ù„ÛŒÙ„Û• Ù†Ù‡ÛŽÙ†ÛŒÛŒÛ•Ú©Û• Ù„Û• Ø¨Û•Ø´ÛŒ Ù†Ù‡ÛŽÙ†ÛŒÛŒÛ•Ú©Ø§Ù† Ø¬ÛŽØ¨Û•Ø¬ÛŽ Ø¨Ú©Û•).*`;
+*(تێبینی: بۆ چالاککردنی ته‌واوی سیسته‌می لێکدانه‌وه‌ی زیرەکی Gemini، تکایە کلیلە نهێنییەکە لە بەشی نهێنییەکان جێبەجێ بکە).*`;
       } else {
-        mockAnswer = `### Hello there, fellow student! ðŸ‘‹ (Offline Knowledge Base Response)
+        mockAnswer = `### Hello there, fellow student! 👋 (Offline Knowledge Base Response)
 
 Thank you for asking about **"${query}"** regarding **${university === 'all' ? 'your university' : university}** in **${governorate === 'all' ? 'Iraq' : governorate}**.
 
@@ -574,9 +552,9 @@ Here is my initial guidance for you:
   try {
     const ai = getGeminiClient();
 
-    const systemInstruction = `You are Al-Murshed (Ø§Ù„Ù…Ø±Ø´Ø¯), a warm, supportive, motivating, and highly knowledgeable AI Campus Advisor built into the "Iraqi Campus Social App".
+    const systemInstruction = `You are Al-Murshed (المرشد), a warm, supportive, motivating, and highly knowledgeable AI Campus Advisor built into the "Iraqi Campus Social App".
     Your entire mission is to help Iraqi university students, fresh graduates, teachers, and staff navigate their academics, careers, and college lives.
-    You possess deep, accurate knowledge of the Iraqi higher education system under the Ministry of Higher Education and Scientific Research (MoHESR), including common policies (e.g., Ø¨Ø±Ø§Ø¡Ø© Ø°Ù…Ø©, Ø¥Ù†Ø°Ø§Ø± ØºÙŠØ§Ø¨Ø§Øª, Ù…Ø¹Ø§ÙˆÙ† Ø§Ù„Ø¹Ù…ÙŠØ¯, Ù…Ù„Ø§Ø²Ù…, Ø¹Ø¨ÙˆØ±, ØªØ­Ù…ÙŠÙ„, Ù…Ø¹Ø¯Ù„ ØªØ±Ø§ÙƒÙ…ÙŠ).
+    You possess deep, accurate knowledge of the Iraqi higher education system under the Ministry of Higher Education and Scientific Research (MoHESR), including common policies (e.g., براءة ذمة, إنذار غيابات, معاون العميد, ملازم, عبور, تحميل, معدل تراكمي).
     You are familiar with the job market in Iraq (companies like Zain, Asiacell, Korek, local tech startups in Erbil/Baghdad/Basra, development NGOs, and universities).
 
     Context for current user query:
@@ -659,7 +637,7 @@ app.all("/api/opportunity-automation*", async (req, res) => {
     }
   } catch (err: any) {
     console.error("Proxy error for opportunity-automation:", err);
-    res.status(502).json({ success: false, error: "Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø£ØªÙ…ØªØ© ÙˆØ§Ù„ÙØ±Øµ ØºÙŠØ± Ù…ØªØµÙ„Ø© Ù…Ø¤Ù‚ØªØ§Ù‹: " + err.message });
+    res.status(502).json({ success: false, error: "بوابة الأتمتة والفرص غير متصلة مؤقتاً: " + err.message });
   }
 });
 
@@ -704,7 +682,7 @@ app.all("/api/outreach*", async (req, res) => {
     }
   } catch (err: any) {
     console.error("Proxy error for outreach:", err);
-    res.status(502).json({ success: false, error: "Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø±Ø³Ø§Ø¦Ù„ Ù„Ù„ØªÙˆØ§ØµÙ„ ØºÙŠØ± Ù…ØªØµÙ„Ø©: " + err.message });
+    res.status(502).json({ success: false, error: "بوابة الرسائل للتواصل غير متصلة: " + err.message });
   }
 });
 
@@ -736,4 +714,3 @@ async function initServer() {
 initServer().catch((error) => {
   console.error("Failed to start server:", error);
 });
-
