@@ -22,7 +22,7 @@ interface HomeFeedProps {
   onJoinGroup: (id: string) => void;
   onAddComment: (id: string, commentText: string) => void;
   onNavigateTab: (tabId: 'home' | 'life' | 'ask' | 'future' | 'profile') => void;
-  onAddNewPost: (title: string, body: string, anonymous: boolean) => void;
+  onAddNewPost: (title: string, body: string, anonymous: boolean, customType?: string, imageUrl?: string) => void;
   isFeedLoading?: boolean;
   onAwardPoints?: (points: number) => void;
   showToast?: (text: string, type?: 'success' | 'error' | 'info') => void;
@@ -222,6 +222,8 @@ export default function HomeFeed({
   const [showPublisher, setShowPublisher] = useState(false);
   const [postTitle, setPostTitle] = useState('');
   const [postBody, setPostBody] = useState('');
+  const [postImageUrl, setPostImageUrl] = useState('');
+  const [isDragging, setIsDragging] = useState(false);
   const [anonymous, setAnonymous] = useState(false);
   const [message, setMessage] = useState('');
 
@@ -347,10 +349,11 @@ export default function HomeFeed({
     if (!postBody.trim()) return;
 
     const generatedTitle = postTitle.trim() || (anonymous ? 'Anonymous Question' : 'Campus Moment 🌟');
-    onAddNewPost(generatedTitle, postBody, anonymous);
+    onAddNewPost(generatedTitle, postBody, anonymous, 'post', postImageUrl || undefined);
     
     setPostTitle('');
     setPostBody('');
+    setPostImageUrl('');
     setAnonymous(false);
     setShowPublisher(false);
 
@@ -745,6 +748,99 @@ export default function HomeFeed({
                 placeholder={language === 'ar' ? 'اكتب ما تفكر به لمشاركته مع الكلية...' : language === 'ku' ? 'ئەمڕۆ چی لە زانکۆ ڕوودەدات؟...' : 'What is happening on campus today?'}
                 className="w-full text-xs font-semibold text-[#161A33] bg-white border border-[#E6E1F5] rounded-xl p-3.5 focus:bg-[#F3F7FF] focus:outline-none focus:border-[#6B25C9] transition-colors resize-none"
               />
+
+              {/* Photo attachment component */}
+              <div 
+                className={`border-2 border-dashed rounded-xl p-3 transition-colors text-center ${
+                  isDragging 
+                    ? 'border-[#6B25C9] bg-[#F7F4FF]' 
+                    : 'border-[#E6E1F5] hover:border-[#6B25C9] bg-white'
+                }`}
+                onDragOver={(e) => {
+                  e.preventDefault();
+                  setIsDragging(true);
+                }}
+                onDragLeave={() => setIsDragging(false)}
+                onDrop={(e) => {
+                  e.preventDefault();
+                  setIsDragging(false);
+                  const files = e.dataTransfer.files;
+                  if (files && files[0]) {
+                    const file = files[0];
+                    if (file.type.startsWith('image/')) {
+                      const reader = new FileReader();
+                      reader.onload = (uploadEvent) => {
+                        if (uploadEvent.target?.result) {
+                          setPostImageUrl(String(uploadEvent.target.result));
+                        }
+                      };
+                      reader.readAsDataURL(file);
+                    }
+                  }
+                }}
+              >
+                {postImageUrl ? (
+                  <div className="relative inline-block w-full max-w-[200px] rounded-lg overflow-hidden border border-[#E6E1F5]">
+                    <img 
+                      src={postImageUrl} 
+                      alt="Attachment Preview" 
+                      className="w-full h-auto object-cover max-h-32"
+                      referrerPolicy="no-referrer"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setPostImageUrl('')}
+                      className="absolute top-1 right-1 p-1 bg-black/65 text-white rounded-full hover:bg-black/95 cursor-pointer"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+                ) : (
+                  <div className="flex flex-col items-center justify-center gap-1.5 py-1.5 cursor-pointer" onClick={() => document.getElementById('post-photo-upload')?.click()}>
+                    <Image className="w-6 h-6 text-[#6B25C9]" />
+                    <div className="text-[10px] font-bold text-slate-500">
+                      {language === 'ar' 
+                        ? 'اسحب وأسقط صورة هنا، أو اضغط للاختيار' 
+                        : language === 'ku' 
+                        ? 'وێنەیەک لێرە دابنێ، یان کلیک بکە بۆ هەڵبژاردن' 
+                        : 'Drag & drop a photo here, or click to browse'}
+                    </div>
+                    <input 
+                      type="file" 
+                      id="post-photo-upload" 
+                      accept="image/*" 
+                      className="hidden" 
+                      onChange={(e) => {
+                        const files = e.target.files;
+                        if (files && files[0]) {
+                          const file = files[0];
+                          const reader = new FileReader();
+                          reader.onload = (uploadEvent) => {
+                            if (uploadEvent.target?.result) {
+                              setPostImageUrl(String(uploadEvent.target.result));
+                            }
+                          };
+                          reader.readAsDataURL(file);
+                        }
+                      }}
+                    />
+                  </div>
+                )}
+
+                {/* Optional paste-by-url tool for supreme convenience */}
+                {!postImageUrl && (
+                  <div className="mt-2 pt-2 border-t border-slate-100 flex items-center gap-1.5 text-[10px] w-full max-w-xs mx-auto">
+                    <span className="text-slate-400 font-bold shrink-0">🔗 {language === 'ar' ? 'أو رابط:' : language === 'ku' ? 'یاخود لینک:' : 'Or URL:'}</span>
+                    <input 
+                      type="text" 
+                      placeholder="https://images.unsplash.com/..." 
+                      value={postImageUrl}
+                      onChange={(e) => setPostImageUrl(e.target.value)}
+                      className="flex-1 bg-slate-50 border border-[#E6E1F5] rounded-lg px-2 py-0.5 text-[9px] font-medium text-slate-700 focus:outline-none focus:bg-white"
+                    />
+                  </div>
+                )}
+              </div>
 
               <div className="flex items-center justify-between mt-1">
                 <label className="flex items-center gap-1.5 cursor-pointer bg-white border border-[#E6E1F5] px-3 py-1.5 rounded-xl hover:border-[#6B25C9] transition-colors" id="anonymous-toggle-label">

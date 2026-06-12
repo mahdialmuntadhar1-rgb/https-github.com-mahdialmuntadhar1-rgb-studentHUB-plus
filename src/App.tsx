@@ -634,7 +634,7 @@ export default function App() {
     }));
   };
 
-  const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post') => {
+  const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post', imageUrl?: string) => {
     const freshPost: FeedItem = {
       id: `custom-${Date.now()}`,
       type: customType as any,
@@ -644,6 +644,7 @@ export default function App() {
       contentEN: body,
       contentAR: body,
       contentKU: body,
+      imageUrl: imageUrl || undefined,
       author: anonymous ? {
         name: 'Anonymous Student',
         role: 'student',
