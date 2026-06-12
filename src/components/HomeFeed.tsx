@@ -431,6 +431,11 @@ export default function HomeFeed({
                 key={story.id} 
                 className="flex flex-col items-center gap-1.5 snap-start cursor-pointer shrink-0"
                 onClick={() => {
+                  // Special handling for Scholarships - navigate to dedicated page
+                  if (story.id === 'h_scholarships') {
+                    window.location.href = '/scholarships';
+                    return;
+                  }
                   // Switch sub-tab appropriately based on story characteristics
                   setActiveSubTab(story.tabType as any);
                   // Toggle active category specific filter
