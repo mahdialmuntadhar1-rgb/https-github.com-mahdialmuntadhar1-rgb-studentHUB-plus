@@ -361,12 +361,8 @@ export default function HomeFeed({
     setTimeout(() => setMessage(''), 3000);
   };
 
-  // Filter out any opportunities/careers listings from the main home feed, allowing only social, campus posts, and highlights.
-  const opportunityTypes = ['job', 'scholarship', 'internship', 'training', 'fellowship', 'volunteering', 'competition', 'part_time_job', 'graduation_project_support'];
-  const filteredFeedItems = feedItems.filter(item => {
-    const isOpportunity = opportunityTypes.includes(item.type);
-    return !isOpportunity;
-  });
+  // The homepage is a unified feed: approved campus highlights and opportunities live together.
+  const filteredFeedItems = feedItems;
 
   return (
     <div className="px-3.5 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-[#0B1020]" id="home-feed-container">

@@ -52,6 +52,7 @@ export interface FeedItem {
     | 'story'
     | 'poll'
     | 'anonymous_question'
+    | 'news'
     | 'announcement'
     | 'job'
     | 'internship'
@@ -66,7 +67,10 @@ export interface FeedItem {
     | 'competition'
     | 'graduation_project_support'
     | 'fellowship'
-    | 'exam';
+    | 'exam'
+    | 'registration'
+    | 'student_club'
+    | 'activity';
   
   // Localized Content
   titleEN: string;

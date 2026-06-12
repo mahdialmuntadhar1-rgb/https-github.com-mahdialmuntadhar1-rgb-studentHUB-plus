@@ -159,6 +159,8 @@ export default function FeedCard({
     switch (item.type) {
       case 'announcement':
         return { text: language === 'ar' ? 'إعلان رسمي' : language === 'ku' ? 'ڕاگەیاندن' : 'Official', color: 'bg-red-500/10 text-red-400 border-red-500/20' };
+      case 'news':
+        return { text: language === 'ar' ? 'خبر جامعي' : language === 'ku' ? 'هەواڵ' : 'News', color: 'bg-amber-500/10 text-amber-700 border-amber-300' };
       case 'job':
       case 'full_time_job':
         return { text: language === 'ar' ? 'دوام كامل' : language === 'ku' ? 'دەوامی تەواو' : 'Full-Time Job', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' };
@@ -442,7 +444,7 @@ export default function FeedCard({
         {title && (
           <h2 className="text-sm font-black text-[#161A33] tracking-tight leading-snug mb-1.5 flex flex-wrap items-center gap-1.5">
             <span>{title}</span>
-            {['job', 'internship', 'scholarship', 'training', 'part_time_job', 'full_time_job', 'volunteering', 'competition', 'graduation_project_support', 'fellowship', 'event', 'announcement', 'exam'].includes(item.type) && (
+            {['job', 'internship', 'scholarship', 'training', 'part_time_job', 'full_time_job', 'volunteering', 'competition', 'graduation_project_support', 'fellowship', 'event', 'news', 'announcement', 'exam', 'registration', 'student_club', 'activity'].includes(item.type) && (
               <>
                 {(item.date?.includes('Recently') || item.isNew) && (
                   <span className="text-[8px] font-black uppercase text-emerald-600 bg-emerald-100 border border-emerald-300 px-1.5 py-0.5 rounded shadow-sm leading-none shrink-0 animate-pulse">
@@ -474,6 +476,17 @@ export default function FeedCard({
         <p className="text-xs font-semibold text-slate-700 leading-relaxed break-words whitespace-pre-line mb-3">
           {content}
         </p>
+
+        {item.application_link && !['job', 'internship', 'scholarship', 'training', 'part_time_job', 'full_time_job', 'volunteering', 'competition', 'graduation_project_support', 'fellowship'].includes(item.type) && (
+          <button
+            type="button"
+            onClick={() => window.open(item.application_link, '_blank', 'noopener,noreferrer')}
+            className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-xl border-2 border-[#161A33] bg-[#FFD21F] px-3 py-2 text-[11px] font-black text-[#161A33] shadow-[2px_2px_0px_0px_#161A33] transition-all active:scale-95"
+          >
+            <FileText className="w-3.5 h-3.5" />
+            <span>{language === 'ar' ? 'اقرأ المزيد' : language === 'ku' ? 'زیاتر بخوێنەوە' : 'Read More'}</span>
+          </button>
+        )}
 
         {/* Media Attachments */}
         {renderImageGallery()}
@@ -631,7 +644,13 @@ export default function FeedCard({
             <div className="flex gap-1.5 mt-1 pt-2 border-t border-[#E6E1F5] relative z-10 font-sans">
               <button
                 id={`apply-btn-${item.id}`}
-                onClick={() => onApply(item.id)}
+                onClick={() => {
+                  if (item.application_link) {
+                    window.open(item.application_link, '_blank', 'noopener,noreferrer');
+                    return;
+                  }
+                  onApply(item.id);
+                }}
                 className={`flex-1 py-2.5 rounded-xl text-xs font-black tracking-tight cursor-pointer transition-all flex items-center justify-center gap-1.5 transform active:scale-95 border-2 border-[#161A33] ${
                   item.applied
                     ? 'bg-emerald-100 text-emerald-900 shadow-[2px_2px_0px_0px_#161A33]'

@@ -223,6 +223,19 @@ const categoryConfigs: Record<string, {
   }
 };
 
+const normalizeGovernorate = (raw: string | null | undefined): string => {
+  if (!raw) return 'all';
+  const val = raw.trim().toLowerCase();
+  if (val === 'all iraq') return 'all';
+  if (val === 'baghdad') return 'baghdad';
+  if (val === 'nineveh' || val.includes('mosul')) return 'nineveh';
+  if (val === 'basra' || val === 'basrah') return 'basra';
+  if (val === 'sulaymaniyah' || val === 'sulaimani' || val === 'sulaimaniyah') return 'sulaymaniyah';
+  if (val === 'erbil') return 'erbil';
+  if (val === 'duhok' || val === 'dohuk') return 'duhok';
+  return val.replace(/\s+/g, '_');
+};
+
 export default function SectionView({
   sectionId,
   language,
@@ -308,15 +321,16 @@ export default function SectionView({
 
             // Map standard FeedItem objects
             const mapped = filteredResults.map((item: any) => {
+              const category = item.category || item.type || categoryConfig.categoryValue;
               return {
                 id: item.id || `scraped-${Date.now()}-${Math.random()}`,
-                type: (item.category || item.type || categoryConfig.categoryValue) as any,
+                type: category as any,
                 titleEN: item.titleEN || item.title || 'Untitled Opportunity',
                 titleAR: item.titleAR || item.title || 'فرصة غير معنونة',
                 titleKU: item.titleKU || item.title || 'هەلی بێ ناونیشان',
-                contentEN: item.contentEN || item.content || 'Check original portal for instructions.',
-                contentAR: item.contentAR || item.content || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
-                contentKU: item.contentKU || item.content || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
+                contentEN: item.description || item.summary || item.contentEN || item.content || 'Check original portal for instructions.',
+                contentAR: item.contentAR || item.summary || item.description || item.content || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
+                contentKU: item.contentKU || item.summary || item.description || item.content || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
                 author: {
                   name: item.organization || item.institution_name || item.author?.name || 'Academic Center',
                   role: 'institution' as const,
@@ -327,14 +341,15 @@ export default function SectionView({
                 likes: item.likes || 10,
                 commentsCount: 0,
                 commentsList: [],
-                governorateId: item.governorateId || item.governorate || 'all',
-                universityId: item.universityId || item.university_id || 'all',
+                governorateId: normalizeGovernorate(item.governorateId || item.governorate),
+                universityId: item.universityId || item.university_id || item.institution_id || 'all',
                 tags: item.tags || [categoryConfig.categoryValue, 'Iraq'],
                 imageUrl: item.imageUrl || item.image_url || undefined,
+                original_source_url: item.source_url,
                 application_link: item.application_link || item.apply_url || item.source_url || undefined,
                 deadline: item.deadline || undefined,
                 company: item.organization || item.institution_name || undefined,
-                location: item.location || item.city || 'Iraq',
+                location: item.location || item.city || item.governorate || 'Iraq-wide',
                 whoCanApply: item.eligibility || item.whoCanApply || undefined,
                 salary: item.salary || item.salary_or_funding || undefined,
                 workplaceType: item.workplaceType || undefined,
