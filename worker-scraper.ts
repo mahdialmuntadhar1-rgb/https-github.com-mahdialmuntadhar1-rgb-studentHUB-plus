@@ -69,14 +69,9 @@ async function runMainScraper(env: Env, triggerType: string): Promise<any> {
       "SELECT id, name, url, type FROM sources WHERE enabled = 1"
     ).all();
     sourcesList = results || [];
-  } catch (err) {
-    console.error("Error reading D1 sources, fallback configured:", err);
-    // Worker fallback
-    sourcesList = [
-      { id: "asiacell", name: "Asiacell Careers Office", url: "https://www.asiacell.com/en/about-us/careers", type: "jobs" },
-      { id: "daad", name: "DAAD German Exchange Service", url: "https://www.daad-iraq.org/en/", type: "scholarships" },
-      { id: "fiveonelabs", name: "Five One Labs Incubator", url: "https://fiveonelabs.org/", type: "trainings" }
-    ];
+  } catch (err: any) {
+    console.error("Error reading D1 sources; scraper will not use fallback sources:", err);
+    sourcesList = [];
   }
 
   const resultsStats = {
@@ -112,6 +107,9 @@ async function runMainScraper(env: Env, triggerType: string): Promise<any> {
       // B. Parse opportunity components
       const rawOpportunities = extractOpportunitiesFromHTML(htmlContent, source);
       resultsStats.itemsFound += rawOpportunities.length;
+      if (rawOpportunities.length === 0) {
+        console.log(`[Scraper] 0 items found at ${source.name}; no simulated records created.`);
+      }
 
       // C. Process each scraped item
       for (const rawItem of rawOpportunities) {
@@ -119,7 +117,7 @@ async function runMainScraper(env: Env, triggerType: string): Promise<any> {
         const cleaned = cleanAndNormalizeOpportunity(rawItem);
 
         // Check for duplicates
-        const isDuplicate = await checkDuplicateInD1(env, cleaned.original_source_url);
+        const isDuplicate = await checkDuplicateInD1(env, cleaned);
         if (isDuplicate) {
           resultsStats.itemsDuplicate++;
           continue;
@@ -151,8 +149,8 @@ async function runMainScraper(env: Env, triggerType: string): Promise<any> {
         source_id: source.id,
         source_name: source.name,
         items_found: rawOpportunities.length,
-        items_new: rawOpportunities.length, // simple proxy representing parsed volume
-        items_duplicate: 0,
+        items_new: resultsStats.itemsNew,
+        items_duplicate: resultsStats.itemsDuplicate,
         errors: ""
       });
 
@@ -222,20 +220,6 @@ function extractOpportunitiesFromHTML(html: string, source: any): any[] {
       });
       count++;
     }
-  }
-
-  // If no targets were matched, generate a dynamic high-fidelity simulated scraped element matching realistic Iraq listings
-  if (items.length === 0) {
-    items.push({
-      titleEN: `New Opportunities Intake Announcement at ${source.name}`,
-      contentEN: `Freshly updated academic opening. Highly tailored for student developers, tech enthusiasts and multi-lingual candidates inside Iraq. Consult original listing for terms.`,
-      organization: source.name,
-      original_source_url: source.url,
-      application_link: source.url,
-      published_date: new Date().toISOString().split("T")[0],
-      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-      imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600"
-    });
   }
 
   return items;
@@ -335,11 +319,22 @@ function classifyOpportunityCategory(text: string, sourceType: string): string {
 /**
  * 6. UTILITY D1 CONTEXT AGENTS
  */
-async function checkDuplicateInD1(env: Env, originalUrl: string): Promise<boolean> {
+async function checkDuplicateInD1(env: Env, item: any): Promise<boolean> {
   try {
     const record = await env.DB.prepare(
-      "SELECT id FROM opportunities WHERE original_source_url = ? LIMIT 1"
-    ).bind(originalUrl).first();
+      `SELECT id FROM opportunities
+       WHERE original_source_url = ?
+          OR (lower(titleEN) = lower(?) AND lower(organization) = lower(?))
+          OR (lower(titleEN) = lower(?) AND deadline = ? AND lower(category) = lower(?))
+       LIMIT 1`
+    ).bind(
+      item.original_source_url,
+      item.titleEN,
+      item.organization,
+      item.titleEN,
+      item.deadline,
+      item.category
+    ).first();
     return !!record;
   } catch {
     return false;
@@ -373,7 +368,7 @@ async function insertOpportunityToD1(env: Env, item: any): Promise<void> {
       item.original_source_url,
       item.published_date,
       item.imageUrl,
-      "pending",
+      "pending_review",
       item.workplaceType || "On-site",
       item.whoCanApply || "Open to all Iraqi undergraduates and fresh graduates.",
       item.salary || "Depends on qualification recruiter check",

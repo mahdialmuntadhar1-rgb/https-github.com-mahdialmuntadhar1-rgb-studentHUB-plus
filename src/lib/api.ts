@@ -1,9 +1,15 @@
 import { Language } from '../types';
 
 export const BACKEND_URL =
-  ((import.meta as any).env?.VITE_API_URL as string | undefined) ||
-  'https://rafid-api.mahdialmuntadhar1.workers.dev';
+  (((import.meta as any).env?.VITE_API_URL as string | undefined) || '').trim().replace(/\/$/, '');
 const API_BASE = `${BACKEND_URL}/api`;
+
+export type AuthUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: string;
+};
 
 function getHeaders() {
   const headers: Record<string, string> = {
@@ -16,14 +22,15 @@ function getHeaders() {
   return headers;
 }
 
-async function handleResponse(response: Response, language: Language = 'ar') {
+async function handleResponse(response: Response, language: Language = 'ar', options: { suppressAuthAlert?: boolean } = {}) {
   if (response.status === 401) {
-    alert(language === 'ar' ? 'Ù‚Ù… Ø¨ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ ÙƒÙ…Ø³Ø¤ÙˆÙ„ Ø£ÙˆÙ„Ø§Ù‹.' : language === 'ku' ? 'ØªÚ©Ø§ÛŒÛ• Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ• ÙˆÛ•Ú© Ø³Û•Ø±Ù¾Û•Ø±Ø´ØªÛŒØ§Ø±.' : 'Admin login required.');
-    window.location.href = '#/login';
-    throw new Error('Admin login required');
+    if (!options.suppressAuthAlert) {
+      alert(language === 'ar' ? 'قم بتسجيل الدخول أولاً.' : language === 'ku' ? 'تکایە سەرەتا بچۆ ژوورەوە.' : 'Login required.');
+    }
+    throw new Error(language === 'ar' ? 'تسجيل الدخول مطلوب.' : language === 'ku' ? 'چوونەژوورەوە پێویستە.' : 'Login required.');
   }
   if (response.status === 403) {
-    alert(language === 'ar' ? 'ÙˆØµÙˆÙ„ Ù„Ù„Ù…Ø³Ø¤ÙˆÙ„ÙŠÙ† ÙÙ‚Ø·!' : language === 'ku' ? 'ØªÛ•Ù†Ù‡Ø§ Ø¨Û† Ø¨Û•Ú•ÛŽÙˆÛ•Ø¨Û•Ø±Ø§Ù† Ú•ÛŽÚ¯Û•Ù¾ÛŽØ¯Ø±Ø§ÙˆÛ•!' : 'Admin access only');
+    alert(language === 'ar' ? 'وصول للمسؤولين فقط!' : language === 'ku' ? 'تەنها بۆ بەڕێوەبەران ڕێگەپێدراوە!' : 'Admin access only');
     throw new Error('Admin access only');
   }
 
@@ -31,13 +38,13 @@ async function handleResponse(response: Response, language: Language = 'ar') {
   if (contentType && contentType.includes('application/json')) {
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.message || data.error || (language === 'ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø®Ø§Ø¯Ù…' : 'Server error occurred'));
+      throw new Error(data.message || data.error || (language === 'ar' ? 'حدث خطأ في الخادم' : language === 'ku' ? 'هەڵەیەک لە سێرڤەر ڕوویدا' : 'Server error occurred'));
     }
     return data;
   } else {
     const text = await response.text();
     if (!response.ok) {
-      throw new Error(text || (language === 'ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£ ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ' : 'Unknown error occurred'));
+      throw new Error(text || (language === 'ar' ? 'حدث خطأ غير معروف' : language === 'ku' ? 'هەڵەیەکی نەناسراو ڕوویدا' : 'Unknown error occurred'));
     }
     return text;
   }
@@ -70,6 +77,13 @@ export const authApi = {
       body: JSON.stringify({ email }),
     });
     return await handleResponse(res, lang);
+  },
+
+  async me(lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/auth/me`, {
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang, { suppressAuthAlert: true });
   },
 };
 
@@ -321,6 +335,75 @@ export async function getOpportunities(lang: Language = 'ar') {
     throw err;
   }
 }
+
+export const userContentApi = {
+  async getPosts(lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/posts`, {
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async createPost(data: any, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/posts`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async addComment(itemId: string, content: string, authorAvatar: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/items/${encodeURIComponent(itemId)}/comments`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ content, authorAvatar }),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async toggleLike(itemId: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/items/${encodeURIComponent(itemId)}/like`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async toggleSave(itemId: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/items/${encodeURIComponent(itemId)}/save`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async toggleApply(itemId: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/items/${encodeURIComponent(itemId)}/apply`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async updateProfile(data: any, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/user/profile`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(data),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async uploadImage(dataUrl: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/uploads/images`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ dataUrl }),
+    });
+    return await handleResponse(res, lang);
+  }
+};
 
 export const outreachApi = {
   async getContacts(params: { page?: number; limit?: number; search?: string; status?: string } = {}, lang: Language = 'ar') {

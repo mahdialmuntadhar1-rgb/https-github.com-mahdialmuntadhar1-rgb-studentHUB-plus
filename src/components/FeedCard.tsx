@@ -460,7 +460,7 @@ export default function FeedCard({
                 <div className="w-5 h-5 rounded-full bg-white border border-[#161A33] text-[8px] flex items-center justify-center font-bold shadow-sm">✨</div>
               </div>
               <p className="text-[10px] text-emerald-800 font-extrabold leading-tight">
-                {item.universityAppliedCount || 6} students from your university applied
+                {item.universityAppliedCount || 0} students from your university applied
               </p>
             </div>
 
@@ -470,7 +470,7 @@ export default function FeedCard({
                 🏷️ {item.opportunityCategory || 'Career'}
               </span>
               <span className="text-[#6B25C9] flex items-center gap-0.5 bg-[#6B25C9]/10 px-2 py-0.5 rounded-lg text-[9px] font-black">
-                ⭐ {item.savedByUser ? (item.savedCount || 12) + 1 : (item.savedCount || 12)} saved by peers
+                ⭐ {item.savedByUser ? (item.savedCount || 0) + 1 : (item.savedCount || 0)} saved by peers
               </span>
             </div>
 

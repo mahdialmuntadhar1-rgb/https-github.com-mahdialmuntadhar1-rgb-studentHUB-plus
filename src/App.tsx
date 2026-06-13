@@ -12,11 +12,12 @@ import ProfileView from './components/ProfileView';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
-import { BACKEND_URL } from './lib/api';
+import { AuthUser, BACKEND_URL, authApi, userContentApi } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
 
 export default function App() {
+  const opportunityTypes = new Set(['job', 'internship', 'scholarship', 'training', 'competition', 'volunteering', 'fellowship', 'full_time_job', 'part_time_job']);
   // Locale States
   const [language, setLanguage] = useState<Language>('ar');
   const [selectedGov, setSelectedGov] = useState<string>('all');
@@ -84,11 +85,44 @@ export default function App() {
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => Boolean(localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token')));
   const [isAdminVerified, setIsAdminVerified] = useState<boolean>(() => Boolean(localStorage.getItem('admin_token')));
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const isAdminRole = (role?: string) => role === 'admin' || role === 'staff' || role === 'super_admin';
+  const toProfileRole = (role?: string): UserProfile['role'] => {
+    if (role === 'graduate' || role === 'teacher' || role === 'institution') return role;
+    if (isAdminRole(role)) return 'staff';
+    return 'student';
+  };
+  const clearAuthSession = () => {
+    setIsLoggedIn(false);
+    setIsAdminVerified(false);
+    localStorage.removeItem('jamiaati_logged_in');
+    localStorage.removeItem('jamiaati_token');
+    localStorage.removeItem('admin_token');
+    localStorage.removeItem('jamiaati_user');
+  };
+  const applyAuthSession = (token: string, user: AuthUser) => {
+    localStorage.setItem('jamiaati_token', token);
+    localStorage.setItem('jamiaati_user', JSON.stringify(user));
+    if (isAdminRole(user.role)) {
+      localStorage.setItem('admin_token', token);
+    } else {
+      localStorage.removeItem('admin_token');
+    }
+    localStorage.removeItem('jamiaati_logged_in');
+    setIsLoggedIn(true);
+    setIsAdminVerified(isAdminRole(user.role));
+    setUserProfile(prev => ({
+      ...prev,
+      id: user.id || prev.id,
+      name: user.name || prev.name || 'طالب جامعتي',
+      role: toProfileRole(user.role)
+    }));
+  };
 
   // Feed database state (persisted in session / local storage for active play)
   const [feedItems, setFeedItems] = useState<FeedItem[]>(() => {
     const saved = localStorage.getItem('jamiaati_feed_v2');
-    return saved ? JSON.parse(saved) : initialFeedItems;
+    const sourceItems = saved ? JSON.parse(saved) : initialFeedItems;
+    return sourceItems.filter((item: FeedItem) => !opportunityTypes.has(item.type));
   });
 
   // User profile state (gamification & badges tracker)
@@ -96,6 +130,36 @@ export default function App() {
     const saved = localStorage.getItem('jamiaati_profile_v2');
     return saved ? JSON.parse(saved) : defaultUserProfile;
   });
+
+  useEffect(() => {
+    const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+    if (!token) {
+      clearAuthSession();
+      return;
+    }
+
+    let cancelled = false;
+    authApi.me(language)
+      .then((result) => {
+        if (cancelled) return;
+        const user = result?.user as AuthUser | undefined;
+        if (!user) {
+          clearAuthSession();
+          return;
+        }
+        applyAuthSession(token, user);
+      })
+      .catch(() => {
+        if (!cancelled) {
+          clearAuthSession();
+          if (activeTab === 'admin') setActiveTab('profile');
+        }
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, []);
 
   // Sync to local states
   useEffect(() => {
@@ -241,7 +305,10 @@ export default function App() {
   useEffect(() => {
     const fetchOpps = async () => {
       try {
-        const response = await fetch(`${BACKEND_URL}/api/opportunities`);
+        const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+        const response = await fetch(`${BACKEND_URL}/api/opportunities`, {
+          headers: token ? { Authorization: `Bearer ${token}` } : {}
+        });
         if (response.ok) {
           const list = await response.json();
           if (Array.isArray(list)) {
@@ -260,9 +327,12 @@ export default function App() {
                 avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
                 verified: true
               },
-              date: item.published_date ? `Scraped on ${item.published_date}` : 'Recently scraped ðŸ””',
-              likes: 12,
-              commentsCount: 0,
+              date: item.published_date ? `Published on ${item.published_date}` : 'Recently published',
+              likes: Number(item.likes || 0),
+              likedByUser: Boolean(item.likedByUser),
+              savedByUser: Boolean(item.savedByUser),
+              applied: Boolean(item.applied),
+              commentsCount: Number(item.commentsCount || 0),
               commentsList: [],
               governorateId: item.governorateId || 'all',
               universityId: 'all',
@@ -280,12 +350,13 @@ export default function App() {
                                      item.category === 'graduation_support' ? 'Graduation project support' : 'Full-time graduate job') as any,
               workplaceType: item.workplaceType || 'On-site',
               whoCanApply: item.whoCanApply || 'Iraqi students',
-              salary: item.salary || 'Recruiter structured'
+              salary: item.salary || 'Recruiter structured',
+              savedCount: Number(item.savedCount || 0),
+              universityAppliedCount: Number(item.universityAppliedCount || 0)
             }));
 
-            // Filter out existing dbFeedItems duplicates based on ID starting with 'scraped-'
             setFeedItems(prev => {
-              const staticItems = prev.filter(p => !p.id.startsWith('scraped-'));
+              const staticItems = prev.filter(p => !opportunityTypes.has(p.type));
               return [...dbFeedItems, ...staticItems];
             });
           }
@@ -298,7 +369,55 @@ export default function App() {
   }, [activeTab]);
 
   useEffect(() => {
+    const fetchUserPosts = async () => {
+      try {
+        const result = await userContentApi.getPosts(language);
+        const posts = result?.posts || [];
+        const mappedPosts: FeedItem[] = posts.map((post: any) => ({
+          id: post.id,
+          type: post.type || 'post',
+          titleEN: post.titleEN || post.title || '',
+          titleAR: post.titleAR || post.title || '',
+          titleKU: post.titleKU || post.title || '',
+          contentEN: post.contentEN || post.content || '',
+          contentAR: post.contentAR || post.content || '',
+          contentKU: post.contentKU || post.content || '',
+          author: {
+            name: post.anonymous ? 'Anonymous Student' : (post.authorName || 'Student'),
+            role: post.authorRole === 'admin' ? 'staff' : (post.authorRole || 'student'),
+            avatar: post.anonymous ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100' : userProfile.avatar
+          },
+          date: post.createdAt ? `Posted on ${post.createdAt.split('T')[0]}` : 'Recently posted',
+          rawDate: post.createdAt,
+          likes: Number(post.likes || 0),
+          commentsCount: Number(post.commentsCount || 0),
+          commentsList: post.commentsList || [],
+          likedByUser: Boolean(post.likedByUser),
+          savedByUser: Boolean(post.savedByUser),
+          governorateId: post.governorateId || 'all',
+          universityId: post.universityId || 'all',
+          imageUrl: post.imageUrl || undefined
+        }));
+
+        setFeedItems(prev => {
+          const nonBackendPosts = prev.filter(item => !String(item.id).startsWith('post-'));
+          return [...mappedPosts, ...nonBackendPosts];
+        });
+      } catch (err) {
+        console.warn('Could not hydrate backend posts; using local cache only.', err);
+      }
+    };
+
+    fetchUserPosts();
+  }, [isLoggedIn]);
+
+  useEffect(() => {
     localStorage.setItem('jamiaati_profile_v2', JSON.stringify(userProfile));
+    if (isLoggedIn) {
+      void userContentApi.updateProfile(userProfile, language).catch(() => {
+        // Local cache remains responsive; backend will retry on the next profile change.
+      });
+    }
   }, [userProfile]);
 
   // Adjust application alignment automatically based on language direction
@@ -306,6 +425,11 @@ export default function App() {
 
   // State modification events
   const handleLike = (id: string) => {
+    if (isLoggedIn) {
+      void userContentApi.toggleLike(id, language).catch((err) => {
+        showToast(err.message, 'error');
+      });
+    }
     let triggeredToast = false;
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
@@ -336,6 +460,11 @@ export default function App() {
   };
 
   const handleSave = (id: string) => {
+    if (isLoggedIn) {
+      void userContentApi.toggleSave(id, language).catch((err) => {
+        showToast(err.message, 'error');
+      });
+    }
     let triggeredToast = false;
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
@@ -396,6 +525,11 @@ export default function App() {
   };
 
   const handleApply = (id: string) => {
+    if (isLoggedIn) {
+      void userContentApi.toggleApply(id, language).catch((err) => {
+        showToast(err.message, 'error');
+      });
+    }
     let triggeredToast = false;
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
@@ -510,6 +644,11 @@ export default function App() {
       }
       return item;
     }));
+    if (isLoggedIn) {
+      void userContentApi.addComment(itemId, content, userProfile.avatar, language).catch((err) => {
+        showToast(err.message, 'error');
+      });
+    }
   };
 
   const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post') => {
@@ -548,6 +687,32 @@ export default function App() {
       'success'
     );
     setFeedItems(prev => [freshPost, ...prev]);
+    if (isLoggedIn) {
+      void userContentApi.createPost({
+        title,
+        content: body,
+        anonymous,
+        type: customType,
+        governorateId: selectedGov === 'all' ? userProfile.governorateId : selectedGov,
+        universityId: selectedUni === 'all' ? userProfile.universityId : selectedUni
+      }, language).then((result) => {
+        const backendPost = result?.post;
+        if (!backendPost) return;
+        setFeedItems(prev => prev.map(item => item.id === freshPost.id ? { ...item, id: backendPost.id } : item));
+        if (backendPost.status === 'pending_review') {
+          showToast(
+            language === 'ar'
+              ? 'تم حفظ المنشور المجهول للمراجعة قبل النشر.'
+              : language === 'ku'
+              ? 'بابەتی نادیار بۆ پێداچوونەوە پاشەکەوت کرا.'
+              : 'Anonymous post saved for moderation before publishing.',
+            'info'
+          );
+        }
+      }).catch((err) => {
+        showToast(err.message, 'error');
+      });
+    }
   };
 
   // Gamification engine helpers
@@ -703,11 +868,7 @@ export default function App() {
             onToggleUserRole={handleRoleToggle}
             isLoggedIn={isLoggedIn}
             onLogout={() => {
-              setIsLoggedIn(false);
-              setIsAdminVerified(false);
-              localStorage.removeItem('jamiaati_logged_in');
-              localStorage.removeItem('jamiaati_token');
-              localStorage.removeItem('admin_token');
+              clearAuthSession();
               showToast(
                 language === 'ar' ? 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø®Ø±ÙˆØ¬Ùƒ Ø¨Ù†Ø¬Ø§Ø­. Ù†Ø±Ø§Ùƒ Ù‚Ø±ÙŠØ¨Ø§Ù‹! ðŸ‘‹' : language === 'ku' ? 'Ø®Û†ØªÛ†Ù…Ø§Ø±Ú©Ø±Ø¯Ù†Û•Ú©Û•Øª Ú©Û†ØªØ§ÛŒÛŒ Ù¾ÛŽÙ‡Ø§Øª. Ø¨Û• Ù‡ÛŒÙˆØ§ÛŒ Ø¯ÛŒØ¯Ø§Ø±! ðŸ‘‹' : 'Logged out successfully. See you! ðŸ‘‹', 
                 'info'
@@ -840,26 +1001,17 @@ export default function App() {
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
           language={language}
-          onAuthSuccess={(newUsername, token, role) => {
-            const isAdminRole = role === 'admin' || role === 'staff' || role === 'super_admin';
-            setIsLoggedIn(Boolean(token));
-            setIsAdminVerified(Boolean(token) && isAdminRole);
-            localStorage.removeItem('jamiaati_logged_in');
-
-            if (token) {
-              localStorage.setItem('jamiaati_token', token);
-              if (isAdminRole) {
-                localStorage.setItem('admin_token', token);
-              } else {
-                localStorage.removeItem('admin_token');
-              }
+          onAuthSuccess={(newUsername, token, role, user) => {
+            if (!token) {
+              clearAuthSession();
+              return;
             }
-
-            setUserProfile(prev => ({
-              ...prev,
-              name: newUsername || prev.name || 'طالب جامعتي',
-              role: isAdminRole ? 'staff' : prev.role
-            }));
+            applyAuthSession(token, user || {
+              id: userProfile.id,
+              name: newUsername || userProfile.name || 'طالب جامعتي',
+              email: '',
+              role: role || 'student'
+            });
             showToast(
               language === 'ar' ? `Ù…Ø±Ø­Ø¨Ø§Ù‹ Ø¨Ùƒ Ù…Ø¬Ø¯Ø¯Ø§Ù‹ ÙŠØ§ ${newUsername || 'Ø²Ø§Ø±Ø§'}! ðŸ‘‹ ØªÙ… Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ù†Ø¬Ø§Ø­` : language === 'ku' ? `Ø¨Û•Ø®ÛŽØ±Ø¨ÛŽÛŒØªÛ•ÙˆÛ• ${newUsername || 'Ø²Ø§Ø±Ø§'}! ðŸ‘‹ Ø¯Ø§Ø¨Û•Ø²Ø§Ù†Ø¯Ù† Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ø¨ÙˆÙˆ` : `Welcome back, ${newUsername || 'Zara'}! ðŸ‘‹ Signed in`, 
               'success'

@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Language } from '../types';
 import { getTranslation } from '../data/translations';
-import { authApi } from '../lib/api';
+import { AuthUser, authApi } from '../lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, Lock, User, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -9,7 +9,7 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   language: Language;
-  onAuthSuccess: (username: string, token?: string, role?: string) => void;
+  onAuthSuccess: (username: string, token?: string, role?: string, user?: AuthUser) => void;
 }
 
 type AuthMode = 'login' | 'register' | 'forgot';
@@ -80,8 +80,16 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       }
 
       if (mode === 'forgot') {
-        await authApi.forgotPassword(email, language);
-        setSuccess(getLabel('emailSentDesc'));
+        const result = await authApi.forgotPassword(email, language);
+        setSuccess(
+          result?.dryRun
+            ? language === 'ar'
+              ? 'استعادة كلمة المرور تعمل بوضع DRY_RUN. لم يتم إرسال بريد حقيقي، ويمكن للمسؤول مراجعة الطلب التجريبي.'
+              : language === 'ku'
+              ? 'گێڕانەوەی وشەی تێپەڕ لە دۆخی DRY_RUN ـە. هیچ ئیمەیڵێکی ڕاستەقینە نەنێردرا؛ بەڕێوەبەر دەتوانێت داواکارییە تاقیکراوەکە ببینێت.'
+              : 'Password reset is in DRY_RUN mode. No real email was sent; an admin can review the simulated request.'
+            : getLabel('emailSentDesc')
+        );
         return;
       }
 
@@ -119,8 +127,12 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
         result?.role ||
         result?.data?.user?.role ||
         'student';
+      const user = (result?.user || result?.data?.user) as AuthUser | undefined;
 
       localStorage.setItem('jamiaati_token', token);
+      if (user) {
+        localStorage.setItem('jamiaati_user', JSON.stringify(user));
+      }
 
       if (role === 'admin' || role === 'staff' || role === 'super_admin') {
         localStorage.setItem('admin_token', token);
@@ -131,12 +143,25 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
 
       setTimeout(() => {
-        onAuthSuccess(returnedName, token, role);
+        onAuthSuccess(returnedName, token, role, user);
         onClose();
       }, 500);
     } catch (err: any) {
+      const rawMessage = String(err?.message || '');
       setError(
-        err?.message ||
+        rawMessage.includes('Invalid email or password')
+          ? language === 'ar'
+            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
+            : language === 'ku'
+            ? 'ئیمەیڵ یان وشەی تێپەڕ هەڵەیە.'
+            : 'Invalid email or password.'
+          : rawMessage.includes('Email already exists')
+          ? language === 'ar'
+            ? 'هذا البريد مسجل مسبقاً.'
+            : language === 'ku'
+            ? 'ئەم ئیمەیڵە پێشتر تۆمارکراوە.'
+            : 'This email is already registered.'
+          : rawMessage ||
         (language === 'ar'
           ? 'فشل تسجيل الدخول. تأكد من البريد وكلمة المرور.'
           : language === 'ku'

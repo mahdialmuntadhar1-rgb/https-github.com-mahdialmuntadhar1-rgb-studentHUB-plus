@@ -30,7 +30,9 @@ CREATE TABLE IF NOT EXISTS opportunities (
   original_source_url TEXT NOT NULL,
   published_date TEXT,
   imageUrl TEXT,
-  status TEXT DEFAULT 'pending', -- 'pending' | 'approved' | 'rejected' | 'expired'
+  status TEXT DEFAULT 'pending_review', -- 'pending_review' | 'approved' | 'rejected' | 'duplicate' | 'expired'
+  rejectionReason TEXT,
+  duplicateOf TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   workplaceType TEXT DEFAULT 'On-site', -- 'On-site' | 'Remote' | 'Hybrid'
   whoCanApply TEXT,
@@ -40,6 +42,10 @@ CREATE TABLE IF NOT EXISTS opportunities (
   universityAppliedCount INTEGER DEFAULT 0,
   companyVerified INTEGER DEFAULT 0 -- 0 = false, 1 = true
 );
+
+CREATE INDEX IF NOT EXISTS idx_opportunities_source_url ON opportunities(original_source_url);
+CREATE INDEX IF NOT EXISTS idx_opportunities_title_org ON opportunities(titleEN, organization);
+CREATE INDEX IF NOT EXISTS idx_opportunities_title_deadline_category ON opportunities(titleEN, deadline, category);
 
 -- 3. Scraper Logs Schema
 CREATE TABLE IF NOT EXISTS scraper_logs (
@@ -51,6 +57,64 @@ CREATE TABLE IF NOT EXISTS scraper_logs (
   items_new INTEGER DEFAULT 0,
   items_duplicate INTEGER DEFAULT 0,
   errors TEXT
+);
+
+-- 4. User-generated content and engagement persistence
+CREATE TABLE IF NOT EXISTS posts (
+  id TEXT PRIMARY KEY,
+  userId TEXT NOT NULL,
+  type TEXT DEFAULT 'post',
+  title TEXT NOT NULL,
+  content TEXT NOT NULL,
+  anonymous INTEGER DEFAULT 0,
+  imageUrl TEXT,
+  status TEXT DEFAULT 'approved', -- approved | pending_review | rejected
+  governorateId TEXT DEFAULT 'all',
+  universityId TEXT DEFAULT 'all',
+  createdAt TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS comments (
+  id TEXT PRIMARY KEY,
+  itemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  content TEXT NOT NULL,
+  createdAt TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS likes (
+  itemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (itemId, userId)
+);
+
+CREATE TABLE IF NOT EXISTS saved_items (
+  itemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (itemId, userId)
+);
+
+CREATE TABLE IF NOT EXISTS applications (
+  itemId TEXT NOT NULL,
+  userId TEXT NOT NULL,
+  createdAt TEXT DEFAULT CURRENT_TIMESTAMP,
+  PRIMARY KEY (itemId, userId)
+);
+
+CREATE TABLE IF NOT EXISTS user_profiles (
+  userId TEXT PRIMARY KEY,
+  avatar TEXT,
+  universityId TEXT,
+  governorateId TEXT,
+  bioEN TEXT,
+  bioAR TEXT,
+  bioKU TEXT,
+  majorEN TEXT,
+  majorAR TEXT,
+  majorKU TEXT,
+  updatedAt TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
 -- Insert Initial Default Sources for Iraqi Students

@@ -56,7 +56,7 @@ interface Opportunity {
   original_source_url: string;
   published_date: string;
   imageUrl: string;
-  status: 'pending' | 'pending_review' | 'approved' | 'rejected' | 'expired';
+  status: 'pending_review' | 'approved' | 'rejected' | 'duplicate' | 'expired';
 }
 
 interface LogEntry {
@@ -68,6 +68,14 @@ interface LogEntry {
   items_new: number;
   items_duplicate: number;
   errors: string | null;
+}
+
+function getAdminHeaders(json = false) {
+  const token = localStorage.getItem('admin_token') || localStorage.getItem('jamiaati_token');
+  return {
+    ...(json ? { 'Content-Type': 'application/json' } : {}),
+    ...(token ? { Authorization: `Bearer ${token}` } : {})
+  };
 }
 
 export default function AdminPanel({ language, onBack, showToast }: AdminPanelProps) {
@@ -93,13 +101,13 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
   // Fetch all initial data
   const loadAdminData = async () => {
     try {
-      const oppRes = await fetch('/api/admin/opportunities');
+      const oppRes = await fetch('/api/admin/opportunities', { headers: getAdminHeaders() });
       if (oppRes.ok) setOpportunities(await oppRes.json());
       
-      const sRes = await fetch('/api/admin/sources');
+      const sRes = await fetch('/api/admin/sources', { headers: getAdminHeaders() });
       if (sRes.ok) setSources(await sRes.json());
 
-      const lRes = await fetch('/api/admin/logs');
+      const lRes = await fetch('/api/admin/logs', { headers: getAdminHeaders() });
       if (lRes.ok) setLogs(await lRes.json());
     } catch (err) {
       console.error("Failed to load admin dataset:", err);
@@ -117,7 +125,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
     showToast(toastMsg, 'info');
 
     try {
-      const res = await fetch('/api/admin/scraper/run', { method: 'POST' });
+      const res = await fetch('/api/admin/scraper/run', { method: 'POST', headers: getAdminHeaders() });
       if (res.ok) {
         const data = await res.json();
         const stats = data.stats;
@@ -143,7 +151,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
     try {
       const res = await fetch('/api/admin/opportunities/action', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders(true),
         body: JSON.stringify({ id, action })
       });
 
@@ -171,7 +179,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
     try {
       const res = await fetch('/api/admin/opportunities/edit', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders(true),
         body: JSON.stringify(editingOpp)
       });
 
@@ -193,7 +201,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
       const updated = { ...source, enabled: !source.enabled };
       const res = await fetch('/api/admin/sources', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders(true),
         body: JSON.stringify(updated)
       });
       if (res.ok) {
@@ -210,7 +218,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
     try {
       const res = await fetch('/api/admin/sources', {
         method: 'DELETE',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders(true),
         body: JSON.stringify({ id })
       });
       if (res.ok) {
@@ -233,7 +241,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
     try {
       const res = await fetch('/api/admin/sources', {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: getAdminHeaders(true),
         body: JSON.stringify(newSource)
       });
 
@@ -269,8 +277,8 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
 
   const isRTL = language === 'ar' || language === 'ku';
 
-  const pendingOpps = opportunities.filter(o => o.status === 'pending' || o.status === 'pending_review');
-  const nonPendingOpps = opportunities.filter(o => o.status !== 'pending' && o.status !== 'pending_review');
+  const pendingOpps = opportunities.filter(o => o.status === 'pending_review');
+  const nonPendingOpps = opportunities.filter(o => o.status !== 'pending_review');
 
   return (
     <div id="admin-workspace-card" className="px-4 py-4 max-w-lg mx-auto flex flex-col pb-28 bg-[#0B1020] min-h-screen">

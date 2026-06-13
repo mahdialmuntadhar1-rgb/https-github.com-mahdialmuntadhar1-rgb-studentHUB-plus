@@ -122,9 +122,9 @@ export default function FutureFeed({
         verified: true
       },
       date: item.published_date ? `Posted on ${item.published_date}` : 'Recently posted 🔔',
-      likes: Number(item.likes || 12),
+      likes: Number(item.likes || 0),
       likedByUser: false,
-      savedCount: Number(item.saved_count || 15),
+      savedCount: Number(item.savedCount || item.saved_count || 0),
       savedByUser: false,
       commentsCount: 0,
       commentsList: [],
@@ -143,7 +143,7 @@ export default function FutureFeed({
       salary: item.salary || 'Recruiter structured',
       applyUrl,
       sourceUrl,
-      universityAppliedCount: Number(item.applied_count || 5),
+      universityAppliedCount: Number(item.universityAppliedCount || item.applied_count || 0),
       applied: false
     };
   };
