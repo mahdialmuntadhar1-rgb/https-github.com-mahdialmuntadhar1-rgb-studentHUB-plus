@@ -23,26 +23,33 @@ function getHeaders() {
 }
 
 async function handleResponse(response: Response, language: Language = 'ar', options: { suppressAuthAlert?: boolean } = {}) {
+  const contentType = response.headers.get('content-type');
+  let data: any = null;
+  let text = '';
+  if (contentType && contentType.includes('application/json')) {
+    data = await response.json();
+  } else {
+    text = await response.text();
+  }
+
   if (response.status === 401) {
+    const message = data?.message || data?.error;
     if (!options.suppressAuthAlert) {
-      alert(language === 'ar' ? 'قم بتسجيل الدخول أولاً.' : language === 'ku' ? 'تکایە سەرەتا بچۆ ژوورەوە.' : 'Login required.');
+      alert(message || (language === 'ar' ? 'قم بتسجيل الدخول أولاً.' : language === 'ku' ? 'تکایە سەرەتا بچۆ ژوورەوە.' : 'Login required.'));
     }
-    throw new Error(language === 'ar' ? 'تسجيل الدخول مطلوب.' : language === 'ku' ? 'چوونەژوورەوە پێویستە.' : 'Login required.');
+    throw new Error(message || (language === 'ar' ? 'تسجيل الدخول مطلوب.' : language === 'ku' ? 'چوونەژوورەوە پێویستە.' : 'Login required.'));
   }
   if (response.status === 403) {
     alert(language === 'ar' ? 'وصول للمسؤولين فقط!' : language === 'ku' ? 'تەنها بۆ بەڕێوەبەران ڕێگەپێدراوە!' : 'Admin access only');
     throw new Error('Admin access only');
   }
 
-  const contentType = response.headers.get('content-type');
   if (contentType && contentType.includes('application/json')) {
-    const data = await response.json();
     if (!response.ok) {
       throw new Error(data.message || data.error || (language === 'ar' ? 'حدث خطأ في الخادم' : language === 'ku' ? 'هەڵەیەک لە سێرڤەر ڕوویدا' : 'Server error occurred'));
     }
     return data;
   } else {
-    const text = await response.text();
     if (!response.ok) {
       throw new Error(text || (language === 'ar' ? 'حدث خطأ غير معروف' : language === 'ku' ? 'هەڵەیەکی نەناسراو ڕوویدا' : 'Unknown error occurred'));
     }
@@ -194,17 +201,11 @@ export const opportunityAutomation = {
 
   async importCsv(file: File, lang: Language = 'ar') {
     try {
-      const formData = new FormData();
-      formData.append('file', file);
-
-      // Need multipart headers (let fetch set Content-Type with boundary)
-      const headers = getHeaders();
-      delete headers['Content-Type'];
-
+      const csvText = await file.text();
       const res = await fetch(`${API_BASE}/opportunity-automation/import-csv`, {
         method: 'POST',
-        headers,
-        body: formData,
+        headers: getHeaders(),
+        body: JSON.stringify({ csvText, fileName: file.name }),
       });
       return await handleResponse(res, lang);
     } catch (err: any) {

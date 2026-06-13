@@ -234,20 +234,20 @@ export default function App() {
       const mapped = all.map((inst: any) => {
         const govId = normalizeGovernorate(inst.governorate);
         
-        let logo = 'ðŸŽ“';
+        let logo = '🎓';
         const type = (inst.type || '').toLowerCase();
-        if (type.includes('private')) logo = 'ðŸ›ï¸';
-        else if (type.includes('college')) logo = 'ðŸ“–';
-        else if (type.includes('school')) logo = 'ðŸ«';
-        else if (type.includes('division') || type.includes('department')) logo = 'ðŸ”¬';
-        else if (type.includes('institute') || type.includes('research')) logo = 'ðŸ›¡ï¸';
+        if (type.includes('private')) logo = '🏛️';
+        else if (type.includes('college')) logo = '📖';
+        else if (type.includes('school')) logo = '🏫';
+        else if (type.includes('division') || type.includes('department')) logo = '🔬';
+        else if (type.includes('institute') || type.includes('research')) logo = '🛡️';
         
         const charSum = inst.id.split('').reduce((sum: number, c: string) => sum + c.charCodeAt(0), 0);
         const color = colors[charSum % colors.length];
 
         const nameEN = inst.name_en?.trim() || inst.name_ar?.trim() || 'Unnamed Institution';
-        let nameAR = inst.name_ar?.trim() || inst.name_en?.trim() || 'Ù…Ø¤Ø³Ø³Ø© ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙØ©';
-        let nameKU = inst.name_ku?.trim() || inst.name_en?.trim() || inst.name_ar?.trim() || 'Ù…Ø¤Ø³Ø³Û•ÛŒ Ù†Û•Ù†Ø§Ø³Ø±Ø§Ùˆ';
+        let nameAR = inst.name_ar?.trim() || inst.name_en?.trim() || 'مؤسسة غير معروفة';
+        let nameKU = inst.name_ku?.trim() || inst.name_en?.trim() || inst.name_ar?.trim() || 'دامەزراوەی نەناسراو';
 
         return {
           id: inst.id,
@@ -439,12 +439,12 @@ export default function App() {
           if (isLiked) {
             handleAwardPoints(5);
             showToast(
-              language === 'ar' ? 'ØªÙ… Ø§Ù„Ø¥Ø¹Ø¬Ø§Ø¨ Ø¨Ø§Ù„Ù…Ù†Ø´ÙˆØ±! â¤ï¸ +Ù¥ Ù†Ù‚Ø§Ø· ØªÙØ§Ø¹Ù„' : language === 'ku' ? 'Ø¯ÚµØ®ÙˆØ§Ø² Ø¨ÙˆÙˆ! â¤ï¸ +Ù¥ Ø®Ø§ÚµÛŒ Ú©Ø§Ø±Ù„ÛŽÚ©' : 'Post Liked! â¤ï¸ +5 pts', 
+              language === 'ar' ? 'تم الإعجاب بالمنشور. +5 نقاط' : language === 'ku' ? 'بابەتەکە بەدڵ بوو. +5 خاڵ' : 'Post liked. +5 pts',
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'ØªÙ… Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ø¥Ø¹Ø¬Ø§Ø¨ Ø¨Ø§Ù„Ù…Ù†Ø´ÙˆØ±' : language === 'ku' ? 'Ù„Ø§Ø¯Ø§Ù†ÛŒ Ø¯ÚµØ®ÙˆØ§Ø² Ù„Û• Ø¨Ø§Ø¨Û•ØªÛ•Ú©Û•' : 'Removed like from post', 
+              language === 'ar' ? 'تم إلغاء الإعجاب بالمنشور' : language === 'ku' ? 'دڵخواز لە بابەتەکە لادرا' : 'Removed like from post',
               'info'
             );
           }
@@ -474,12 +474,12 @@ export default function App() {
           if (isSaved) {
             handleAwardPoints(10);
             showToast(
-              language === 'ar' ? 'ØªÙ… Ø§Ù„Ø­ÙØ¸ ÙÙŠ Ø§Ù„Ù…Ø­ÙØ¸Ø© Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ©! ðŸ”– +Ù¡Ù  Ù†Ù‚Ø§Ø·' : language === 'ku' ? 'Ù¾Ø§Ø´Û•Ú©Û•ÙˆØªÚ©Ø±Ø§ Ù„Û• Ø¬Ø²Ø¯Ø§Ù†ÛŒ Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒ! ðŸ”– +Ù¡Ù  Ø®Ø§Úµ' : 'Saved to Hub Library! ðŸ”– +10 pts', 
+              language === 'ar' ? 'تم الحفظ في مكتبتك. +10 نقاط' : language === 'ku' ? 'لە کتێبخانەکەت پاشەکەوت کرا. +10 خاڵ' : 'Saved to your library. +10 pts',
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'ØªÙ…Øª Ø§Ù„Ø¥Ø²Ø§Ù„Ø© Ù…Ù† Ø§Ù„Ù…ÙØ¶Ù„Ø© Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ©' : language === 'ku' ? 'Ù„Ø§Ø¯Ø§Ù†ÛŒ Ù„Û• Ù¾Ø§Ø´Û•Ú©Û•ÙˆØªÚ©Ø±Ø§ÙˆÛ•Ú©Ø§Ù†' : 'Removed bookmark', 
+              language === 'ar' ? 'تمت الإزالة من المحفوظات' : language === 'ku' ? 'لە پاشەکەوتکراوەکان لادرا' : 'Removed bookmark',
               'info'
             );
           }
@@ -504,7 +504,7 @@ export default function App() {
           triggeredToast = true;
           handleAwardPoints(25); // high reward for sharing feedback
           showToast(
-            language === 'ar' ? 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø±Ø£ÙŠÙƒ Ø§Ù„Ø·Ù„Ø§Ø¨ÙŠ Ø¨Ù†Ø¬Ø§Ø­! ðŸ“Š +Ù¢Ù¥ Ù†Ù‚Ø·Ø© Ù…Ø³Ø§Ù‡Ù…Ø©' : language === 'ku' ? 'Ø¯Û•Ù†Ú¯Û•Ú©Û•Øª Ø¨Û• Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆÛŒÛŒ ØªÛ†Ù…Ø§Ø±Ú©Ø±Ø§! ðŸ“Š +Ù¢Ù¥ Ø®Ø§Úµ' : 'Feedback vote recorded! ðŸ“Š +25 pts', 
+            language === 'ar' ? 'تم تسجيل رأيك. +25 نقطة' : language === 'ku' ? 'دەنگەکەت تۆمارکرا. +25 خاڵ' : 'Feedback vote recorded. +25 pts',
             'success'
           );
         }
@@ -539,12 +539,12 @@ export default function App() {
           if (isApplied) {
             handleAwardPoints(50); // Massive career action reward!
             showToast(
-              language === 'ar' ? 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø·Ù„Ø¨ Ø§Ù„ØªÙ‚Ø¯ÙŠÙ… Ù„Ù„ÙØ±ØµØ© Ø¨Ù†Ø¬Ø§Ø­! ðŸ’¼ +Ù¥Ù  Ù†Ù‚Ø·Ø© ØªÙˆØ§ØµÙ„ Ù…Ù‡Ù†ÙŠ' : language === 'ku' ? 'Ù¾ÛŽØ´Ú©Û•Ø´Ú©Ø±Ø¯Ù†ÛŒ Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒ Ú©Ø§Ø±Û•Ú©Û•Øª Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ø¨ÙˆÙˆ! ðŸ’¼ +Ù¥Ù  Ø®Ø§ÚµÛŒ Ù¾ÛŒØ´Û•ÛŒÛŒ' : 'Application registered successfully! ðŸ’¼ +50 Career pts', 
+              language === 'ar' ? 'تم تسجيل طلب التقديم بنجاح. +50 نقطة' : language === 'ku' ? 'داواکارییەکەت بە سەرکەوتوویی تۆمارکرا. +50 خاڵ' : 'Application registered successfully. +50 pts',
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'ØªÙ… Ø¥Ù„ØºØ§Ø¡ ØªÙ‚Ø¯ÙŠÙ… Ø§Ù„Ø·Ù„Ø¨ Ø¨Ù†Ø¬Ø§Ø­' : language === 'ku' ? 'Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒÛ•Ú©Û•Øª Ù‡Û•ÚµÙˆÛ•Ø´ÛŽÙ†Ø±Ø§ÛŒÛ•ÙˆÛ•' : 'Cancelled application request', 
+              language === 'ar' ? 'تم إلغاء طلب التقديم' : language === 'ku' ? 'داواکارییەکەت هەڵوەشێنرایەوە' : 'Cancelled application request',
               'info'
             );
           }
@@ -568,12 +568,12 @@ export default function App() {
           if (isRsvped) {
             handleAwardPoints(30);
             showToast(
-              language === 'ar' ? 'ØªÙ… Ø­Ø¬Ø² ØªØ°ÙƒØ±ØªÙƒ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ© Ø¨Ù†Ø¬Ø§Ø­! ðŸŽŸï¸ +Ù£Ù  Ù†Ù‚Ø·Ø© ØªÙØ§Ø¹Ù„' : language === 'ku' ? 'Ú©ÙˆØ±Ø³ÛŒÛ•Ú©Û•Øª Ú¯ÛŒØ±Ø§ Ø¨Û† Ù…Û•Ø±Ø§Ø³ÛŒÙ…Û•Ú©Û•! ðŸŽŸï¸ +Ù£Ù  Ø®Ø§Úµ' : 'Access ticket reserved! ðŸŽŸï¸ +30 pts', 
+              language === 'ar' ? 'تم تأكيد الحضور. +30 نقطة' : language === 'ku' ? 'ئامادەبوون پشتڕاستکرایەوە. +30 خاڵ' : 'Attendance confirmed. +30 pts',
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'ØªÙ… Ø¥Ù„ØºØ§Ø¡ ØªØ£ÙƒÙŠØ¯ Ø­Ø¶ÙˆØ± Ø§Ù„ÙØ¹Ø§Ù„ÙŠØ©' : language === 'ku' ? 'Ù‡Û•ÚµÙˆÛ•Ø´Ø§Ù†Ø¯Ù†Û•ÙˆÛ•ÛŒ Ø­ÛŒØ¬Ø²ÛŒ Ù…Û•Ø±Ø§Ø³ÛŒÙ…Û•Ú©Û•' : 'Reservation cancelled', 
+              language === 'ar' ? 'تم إلغاء تأكيد الحضور' : language === 'ku' ? 'پشتڕاستکردنەوەی ئامادەبوون هەڵوەشێنرایەوە' : 'Reservation cancelled',
               'info'
             );
           }
@@ -598,12 +598,12 @@ export default function App() {
           if (isJoined) {
             handleAwardPoints(30);
             showToast(
-              language === 'ar' ? 'Ø§Ù†Ø¶Ù…Ù…Øª Ù„Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©! ðŸ‘¥ +Ù£Ù  Ù†Ù‚Ø·Ø© Ø¯Ø±Ø§Ø³ÙŠØ©' : language === 'ku' ? 'Ù¾Û•ÛŒÙˆÛ•Ø³Øª Ø¨ÙˆÙˆÛŒØª Ø¨Û• Ú¯Ø±ÙˆÙ¾ÛŒ Ú¯ÙØªÙˆÚ¯Û†Ú©Û•! ðŸ‘¥ +Ù£Ù  Ø®Ø§ÚµÛŒ Ù…Ø±Ø§Ø¬Ø¹Û•' : 'Joined study circle! ðŸ‘¥ +30 Study pts', 
+              language === 'ar' ? 'انضممت إلى مجموعة المراجعة. +30 نقطة' : language === 'ku' ? 'پەیوەست بوویت بە گرووپی گفتوگۆ. +30 خاڵ' : 'Joined study circle. +30 pts',
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'ØºØ§Ø¯Ø±Øª Ù…Ø¬Ù…ÙˆØ¹Ø© Ø§Ù„ØµØ¯Ø§Ù‚Ø© ÙˆØ§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©' : language === 'ku' ? 'Ø¬ÛŽÙ‡ÛŽØ´ØªÙ†ÛŒ Ø¨Ø§Ø²Ù†Û•ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù†Û•Ú©Û•' : 'Left study circle', 
+              language === 'ar' ? 'غادرت مجموعة المراجعة' : language === 'ku' ? 'گرووپی خوێندنەکەت جێهێشت' : 'Left study circle',
               'info'
             );
           }
@@ -630,7 +630,7 @@ export default function App() {
 
     handleAwardPoints(15); // reward commenting and discussion
     showToast(
-      language === 'ar' ? 'ØªÙ… Ù†Ø´Ø± ØªØ¹Ù„ÙŠÙ‚Ùƒ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠ Ø¨Ù†Ø¬Ø§Ø­! ðŸ’¬ +Ù¡Ù¥ Ù†Ù‚Ø·Ø© Ù…Ø±Ø§Ø¬Ø¹' : language === 'ku' ? 'ÙˆÛ•ÚµØ§Ù…Û•Ú©Û•Øª Ø¨ÚµØ§ÙˆÚ©Ø±Ø§ÛŒÛ•ÙˆÛ• Ø¨Û• Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆÛŒÛŒ! ðŸ’¬ +Ù¡Ù¥ Ø®Ø§Úµ' : 'Academic comment posted! ðŸ’¬ +15 pts', 
+      language === 'ar' ? 'تم نشر تعليقك. +15 نقطة' : language === 'ku' ? 'لێدوانەکەت بڵاوکرایەوە. +15 خاڵ' : 'Comment posted. +15 pts',
       'success'
     );
 
@@ -683,7 +683,7 @@ export default function App() {
 
     handleAwardPoints(40); // high points for sharing posts!
     showToast(
-      language === 'ar' ? 'ØªÙ… Ù†Ø´Ø± Ù…Ø³Ø§Ù‡Ù…ØªÙƒ Ø¨Ù†Ø¬Ø§Ø­ Ø¹Ù„Ù‰ Ø³Ø§Ø­Ø© Ø§Ù„Ø·Ù„Ø§Ø¨! âœ¨ +Ù¤Ù  Ù†Ù‚Ø·Ø©' : language === 'ku' ? 'Ø¨ÚµØ§ÙˆÚ©Ø±Ø§ÙˆÛ•Ú©Û•Øª Ø¨ÚµØ§ÙˆÚ©Ø±Ø§ÛŒÛ•ÙˆÛ• Ù„Û• Ø³Ø§Ø­Û•ÛŒ Ù‚ÙˆØªØ§Ø¨ÛŒØ§Ù†! âœ¨ +Ù¤Ù  Ø®Ø§Úµ' : 'Contribution published successfully! âœ¨ +40 pts', 
+      language === 'ar' ? 'تم نشر مساهمتك بنجاح. +40 نقطة' : language === 'ku' ? 'بەشدارییەکەت بە سەرکەوتوویی بڵاوکرایەوە. +40 خاڵ' : 'Contribution published successfully. +40 pts',
       'success'
     );
     setFeedItems(prev => [freshPost, ...prev]);
@@ -870,7 +870,7 @@ export default function App() {
             onLogout={() => {
               clearAuthSession();
               showToast(
-                language === 'ar' ? 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø®Ø±ÙˆØ¬Ùƒ Ø¨Ù†Ø¬Ø§Ø­. Ù†Ø±Ø§Ùƒ Ù‚Ø±ÙŠØ¨Ø§Ù‹! ðŸ‘‹' : language === 'ku' ? 'Ø®Û†ØªÛ†Ù…Ø§Ø±Ú©Ø±Ø¯Ù†Û•Ú©Û•Øª Ú©Û†ØªØ§ÛŒÛŒ Ù¾ÛŽÙ‡Ø§Øª. Ø¨Û• Ù‡ÛŒÙˆØ§ÛŒ Ø¯ÛŒØ¯Ø§Ø±! ðŸ‘‹' : 'Logged out successfully. See you! ðŸ‘‹', 
+                language === 'ar' ? 'تم تسجيل الخروج بنجاح.' : language === 'ku' ? 'بە سەرکەوتوویی چوویتە دەرەوە.' : 'Logged out successfully.',
                 'info'
               );
             }}
@@ -1013,7 +1013,7 @@ export default function App() {
               role: role || 'student'
             });
             showToast(
-              language === 'ar' ? `Ù…Ø±Ø­Ø¨Ø§Ù‹ Ø¨Ùƒ Ù…Ø¬Ø¯Ø¯Ø§Ù‹ ÙŠØ§ ${newUsername || 'Ø²Ø§Ø±Ø§'}! ðŸ‘‹ ØªÙ… Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ù†Ø¬Ø§Ø­` : language === 'ku' ? `Ø¨Û•Ø®ÛŽØ±Ø¨ÛŽÛŒØªÛ•ÙˆÛ• ${newUsername || 'Ø²Ø§Ø±Ø§'}! ðŸ‘‹ Ø¯Ø§Ø¨Û•Ø²Ø§Ù†Ø¯Ù† Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ø¨ÙˆÙˆ` : `Welcome back, ${newUsername || 'Zara'}! ðŸ‘‹ Signed in`, 
+              language === 'ar' ? `مرحباً بك ${newUsername || 'زائر'}، تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'میوان'}، چوونەژوورەوە سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Guest'}! Signed in`,
               'success'
             );
           }}
@@ -1040,7 +1040,7 @@ export default function App() {
                 }`}>
                   <div className="flex items-center gap-2">
                     <span className="text-sm">
-                      {toast.type === 'success' ? 'âš¡' : toast.type === 'error' ? 'ðŸš¨' : 'âœ¨'}
+                      {toast.type === 'success' ? 'OK' : toast.type === 'error' ? '!' : 'i'}
                     </span>
                     <span className="leading-relaxed tracking-tight text-[11px] text-left">
                       {toast.text}
@@ -1050,7 +1050,7 @@ export default function App() {
                     onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
                     className="text-slate-400 hover:text-white transition-colors p-1 bg-transparent border-0 cursor-pointer text-[10px] font-black"
                   >
-                    âœ•
+                    ×
                   </button>
                 </div>
               </motion.div>

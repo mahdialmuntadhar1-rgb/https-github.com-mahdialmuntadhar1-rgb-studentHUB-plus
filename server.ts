@@ -267,6 +267,49 @@ function requireImageDataUrl(dataUrl: string) {
   return { extension: match[1].toLowerCase() === "jpeg" ? "jpg" : match[1].toLowerCase(), bytes };
 }
 
+function parseCsvRows(csvText: string) {
+  const rows: string[][] = [];
+  let current = "";
+  let row: string[] = [];
+  let inQuotes = false;
+
+  for (let i = 0; i < csvText.length; i++) {
+    const char = csvText[i];
+    const next = csvText[i + 1];
+
+    if (char === '"' && inQuotes && next === '"') {
+      current += '"';
+      i++;
+    } else if (char === '"') {
+      inQuotes = !inQuotes;
+    } else if (char === "," && !inQuotes) {
+      row.push(current.trim());
+      current = "";
+    } else if ((char === "\n" || char === "\r") && !inQuotes) {
+      if (char === "\r" && next === "\n") i++;
+      row.push(current.trim());
+      current = "";
+      if (row.some(Boolean)) rows.push(row);
+      row = [];
+    } else {
+      current += char;
+    }
+  }
+
+  row.push(current.trim());
+  if (row.some(Boolean)) rows.push(row);
+  return rows;
+}
+
+function isHttpUrl(value: string) {
+  try {
+    const parsed = new URL(value);
+    return parsed.protocol === "http:" || parsed.protocol === "https:";
+  } catch {
+    return false;
+  }
+}
+
 // Lazy-loaded Gemini AI client to avoid crashes if GEMINI_API_KEY is not initially configured
 let aiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI {
@@ -804,6 +847,10 @@ app.post("/api/uploads/images", requireAuth, (req, res) => {
     res.status(400).json({ error: "Only jpg, png, or webp images up to 2MB are allowed." });
     return;
   }
+  if (process.env.NODE_ENV === "production" && !process.env.R2_PUBLIC_BASE_URL) {
+    res.status(501).json({ error: "Production image storage is not configured. Set up R2_PUBLIC_BASE_URL/R2 upload handling before enabling uploads." });
+    return;
+  }
   const uploadDir = path.join(process.cwd(), "uploads");
   fs.mkdirSync(uploadDir, { recursive: true });
   const fileName = `image-${Date.now()}-${crypto.randomBytes(4).toString("hex")}.${parsed.extension}`;
@@ -1090,12 +1137,100 @@ app.post("/api/opportunity-automation/run-source/:id", requireAdmin, async (req,
 });
 
 app.post("/api/opportunity-automation/import-csv", requireAdmin, (req, res) => {
-  res.status(202).json({
+  const csvText = String(req.body?.csvText || "");
+  if (!csvText.trim()) {
+    res.status(400).json({ error: "CSV text is required." });
+    return;
+  }
+
+  const rows = parseCsvRows(csvText);
+  if (rows.length < 2) {
+    res.status(400).json({ error: "CSV must include a header row and at least one data row." });
+    return;
+  }
+
+  const headers = rows[0].map((h) => h.trim().toLowerCase());
+  const aliases: Record<string, string[]> = {
+    title: ["title", "titleen", "title_en"],
+    description: ["description", "content", "contenten", "content_en"],
+    organization: ["organization", "company", "org"],
+    link: ["link", "application_link", "applicationurl", "application_url", "applyurl", "apply_url"],
+    source: ["source", "source_url", "original_source_url", "url"],
+    category: ["category", "type"],
+    governorate: ["governorate", "governorateid", "governorate_id"],
+    deadline: ["deadline", "closing_date"],
+    country: ["country"],
+    image: ["image", "imageurl", "image_url"]
+  };
+  const indexFor = (key: string) => headers.findIndex((h) => aliases[key].includes(h));
+  const required = ["title", "description", "organization", "link", "category"];
+  const missing = required.filter((key) => indexFor(key) === -1);
+  if (missing.length) {
+    res.status(400).json({ error: `Missing required CSV columns: ${missing.join(", ")}` });
+    return;
+  }
+
+  const db = readDB();
+  let inserted = 0;
+  let duplicates = 0;
+  const errors: string[] = [];
+
+  rows.slice(1).forEach((row, rowIndex) => {
+    const value = (key: string) => {
+      const index = indexFor(key);
+      return index >= 0 ? String(row[index] || "").trim() : "";
+    };
+    const applicationLink = value("link");
+    const sourceUrl = value("source") || applicationLink;
+
+    if (!isHttpUrl(applicationLink) || !isHttpUrl(sourceUrl)) {
+      errors.push(`Row ${rowIndex + 2}: application/source URL must be http(s).`);
+      return;
+    }
+
+    const candidate = normalizeOpportunity({
+      id: `csv-${Date.now()}-${rowIndex}-${crypto.randomBytes(3).toString("hex")}`,
+      titleEN: value("title"),
+      titleAR: value("title"),
+      titleKU: value("title"),
+      contentEN: value("description"),
+      contentAR: value("description"),
+      contentKU: value("description"),
+      organization: value("organization"),
+      category: value("category"),
+      country: value("country") || "Iraq",
+      governorateId: value("governorate") || "all",
+      deadline: value("deadline") || null,
+      application_link: applicationLink,
+      original_source_url: sourceUrl,
+      published_date: new Date().toISOString().split("T")[0],
+      imageUrl: value("image") || SAFE_PLACEHOLDER_IMAGE,
+      status: "pending_review"
+    });
+
+    if (!candidate) {
+      errors.push(`Row ${rowIndex + 2}: missing required opportunity fields.`);
+      return;
+    }
+
+    const duplicate = findOpportunityDuplicate(db, candidate);
+    if (duplicate) {
+      duplicates++;
+      return;
+    }
+
+    db.opportunities.unshift(candidate);
+    inserted++;
+  });
+
+  writeDB(db);
+  res.status(errors.length ? 207 : 201).json({
     success: true,
-    inserted: 0,
-    duplicates: 0,
+    inserted,
+    duplicates,
+    errors,
     defaultStatus: "pending_review",
-    message: "CSV import endpoint is safe: imported rows must be normalized to pending_review before publication. No rows were published directly."
+    message: "CSV rows were validated and inserted as pending_review only. Nothing was published directly."
   });
 });
 
