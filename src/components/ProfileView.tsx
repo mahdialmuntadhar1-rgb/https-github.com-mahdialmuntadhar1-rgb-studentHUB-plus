@@ -86,9 +86,9 @@ export default function ProfileView({
           
           <p className="text-xs font-semibold text-slate-300 leading-relaxed mt-3 max-w-xs mx-auto">
             {language === 'ar' 
-              ? 'سجل دخولك الآن لحفظ المواد، متابعة نقاط التفاعل، التقديم للفرص، ومراجعة نشاطك الأكاديمي.' 
+              ? 'سجل دخولك الآن لتتبع نقاط تفاعلك لمساعدة زملائك، حفظ ومراجعة ملازم الدراسة، التقديم لوظائف الخريجين، واستشارة مساعد الذكاء الاصطناعي "المرشد"!' 
               : language === 'ku'
-              ? 'ئێستا بچۆ ژوورەوە بۆ پاشەکەوتکردنی بابەتەکان، پێشکەشکردن بۆ دەرفەتەکان، و بینینی چالاکییە ئەکادیمییەکانت.'
+              ? 'ئێستا بچۆ ژوورەوە بۆ پاشەکەوتکردنی بابەتەکانی خوێندن، پێشکەشکردنی داواکاری بۆ هەلی کار، و ڕاوێژکردن لەگەڵ ڕێبەری زیرەکی دەستکرد!'
               : 'Sign in to access advanced features: rack up academic interaction points by helping your peers, save and bookmark lectures, apply directly to tech opportunities, and unlock our AI advisor Al-Murshed!'}
           </p>
 
@@ -141,7 +141,7 @@ export default function ProfileView({
               🎓 {uniName}
             </span>
             <span className="flex items-center justify-center gap-1">
-              📍 {govName} · {major}
+              📍 {govName} • {major}
             </span>
           </div>
 
@@ -153,10 +153,17 @@ export default function ProfileView({
                 className="text-[9px] font-black text-amber-400 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/20 rounded-xl px-3 py-1.5 cursor-pointer transition-all flex items-center gap-1.5"
                 id="navigateToAdminLink"
               >
-                <span>Admin</span>
+                <span>🕵️‍♀️</span>
                 <span>{language === 'ar' ? 'بوابة التشغيل والأتمتة' : language === 'ku' ? 'سیستەمی کۆنترۆڵ' : 'Scraper Console'}</span>
               </button>
             )}
+            <button
+              onClick={onToggleUserRole}
+              className="text-[9px] font-black text-cyan-400 bg-cyan-400/10 hover:bg-cyan-400/20 border border-cyan-400/20 rounded-xl px-3 py-1.5 cursor-pointer transition-all flex items-center gap-1"
+            >
+              <ArrowRightLeft className="w-3 h-3 text-cyan-400" />
+              <span>{getTranslation('switchRoleBtn', language)}</span>
+            </button>
             <button
               onClick={onLogout}
               className="text-[9px] font-black text-red-400 bg-red-400/10 hover:bg-red-400/20 border border-red-500/10 rounded-xl px-3 py-1.5 cursor-pointer transition-colors flex items-center gap-1"

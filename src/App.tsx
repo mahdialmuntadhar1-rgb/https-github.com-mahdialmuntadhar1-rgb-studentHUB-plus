@@ -13,14 +13,13 @@ import SectionView from './components/SectionView';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
-import { AuthUser, BACKEND_URL, authApi, userContentApi } from './lib/api';
+import { BACKEND_URL } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
 
 export default function App() {
-  const opportunityTypes = new Set(['job', 'internship', 'scholarship', 'training', 'competition', 'volunteering', 'fellowship', 'full_time_job', 'part_time_job']);
   // Locale States
-  const [language, setLanguage] = useState<Language>('ar');
+  const [language, setLanguage] = useState<Language>('en');
   const [selectedGov, setSelectedGov] = useState<string>('all');
   const [selectedUni, setSelectedUni] = useState<string>('all');
 
@@ -91,41 +90,8 @@ export default function App() {
   }, [selectedGov, selectedUni, activeTab]);
 
   // Auth States
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => Boolean(localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token')));
-  const [isAdminVerified, setIsAdminVerified] = useState<boolean>(() => Boolean(localStorage.getItem('admin_token')));
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => localStorage.getItem('jamiaati_logged_in') !== 'false');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  const isAdminRole = (role?: string) => role === 'admin' || role === 'staff' || role === 'super_admin';
-  const toProfileRole = (role?: string): UserProfile['role'] => {
-    if (role === 'graduate' || role === 'teacher' || role === 'institution') return role;
-    if (isAdminRole(role)) return 'staff';
-    return 'student';
-  };
-  const clearAuthSession = () => {
-    setIsLoggedIn(false);
-    setIsAdminVerified(false);
-    localStorage.removeItem('jamiaati_logged_in');
-    localStorage.removeItem('jamiaati_token');
-    localStorage.removeItem('admin_token');
-    localStorage.removeItem('jamiaati_user');
-  };
-  const applyAuthSession = (token: string, user: AuthUser) => {
-    localStorage.setItem('jamiaati_token', token);
-    localStorage.setItem('jamiaati_user', JSON.stringify(user));
-    if (isAdminRole(user.role)) {
-      localStorage.setItem('admin_token', token);
-    } else {
-      localStorage.removeItem('admin_token');
-    }
-    localStorage.removeItem('jamiaati_logged_in');
-    setIsLoggedIn(true);
-    setIsAdminVerified(isAdminRole(user.role));
-    setUserProfile(prev => ({
-      ...prev,
-      id: user.id || prev.id,
-      name: user.name || prev.name || 'طالب جامعتي',
-      role: toProfileRole(user.role)
-    }));
-  };
 
   // Feed database state (persisted in session / local storage for active play)
   const [feedItems, setFeedItems] = useState<FeedItem[]>(() => {
@@ -149,36 +115,6 @@ export default function App() {
     const saved = localStorage.getItem('jamiaati_profile_v2');
     return saved ? JSON.parse(saved) : defaultUserProfile;
   });
-
-  useEffect(() => {
-    const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
-    if (!token) {
-      clearAuthSession();
-      return;
-    }
-
-    let cancelled = false;
-    authApi.me(language)
-      .then((result) => {
-        if (cancelled) return;
-        const user = result?.user as AuthUser | undefined;
-        if (!user) {
-          clearAuthSession();
-          return;
-        }
-        applyAuthSession(token, user);
-      })
-      .catch(() => {
-        if (!cancelled) {
-          clearAuthSession();
-          if (activeTab === 'admin') setActiveTab('profile');
-        }
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, []);
 
   // Sync to local states - save only user-created custom posts
   useEffect(() => {
@@ -267,7 +203,7 @@ export default function App() {
 
         const nameEN = inst.name_en?.trim() || inst.name_ar?.trim() || 'Unnamed Institution';
         let nameAR = inst.name_ar?.trim() || inst.name_en?.trim() || 'مؤسسة غير معروفة';
-        let nameKU = inst.name_ku?.trim() || inst.name_en?.trim() || inst.name_ar?.trim() || 'دامەزراوەی نەناسراو';
+        let nameKU = inst.name_ku?.trim() || inst.name_en?.trim() || inst.name_ar?.trim() || 'مؤسسەی نەناسراو';
 
         return {
           id: inst.id,
@@ -346,19 +282,16 @@ export default function App() {
   useEffect(() => {
     const fetchLiveFeed = async () => {
       try {
-        const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
-        const headers = token ? { Authorization: `Bearer ${token}` } : {};
         const [oppsResponse, highlightsResponse] = await Promise.all([
-          fetch(`${BACKEND_URL}/api/opportunities`, { headers }),
-          fetch(`${BACKEND_URL}/api/highlights`, { headers })
+          fetch(`${BACKEND_URL}/api/opportunities`),
+          fetch(`${BACKEND_URL}/api/highlights`)
         ]);
 
         let dbItems: FeedItem[] = [];
 
         // 1. Process Opportunities
         if (oppsResponse.ok) {
-          const payload = await oppsResponse.json();
-          const list = Array.isArray(payload) ? payload : (payload?.opportunities || []);
+          const list = await oppsResponse.json();
           if (Array.isArray(list)) {
             const mappedOpps = list.map((item: any) => ({
               id: String(item.id || `scraped-${Date.now()}-${Math.random()}`),
@@ -375,12 +308,9 @@ export default function App() {
                 avatar: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
                 verified: true
               },
-              date: item.published_date ? `Published on ${item.published_date}` : 'Recently published',
-              likes: Number(item.likes || 0),
-              likedByUser: Boolean(item.likedByUser),
-              savedByUser: Boolean(item.savedByUser),
-              applied: Boolean(item.applied),
-              commentsCount: Number(item.commentsCount || 0),
+              date: item.published_date ? `Posted on ${item.published_date}` : 'Recently scraped 🔔',
+              likes: item.likes || 12,
+              commentsCount: 0,
               commentsList: [],
               governorateId: item.governorateId || item.governorate || 'all',
               universityId: item.universityId || item.university_id || 'all',
@@ -398,9 +328,7 @@ export default function App() {
                                      item.category === 'graduation_support' ? 'Graduation project support' : 'Full-time graduate job') as any,
               workplaceType: item.workplaceType || 'On-site',
               whoCanApply: item.eligibility || item.whoCanApply || 'Iraqi students',
-              salary: item.salary || item.salary_or_funding || 'Recruiter structured',
-              savedCount: Number(item.savedCount || 0),
-              universityAppliedCount: Number(item.universityAppliedCount || 0)
+              salary: item.salary || item.salary_or_funding || 'Recruiter structured'
             }));
             dbItems = [...dbItems, ...mappedOpps];
           }
@@ -408,8 +336,7 @@ export default function App() {
 
         // 2. Process Highlights
         if (highlightsResponse.ok) {
-          const highlightsPayload = await highlightsResponse.json();
-          const hList = Array.isArray(highlightsPayload) ? highlightsPayload : (highlightsPayload?.highlights || []);
+          const hList = await highlightsResponse.json();
           if (Array.isArray(hList)) {
             const mappedHighlights = hList.map((item: any) => ({
               id: String(item.id || `highlight-${Date.now()}-${Math.random()}`),
@@ -469,55 +396,7 @@ export default function App() {
   }, [activeTab]);
 
   useEffect(() => {
-    const fetchUserPosts = async () => {
-      try {
-        const result = await userContentApi.getPosts(language);
-        const posts = result?.posts || [];
-        const mappedPosts: FeedItem[] = posts.map((post: any) => ({
-          id: post.id,
-          type: post.type || 'post',
-          titleEN: post.titleEN || post.title || '',
-          titleAR: post.titleAR || post.title || '',
-          titleKU: post.titleKU || post.title || '',
-          contentEN: post.contentEN || post.content || '',
-          contentAR: post.contentAR || post.content || '',
-          contentKU: post.contentKU || post.content || '',
-          author: {
-            name: post.anonymous ? 'Anonymous Student' : (post.authorName || 'Student'),
-            role: post.authorRole === 'admin' ? 'staff' : (post.authorRole || 'student'),
-            avatar: post.anonymous ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100' : userProfile.avatar
-          },
-          date: post.createdAt ? `Posted on ${post.createdAt.split('T')[0]}` : 'Recently posted',
-          rawDate: post.createdAt,
-          likes: Number(post.likes || 0),
-          commentsCount: Number(post.commentsCount || 0),
-          commentsList: post.commentsList || [],
-          likedByUser: Boolean(post.likedByUser),
-          savedByUser: Boolean(post.savedByUser),
-          governorateId: post.governorateId || 'all',
-          universityId: post.universityId || 'all',
-          imageUrl: post.imageUrl || undefined
-        }));
-
-        setFeedItems(prev => {
-          const nonBackendPosts = prev.filter(item => !String(item.id).startsWith('post-'));
-          return [...mappedPosts, ...nonBackendPosts];
-        });
-      } catch (err) {
-        console.warn('Could not hydrate backend posts; using local cache only.', err);
-      }
-    };
-
-    fetchUserPosts();
-  }, [isLoggedIn]);
-
-  useEffect(() => {
     localStorage.setItem('jamiaati_profile_v2', JSON.stringify(userProfile));
-    if (isLoggedIn) {
-      void userContentApi.updateProfile(userProfile, language).catch(() => {
-        // Local cache remains responsive; backend will retry on the next profile change.
-      });
-    }
   }, [userProfile]);
 
   // Adjust application alignment automatically based on language direction
@@ -525,11 +404,6 @@ export default function App() {
 
   // State modification events
   const handleLike = (id: string) => {
-    if (isLoggedIn) {
-      void userContentApi.toggleLike(id, language).catch((err) => {
-        showToast(err.message, 'error');
-      });
-    }
     let triggeredToast = false;
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
@@ -539,12 +413,12 @@ export default function App() {
           if (isLiked) {
             handleAwardPoints(5);
             showToast(
-              language === 'ar' ? 'تم الإعجاب بالمنشور. +5 نقاط' : language === 'ku' ? 'بابەتەکە بەدڵ بوو. +5 خاڵ' : 'Post liked. +5 pts',
+              language === 'ar' ? 'تم الإعجاب بالمنشور! ❤️ +٥ نقاط تفاعل' : language === 'ku' ? 'دڵخواز بوو! ❤️ +٥ خاڵی کارلێک' : 'Post Liked! ❤️ +5 pts', 
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'تم إلغاء الإعجاب بالمنشور' : language === 'ku' ? 'دڵخواز لە بابەتەکە لادرا' : 'Removed like from post',
+              language === 'ar' ? 'تم إلغاء الإعجاب بالمنشور' : language === 'ku' ? 'لادانی دڵخواز لە بابەتەکە' : 'Removed like from post', 
               'info'
             );
           }
@@ -584,11 +458,6 @@ export default function App() {
   };
 
   const handleSave = (id: string) => {
-    if (isLoggedIn) {
-      void userContentApi.toggleSave(id, language).catch((err) => {
-        showToast(err.message, 'error');
-      });
-    }
     let triggeredToast = false;
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
@@ -598,12 +467,12 @@ export default function App() {
           if (isSaved) {
             handleAwardPoints(10);
             showToast(
-              language === 'ar' ? 'تم الحفظ في مكتبتك. +10 نقاط' : language === 'ku' ? 'لە کتێبخانەکەت پاشەکەوت کرا. +10 خاڵ' : 'Saved to your library. +10 pts',
+              language === 'ar' ? 'تم الحفظ في المحفظة الأكاديمية! 🔖 +١٠ نقاط' : language === 'ku' ? 'پاشەکەوتکرا لە جزدانی ئەکادیمی! 🔖 +١٠ خاڵ' : 'Saved to Hub Library! 🔖 +10 pts', 
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'تمت الإزالة من المحفوظات' : language === 'ku' ? 'لە پاشەکەوتکراوەکان لادرا' : 'Removed bookmark',
+              language === 'ar' ? 'تمت الإزالة من المفضلة الأكاديمية' : language === 'ku' ? 'لادانی لە پاشەکەوتکراوەکان' : 'Removed bookmark', 
               'info'
             );
           }
@@ -628,7 +497,7 @@ export default function App() {
           triggeredToast = true;
           handleAwardPoints(25); // high reward for sharing feedback
           showToast(
-            language === 'ar' ? 'تم تسجيل رأيك. +25 نقطة' : language === 'ku' ? 'دەنگەکەت تۆمارکرا. +25 خاڵ' : 'Feedback vote recorded. +25 pts',
+            language === 'ar' ? 'تم تسجيل رأيك الطلابي بنجاح! 📊 +٢٥ نقطة مساهمة' : language === 'ku' ? 'دەنگەکەت بە سەرکەوتوویی تۆمارکرا! 📊 +٢٥ خاڵ' : 'Feedback vote recorded! 📊 +25 pts', 
             'success'
           );
         }
@@ -649,11 +518,6 @@ export default function App() {
   };
 
   const handleApply = (id: string) => {
-    if (isLoggedIn) {
-      void userContentApi.toggleApply(id, language).catch((err) => {
-        showToast(err.message, 'error');
-      });
-    }
     let triggeredToast = false;
     setFeedItems(prev => prev.map(item => {
       if (item.id === id) {
@@ -663,12 +527,12 @@ export default function App() {
           if (isApplied) {
             handleAwardPoints(50); // Massive career action reward!
             showToast(
-              language === 'ar' ? 'تم تسجيل طلب التقديم بنجاح. +50 نقطة' : language === 'ku' ? 'داواکارییەکەت بە سەرکەوتوویی تۆمارکرا. +50 خاڵ' : 'Application registered successfully. +50 pts',
+              language === 'ar' ? 'تم تسجيل طلب التقديم للفرصة بنجاح! 💼 +٥٠ نقطة تواصل مهني' : language === 'ku' ? 'پێشکەشکردنی داواکاری کارەکەت سەرکەوتوو بوو! 💼 +٥٠ خاڵی پیشەیی' : 'Application registered successfully! 💼 +50 Career pts', 
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'تم إلغاء طلب التقديم' : language === 'ku' ? 'داواکارییەکەت هەڵوەشێنرایەوە' : 'Cancelled application request',
+              language === 'ar' ? 'تم إلغاء تقديم الطلب بنجاح' : language === 'ku' ? 'داواکاریەکەت هەڵوەشێنرایەوە' : 'Cancelled application request', 
               'info'
             );
           }
@@ -692,12 +556,12 @@ export default function App() {
           if (isRsvped) {
             handleAwardPoints(30);
             showToast(
-              language === 'ar' ? 'تم تأكيد الحضور. +30 نقطة' : language === 'ku' ? 'ئامادەبوون پشتڕاستکرایەوە. +30 خاڵ' : 'Attendance confirmed. +30 pts',
+              language === 'ar' ? 'تم حجز تذكرتك الأكاديمية بنجاح! 🎟️ +٣٠ نقطة تفاعل' : language === 'ku' ? 'کورسیەکەت گیرا بۆ مەراسیمەکە! 🎟️ +٣٠ خاڵ' : 'Access ticket reserved! 🎟️ +30 pts', 
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'تم إلغاء تأكيد الحضور' : language === 'ku' ? 'پشتڕاستکردنەوەی ئامادەبوون هەڵوەشێنرایەوە' : 'Reservation cancelled',
+              language === 'ar' ? 'تم إلغاء تأكيد حضور الفعالية' : language === 'ku' ? 'هەڵوەشاندنەوەی حیجزی مەراسیمەکە' : 'Reservation cancelled', 
               'info'
             );
           }
@@ -722,12 +586,12 @@ export default function App() {
           if (isJoined) {
             handleAwardPoints(30);
             showToast(
-              language === 'ar' ? 'انضممت إلى مجموعة المراجعة. +30 نقطة' : language === 'ku' ? 'پەیوەست بوویت بە گرووپی گفتوگۆ. +30 خاڵ' : 'Joined study circle. +30 pts',
+              language === 'ar' ? 'انضممت لمجموعة المراجعة! 👥 +٣٠ نقطة دراسية' : language === 'ku' ? 'پەیوەست بوویت بە گروپی گفتوگۆکە! 👥 +٣٠ خاڵی مراجعە' : 'Joined study circle! 👥 +30 Study pts', 
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'غادرت مجموعة المراجعة' : language === 'ku' ? 'گرووپی خوێندنەکەت جێهێشت' : 'Left study circle',
+              language === 'ar' ? 'غادرت مجموعة الصداقة والمراجعة' : language === 'ku' ? 'جێهێشتنی بازنەی خوێندنەکە' : 'Left study circle', 
               'info'
             );
           }
@@ -783,7 +647,7 @@ export default function App() {
 
     handleAwardPoints(15); // reward commenting and discussion
     showToast(
-      language === 'ar' ? 'تم نشر تعليقك. +15 نقطة' : language === 'ku' ? 'لێدوانەکەت بڵاوکرایەوە. +15 خاڵ' : 'Comment posted. +15 pts',
+      language === 'ar' ? 'تم نشر تعليقك الأكاديمي بنجاح! 💬 +١٥ نقطة مراجع' : language === 'ku' ? 'وەڵامەکەت بڵاوکرایەوە بە سەرکەوتوویی! 💬 +١٥ خاڵ' : 'Academic comment posted! 💬 +15 pts', 
       'success'
     );
 
@@ -797,11 +661,6 @@ export default function App() {
       }
       return item;
     }));
-    if (isLoggedIn) {
-      void userContentApi.addComment(itemId, content, userProfile.avatar, language).catch((err) => {
-        showToast(err.message, 'error');
-      });
-    }
   };
 
   const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post', imageUrl?: string) => {
@@ -886,36 +745,10 @@ export default function App() {
 
     handleAwardPoints(40); // high points for sharing posts!
     showToast(
-      language === 'ar' ? 'تم نشر مساهمتك بنجاح. +40 نقطة' : language === 'ku' ? 'بەشدارییەکەت بە سەرکەوتوویی بڵاوکرایەوە. +40 خاڵ' : 'Contribution published successfully. +40 pts',
+      language === 'ar' ? 'تم نشر مساهمتك بنجاح على ساحة الطلاب! ✨ +٤٠ نقطة' : language === 'ku' ? 'بڵاوکراوەکەت بڵاوکرایەوە لە ساحەی قوتابیان! ✨ +٤٠ خاڵ' : 'Contribution published successfully! ✨ +40 pts', 
       'success'
     );
     setFeedItems(prev => [freshPost, ...prev]);
-    if (isLoggedIn) {
-      void userContentApi.createPost({
-        title,
-        content: body,
-        anonymous,
-        type: customType,
-        governorateId: selectedGov === 'all' ? userProfile.governorateId : selectedGov,
-        universityId: selectedUni === 'all' ? userProfile.universityId : selectedUni
-      }, language).then((result) => {
-        const backendPost = result?.post;
-        if (!backendPost) return;
-        setFeedItems(prev => prev.map(item => item.id === freshPost.id ? { ...item, id: backendPost.id } : item));
-        if (backendPost.status === 'pending_review') {
-          showToast(
-            language === 'ar'
-              ? 'تم حفظ المنشور المجهول للمراجعة قبل النشر.'
-              : language === 'ku'
-              ? 'بابەتی نادیار بۆ پێداچوونەوە پاشەکەوت کرا.'
-              : 'Anonymous post saved for moderation before publishing.',
-            'info'
-          );
-        }
-      }).catch((err) => {
-        showToast(err.message, 'error');
-      });
-    }
   };
 
   // Gamification engine helpers
@@ -931,16 +764,23 @@ export default function App() {
     });
   };
 
-  // Public safety: role switching is disabled in production. Roles must come from backend auth.
+  // Simulating user switches Roles inside their profile
   const handleRoleToggle = () => {
-    showToast(
-      language === 'ar'
-        ? 'تغيير الدور غير متاح في النسخة العامة. صلاحيات المسؤول تأتي من الخادم فقط.'
-        : language === 'ku'
-        ? 'گۆڕینی ڕۆڵ لە وەشانی گشتی داخراوە. دەسەڵاتی بەڕێوەبەر تەنها لە سێرڤەرەوە دێت.'
-        : 'Role switching is disabled in the public app. Admin access must come from the backend.',
-      'info'
-    );
+    const roles: ('student' | 'graduate' | 'teacher' | 'staff')[] = ['student', 'graduate', 'teacher', 'staff'];
+    const currentIdx = roles.indexOf(userProfile.role as any);
+    const nextIdx = (currentIdx + 1) % roles.length;
+    const nextRole = roles[nextIdx];
+
+    setUserProfile(prev => ({
+      ...prev,
+      role: nextRole,
+      name: nextRole === 'teacher' ? 'Dr. Yousif Al-Hamadani' : nextRole === 'staff' ? 'Admin Layla' : defaultUserProfile.name,
+      avatar: nextRole === 'teacher' 
+        ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200' 
+        : nextRole === 'staff' 
+        ? 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'
+        : defaultUserProfile.avatar
+    }));
   };
 
   // Absolute central filtering query based on Governorate and university selections
@@ -1108,17 +948,18 @@ export default function App() {
             onToggleUserRole={handleRoleToggle}
             isLoggedIn={isLoggedIn}
             onLogout={() => {
-              clearAuthSession();
+              setIsLoggedIn(false);
+              localStorage.setItem('jamiaati_logged_in', 'false');
               showToast(
-                language === 'ar' ? 'تم تسجيل الخروج بنجاح.' : language === 'ku' ? 'بە سەرکەوتوویی چوویتە دەرەوە.' : 'Logged out successfully.',
+                language === 'ar' ? 'تم تسجيل خروجك بنجاح. نراك قريباً! 👋' : language === 'ku' ? 'خۆتۆمارکردنەکەت کۆتایی پێهات. بە هیوای دیدار! 👋' : 'Logged out successfully. See you! 👋', 
                 'info'
               );
             }}
             onTriggerAuth={() => setIsAuthModalOpen(true)}
-            onNavigateAdmin={isAdminVerified ? () => setActiveTab('admin') : undefined}
+            onNavigateAdmin={() => setActiveTab('admin')}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={isAdminVerified}
+            isAdminMode={userProfile.role === 'staff'}
           />
         );
       case 'admin':
@@ -1127,7 +968,7 @@ export default function App() {
             language={language}
             onBack={() => setActiveTab('profile')}
             showToast={showToast}
-            userRole={isAdminVerified ? 'staff' : userProfile.role}
+            userRole={userProfile.role}
           />
         );
       default:
@@ -1244,19 +1085,15 @@ export default function App() {
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
           language={language}
-          onAuthSuccess={(newUsername, token, role, user) => {
-            if (!token) {
-              clearAuthSession();
-              return;
-            }
-            applyAuthSession(token, user || {
-              id: userProfile.id,
-              name: newUsername || userProfile.name || 'طالب جامعتي',
-              email: '',
-              role: role || 'student'
-            });
+          onAuthSuccess={(newUsername) => {
+            setIsLoggedIn(true);
+            localStorage.setItem('jamiaati_logged_in', 'true');
+            setUserProfile(prev => ({
+              ...prev,
+              name: newUsername || 'Zara Al-Iraqi'
+            }));
             showToast(
-              language === 'ar' ? `مرحباً بك ${newUsername || 'زائر'}، تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'میوان'}، چوونەژوورەوە سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Guest'}! Signed in`,
+              language === 'ar' ? `مرحباً بك مجدداً يا ${newUsername || 'زارا'}! 👋 تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'زارا'}! 👋 دابەزاندن سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Zara'}! 👋 Signed in`, 
               'success'
             );
           }}
@@ -1283,7 +1120,7 @@ export default function App() {
                 }`}>
                   <div className="flex items-center gap-2">
                     <span className="text-sm">
-                      {toast.type === 'success' ? 'OK' : toast.type === 'error' ? '!' : 'i'}
+                      {toast.type === 'success' ? '⚡' : toast.type === 'error' ? '🚨' : '✨'}
                     </span>
                     <span className="leading-relaxed tracking-tight text-[11px] text-left">
                       {toast.text}
@@ -1293,7 +1130,7 @@ export default function App() {
                     onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
                     className="text-slate-400 hover:text-white transition-colors p-1 bg-transparent border-0 cursor-pointer text-[10px] font-black"
                   >
-                    ×
+                    ✕
                   </button>
                 </div>
               </motion.div>

@@ -87,17 +87,16 @@ export interface FeedItem {
   original_language?: Language;
   title_original?: string;
   body_original?: string;
-  content_original?: string;
   caption_original?: string;
-  title_en?: string;
-  body_en?: string;
-  caption_en?: string;
   title_ar?: string;
   body_ar?: string;
   caption_ar?: string;
   title_ku?: string;
   body_ku?: string;
   caption_ku?: string;
+  title_en?: string;
+  body_en?: string;
+  caption_en?: string;
   
   // Meta
   author: Author;
@@ -292,3 +291,4 @@ export function hasAlternativeLanguages(item: any, currentLanguage: 'en' | 'ar' 
     return !!(hasAr || hasKu || hasOriginal);
   }
 }
+

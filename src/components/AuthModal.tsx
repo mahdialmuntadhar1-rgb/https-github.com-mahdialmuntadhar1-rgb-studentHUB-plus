@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import { Language } from '../types';
 import { getTranslation } from '../data/translations';
-import { AuthUser, authApi } from '../lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, Lock, User, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -9,7 +8,7 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   language: Language;
-  onAuthSuccess: (username: string, token?: string, role?: string, user?: AuthUser) => void;
+  onAuthSuccess: (username: string) => void;
 }
 
 type AuthMode = 'login' | 'register' | 'forgot';
@@ -32,24 +31,24 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
   // Localized texts
   const t = {
     login: { en: 'Sign In', ar: 'تسجيل الدخول', ku: 'چوونەژوورەوە' },
-    register: { en: 'Create Account', ar: 'إنشاء حساب جديد', ku: 'دروستکردنی هەژمار' },
-    forgot: { en: 'Reset Password', ar: 'استعادة الحساب', ku: 'گێڕانەوەی وشەی تێپەڕ' },
+    register: { en: 'Create Account', ar: 'إنشاء حساب جديد', ku: 'تۆمارکردنی هەژمار' },
+    forgot: { en: 'Reset Password', ar: 'استعادة الحساب', ku: 'دۆزینەوەی وشەی تێپەڕ' },
     emailLabel: { en: 'Academic Email', ar: 'البريد الإلكتروني الجامعي', ku: 'ئیمەیڵی ئەکادیمی' },
     passwordLabel: { en: 'Password', ar: 'كلمة المرور', ku: 'وشەی تێپەڕ' },
     usernameLabel: { en: 'Full Name', ar: 'الاسم الكامل', ku: 'ناوی تەواو' },
     forgotLink: { en: 'Forgot Password?', ar: 'نسيت كلمة المرور؟', ku: 'وشەی تێپەڕت لەبیرچووە؟' },
     noAccount: { en: "Don't have an account?", ar: 'ليس لديك حساب؟', ku: 'هەژمارت نییە؟' },
-    haveAccount: { en: 'Already have an account?', ar: 'لديك حساب بالفعل؟', ku: 'خاوەنی هەژماریت؟' },
+    haveAccount: { en: 'Already have an account?', ar: 'لديك حساب بالفعل؟', ku: 'خاوەنی هەژماری؟' },
     registerNow: { en: 'Register Now', ar: 'سجل الآن', ku: 'ئێستا تۆمار بکە' },
     loginNow: { en: 'Login Now', ar: 'سجل دخولك', ku: 'ئێستا بچۆ ژوورەوە' },
     backToLogin: { en: 'Back to Login', ar: 'العودة لتسجيل الدخول', ku: 'گەڕانەوە بۆ چوونەژوورەوە' },
-    remember: { en: 'Remember session', ar: 'تذكرني على هذا الجهاز', ku: 'بیرم بخەرەوە' },
-    validationAcademicEmail: { en: 'Please enter a valid student email.', ar: 'يرجى إدخال بريد إلكتروني صحيح.', ku: 'تکایە ئیمەیڵێکی دروست بنووسە.' },
-    validationPasswordLen: { en: 'Password must be at least 6 characters.', ar: 'كلمة المرور يجب ألا تقل عن 6 أحرف.', ku: 'وشەی تێپەڕ دەبێت لانیکەم 6 پیت بێت.' },
+    remember: { en: 'Remember session', ar: 'تذكرني على هذا الجهاز', ku: 'بیرهێنانەوە' },
+    validationAcademicEmail: { en: 'Please enter a valid student email.', ar: 'يرجى إدخال بريد إلكتروني جامعي صحيح.', ku: 'تکایە ئیمەیڵێکی دروست بنووسە.' },
+    validationPasswordLen: { en: 'Password must be at least 6 characters.', ar: 'كلمة المرور يجب أن لا تقل عن ٦ أحرف.', ku: 'دەبێت وشەی تێپەڕ لانی کەم ٦ پیت بێت.' },
     validationNameEmpty: { en: 'Please enter your name.', ar: 'يرجى كتابة الاسم الكامل.', ku: 'تکایە ناوی خۆت بنووسە.' },
-    emailSentTitle: { en: 'Instruction Sent', ar: 'تم إرسال التعليمات', ku: 'ڕێنمایی نێردرا' },
-    emailSentDesc: { en: 'A secure recovery instruction has been recorded.', ar: 'تم تسجيل طلب استعادة آمن.', ku: 'داواکاری گێڕانەوەیەکی پارێزراو تۆمارکرا.' },
-    registerSuccess: { en: 'Welcome to Jamiaati!', ar: 'أهلاً بك في منصة جامعتي!', ku: 'بەخێربێیت بۆ جامعەتی!' },
+    emailSentTitle: { en: 'Instruction Sent', ar: 'تم إرسال التعليمات', ku: 'ڕێنمایی نێردران' },
+    emailSentDesc: { en: 'A secure recovery code has been sent to your inbox.', ar: 'تم إرسال رمز إعادة التعيين الآمن لبريدك الإلكتروني.', ku: 'کۆدی سەرلەنوێ ڕێکخستنەوە نێردرا بۆ ئیمەیڵەکەت.' },
+    registerSuccess: { en: 'Welcome to Jamiaati!', ar: 'أهلاً بك في منصة جامعتي!', ku: 'بەخێربێیت بۆ جامەعەتی!' },
     loginSuccess: { en: 'Welcome back!', ar: 'أهلاً بعودتك مجدداً!', ku: 'بەخێربێیتەوە!' }
   };
 
@@ -57,120 +56,50 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     return t[key][language] || t[key]['en'];
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
 
-    try {
-      if (!email.includes('@')) {
-        setError(getLabel('validationAcademicEmail'));
-        return;
-      }
-
-      if (mode === 'register' && !username.trim()) {
-        setError(getLabel('validationNameEmpty'));
-        return;
-      }
-
-      if (mode !== 'forgot' && password.length < 6) {
-        setError(getLabel('validationPasswordLen'));
-        return;
-      }
-
-      if (mode === 'forgot') {
-        const result = await authApi.forgotPassword(email, language);
-        setSuccess(
-          result?.dryRun
-            ? language === 'ar'
-              ? 'استعادة كلمة المرور تعمل بوضع DRY_RUN. لم يتم إرسال بريد حقيقي، ويمكن للمسؤول مراجعة الطلب التجريبي.'
-              : language === 'ku'
-              ? 'گێڕانەوەی وشەی تێپەڕ لە دۆخی DRY_RUN ـە. هیچ ئیمەیڵێکی ڕاستەقینە نەنێردرا؛ بەڕێوەبەر دەتوانێت داواکارییە تاقیکراوەکە ببینێت.'
-              : 'Password reset is in DRY_RUN mode. No real email was sent; an admin can review the simulated request.'
-            : getLabel('emailSentDesc')
-        );
-        return;
-      }
-
-      const result = mode === 'register'
-        ? await authApi.register(username.trim(), email.trim(), password, language)
-        : await authApi.login(email.trim(), password, language);
-
-      const token =
-        result?.token ||
-        result?.accessToken ||
-        result?.jwt ||
-        result?.data?.token ||
-        result?.data?.accessToken;
-
-      if (!token) {
-        throw new Error(
-          language === 'ar'
-            ? 'تم الاتصال بالخادم، لكن لم يتم استلام رمز الدخول.'
-            : language === 'ku'
-            ? 'پەیوەندی بە سێرڤەرەوە کرا، بەڵام تۆکنی چوونەژوورەوە نەگەڕایەوە.'
-            : 'Server responded, but no login token was returned.'
-        );
-      }
-
-      const returnedName =
-        result?.user?.name ||
-        result?.user?.fullName ||
-        result?.name ||
-        result?.data?.user?.name ||
-        username ||
-        email.split('@')[0];
-
-      const role =
-        result?.user?.role ||
-        result?.role ||
-        result?.data?.user?.role ||
-        'student';
-      const user = (result?.user || result?.data?.user) as AuthUser | undefined;
-
-      localStorage.setItem('jamiaati_token', token);
-      if (user) {
-        localStorage.setItem('jamiaati_user', JSON.stringify(user));
-      }
-
-      if (role === 'admin' || role === 'staff' || role === 'super_admin') {
-        localStorage.setItem('admin_token', token);
-      } else {
-        localStorage.removeItem('admin_token');
-      }
-
-      setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
-
-      setTimeout(() => {
-        onAuthSuccess(returnedName, token, role, user);
-        onClose();
-      }, 500);
-    } catch (err: any) {
-      const rawMessage = String(err?.message || '');
-      setError(
-        rawMessage.includes('Invalid email or password')
-          ? language === 'ar'
-            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
-            : language === 'ku'
-            ? 'ئیمەیڵ یان وشەی تێپەڕ هەڵەیە.'
-            : 'Invalid email or password.'
-          : rawMessage.includes('Email already exists')
-          ? language === 'ar'
-            ? 'هذا البريد مسجل مسبقاً.'
-            : language === 'ku'
-            ? 'ئەم ئیمەیڵە پێشتر تۆمارکراوە.'
-            : 'This email is already registered.'
-          : rawMessage ||
-        (language === 'ar'
-          ? 'فشل تسجيل الدخول. تأكد من البريد وكلمة المرور.'
-          : language === 'ku'
-          ? 'چوونەژوورەوە سەرکەوتوو نەبوو. ئیمەیڵ و وشەی تێپەڕ بپشکنە.'
-          : 'Authentication failed. Please check your email and password.')
-      );
-    } finally {
+    // Simple robust validation simulation
+    if (!email.includes('@')) {
+      setError(getLabel('validationAcademicEmail'));
       setLoading(false);
+      return;
     }
+
+    if (mode === 'register' && !username.trim()) {
+      setError(getLabel('validationNameEmpty'));
+      setLoading(false);
+      return;
+    }
+
+    if (mode !== 'forgot' && password.length < 6) {
+      setError(getLabel('validationPasswordLen'));
+      setLoading(false);
+      return;
+    }
+
+    // Simulate backend response
+    setTimeout(() => {
+      setLoading(false);
+      if (mode === 'forgot') {
+        setSuccess(getLabel('emailSentDesc'));
+      } else if (mode === 'register') {
+        setSuccess(getLabel('registerSuccess'));
+        setTimeout(() => {
+          onAuthSuccess(username || 'Zara Al-Iraqi');
+          onClose();
+        }, 1200);
+      } else {
+        setSuccess(getLabel('loginSuccess'));
+        setTimeout(() => {
+          onAuthSuccess('Zara Al-Iraqi');
+          onClose();
+        }, 1200);
+      }
+    }, 1000);
   };
 
   return (
@@ -217,7 +146,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
               {getLabel(mode)}
             </h3>
             <p className="text-[10px] uppercase font-bold text-cyan-400 font-mono tracking-widest mt-1">
-              Jamiaati Portal · بوابتنا
+              Jamiaati Portal • بَوّابَتُنا
             </p>
           </div>
 

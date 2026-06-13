@@ -1,15 +1,7 @@
 import { Language } from '../types';
 
-export const BACKEND_URL =
-  (((import.meta as any).env?.VITE_API_URL as string | undefined) || '').trim().replace(/\/$/, '');
+export const BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
 const API_BASE = `${BACKEND_URL}/api`;
-
-export type AuthUser = {
-  id: string;
-  name: string;
-  email: string;
-  role: string;
-};
 
 function getHeaders() {
   const headers: Record<string, string> = {
@@ -22,77 +14,32 @@ function getHeaders() {
   return headers;
 }
 
-async function handleResponse(response: Response, language: Language = 'ar', options: { suppressAuthAlert?: boolean } = {}) {
-  const contentType = response.headers.get('content-type');
-  let data: any = null;
-  let text = '';
-  if (contentType && contentType.includes('application/json')) {
-    data = await response.json();
-  } else {
-    text = await response.text();
-  }
-
+async function handleResponse(response: Response, language: Language = 'ar') {
   if (response.status === 401) {
-    const message = data?.message || data?.error;
-    if (!options.suppressAuthAlert) {
-      alert(message || (language === 'ar' ? 'قم بتسجيل الدخول أولاً.' : language === 'ku' ? 'تکایە سەرەتا بچۆ ژوورەوە.' : 'Login required.'));
-    }
-    throw new Error(message || (language === 'ar' ? 'تسجيل الدخول مطلوب.' : language === 'ku' ? 'چوونەژوورەوە پێویستە.' : 'Login required.'));
+    alert(language === 'ar' ? 'قم بتسجيل الدخول كمسؤول أولاً.' : language === 'ku' ? 'تکایە بچۆ ژوورەوە وەک سەرپەرشتیار.' : 'Admin login required.');
+    window.location.href = '#/login';
+    throw new Error('Admin login required');
   }
   if (response.status === 403) {
     alert(language === 'ar' ? 'وصول للمسؤولين فقط!' : language === 'ku' ? 'تەنها بۆ بەڕێوەبەران ڕێگەپێدراوە!' : 'Admin access only');
     throw new Error('Admin access only');
   }
 
+  const contentType = response.headers.get('content-type');
   if (contentType && contentType.includes('application/json')) {
+    const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.message || data.error || (language === 'ar' ? 'حدث خطأ في الخادم' : language === 'ku' ? 'هەڵەیەک لە سێرڤەر ڕوویدا' : 'Server error occurred'));
+      throw new Error(data.message || data.error || (language === 'ar' ? 'حدث خطأ في الخادم' : 'Server error occurred'));
     }
     return data;
   } else {
+    const text = await response.text();
     if (!response.ok) {
-      throw new Error(text || (language === 'ar' ? 'حدث خطأ غير معروف' : language === 'ku' ? 'هەڵەیەکی نەناسراو ڕوویدا' : 'Unknown error occurred'));
+      throw new Error(text || (language === 'ar' ? 'حدث خطأ غير معروف' : 'Unknown error occurred'));
     }
     return text;
   }
 }
-
-
-export const authApi = {
-  async login(email: string, password: string, lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/auth/login`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email, password }),
-    });
-    return await handleResponse(res, lang);
-  },
-
-  async register(name: string, email: string, password: string, lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/auth/register`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ name, email, password }),
-    });
-    return await handleResponse(res, lang);
-  },
-
-  async forgotPassword(email: string, lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/auth/forgot-password`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ email }),
-    });
-    return await handleResponse(res, lang);
-  },
-
-  async me(lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/auth/me`, {
-      headers: getHeaders(),
-    });
-    return await handleResponse(res, lang, { suppressAuthAlert: true });
-  },
-};
 
 export const opportunityAutomation = {
   async getStatus(lang: Language = 'ar') {
@@ -201,11 +148,17 @@ export const opportunityAutomation = {
 
   async importCsv(file: File, lang: Language = 'ar') {
     try {
-      const csvText = await file.text();
+      const formData = new FormData();
+      formData.append('file', file);
+
+      // Need multipart headers (let fetch set Content-Type with boundary)
+      const headers = getHeaders();
+      delete headers['Content-Type'];
+
       const res = await fetch(`${API_BASE}/opportunity-automation/import-csv`, {
         method: 'POST',
-        headers: getHeaders(),
-        body: JSON.stringify({ csvText, fileName: file.name }),
+        headers,
+        body: formData,
       });
       return await handleResponse(res, lang);
     } catch (err: any) {
@@ -336,75 +289,6 @@ export async function getOpportunities(lang: Language = 'ar') {
     throw err;
   }
 }
-
-export const userContentApi = {
-  async getPosts(lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/posts`, {
-      headers: getHeaders(),
-    });
-    return await handleResponse(res, lang);
-  },
-
-  async createPost(data: any, lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/posts`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify(data),
-    });
-    return await handleResponse(res, lang);
-  },
-
-  async addComment(itemId: string, content: string, authorAvatar: string, lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/items/${encodeURIComponent(itemId)}/comments`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ content, authorAvatar }),
-    });
-    return await handleResponse(res, lang);
-  },
-
-  async toggleLike(itemId: string, lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/items/${encodeURIComponent(itemId)}/like`, {
-      method: 'POST',
-      headers: getHeaders(),
-    });
-    return await handleResponse(res, lang);
-  },
-
-  async toggleSave(itemId: string, lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/items/${encodeURIComponent(itemId)}/save`, {
-      method: 'POST',
-      headers: getHeaders(),
-    });
-    return await handleResponse(res, lang);
-  },
-
-  async toggleApply(itemId: string, lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/items/${encodeURIComponent(itemId)}/apply`, {
-      method: 'POST',
-      headers: getHeaders(),
-    });
-    return await handleResponse(res, lang);
-  },
-
-  async updateProfile(data: any, lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/user/profile`, {
-      method: 'PUT',
-      headers: getHeaders(),
-      body: JSON.stringify(data),
-    });
-    return await handleResponse(res, lang);
-  },
-
-  async uploadImage(dataUrl: string, lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/uploads/images`, {
-      method: 'POST',
-      headers: getHeaders(),
-      body: JSON.stringify({ dataUrl }),
-    });
-    return await handleResponse(res, lang);
-  }
-};
 
 export const outreachApi = {
   async getContacts(params: { page?: number; limit?: number; search?: string; status?: string } = {}, lang: Language = 'ar') {

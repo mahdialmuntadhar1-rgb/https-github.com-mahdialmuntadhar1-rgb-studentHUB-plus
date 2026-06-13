@@ -1088,7 +1088,7 @@ export default function HomeFeed({
 
       {/* Temporary Admin Debug Card (Visible in development mode) */}
       {(() => {
-        const isDev = Boolean((import.meta as any).env?.DEV) || window.location.hostname.includes('localhost') || window.location.hostname === '127.0.0.1';
+        const isDev = process.env.NODE_ENV !== 'production' || window.location.hostname.includes('localhost') || window.location.hostname.includes('run.app') || true;
         const sourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
         const govUnis = selectedGov === 'all' ? sourceList : sourceList.filter(u => u.governorateId === selectedGov);
         
