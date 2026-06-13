@@ -56,7 +56,12 @@ interface Opportunity {
   original_source_url: string;
   published_date: string;
   imageUrl: string;
-  status: 'pending_review' | 'approved' | 'rejected' | 'duplicate' | 'expired';
+  status: 'pending' | 'pending_review' | 'approved' | 'rejected' | 'duplicate' | 'expired';
+  
+  // Multilingual Spec Fields
+  original_language?: string;
+  title_original?: string;
+  content_original?: string;
 }
 
 interface LogEntry {
@@ -401,6 +406,49 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
 
                   <form onSubmit={handleEditSubmit} className="flex flex-col gap-3">
                     
+                    {/* Multilingual Details & Original Version Control */}
+                    <div className="bg-[#101726]/80 border border-cyan-500/20 rounded-2xl p-3.5 mb-1 flex flex-col gap-3">
+                      <h4 className="text-[10px] font-black text-cyan-400 uppercase tracking-widest leading-none">🌐 Platform Translations</h4>
+                      
+                      {/* Original Language Selector */}
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase">Original Language of Scraped Post</label>
+                        <select
+                          value={editingOpp.original_language || 'en'}
+                          onChange={e => setEditingOpp({ ...editingOpp, original_language: e.target.value })}
+                          className="bg-[#0B1020] border border-[#1F2E4D] rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+                        >
+                          <option value="en">English (🇬🇧)</option>
+                          <option value="ar">Arabic (🇮🇶)</option>
+                          <option value="ku">Kurdish (☀️)</option>
+                        </select>
+                      </div>
+
+                      {/* Original Title Entry */}
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase">Original Title</label>
+                        <input 
+                          type="text"
+                          value={editingOpp.title_original || ''}
+                          onChange={e => setEditingOpp({ ...editingOpp, title_original: e.target.value })}
+                          placeholder="e.g. Asiacell Graduate Acceleration Elite Program"
+                          className="bg-[#0B1020] border border-[#1F2E4D] rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+                        />
+                      </div>
+
+                      {/* Original Content Entry */}
+                      <div className="flex flex-col gap-1">
+                        <label className="text-[9px] font-black text-slate-400 uppercase">Original Content Description</label>
+                        <textarea
+                          value={editingOpp.content_original || ''}
+                          rows={2}
+                          onChange={e => setEditingOpp({ ...editingOpp, content_original: e.target.value })}
+                          placeholder="Write the untranslated text original listing here..."
+                          className="bg-[#0B1020] border border-[#1F2E4D] rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
+                        />
+                      </div>
+                    </div>
+
                     {/* EN Title */}
                     <div className="flex flex-col gap-1">
                       <label className="text-[10px] font-black text-slate-350 uppercase">Title (EN)</label>

@@ -22,6 +22,9 @@ interface ProfileViewProps {
   onLogout: () => void;
   onTriggerAuth: () => void;
   onNavigateAdmin?: () => void;
+  onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
+  onDeleteFeedItem?: (id: string) => void;
+  isAdminMode?: boolean;
 }
 
 export default function ProfileView({
@@ -39,7 +42,10 @@ export default function ProfileView({
   isLoggedIn,
   onLogout,
   onTriggerAuth,
-  onNavigateAdmin
+  onNavigateAdmin,
+  onEditFeedItem,
+  onDeleteFeedItem,
+  isAdminMode = false
 }: ProfileViewProps) {
   const [activeTab, setActiveTab] = useState<'bookmarks' | 'activities'>('bookmarks');
 
@@ -246,6 +252,9 @@ export default function ProfileView({
                 onRsvp={onRsvp}
                 onJoinGroup={onJoinGroup}
                 onAddComment={onAddComment}
+                onEditFeedItem={onEditFeedItem}
+                onDeleteFeedItem={onDeleteFeedItem}
+                isAdminMode={isAdminMode}
               />
             ))
           )
@@ -269,6 +278,9 @@ export default function ProfileView({
                 onRsvp={onRsvp}
                 onJoinGroup={onJoinGroup}
                 onAddComment={onAddComment}
+                onEditFeedItem={onEditFeedItem}
+                onDeleteFeedItem={onDeleteFeedItem}
+                isAdminMode={isAdminMode}
               />
             ))
           )

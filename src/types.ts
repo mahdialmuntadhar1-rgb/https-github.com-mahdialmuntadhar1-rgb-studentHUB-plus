@@ -41,6 +41,13 @@ export interface Comment {
   content: string;
   date: string;
   likes?: number;
+  
+  // Translation Support Data Model
+  original_language?: Language;
+  content_original?: string;
+  content_ar?: string;
+  content_ku?: string;
+  content_en?: string;
 }
 
 export interface FeedItem {
@@ -75,6 +82,22 @@ export interface FeedItem {
   contentEN: string;
   contentAR: string;
   contentKU: string;
+  
+  // Translation Support Data Model
+  original_language?: Language;
+  title_original?: string;
+  body_original?: string;
+  content_original?: string;
+  caption_original?: string;
+  title_en?: string;
+  body_en?: string;
+  caption_en?: string;
+  title_ar?: string;
+  body_ar?: string;
+  caption_ar?: string;
+  title_ku?: string;
+  body_ku?: string;
+  caption_ku?: string;
   
   // Meta
   author: Author;
@@ -160,4 +183,112 @@ export interface UserProfile {
   appliedJobIds: string[];
   joinedGroupIds: string[];
   rsvpedEventIds: string[];
+}
+
+export function getLocalizedContent(
+  item: any,
+  field: string,
+  selectedLanguage: 'en' | 'ar' | 'ku',
+  showOriginal?: boolean
+): string {
+  if (!item) return '';
+
+  const getKeysForLang = (lang: 'en' | 'ar' | 'ku') => {
+    if (field === 'title') {
+      return lang === 'ar' ? ['title_ar', 'titleAR'] : lang === 'ku' ? ['title_ku', 'titleKU'] : ['title_en', 'titleEN'];
+    }
+    if (field === 'body' || field === 'content') {
+      return lang === 'ar' ? ['body_ar', 'bodyAR', 'content_ar', 'contentAR'] : lang === 'ku' ? ['body_ku', 'bodyKU', 'content_ku', 'contentKU'] : ['body_en', 'bodyEN', 'content_en', 'contentEN'];
+    }
+    // Dynamic naming support for other fields (e.g., whoCanApply, etc.)
+    const keySnake = `${field}_${lang}`;
+    const keyCamelEn = `${field}${lang === 'en' ? 'EN' : lang === 'ar' ? 'AR' : 'KU'}`;
+    return [keySnake, keyCamelEn];
+  };
+
+  const getOriginalKeys = () => {
+    if (field === 'title') return ['title_original', 'titleOriginal'];
+    if (field === 'body' || field === 'content') return ['body_original', 'bodyOriginal', 'content_original', 'contentOriginal'];
+    const keySnake = `${field}_original`;
+    const keyCamel = `${field}Original`;
+    return [keySnake, keyCamel];
+  };
+
+  const getRawKeys = () => {
+    if (field === 'body' || field === 'content') return ['body', 'content'];
+    return [field];
+  };
+
+  const getValueForKeys = (keys: string[]): string | undefined => {
+    for (const key of keys) {
+      if (item[key] !== undefined && item[key] !== null && String(item[key]).trim() !== '') {
+        return String(item[key]);
+      }
+    }
+    return undefined;
+  };
+
+  // If showOriginal is requested, prioritize original
+  if (showOriginal) {
+    // 1. Try original version of the field
+    const origVal = getValueForKeys(getOriginalKeys());
+    if (origVal !== undefined) return origVal;
+
+    // 2. Try the language specified in original_language
+    if (item.original_language && (item.original_language === 'ar' || item.original_language === 'ku' || item.original_language === 'en')) {
+      const origLangVal = getValueForKeys(getKeysForLang(item.original_language));
+      if (origLangVal !== undefined) return origLangVal;
+    }
+  }
+
+  // Fallback priority:
+  // 1. Selected language version
+  const selectedVal = getValueForKeys(getKeysForLang(selectedLanguage));
+  if (selectedVal !== undefined) return selectedVal;
+
+  // 2. Original version
+  const origVal = getValueForKeys(getOriginalKeys());
+  if (origVal !== undefined) return origVal;
+
+  // 2b. If item has original_language, try that
+  if (item.original_language && (item.original_language === 'ar' || item.original_language === 'ku' || item.original_language === 'en')) {
+    const origLangVal = getValueForKeys(getKeysForLang(item.original_language));
+    if (origLangVal !== undefined) return origLangVal;
+  }
+
+  // 3. Arabic version
+  const arVal = getValueForKeys(getKeysForLang('ar'));
+  if (arVal !== undefined) return arVal;
+
+  // 4. Kurdish Sorani version
+  const kuVal = getValueForKeys(getKeysForLang('ku'));
+  if (kuVal !== undefined) return kuVal;
+
+  // 5. English version
+  const enVal = getValueForKeys(getKeysForLang('en'));
+  if (enVal !== undefined) return enVal;
+
+  // 6. Existing raw field
+  const rawVal = getValueForKeys(getRawKeys());
+  if (rawVal !== undefined) return rawVal;
+
+  return '';
+}
+
+export function hasAlternativeLanguages(item: any, currentLanguage: 'en' | 'ar' | 'ku'): boolean {
+  if (!item) return false;
+  
+  const hasAr = (item.titleAR && item.titleAR.trim() !== '') || (item.contentAR && item.contentAR.trim() !== '') || (item.title_ar && item.title_ar.trim() !== '') || (item.body_ar && item.body_ar.trim() !== '') || (item.caption_ar && item.caption_ar.trim() !== '') || (item.content_ar && item.content_ar.trim() !== '');
+  const hasKu = (item.titleKU && item.titleKU.trim() !== '') || (item.contentKU && item.contentKU.trim() !== '') || (item.title_ku && item.title_ku.trim() !== '') || (item.body_ku && item.body_ku.trim() !== '') || (item.caption_ku && item.caption_ku.trim() !== '') || (item.content_ku && item.content_ku.trim() !== '');
+  const hasEn = (item.titleEN && item.titleEN.trim() !== '') || (item.contentEN && item.contentEN.trim() !== '') || (item.title_en && item.title_en.trim() !== '') || (item.body_en && item.body_en.trim() !== '') || (item.caption_en && item.caption_en.trim() !== '') || (item.content_en && item.content_en.trim() !== '');
+  
+  const hasOriginal = (item.title_original && item.title_original.trim() !== '') || (item.body_original && item.body_original.trim() !== '') || (item.caption_original && item.caption_original.trim() !== '') || (item.content_original && item.content_original.trim() !== '');
+
+  if (currentLanguage === 'ar') {
+    return !!(hasKu || hasEn || hasOriginal);
+  } else if (currentLanguage === 'ku') {
+    return !!(hasAr || hasEn || hasOriginal);
+  } else {
+    return !!(hasAr || hasKu || hasOriginal);
+  }
 }

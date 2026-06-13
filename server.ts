@@ -878,26 +878,96 @@ app.get("/api/institutions", async (req, res) => {
   }
 });
 
-// Dynamic Opportunities feed (Returns Approved opportunities to standard search)
+// Dynamic Opportunities feed (approved public opportunities only, with query filtering)
 app.get("/api/opportunities", (req, res) => {
   const db = readDB();
   const user = findUserByToken(req);
-  const approvedOnly = db.opportunities
+
+  const allowedCategories = ["job", "scholarship", "internship", "training", "fellowship", "volunteering", "competition", "graduation_support"];
+  let list = db.opportunities
     .map(normalizeOpportunity)
     .filter(Boolean)
     .filter((o: any) => o.status === "approved")
-    .map((o: any) => mergeOpportunityStats(db, o, user?.id));
-  res.json(approvedOnly);
+    .filter((o: any) => allowedCategories.includes(o.category));
+
+  const { type, category, governorate, university_id, institution_id, limit, offset } = req.query;
+  const catFilter = category || type;
+  if (catFilter) {
+    list = list.filter((o: any) => o.category?.toLowerCase() === String(catFilter).toLowerCase());
+  }
+
+  if (governorate && governorate !== "all") {
+    list = list.filter((o: any) =>
+      o.governorateId?.toLowerCase() === String(governorate).toLowerCase() ||
+      o.governorate?.toLowerCase() === String(governorate).toLowerCase() ||
+      o.governorateId === "all" ||
+      o.governorate === "All Iraq"
+    );
+  }
+
+  const uniFilter = university_id || institution_id;
+  if (uniFilter && uniFilter !== "all") {
+    list = list.filter((o: any) =>
+      o.universityId?.toLowerCase() === String(uniFilter).toLowerCase() ||
+      o.university_id?.toLowerCase() === String(uniFilter).toLowerCase() ||
+      o.universityId === "all" ||
+      o.university_id === "all"
+    );
+  }
+
+  let result = list;
+  const start = offset ? parseInt(String(offset), 10) : 0;
+  const size = limit ? parseInt(String(limit), 10) : result.length;
+  if (!isNaN(start) && !isNaN(size)) {
+    result = result.slice(start, start + size);
+  }
+
+  res.json(result.map((o: any) => mergeOpportunityStats(db, o, user?.id)));
 });
 
+// Dynamic Highlights feed (approved public academic notices only)
 app.get("/api/highlights", (req, res) => {
   const db = readDB();
-  const highlights = db.opportunities
+  const user = findUserByToken(req);
+  const allowedCategories = ["event", "news", "announcement", "exam", "registration", "student_club", "activity"];
+  let list = db.opportunities
     .map(normalizeOpportunity)
     .filter(Boolean)
     .filter((o: any) => o.status === "approved")
-    .slice(0, 8);
-  res.json({ highlights });
+    .filter((o: any) => allowedCategories.includes(o.category));
+
+  const { category, governorate, university_id, institution_id, limit, offset } = req.query;
+  if (category) {
+    list = list.filter((o: any) => o.category?.toLowerCase() === String(category).toLowerCase());
+  }
+
+  if (governorate && governorate !== "all") {
+    list = list.filter((o: any) =>
+      o.governorateId?.toLowerCase() === String(governorate).toLowerCase() ||
+      o.governorate?.toLowerCase() === String(governorate).toLowerCase() ||
+      o.governorateId === "all" ||
+      o.governorate === "All Iraq"
+    );
+  }
+
+  const uniFilter = university_id || institution_id;
+  if (uniFilter && uniFilter !== "all") {
+    list = list.filter((o: any) =>
+      o.universityId?.toLowerCase() === String(uniFilter).toLowerCase() ||
+      o.university_id?.toLowerCase() === String(uniFilter).toLowerCase() ||
+      o.universityId === "all" ||
+      o.university_id === "all"
+    );
+  }
+
+  let result = list;
+  const start = offset ? parseInt(String(offset), 10) : 0;
+  const size = limit ? parseInt(String(limit), 10) : result.length;
+  if (!isNaN(start) && !isNaN(size)) {
+    result = result.slice(start, start + size);
+  }
+
+  res.json(result.map((o: any) => mergeOpportunityStats(db, o, user?.id)));
 });
 
 app.use("/api/admin", requireAdmin);
@@ -1275,7 +1345,7 @@ app.post("/api/admin/opportunities/action", (req, res) => {
 
 // Admin edit opportunity
 app.post("/api/admin/opportunities/edit", (req, res) => {
-  const { id, titleEN, titleAR, titleKU, contentEN, contentAR, contentKU, category, deadline, application_link } = req.body;
+  const { id, titleEN, titleAR, titleKU, contentEN, contentAR, contentKU, category, deadline, application_link, original_language, title_original, content_original } = req.body;
   if (!id) {
     res.status(400).json({ error: "Opportunity ID is required." });
     return;
@@ -1296,6 +1366,9 @@ app.post("/api/admin/opportunities/edit", (req, res) => {
   if (contentKU) item.contentKU = contentKU;
   if (category) item.category = category;
   if (deadline) item.deadline = deadline;
+  if (original_language) item.original_language = original_language;
+  if (title_original) item.title_original = title_original;
+  if (content_original) item.content_original = content_original;
   if (application_link) {
     item.application_link = application_link;
     item.original_source_url = application_link;

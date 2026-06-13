@@ -35,7 +35,7 @@ interface AdminAutomationProps {
   userRole: string;
 }
 
-type TabType = 'dashboard' | 'sources' | 'import' | 'pending' | 'approved' | 'rejected' | 'duplicates' | 'expired' | 'logs' | 'settings';
+type TabType = 'dashboard' | 'sources' | 'import' | 'pending' | 'approved' | 'rejected' | 'duplicates' | 'expired' | 'logs' | 'portal' | 'settings';
 
 export default function AdminAutomation({
   language,
@@ -68,6 +68,40 @@ export default function AdminAutomation({
   // Pagination & Filter States
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
+
+  // Portal Layout States (Task 1: Change Hero Image & Live Story Photos)
+  const [heroBgInput, setHeroBgInput] = useState(() => localStorage.getItem('jamiaati_hero_bg') || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600');
+  
+  const [heroTitleENInput, setHeroTitleENInput] = useState(() => localStorage.getItem('jamiaati_hero_title_en') || 'Master Your Campus Journey!');
+  const [heroTitleARInput, setHeroTitleARInput] = useState(() => localStorage.getItem('jamiaati_hero_title_ar') || 'تميّز وابنِ مستقبلك الأكاديمي!');
+  const [heroTitleKUInput, setHeroTitleKUInput] = useState(() => localStorage.getItem('jamiaati_hero_title_ku') || 'داهاتوویەکی پڕشنگدار بنيات بنێ!');
+  
+  const [heroDescENInput, setHeroDescENInput] = useState(() => localStorage.getItem('jamiaati_hero_desc_en') || 'The ultimate collegiate hub for premium opportunities & academic resources');
+  const [heroDescARInput, setHeroDescARInput] = useState(() => localStorage.getItem('jamiaati_hero_desc_ar') || 'البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب');
+  const [heroDescKUInput, setHeroDescKUInput] = useState(() => localStorage.getItem('jamiaati_hero_desc_ku') || 'یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق');
+
+  const [heroTagENInput, setHeroTagENInput] = useState(() => localStorage.getItem('jamiaati_hero_tag_en') || 'PORTAL ACCELERATION');
+  const [heroTagARInput, setHeroTagARInput] = useState(() => localStorage.getItem('jamiaati_hero_tag_ar') || 'بوابة هويتنا الأكاديمية');
+  const [heroTagKUInput, setHeroTagKUInput] = useState(() => localStorage.getItem('jamiaati_hero_tag_ku') || 'دەروازەی ئەکادیمی عێراق');
+
+  // Load and modify standard student stories
+  const [storyList, setStoryList] = useState<any[]>(() => {
+    const saved = localStorage.getItem('jamiaati_edited_default_stories');
+    if (saved) return JSON.parse(saved);
+    return [
+      { id: 'story-sara', name: 'Sara Ahmed', avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200', text: 'Morning lab session checking microscopic cells! 🔬' },
+      { id: 'story-mustafa', name: 'Mustafa Ali', avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200', text: 'Building our AI-powered student assistant with Gemini API! 🤖🚀' },
+      { id: 'story-rawan', name: 'Rawan Omer', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200', text: 'Sunset over Mount Goizha from campus was stunning today! 🌄☕' },
+      { id: 'story-ali', name: 'Ali Jabbar', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200', text: 'Long shift in clinical practice! Basra Heat is here but we keep smiling! 🩺🥤' },
+      { id: 'story-zahid', name: 'Noor Al-Huda', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200', text: 'Setting up our chemical reaction samples. They look like glowing gems! 🧪💎' },
+      { id: 'story-soran', name: 'Soran Dler', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200', text: 'Beautiful morning at Erbil Citadel before lectures start 🎒🏰' }
+    ];
+  });
+
+  const [editingStoryId, setEditingStoryId] = useState<string | null>(null);
+  const [editingStoryName, setEditingStoryName] = useState('');
+  const [editingStoryAvatar, setEditingStoryAvatar] = useState('');
+  const [editingStoryText, setEditingStoryText] = useState('');
   const [totalItems, setTotalItems] = useState(0);
   const [search, setSearch] = useState('');
   const [filterType, setFilterType] = useState<string>('all');
@@ -101,6 +135,7 @@ export default function AdminAutomation({
     duplicates: { en: 'Duplicates', ar: 'المكررة', ku: 'دووبارەبووەوە' },
     expired: { en: 'Expired', ar: 'منتهية الصلاحية', ku: 'بەسەرچوو' },
     logs: { en: 'Run Logs', ar: 'سجلات التشغيل', ku: 'لۆگی کارکردن' },
+    portal: { en: 'Portal Design', ar: 'تعديل الواجهة والقصص', ku: 'ڕووكارى داستانەكان' },
     settings: { en: 'Settings', ar: 'الإعدادات', ku: 'ڕێکخستنەکان' },
     back: { en: 'Back', ar: 'رجوع', ku: 'گەڕانەوە' },
     noPermission: { en: 'Admin Access Only. Please authenticate with staff role.', ar: 'وصول للمسؤولين فقط. يرجى تسجيل الدخول بحساب مشرف.', ku: 'تەنها بۆ سەرپەرشتیارەکان ڕێگەپێدراوە.' }
@@ -367,7 +402,7 @@ export default function AdminAutomation({
 
       {/* Ten Navigation Subtabs slider */}
       <div className="flex gap-1.5 overflow-x-auto pb-3 mb-5 scrollbar-none" id="automation-subtabs-tray">
-        {(['dashboard', 'sources', 'import', 'pending', 'approved', 'rejected', 'duplicates', 'expired', 'logs', 'settings'] as TabType[]).map((tab) => {
+        {(['dashboard', 'sources', 'import', 'pending', 'approved', 'rejected', 'duplicates', 'expired', 'logs', 'portal', 'settings'] as TabType[]).map((tab) => {
           const isSelected = activeTab === tab;
           const label = getL(tab);
 
@@ -887,6 +922,284 @@ export default function AdminAutomation({
             >
               Save Configuration Settings
             </button>
+          </div>
+        )}
+
+        {/* TAB PORTAL DESIGN */}
+        {activeTab === 'portal' && (
+          <div className="flex flex-col gap-5 text-left bg-white border-2 border-[#161A33] rounded-3xl p-5 shadow-[3px_3px_0px_0px_#161A33]">
+            <h3 className="text-xs font-black uppercase tracking-wide border-b-2 border-slate-100 pb-2">
+              {language === 'ar' ? 'تصميم قسم ترحيب الهيرو والصور الطلابية' : 'Portal Design & Stories Assets'}
+            </h3>
+            
+            {/* 1. Hero Configuration Form */}
+            <form onSubmit={(e) => {
+              e.preventDefault();
+              localStorage.setItem('jamiaati_hero_bg', heroBgInput);
+              localStorage.setItem('jamiaati_hero_title_en', heroTitleENInput);
+              localStorage.setItem('jamiaati_hero_title_ar', heroTitleARInput);
+              localStorage.setItem('jamiaati_hero_title_ku', heroTitleKUInput);
+              localStorage.setItem('jamiaati_hero_desc_en', heroDescENInput);
+              localStorage.setItem('jamiaati_hero_desc_ar', heroDescARInput);
+              localStorage.setItem('jamiaati_hero_desc_ku', heroDescKUInput);
+              localStorage.setItem('jamiaati_hero_tag_en', heroTagENInput);
+              localStorage.setItem('jamiaati_hero_tag_ar', heroTagARInput);
+              localStorage.setItem('jamiaati_hero_tag_ku', heroTagKUInput);
+              window.dispatchEvent(new Event('jamiaati_hero_updated'));
+              showToast(language === 'ar' ? 'تم حفظ تعديلات قسم الهيرو بنجاح!' : 'Hero Banner updated successfully in real-time!', 'success');
+            }} className="flex flex-col gap-4 text-xs font-bold text-slate-700">
+              
+              <div className="bg-[#F3F7FF] rounded-2xl p-3 border border-[#D5E1FC]">
+                <span className="text-[10px] font-black uppercase text-[#161A33] block mb-2">1. Main Hero background Photo</span>
+                
+                <div className="flex flex-col gap-1.5 mb-3">
+                  <span className="text-[8px] uppercase tracking-wider text-slate-400">Custom Image URL</span>
+                  <input
+                    type="text"
+                    required
+                    value={heroBgInput}
+                    onChange={(e) => setHeroBgInput(e.target.value)}
+                    className="w-full text-xs font-black p-2 border border-[#161A33] rounded-xl bg-white"
+                  />
+                </div>
+
+                <span className="text-[8.5px] uppercase tracking-wider text-slate-400 block mb-1">Quick Select Premium Campus Presets</span>
+                <div className="grid grid-cols-2 gap-2">
+                  {[
+                    { url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600', label: 'Classic Cap' },
+                    { url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=600', label: 'Lively Campus' },
+                    { url: 'https://images.unsplash.com/photo-1498243691581-b145c3f54a91?auto=format&fit=crop&q=80&w=600', label: 'Grand Library' },
+                    { url: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&q=80&w=600', label: 'Global Study' }
+                  ].map((preset) => (
+                    <button
+                      key={preset.label}
+                      type="button"
+                      onClick={() => setHeroBgInput(preset.url)}
+                      className={`p-1 text-[9px] font-medium border rounded-lg text-center cursor-pointer transition-all ${
+                        heroBgInput === preset.url ? 'bg-[#161A33] text-white border-[#161A33]' : 'bg-white border-slate-300 hover:bg-slate-50'
+                      }`}
+                    >
+                      {preset.label}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Editable titles (EN, AR, KU) */}
+              <div className="border border-slate-150 rounded-2xl p-3 flex flex-col gap-3">
+                <span className="text-[10px] font-black uppercase text-[#161A33] block">2. Hero title texts</span>
+                
+                <div className="flex flex-col gap-1">
+                  <span className="text-[8px] uppercase tracking-wider text-slate-400">English Title Text</span>
+                  <input 
+                    type="text" 
+                    value={heroTitleENInput} 
+                    onChange={e => setHeroTitleENInput(e.target.value)} 
+                    className="p-2 border border-slate-350 rounded-lg text-[10.5px]"
+                  />
+                </div>
+                
+                <div className="flex flex-col gap-1">
+                  <span className="text-[8px] uppercase tracking-wider text-slate-400">Arabic Title Text</span>
+                  <input 
+                    type="text" 
+                    value={heroTitleARInput} 
+                    onChange={e => setHeroTitleARInput(e.target.value)} 
+                    className="p-2 border border-slate-350 rounded-lg text-[10.5px] text-right"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[8px] uppercase tracking-wider text-slate-400">Kurdish Title Text</span>
+                  <input 
+                    type="text" 
+                    value={heroTitleKUInput} 
+                    onChange={e => setHeroTitleKUInput(e.target.value)} 
+                    className="p-2 border border-slate-350 rounded-lg text-[10.5px] text-right"
+                  />
+                </div>
+              </div>
+
+              {/* Editable descriptions (EN, AR, KU) */}
+              <div className="border border-slate-150 rounded-2xl p-3 flex flex-col gap-3">
+                <span className="text-[10px] font-black uppercase text-[#161A33] block">3. Hero descriptions</span>
+                
+                <div className="flex flex-col gap-1">
+                  <span className="text-[8px] uppercase tracking-wider text-slate-400">English Subtext</span>
+                  <textarea 
+                    rows={2}
+                    value={heroDescENInput} 
+                    onChange={e => setHeroDescENInput(e.target.value)} 
+                    className="p-2 border border-slate-300 rounded-lg text-[10px] leading-relaxed"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[8px] uppercase tracking-wider text-slate-400">Arabic Subtext</span>
+                  <textarea 
+                    rows={2}
+                    value={heroDescARInput} 
+                    onChange={e => setHeroDescARInput(e.target.value)} 
+                    className="p-2 border border-slate-300 rounded-lg text-[10px] leading-relaxed text-right"
+                  />
+                </div>
+
+                <div className="flex flex-col gap-1">
+                  <span className="text-[8px] uppercase tracking-wider text-slate-400">Kurdish Subtext</span>
+                  <textarea 
+                    rows={2}
+                    value={heroDescKUInput} 
+                    onChange={e => setHeroDescKUInput(e.target.value)} 
+                    className="p-2 border border-slate-300 rounded-lg text-[10px] leading-relaxed text-right"
+                  />
+                </div>
+              </div>
+
+              <button
+                type="submit"
+                className="py-3 bg-[#6B25C9] hover:bg-[#5E1FB5] text-white border-2 border-[#161A33] rounded-xl text-[10.5px] font-black uppercase transition-all shadow-[2px_2px_0px_0px_#161A33] cursor-pointer text-center"
+              >
+                {language === 'ar' ? 'حفظ تعديلات واجهة الهيرو ✓' : 'Apply Hero Changes ✓'}
+              </button>
+            </form>
+
+            {/* 2. Real Student Stories Photos replacement block */}
+            <div className="border-t border-slate-100 pt-5 mt-2">
+              <span className="text-[10px] font-black uppercase text-[#161A33] block mb-2">
+                {language === 'ar' ? '٤. تخصيص صور وقصص واقع الطلاب' : '4. Student Stories Photos & Avatars'}
+              </span>
+              <p className="text-[9.5px] text-slate-500 font-bold mb-4 leading-relaxed">
+                {language === 'ar' 
+                  ? 'قم بتحديث صور الملفات الشخصية والحكايا للطلاب لتظهر كشخصيات عراقية حقيقية وجميلة.' 
+                  : 'Update profiles, names, and avatars of students to represent authentic people on the storyboard.'}
+              </p>
+
+              {/* Stories list rendering */}
+              <div className="flex flex-col gap-3">
+                {storyList.map((story) => (
+                  <div 
+                    key={story.id} 
+                    className="flex justify-between items-center border border-[#161A33]/15 rounded-2xl p-3 bg-slate-50 relative overflow-hidden"
+                  >
+                    <div className="flex items-center gap-3">
+                      <img 
+                        src={story.avatar} 
+                        alt={story.name} 
+                        className="w-10 h-10 rounded-xl object-cover border border-[#161A33]/20" 
+                        referrerPolicy="no-referrer"
+                      />
+                      <div>
+                        <h4 className="text-[11px] font-black text-[#161A33]">{story.name}</h4>
+                        <p className="text-[9px] text-slate-500 font-extrabold line-clamp-1 max-w-[190px]">{story.text}</p>
+                      </div>
+                    </div>
+                    
+                    <button
+                      onClick={() => {
+                        setEditingStoryId(story.id);
+                        setEditingStoryName(story.name);
+                        setEditingStoryAvatar(story.avatar);
+                        setEditingStoryText(story.text);
+                      }}
+                      className="px-3 py-1.5 bg-white border border-[#161A33] hover:bg-slate-100 rounded-lg text-[9px] font-black cursor-pointer shadow-sm"
+                    >
+                      {language === 'ar' ? 'تعديل الصورة 📷' : 'Swap Photo 📷'}
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            {/* Editing individual story modal inside portal designer */}
+            <AnimatePresence>
+              {editingStoryId && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm">
+                  <motion.div
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
+                    className="bg-white border-2 border-[#161A33] p-5.5 rounded-3xl w-full max-w-sm flex flex-col gap-3 text-left shadow-2xl relative"
+                  >
+                    <h3 className="text-xs font-black uppercase text-[#6B25C9]">
+                      {language === 'ar' ? 'تعديل صورة وقصة الطالب' : 'Edit Student Story & Avatar'}
+                    </h3>
+
+                    <form onSubmit={(e) => {
+                      e.preventDefault();
+                      const updated = storyList.map(s => {
+                        if (s.id === editingStoryId) {
+                          return {
+                            ...s,
+                            name: editingStoryName,
+                            avatar: editingStoryAvatar,
+                            text: editingStoryText
+                          };
+                        }
+                        return s;
+                      });
+                      setStoryList(updated);
+                      localStorage.setItem('jamiaati_edited_default_stories', JSON.stringify(updated));
+                      window.dispatchEvent(new Event('jamiaati_stories_updated'));
+                      setEditingStoryId(null);
+                      showToast(language === 'ar' ? 'تم تعديل ملامح وصور الطالب بنجاح!' : 'Student Avatar replaced successfully!', 'success');
+                    }} className="flex flex-col gap-3 text-xs font-bold text-slate-700">
+                      
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[8px] uppercase tracking-wider text-slate-400">Student Name</span>
+                        <input
+                          type="text"
+                          required
+                          value={editingStoryName}
+                          onChange={e => setEditingStoryName(e.target.value)}
+                          className="border border-[#161A33] rounded-lg p-2 focus:outline-none"
+                        />
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[8px] uppercase tracking-wider text-slate-400">Avatar Photo URL</span>
+                        <input
+                          type="text"
+                          required
+                          value={editingStoryAvatar}
+                          onChange={e => setEditingStoryAvatar(e.target.value)}
+                          className="border border-[#161A33] rounded-lg p-2 focus:outline-none"
+                        />
+                        <span className="text-[8px] text-slate-400 font-bold">Unsplash portrait recommended for real feeling</span>
+                      </div>
+
+                      <div className="flex flex-col gap-1">
+                        <span className="text-[8px] uppercase tracking-wider text-slate-400">Nice Story Message</span>
+                        <textarea
+                          rows={2}
+                          required
+                          value={editingStoryText}
+                          onChange={e => setEditingStoryText(e.target.value)}
+                          className="border border-[#161A33] rounded-lg p-2 focus:outline-none text-[10px]"
+                        />
+                      </div>
+
+                      <div className="flex gap-2 justify-end mt-4">
+                        <button
+                          type="button"
+                          onClick={() => setEditingStoryId(null)}
+                          className="px-4 py-2 bg-slate-100 hover:bg-slate-200 rounded-xl text-[10px] font-black cursor-pointer"
+                        >
+                          Cancel
+                        </button>
+                        <button
+                          type="submit"
+                          className="px-5 py-2 bg-[#6B25C9] text-white rounded-xl text-[10px] font-black cursor-pointer shadow-md"
+                        >
+                          Save Changes ✓
+                        </button>
+                      </div>
+
+                    </form>
+                  </motion.div>
+                </div>
+              )}
+            </AnimatePresence>
+
           </div>
         )}
 

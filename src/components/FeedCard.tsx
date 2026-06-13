@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Language, FeedItem, Comment } from '../types';
+import { Language, FeedItem, Comment, getLocalizedContent, hasAlternativeLanguages } from '../types';
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
@@ -34,6 +34,9 @@ interface FeedCardProps {
   onJoinGroup: (id: string) => void;
   onAddComment: (id: string, commentText: string) => void;
   allPostsHighlightDisabled?: boolean;
+  onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
+  onDeleteFeedItem?: (id: string) => void;
+  isAdminMode?: boolean;
 }
 
 export default function FeedCard({
@@ -45,15 +48,29 @@ export default function FeedCard({
   onApply,
   onRsvp,
   onJoinGroup,
-  onAddComment
+  onAddComment,
+  onEditFeedItem,
+  onDeleteFeedItem,
+  isAdminMode = false
 }: FeedCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [copied, setCopied] = useState(false);
 
+  // Administrative local edit states
+  const [isEditingFeed, setIsEditingFeed] = useState(false);
+  const [editTitleEN, setEditTitleEN] = useState(item.titleEN);
+  const [editTitleAR, setEditTitleAR] = useState(item.titleAR || '');
+  const [editTitleKU, setEditTitleKU] = useState(item.titleKU || '');
+  const [editContentEN, setEditContentEN] = useState(item.contentEN);
+  const [editContentAR, setEditContentAR] = useState(item.contentAR || '');
+  const [editContentKU, setEditContentKU] = useState(item.contentKU || '');
+  const [editImage, setEditImage] = useState(item.imageUrl || '');
+
   // Select proper localized strings
-  const title = language === 'ar' ? item.titleAR : language === 'ku' ? item.titleKU : item.titleEN;
-  const content = language === 'ar' ? item.contentAR : language === 'ku' ? item.contentKU : item.contentEN;
+  const [showOriginal, setShowOriginal] = useState(false);
+  const title = getLocalizedContent(item, 'title', language, showOriginal);
+  const content = getLocalizedContent(item, 'content', language, showOriginal);
 
   // Resolve Governorate & University labels
   const matchedUni = IraqiUniversities.find(u => u.id === item.universityId);
@@ -226,62 +243,199 @@ export default function FeedCard({
           : 'border-2 border-[#E6E1F5] hover:border-[#6B25C9] shadow-sm'
       }`}
     >
-      
-      {/* Top Meta info */}
-      <div className="flex items-center justify-between mb-4.5" id={`card-header-${item.id}`}>
-        <div className="flex items-center gap-3">
-          {/* Avatar with role status ring */}
-          <div className="relative shrink-0">
-            <img 
-              src={item.author.avatar} 
-              alt={item.author.name}
-              className={`w-11 h-11 rounded-xl object-cover border-2 shadow-md ${
-                item.author.role === 'institution' ? 'border-[#D9272E]' : item.author.role === 'teacher' ? 'border-[#6B25C9]' : 'border-[#2F7CCB]'
-              }`}
-              referrerPolicy="no-referrer"
-            />
-            {item.author.verified && (
-              <span className="absolute -bottom-1 -right-1 bg-gradient-to-tr from-[#6B25C9] to-[#2F7CCB] text-white rounded-full p-0.5 border-2 border-white flex items-center justify-center">
-                <svg className="w-2.5 h-2.5 fill-current text-white" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
-              </span>
-            )}
-          </div>
-          <div>
-            <div className="flex items-center gap-2 flex-wrap">
-              <h3 className="text-xs font-black text-[#161A33] leading-tight">
-                {item.type === 'anonymous_question' ? getTranslation('anonymousLabel', language) : item.author.name}
-              </h3>
-              {item.author.verified && (
-                <span className="text-[8px] font-black uppercase bg-[#FFD21F] text-[#161A33] px-1.5 py-0.5 rounded-md border border-[#161A33]/15 tracking-tight flex items-center gap-0.5 shadow-sm">
-                  ✨ {getTranslation('verifiedPartner', language)}
-                </span>
-              )}
-            </div>
-            <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500 mt-1.5" id={`card-author-meta-${item.id}`}>
-              <span className="font-black text-[#6B25C9] bg-[#6B25C9]/10 px-2 py-0.5 rounded-md shrink-0">
-                {getRoleLabel(item.author.role)}
-              </span>
-              {resolvedUniLabel && (
-                <span className="font-black text-[#161A33] flex items-center gap-1 shrink-0 bg-[#F3F7FF] border border-[#E6E1F5] px-2 py-0.5 rounded-md max-w-[150px] truncate">
-                  🏫 {resolvedUniLabel}
-                </span>
-              )}
-              {resolvedGovLabel && (
-                <span className="text-slate-600 font-bold flex items-center gap-0.5 shrink-0">
-                  📍 {resolvedGovLabel}
-                </span>
-              )}
-              <span className="text-slate-300">•</span>
-              <span className="font-bold text-slate-500 text-[9px]">{item.date}</span>
-            </div>
-          </div>
-        </div>
+      {isEditingFeed ? (
+        <form onSubmit={(e) => {
+          e.preventDefault();
+          if (onEditFeedItem) {
+            onEditFeedItem(item.id, {
+              titleEN: editTitleEN,
+              titleAR: editTitleAR,
+              titleKU: editTitleKU,
+              contentEN: editContentEN,
+              contentAR: editContentAR,
+              contentKU: editContentKU,
+              imageUrl: editImage || undefined
+            });
+          }
+          setIsEditingFeed(false);
+        }} className="flex flex-col gap-3 font-bold text-xs text-slate-700 text-left p-1" id={`card-edit-form-${item.id}`}>
+          <h3 className="text-xs font-black uppercase text-[#6B25C9] mb-1">
+            {language === 'ar' ? 'تعديل المنشور كمسؤول' : 'Administrative Post Editor'}
+          </h3>
 
-        {/* Content Type Badge */}
-        <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-xl border leading-none bg-[#F7F4FF] ${badge.color}`}>
-          {badge.text}
-        </span>
-      </div>
+          <div className="flex flex-col gap-1">
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Title EN</span>
+            <input 
+              type="text" 
+              required
+              value={editTitleEN} 
+              onChange={e => setEditTitleEN(e.target.value)}
+              className="p-2 border border-[#161A33] rounded-lg text-xs" 
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Title AR</span>
+            <input 
+              type="text" 
+              value={editTitleAR} 
+              onChange={e => setEditTitleAR(e.target.value)}
+              className="p-2 border border-[#161A33] rounded-lg text-xs text-right" 
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Title KU</span>
+            <input 
+              type="text" 
+              value={editTitleKU} 
+              onChange={e => setEditTitleKU(e.target.value)}
+              className="p-2 border border-[#161A33] rounded-lg text-xs text-right" 
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Content EN</span>
+            <textarea 
+              rows={3}
+              required
+              value={editContentEN} 
+              onChange={e => setEditContentEN(e.target.value)}
+              className="p-2 border border-[#161A33] rounded-lg text-xs" 
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Content AR</span>
+            <textarea 
+              rows={3}
+              value={editContentAR} 
+              onChange={e => setEditContentAR(e.target.value)}
+              className="p-2 border border-[#161A33] rounded-lg text-xs text-right" 
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Content KU</span>
+            <textarea 
+              rows={3}
+              value={editContentKU} 
+              onChange={e => setEditContentKU(e.target.value)}
+              className="p-2 border border-[#161A33] rounded-lg text-xs text-right" 
+            />
+          </div>
+
+          <div className="flex flex-col gap-1">
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Image Asset URL</span>
+            <input 
+              type="text" 
+              value={editImage} 
+              onChange={e => setEditImage(e.target.value)}
+              className="p-2 border border-[#161A33] rounded-lg text-xs" 
+            />
+          </div>
+
+          <div className="flex gap-2 justify-end mt-2">
+            <button
+              type="button"
+              onClick={() => setIsEditingFeed(false)}
+              className="px-3.5 py-2 bg-slate-100 border hover:bg-slate-200 rounded-xl text-[10px] font-black cursor-pointer uppercase select-none"
+            >
+              Cancel
+            </button>
+            <button
+              type="submit"
+              className="px-4.5 py-2 bg-[#6B25C9] text-white rounded-xl text-[10px] font-black cursor-pointer uppercase shadow-md select-none"
+            >
+              Save Post Edits ✓
+            </button>
+          </div>
+        </form>
+      ) : (
+        <>
+          {/* Top Meta info */}
+          <div className="flex items-center justify-between mb-4.5" id={`card-header-${item.id}`}>
+            <div className="flex items-center gap-3">
+              {/* Avatar with role status ring */}
+              <div className="relative shrink-0">
+                <img 
+                  src={item.author.avatar} 
+                  alt={item.author.name}
+                  className={`w-11 h-11 rounded-xl object-cover border-2 shadow-md ${
+                    item.author.role === 'institution' ? 'border-[#D9272E]' : item.author.role === 'teacher' ? 'border-[#6B25C9]' : 'border-[#2F7CCB]'
+                  }`}
+                  referrerPolicy="no-referrer"
+                />
+                {item.author.verified && (
+                  <span className="absolute -bottom-1 -right-1 bg-gradient-to-tr from-[#6B25C9] to-[#2F7CCB] text-white rounded-full p-0.5 border-2 border-white flex items-center justify-center">
+                    <svg className="w-2.5 h-2.5 fill-current text-white" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
+                  </span>
+                )}
+              </div>
+              <div>
+                <div className="flex items-center gap-2 flex-wrap">
+                  <h3 className="text-xs font-black text-[#161A33] leading-tight">
+                    {item.type === 'anonymous_question' ? getTranslation('anonymousLabel', language) : item.author.name}
+                  </h3>
+                  {item.author.verified && (
+                    <span className="text-[8px] font-black uppercase bg-[#FFD21F] text-[#161A33] px-1.5 py-0.5 rounded-md border border-[#161A33]/15 tracking-tight flex items-center gap-0.5 shadow-sm">
+                      ✨ {getTranslation('verifiedPartner', language)}
+                    </span>
+                  )}
+                </div>
+                <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500 mt-1.5" id={`card-author-meta-${item.id}`}>
+                  <span className="font-black text-[#6B25C9] bg-[#6B25C9]/10 px-2 py-0.5 rounded-md shrink-0">
+                    {getRoleLabel(item.author.role)}
+                  </span>
+                  {resolvedUniLabel && (
+                    <span className="font-black text-[#161A33] flex items-center gap-1 shrink-0 bg-[#F3F7FF] border border-[#E6E1F5] px-2 py-0.5 rounded-md max-w-[150px] truncate">
+                      🏫 {resolvedUniLabel}
+                    </span>
+                  )}
+                  {resolvedGovLabel && (
+                    <span className="text-slate-600 font-bold flex items-center gap-0.5 shrink-0">
+                      📍 {resolvedGovLabel}
+                    </span>
+                  )}
+                  <span className="text-slate-300">•</span>
+                  <span className="font-bold text-slate-500 text-[9px]">{item.date}</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-1.5 flex-wrap">
+              {isAdminMode && (
+                <div className="flex items-center gap-1.5 border border-[#161A33]/10 bg-[#FAF9FF] p-1 rounded-xl shadow-xs" id={`card-admin-row-${item.id}`}>
+                  <span className="text-[8.5px] font-black bg-[#6B25C9] text-white px-2 py-0.5 rounded-md leading-none select-none">
+                    ADMIN
+                  </span>
+                  <button
+                    onClick={() => setIsEditingFeed(true)}
+                    className="p-1 px-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[9px] font-black border border-indigo-200 cursor-pointer shadow-sm uppercase shrink-0"
+                    title="Edit Post"
+                  >
+                    ✏️
+                  </button>
+                  <button
+                    onClick={() => {
+                      if (window.confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذا المنشور؟' : 'Are you sure you want to delete this post?')) {
+                        if (onDeleteFeedItem) onDeleteFeedItem(item.id);
+                      }
+                    }}
+                    className="p-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-650 rounded-lg text-[9px] font-black border border-red-200 cursor-pointer shadow-sm uppercase shrink-0"
+                    title="Delete Post"
+                  >
+                    🗑️
+                  </button>
+                </div>
+              )}
+
+              {/* Content Type Badge */}
+              <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-xl border leading-none bg-[#F7F4FF] ${badge.color}`}>
+                {badge.text}
+              </span>
+            </div>
+          </div>
 
       {/* Main Body */}
       <div className="flex-1" id={`card-body-${item.id}`}>
@@ -321,6 +475,25 @@ export default function FeedCard({
         <p className="text-xs font-semibold text-slate-700 leading-relaxed break-words whitespace-pre-line mb-3">
           {content}
         </p>
+
+        {/* Translation toggler (Facebook style) */}
+        {hasAlternativeLanguages(item, language) && (
+          <button
+            type="button"
+            onClick={() => setShowOriginal(!showOriginal)}
+            className="text-[10px] font-black text-[#6B25C9] hover:underline cursor-pointer mb-3 inline-flex items-center gap-1.5 bg-[#6B25C9]/5 px-2.5 py-1 rounded-lg border border-[#E6E1F5]/10 select-none shadow-xs transition-transform transform active:scale-95 duration-200"
+          >
+            {showOriginal ? (
+              <>
+                🌐 {language === 'ar' ? 'عرض الترجمة' : language === 'ku' ? 'پیشاندانی وەرگێڕان' : 'Show translated'}
+              </>
+            ) : (
+              <>
+                🌐 {language === 'ar' ? 'عرض الأصل' : language === 'ku' ? 'پیشاندانی دەقی سەرەکی' : 'Show original'}
+              </>
+            )}
+          </button>
+        )}
 
         {/* Media Attachments */}
         {renderImageGallery()}
@@ -447,7 +620,7 @@ export default function FeedCard({
                 <span className="text-sm shrink-0 leading-none">🎯</span>
                 <div>
                   <span className="text-amber-700 font-black text-[9px] uppercase tracking-wider block mb-0.5">Who can apply</span>
-                  <span className="text-slate-800 font-extrabold">{item.whoCanApply}</span>
+                  <span className="text-slate-800 font-extrabold">{getLocalizedContent(item, 'whoCanApply', language, showOriginal)}</span>
                 </div>
               </div>
             )}
@@ -689,24 +862,7 @@ export default function FeedCard({
                 </div>
               ) : (
                 item.commentsList.map(comment => (
-                  <div key={comment.id} className="flex gap-2 text-xs bg-[#F3F7FF] p-2.5 rounded-xl border border-[#E6E1F5] text-slate-700">
-                    <img 
-                      src={comment.authorAvatar} 
-                      alt={comment.authorName} 
-                      className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-350"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-extrabold text-[#161A33]">{comment.authorName}</span>
-                        <span className="text-[9px] text-slate-500">{comment.date}</span>
-                      </div>
-                      <span className="text-[9px] text-[#6B25C9] font-extrabold bg-[#6B25C9]/10 border border-[#6B25C9]/25 px-1.5 py-0.2 rounded mt-0.5 block w-max leading-none">
-                        {getRoleLabel(comment.authorRole)}
-                      </span>
-                      <p className="text-slate-700 text-[11px] font-medium mt-1 leading-normal break-words">{comment.content}</p>
-                    </div>
-                  </div>
+                  <CommentRow key={comment.id} comment={comment} language={language} getRoleLabel={getRoleLabel} />
                 ))
               )}
             </div>
@@ -731,7 +887,60 @@ export default function FeedCard({
           </motion.div>
         )}
       </AnimatePresence>
+      </>
+      )}
 
     </motion.div>
   );
 }
+
+function CommentRow({
+  comment,
+  language,
+  getRoleLabel
+}: {
+  comment: Comment;
+  language: Language;
+  getRoleLabel: (role: string) => string;
+  key?: string;
+}) {
+  const [showOriginal, setShowOriginal] = useState(false);
+  const commentContent = getLocalizedContent(comment, 'content', language, showOriginal);
+
+  return (
+    <div className="flex gap-2 text-xs bg-[#F3F7FF] p-2.5 rounded-xl border border-[#E6E1F5] text-slate-700">
+      <img 
+        src={comment.authorAvatar} 
+        alt={comment.authorName} 
+        className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-350"
+        referrerPolicy="no-referrer"
+      />
+      <div className="flex-1">
+        <div className="flex items-center justify-between">
+          <span className="font-extrabold text-[#161A33]">{comment.authorName}</span>
+          <span className="text-[9px] text-slate-500">{comment.date}</span>
+        </div>
+        <span className="text-[9px] text-[#6B25C9] font-extrabold bg-[#6B25C9]/10 border border-[#6B25C9]/25 px-1.5 py-0.2 rounded mt-0.5 block w-max leading-none">
+          {getRoleLabel(comment.authorRole)}
+        </span>
+        <p className="text-slate-700 text-[11px] font-medium mt-1 leading-normal break-words">
+          {commentContent}
+        </p>
+        {hasAlternativeLanguages(comment, language) && (
+          <button
+            type="button"
+            onClick={() => setShowOriginal(!showOriginal)}
+            className="text-[9px] font-black text-[#6B25C9] hover:underline cursor-pointer mt-1.5 inline-flex items-center gap-1 bg-[#6B25C9]/5 px-1.5 py-0.5 rounded"
+          >
+            🌐 {showOriginal ? (
+              language === 'ar' ? 'عرض الترجمة' : language === 'ku' ? 'پیشاندانی وەرگێڕان' : 'Show translated'
+            ) : (
+              language === 'ar' ? 'عرض الأصل' : language === 'ku' ? 'پیشاندانی دەقی سەرەکی' : 'Show original'
+            )}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
