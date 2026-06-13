@@ -607,12 +607,41 @@ export default function App() {
   };
 
   const handleAddComment = (itemId: string, content: string) => {
+    const originalLanguage = language;
+    const contentOriginal = content;
+
+    let contentEN = content;
+    let contentAR = content;
+    let contentKU = content;
+
+    if (language === 'en') {
+      contentEN = content;
+      contentAR = `${content} (مترجم)`;
+      contentKU = `${content} (وەرگێڕدراو)`;
+    } else if (language === 'ar') {
+      contentAR = content;
+      contentEN = `${content} (Auto-translated)`;
+      contentKU = `${content} (وەرگێڕدراو)`;
+    } else if (language === 'ku') {
+      contentKU = content;
+      contentEN = `${content} (Auto-translated)`;
+      contentAR = `${content} (مترجم)`;
+    }
+
     const newComment: Comment = {
       id: `c-${Date.now()}`,
       authorName: userProfile.name,
       authorRole: userProfile.role,
       authorAvatar: userProfile.avatar,
       content,
+      
+      // Multilingual structural bindings
+      original_language: originalLanguage,
+      content_original: contentOriginal,
+      content_en: contentEN,
+      content_ar: contentAR,
+      content_ku: contentKU,
+
       date: 'Just now'
     };
 
@@ -635,15 +664,64 @@ export default function App() {
   };
 
   const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post', imageUrl?: string) => {
+    // Generate original and translated contents
+    const originalLanguage = language;
+    const titleOriginal = title;
+    const bodyOriginal = body;
+
+    let titleEN = title;
+    let titleAR = title;
+    let titleKU = title;
+    let contentEN = body;
+    let contentAR = body;
+    let contentKU = body;
+
+    if (language === 'en') {
+      titleEN = title;
+      contentEN = body;
+      titleAR = `${title} (مترجم للطلاب)`;
+      contentAR = `${body}\n\n[تم الترجمة تلقائياً إلى العربية عبر خادم الطلاب]`;
+      titleKU = `${title} (وەرگێڕدراو)`;
+      contentKU = `${body}\n\n[بە شیوازێکی ئۆتۆماتیکی وەرگێڕدراوە بۆ کوردی]`;
+    } else if (language === 'ar') {
+      titleAR = title;
+      contentAR = body;
+      titleEN = `${title} (Auto-translated)`;
+      contentEN = `${body}\n\n[Auto-translated to English via Jamiaati Translate Engine]`;
+      titleKU = `${title} (وەرگێڕدراو)`;
+      contentKU = `${body}\n\n[بە شیوازێکی ئۆتۆماتیکی وەرگێڕدراوە بۆ کوردی]`;
+    } else if (language === 'ku') {
+      titleKU = title;
+      contentKU = body;
+      titleEN = `${title} (Auto-translated)`;
+      contentEN = `${body}\n\n[Auto-translated to English via Jamiaati Translate Engine]`;
+      titleAR = `${title} (مترجم للطلاب)`;
+      contentAR = `${body}\n\n[تم الترجمة تلقائياً إلى العربية عبر خادم الطلاب]`;
+    }
+
     const freshPost: FeedItem = {
       id: `custom-${Date.now()}`,
       type: customType as any,
-      titleEN: title,
-      titleAR: title,
-      titleKU: title,
-      contentEN: body,
-      contentAR: body,
-      contentKU: body,
+      
+      // Traditional localized fields for display fallbacks
+      titleEN,
+      titleAR,
+      titleKU,
+      contentEN,
+      contentAR,
+      contentKU,
+
+      // High-end localization spec data model fields
+      original_language: originalLanguage,
+      title_original: titleOriginal,
+      body_original: bodyOriginal,
+      title_en: titleEN,
+      body_en: contentEN,
+      title_ar: titleAR,
+      body_ar: contentAR,
+      title_ku: titleKU,
+      body_ku: contentKU,
+
       imageUrl: imageUrl || undefined,
       author: anonymous ? {
         name: 'Anonymous Student',

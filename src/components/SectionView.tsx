@@ -317,6 +317,21 @@ export default function SectionView({
                 contentEN: item.contentEN || item.content || 'Check original portal for instructions.',
                 contentAR: item.contentAR || item.content || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
                 contentKU: item.contentKU || item.content || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
+                
+                // Add high-end translation support fields
+                original_language: item.original_language || item.originalLanguage,
+                title_original: item.title_original || item.titleOriginal,
+                body_original: item.body_original || item.bodyOriginal || item.content_original || item.contentOriginal,
+                caption_original: item.caption_original || item.captionOriginal,
+                title_ar: item.title_ar || item.titleAR,
+                body_ar: item.body_ar || item.bodyAR || item.content_ar || item.contentAR,
+                caption_ar: item.caption_ar || item.captionAR,
+                title_ku: item.title_ku || item.titleKU,
+                body_ku: item.body_ku || item.bodyKU || item.content_ku || item.contentKU,
+                caption_ku: item.caption_ku || item.captionKU,
+                title_en: item.title_en || item.titleEN,
+                body_en: item.body_en || item.bodyEN || item.content_en || item.contentEN,
+                caption_en: item.caption_en || item.captionEN,
                 author: {
                   name: item.organization || item.institution_name || item.author?.name || 'Academic Center',
                   role: 'institution' as const,

@@ -487,7 +487,7 @@ app.post("/api/admin/opportunities/action", (req, res) => {
 
 // Admin edit opportunity
 app.post("/api/admin/opportunities/edit", (req, res) => {
-  const { id, titleEN, titleAR, titleKU, contentEN, contentAR, contentKU, category, deadline, application_link } = req.body;
+  const { id, titleEN, titleAR, titleKU, contentEN, contentAR, contentKU, category, deadline, application_link, original_language, title_original, content_original } = req.body;
   if (!id) {
     res.status(400).json({ error: "Opportunity ID is required." });
     return;
@@ -508,6 +508,9 @@ app.post("/api/admin/opportunities/edit", (req, res) => {
   if (contentKU) item.contentKU = contentKU;
   if (category) item.category = category;
   if (deadline) item.deadline = deadline;
+  if (original_language) item.original_language = original_language;
+  if (title_original) item.title_original = title_original;
+  if (content_original) item.content_original = content_original;
   if (application_link) {
     item.application_link = application_link;
     item.original_source_url = application_link;

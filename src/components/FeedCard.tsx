@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Language, FeedItem, Comment } from '../types';
+import { Language, FeedItem, Comment, getLocalizedContent, hasAlternativeLanguages } from '../types';
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
@@ -68,8 +68,9 @@ export default function FeedCard({
   const [editImage, setEditImage] = useState(item.imageUrl || '');
 
   // Select proper localized strings
-  const title = language === 'ar' ? item.titleAR : language === 'ku' ? item.titleKU : item.titleEN;
-  const content = language === 'ar' ? item.contentAR : language === 'ku' ? item.contentKU : item.contentEN;
+  const [showOriginal, setShowOriginal] = useState(false);
+  const title = getLocalizedContent(item, 'title', language, showOriginal);
+  const content = getLocalizedContent(item, 'content', language, showOriginal);
 
   // Resolve Governorate & University labels
   const matchedUni = IraqiUniversities.find(u => u.id === item.universityId);
@@ -475,6 +476,25 @@ export default function FeedCard({
           {content}
         </p>
 
+        {/* Translation toggler (Facebook style) */}
+        {hasAlternativeLanguages(item, language) && (
+          <button
+            type="button"
+            onClick={() => setShowOriginal(!showOriginal)}
+            className="text-[10px] font-black text-[#6B25C9] hover:underline cursor-pointer mb-3 inline-flex items-center gap-1.5 bg-[#6B25C9]/5 px-2.5 py-1 rounded-lg border border-[#E6E1F5]/10 select-none shadow-xs transition-transform transform active:scale-95 duration-200"
+          >
+            {showOriginal ? (
+              <>
+                🌐 {language === 'ar' ? 'عرض الترجمة' : language === 'ku' ? 'پیشاندانی وەرگێڕان' : 'Show translated'}
+              </>
+            ) : (
+              <>
+                🌐 {language === 'ar' ? 'عرض الأصل' : language === 'ku' ? 'پیشاندانی دەقی سەرەکی' : 'Show original'}
+              </>
+            )}
+          </button>
+        )}
+
         {/* Media Attachments */}
         {renderImageGallery()}
 
@@ -600,7 +620,7 @@ export default function FeedCard({
                 <span className="text-sm shrink-0 leading-none">🎯</span>
                 <div>
                   <span className="text-amber-700 font-black text-[9px] uppercase tracking-wider block mb-0.5">Who can apply</span>
-                  <span className="text-slate-800 font-extrabold">{item.whoCanApply}</span>
+                  <span className="text-slate-800 font-extrabold">{getLocalizedContent(item, 'whoCanApply', language, showOriginal)}</span>
                 </div>
               </div>
             )}
@@ -842,24 +862,7 @@ export default function FeedCard({
                 </div>
               ) : (
                 item.commentsList.map(comment => (
-                  <div key={comment.id} className="flex gap-2 text-xs bg-[#F3F7FF] p-2.5 rounded-xl border border-[#E6E1F5] text-slate-700">
-                    <img 
-                      src={comment.authorAvatar} 
-                      alt={comment.authorName} 
-                      className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-350"
-                      referrerPolicy="no-referrer"
-                    />
-                    <div className="flex-1">
-                      <div className="flex items-center justify-between">
-                        <span className="font-extrabold text-[#161A33]">{comment.authorName}</span>
-                        <span className="text-[9px] text-slate-500">{comment.date}</span>
-                      </div>
-                      <span className="text-[9px] text-[#6B25C9] font-extrabold bg-[#6B25C9]/10 border border-[#6B25C9]/25 px-1.5 py-0.2 rounded mt-0.5 block w-max leading-none">
-                        {getRoleLabel(comment.authorRole)}
-                      </span>
-                      <p className="text-slate-700 text-[11px] font-medium mt-1 leading-normal break-words">{comment.content}</p>
-                    </div>
-                  </div>
+                  <CommentRow key={comment.id} comment={comment} language={language} getRoleLabel={getRoleLabel} />
                 ))
               )}
             </div>
@@ -890,3 +893,54 @@ export default function FeedCard({
     </motion.div>
   );
 }
+
+function CommentRow({
+  comment,
+  language,
+  getRoleLabel
+}: {
+  comment: Comment;
+  language: Language;
+  getRoleLabel: (role: string) => string;
+  key?: string;
+}) {
+  const [showOriginal, setShowOriginal] = useState(false);
+  const commentContent = getLocalizedContent(comment, 'content', language, showOriginal);
+
+  return (
+    <div className="flex gap-2 text-xs bg-[#F3F7FF] p-2.5 rounded-xl border border-[#E6E1F5] text-slate-700">
+      <img 
+        src={comment.authorAvatar} 
+        alt={comment.authorName} 
+        className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-350"
+        referrerPolicy="no-referrer"
+      />
+      <div className="flex-1">
+        <div className="flex items-center justify-between">
+          <span className="font-extrabold text-[#161A33]">{comment.authorName}</span>
+          <span className="text-[9px] text-slate-500">{comment.date}</span>
+        </div>
+        <span className="text-[9px] text-[#6B25C9] font-extrabold bg-[#6B25C9]/10 border border-[#6B25C9]/25 px-1.5 py-0.2 rounded mt-0.5 block w-max leading-none">
+          {getRoleLabel(comment.authorRole)}
+        </span>
+        <p className="text-slate-700 text-[11px] font-medium mt-1 leading-normal break-words">
+          {commentContent}
+        </p>
+        {hasAlternativeLanguages(comment, language) && (
+          <button
+            type="button"
+            onClick={() => setShowOriginal(!showOriginal)}
+            className="text-[9px] font-black text-[#6B25C9] hover:underline cursor-pointer mt-1.5 inline-flex items-center gap-1 bg-[#6B25C9]/5 px-1.5 py-0.5 rounded"
+          >
+            🌐 {showOriginal ? (
+              language === 'ar' ? 'عرض الترجمة' : language === 'ku' ? 'پیشاندانی وەرگێڕان' : 'Show translated'
+            ) : (
+              language === 'ar' ? 'عرض الأصل' : language === 'ku' ? 'پیشاندانی دەقی سەرەکی' : 'Show original'
+            )}
+          </button>
+        )}
+      </div>
+    </div>
+  );
+}
+
