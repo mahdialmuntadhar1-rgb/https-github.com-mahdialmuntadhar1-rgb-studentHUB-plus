@@ -92,7 +92,28 @@ CREATE TABLE IF NOT EXISTS passwordResets (
   FOREIGN KEY (userId) REFERENCES users(id)
 );
 
--- 4. Portal settings for public homepage customization.
+-- 4. Outreach dry-run safety and unsubscribe suppression records.
+CREATE TABLE IF NOT EXISTS email_unsubscribes (
+  email TEXT PRIMARY KEY,
+  unsubscribed_at TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  source TEXT,
+  campaign TEXT
+);
+
+CREATE TABLE IF NOT EXISTS outreach_logs (
+  id TEXT PRIMARY KEY,
+  mode TEXT NOT NULL DEFAULT 'DRY_RUN',
+  would_send_to TEXT,
+  template_id TEXT,
+  campaign_id TEXT,
+  source TEXT,
+  suppressed INTEGER DEFAULT 0,
+  timestamp TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_outreach_logs_timestamp ON outreach_logs(timestamp);
+
+-- 5. Portal settings for public homepage customization.
 -- GET is public-readable for the homepage; writes must be protected by admin auth.
 CREATE TABLE IF NOT EXISTS portal_settings (
   id TEXT PRIMARY KEY DEFAULT 'default',
@@ -111,7 +132,7 @@ CREATE TABLE IF NOT EXISTS portal_settings (
   updated_by TEXT
 );
 
--- 5. Scraper Logs Schema
+-- 6. Scraper Logs Schema
 CREATE TABLE IF NOT EXISTS scraper_logs (
   id TEXT PRIMARY KEY,
   timestamp TEXT NOT NULL,
@@ -123,7 +144,7 @@ CREATE TABLE IF NOT EXISTS scraper_logs (
   errors TEXT
 );
 
--- 6. User-generated content and engagement persistence
+-- 7. User-generated content and engagement persistence
 CREATE TABLE IF NOT EXISTS posts (
   id TEXT PRIMARY KEY,
   userId TEXT NOT NULL,

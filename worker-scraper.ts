@@ -15,6 +15,7 @@ export interface Env {
   GEMINI_API_KEY?: string;
   JWT_SECRET?: string;
   RESEND_API_KEY?: string;
+  DRY_RUN?: string;
   DRY_RUN_AUTOMATION?: string;
   DRY_RUN_EMAILS?: string;
 }
@@ -84,6 +85,10 @@ export default {
       const body = await readJson(request);
       const settings = await savePortalSettings(env, body?.settings || body || {}, user.id);
       return jsonResponse({ success: true, settings });
+    }
+
+    if (url.pathname.startsWith("/api/outreach")) {
+      return handleOutreachRequest(request, env, url);
     }
 
     if (url.pathname.startsWith("/api/opportunity-automation")) {
@@ -216,6 +221,14 @@ async function verifyPassword(password: string, storedHash: string) {
 
 function publicUser(user: any) {
   return { id: user.id, name: user.name, email: user.email, role: user.role };
+}
+
+function emailsDryRunEnabled(env: Env) {
+  return env.DRY_RUN !== "false" || env.DRY_RUN_EMAILS !== "false";
+}
+
+function normalizeEmail(value: any) {
+  return String(value || "").trim().toLowerCase();
 }
 
 async function findUserByEmail(env: Env, email: string) {
@@ -435,6 +448,145 @@ async function savePortalSettings(env: Env, rawSettings: any, userId: string) {
 
 function normalizeStatus(status: string) {
   return ["pending_review", "approved", "rejected", "duplicate", "expired"].includes(status) ? status : "pending_review";
+}
+
+async function findEmailSuppression(env: Env, email: string) {
+  const cleanEmail = normalizeEmail(email);
+  if (!cleanEmail) return null;
+  return env.DB.prepare("SELECT * FROM email_unsubscribes WHERE lower(email) = lower(?) LIMIT 1").bind(cleanEmail).first();
+}
+
+async function recordOutreachDryRun(env: Env, options: { email: string; templateId?: string; campaignId?: string; source?: string; suppressed?: boolean }) {
+  const log = {
+    id: `outreach-log-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+    mode: "DRY_RUN",
+    would_send_to: normalizeEmail(options.email),
+    template_id: String(options.templateId || "default").trim(),
+    campaign_id: String(options.campaignId || "test").trim(),
+    source: String(options.source || "admin_test").trim(),
+    suppressed: options.suppressed ? 1 : 0,
+    timestamp: new Date().toISOString()
+  };
+  await env.DB.prepare(
+    "INSERT INTO outreach_logs (id, mode, would_send_to, template_id, campaign_id, source, suppressed, timestamp) VALUES (?, ?, ?, ?, ?, ?, ?, ?)"
+  ).bind(log.id, log.mode, log.would_send_to, log.template_id, log.campaign_id, log.source, log.suppressed, log.timestamp).run();
+  return log;
+}
+
+async function handleOutreachRequest(request: Request, env: Env, url: URL) {
+  if (url.pathname === "/api/outreach/unsubscribe" && request.method === "POST") {
+    const body: any = await readJson(request);
+    const email = normalizeEmail(body.email);
+    if (!email.includes("@")) return jsonResponse({ error: "Valid email is required." }, 400);
+    await env.DB.prepare(
+      `INSERT INTO email_unsubscribes (email, unsubscribed_at, source, campaign)
+       VALUES (?, ?, ?, ?)
+       ON CONFLICT(email) DO UPDATE SET
+         unsubscribed_at = excluded.unsubscribed_at,
+         source = excluded.source,
+         campaign = excluded.campaign`
+    ).bind(
+      email,
+      new Date().toISOString(),
+      String(body.source || "manual").trim(),
+      String(body.campaign || body.campaignId || "unknown").trim()
+    ).run();
+    return jsonResponse({ success: true, message: "Email has been added to the suppression list." });
+  }
+
+  const user = await requireWorkerAdmin(request, env);
+  if (user instanceof Response) return user;
+
+  if (url.pathname === "/api/outreach/contacts" && request.method === "GET") {
+    const suppressions = await env.DB.prepare("SELECT email, unsubscribed_at, source, campaign FROM email_unsubscribes ORDER BY unsubscribed_at DESC LIMIT 100").all();
+    return jsonResponse({
+      data: [],
+      total: 0,
+      suppressions: suppressions.results || [],
+      dryRun: true,
+      message: "Outreach is admin-only and in DRY_RUN mode. No contacts are exposed publicly."
+    });
+  }
+
+  if (url.pathname === "/api/outreach/campaigns" && request.method === "GET") {
+    return jsonResponse({
+      data: [],
+      total: 0,
+      dryRun: true,
+      message: "Outreach campaigns are disabled for public launch until unsubscribe handling and real-send approval are configured."
+    });
+  }
+
+  if (url.pathname === "/api/outreach/logs" && request.method === "GET") {
+    const rows = await env.DB.prepare("SELECT * FROM outreach_logs ORDER BY timestamp DESC LIMIT 100").all();
+    return jsonResponse({ data: rows.results || [], total: rows.results?.length || 0, dryRun: true });
+  }
+
+  if (url.pathname === "/api/outreach/send-test" && request.method === "POST") {
+    const body: any = await readJson(request);
+    const email = normalizeEmail(body.email);
+    if (!email.includes("@")) return jsonResponse({ error: "Valid email is required." }, 400);
+    const suppression = await findEmailSuppression(env, email);
+    const log = await recordOutreachDryRun(env, {
+      email,
+      templateId: body.templateId,
+      campaignId: body.campaignId,
+      source: "send_test",
+      suppressed: Boolean(suppression)
+    });
+    return jsonResponse({
+      success: true,
+      dryRun: true,
+      suppressed: Boolean(suppression),
+      log: {
+        would_send_to: log.would_send_to,
+        template_id: log.template_id,
+        campaign_id: log.campaign_id,
+        timestamp: log.timestamp
+      },
+      message: suppression
+        ? "Email is suppressed. Dry-run log was recorded and no real email was sent."
+        : "Email outreach is in DRY_RUN mode. Dry-run log was recorded and no real email was sent."
+    });
+  }
+
+  if (url.pathname === "/api/outreach/import-csv" && request.method === "POST") {
+    return jsonResponse({
+      success: true,
+      inserted: 0,
+      duplicates: 0,
+      errors: [],
+      dryRun: true,
+      message: "Outreach CSV import is in DRY_RUN mode. No contacts were imported or emailed."
+    });
+  }
+
+  if (emailsDryRunEnabled(env)) {
+    const body: any = ["POST", "PUT", "PATCH", "DELETE"].includes(request.method) ? await readJson(request) : {};
+    const email = normalizeEmail(body.email || url.searchParams.get("email"));
+    let log = null;
+    if (email.includes("@")) {
+      const suppression = await findEmailSuppression(env, email);
+      log = await recordOutreachDryRun(env, {
+        email,
+        templateId: body.templateId || url.searchParams.get("templateId") || undefined,
+        campaignId: body.campaignId || url.searchParams.get("campaignId") || undefined,
+        source: "outreach_guard",
+        suppressed: Boolean(suppression)
+      });
+    }
+    return jsonResponse({
+      success: true,
+      dryRun: true,
+      log,
+      message: "Outreach is locked in DRY_RUN mode. No provider API request was made."
+    });
+  }
+
+  return jsonResponse({
+    success: false,
+    error: "Real outreach sending is disabled until provider verification, unsubscribe handling, and production approval are complete."
+  }, 501);
 }
 
 async function handleAutomationRequest(request: Request, env: Env, url: URL, user: any) {

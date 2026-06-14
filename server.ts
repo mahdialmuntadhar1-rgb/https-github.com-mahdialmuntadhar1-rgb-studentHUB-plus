@@ -73,7 +73,7 @@ function normalizePortalSettings(raw: any = {}) {
 function readDB() {
   try {
     if (!fs.existsSync(DB_FILE)) {
-      return { sources: [], opportunities: [], raw_scraped_items: [], portal_settings: DEFAULT_PORTAL_SETTINGS, logs: [], users: [], passwordResets: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
+      return { sources: [], opportunities: [], raw_scraped_items: [], portal_settings: DEFAULT_PORTAL_SETTINGS, logs: [], users: [], passwordResets: [], outreach_logs: [], email_unsubscribes: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
     }
     const raw = fs.readFileSync(DB_FILE, "utf-8");
     const parsed = JSON.parse(raw);
@@ -85,6 +85,8 @@ function readDB() {
       logs: parsed.logs || [],
       users: parsed.users || [],
       passwordResets: parsed.passwordResets || [],
+      outreach_logs: parsed.outreach_logs || [],
+      email_unsubscribes: parsed.email_unsubscribes || [],
       posts: parsed.posts || [],
       comments: parsed.comments || [],
       likes: parsed.likes || [],
@@ -94,7 +96,7 @@ function readDB() {
     };
   } catch (err) {
     console.error("Error reading database.json:", err);
-    return { sources: [], opportunities: [], raw_scraped_items: [], portal_settings: DEFAULT_PORTAL_SETTINGS, logs: [], users: [], passwordResets: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
+    return { sources: [], opportunities: [], raw_scraped_items: [], portal_settings: DEFAULT_PORTAL_SETTINGS, logs: [], users: [], passwordResets: [], outreach_logs: [], email_unsubscribes: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
   }
 }
 
@@ -333,6 +335,36 @@ function updateRawReviewStatus(db: any, opportunityId: string, status: string) {
       raw.review_status = normalizeOpportunityStatus(status);
     }
   });
+}
+
+function emailsDryRunEnabled() {
+  return process.env.DRY_RUN !== "false" || process.env.DRY_RUN_EMAILS !== "false";
+}
+
+function normalizeEmail(value: any) {
+  return String(value || "").trim().toLowerCase();
+}
+
+function findEmailSuppression(db: any, email: string) {
+  const cleanEmail = normalizeEmail(email);
+  if (!cleanEmail) return null;
+  return (db.email_unsubscribes || []).find((row: any) => normalizeEmail(row.email) === cleanEmail) || null;
+}
+
+function recordOutreachDryRun(db: any, options: { email: string; templateId?: string; campaignId?: string; source?: string; suppressed?: boolean }) {
+  db.outreach_logs = db.outreach_logs || [];
+  const log = {
+    id: `outreach-log-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`,
+    mode: "DRY_RUN",
+    would_send_to: normalizeEmail(options.email),
+    template_id: String(options.templateId || "default").trim(),
+    campaign_id: String(options.campaignId || "test").trim(),
+    source: String(options.source || "admin_test").trim(),
+    suppressed: Boolean(options.suppressed),
+    timestamp: new Date().toISOString()
+  };
+  db.outreach_logs.unshift(log);
+  return log;
 }
 
 function mergeOpportunityStats(db: any, opportunity: any, userId?: string) {
@@ -1805,9 +1837,11 @@ app.all("/api/opportunity-automation*", requireAdmin, async (req, res) => {
 });
 
 app.get("/api/outreach/contacts", requireAdmin, (req, res) => {
+  const db = readDB();
   res.json({
     data: [],
     total: 0,
+    suppressions: db.email_unsubscribes || [],
     dryRun: true,
     message: "Outreach is admin-only and in DRY_RUN mode. No contacts are exposed publicly."
   });
@@ -1822,11 +1856,70 @@ app.get("/api/outreach/campaigns", requireAdmin, (req, res) => {
   });
 });
 
+app.get("/api/outreach/logs", requireAdmin, (req, res) => {
+  const db = readDB();
+  const data = db.outreach_logs || [];
+  res.json({ data, total: data.length, dryRun: true });
+});
+
+app.post("/api/outreach/unsubscribe", (req, res) => {
+  const cleanEmail = normalizeEmail(req.body?.email);
+  if (!cleanEmail.includes("@")) {
+    res.status(400).json({ error: "Valid email is required." });
+    return;
+  }
+
+  const db = readDB();
+  db.email_unsubscribes = db.email_unsubscribes || [];
+  const existing = findEmailSuppression(db, cleanEmail);
+  const payload = {
+    email: cleanEmail,
+    unsubscribed_at: new Date().toISOString(),
+    source: String(req.body?.source || "manual").trim(),
+    campaign: String(req.body?.campaign || req.body?.campaignId || "unknown").trim()
+  };
+
+  if (existing) {
+    Object.assign(existing, payload);
+  } else {
+    db.email_unsubscribes.unshift(payload);
+  }
+  writeDB(db);
+
+  res.json({ success: true, message: "Email has been added to the suppression list." });
+});
+
 app.post("/api/outreach/send-test", requireAdmin, (req, res) => {
+  const cleanEmail = normalizeEmail(req.body?.email);
+  if (!cleanEmail.includes("@")) {
+    res.status(400).json({ error: "Valid email is required." });
+    return;
+  }
+
+  const db = readDB();
+  const suppression = findEmailSuppression(db, cleanEmail);
+  const log = recordOutreachDryRun(db, {
+    email: cleanEmail,
+    templateId: req.body?.templateId,
+    campaignId: req.body?.campaignId,
+    source: "send_test",
+    suppressed: Boolean(suppression)
+  });
+  writeDB(db);
+
   res.json({
     success: true,
     dryRun: true,
-    message: "Email outreach is in DRY_RUN mode. No real email was sent."
+    suppressed: Boolean(suppression),
+    log: {
+      would_send_to: log.would_send_to,
+      template_id: log.template_id,
+      campaign_id: log.campaign_id,
+      timestamp: log.timestamp
+    },
+    message: suppression
+      ? "Email is suppressed. Dry-run log was recorded and no real email was sent."
+      : "Email outreach is in DRY_RUN mode. Dry-run log was recorded and no real email was sent."
   });
 });
 
@@ -1843,51 +1936,34 @@ app.post("/api/outreach/import-csv", requireAdmin, (req, res) => {
 
 app.all("/api/outreach*", requireAdmin, async (req, res) => {
   try {
-    if (req.method !== "GET" && req.originalUrl.includes("/send")) {
+    if (emailsDryRunEnabled()) {
+      const cleanEmail = normalizeEmail(req.body?.email || req.query?.email);
+      let log = null;
+      if (cleanEmail.includes("@")) {
+        const db = readDB();
+        const suppression = findEmailSuppression(db, cleanEmail);
+        log = recordOutreachDryRun(db, {
+          email: cleanEmail,
+          templateId: req.body?.templateId || req.query?.templateId,
+          campaignId: req.body?.campaignId || req.query?.campaignId,
+          source: "outreach_guard",
+          suppressed: Boolean(suppression)
+        });
+        writeDB(db);
+      }
       res.json({
         success: true,
         dryRun: true,
-        message: "Email outreach is in DRY_RUN mode. No real email was sent."
+        log,
+        message: "Outreach is locked in DRY_RUN mode. No provider API request was made."
       });
       return;
     }
-    const targetUrl = `https://rafid-api.mahdialmuntadhar1.workers.dev${req.originalUrl}`;
-    const headers: Record<string, string> = {};
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (key.toLowerCase() !== "host") {
-        headers[key] = value as string;
-      }
-    }
 
-    const isMultipart = req.headers["content-type"]?.startsWith("multipart/form-data");
-    const method = req.method;
-
-    let body: any = undefined;
-    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
-      if (isMultipart) {
-        body = req;
-      } else {
-        body = JSON.stringify(req.body);
-      }
-    }
-
-    const response = await fetch(targetUrl, {
-      method,
-      headers,
-      body,
-      // Node fetch duplex parameter necessary when forwarding streams
-      ...(isMultipart ? { duplex: "half" } : {})
-    } as any);
-
-    const contentType = response.headers.get("content-type") || "";
-    res.status(response.status);
-    if (contentType.includes("application/json")) {
-      const data = await response.json();
-      res.json(data);
-    } else {
-      const text = await response.text();
-      res.send(text);
-    }
+    res.status(501).json({
+      success: false,
+      error: "Real outreach sending is disabled until provider verification, unsubscribe handling, and production approval are complete."
+    });
   } catch (err: any) {
     console.error("Proxy error for outreach:", err);
     res.status(502).json({ success: false, error: "بوابة الرسائل للتواصل غير متصلة: " + err.message });

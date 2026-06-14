@@ -109,10 +109,20 @@ Required or supported variables:
 - `RESEND_API_KEY`: Email provider key, only for future real email sending.
 - `DRY_RUN_AUTOMATION=true`: Keeps automation actions safe.
 - `DRY_RUN_EMAILS=true`: Keeps outreach/password reset email paths from sending real email.
+- `DRY_RUN=true`: Global safety flag. Keep this enabled for local development and production staging.
 - `VITE_API_URL`: Frontend backend API origin. Use `http://127.0.0.1:3000` for full local backend testing. Default in code is `https://rafid-api.mahdialmuntadhar1.workers.dev`.
 - `R2_PUBLIC_BASE_URL`: Public base URL for durable R2 uploads after upload handling is configured.
 
-Do not disable email dry-run flags until unsubscribe handling, sender verification, and explicit production approval are complete.
+Real email sending is disabled. Keep `DRY_RUN=true` and `DRY_RUN_EMAILS=true`; in dry-run mode the app writes outreach logs only and does not call the email provider API.
+
+Before any future real-send approval, verify:
+
+- Sender domain is verified with the provider.
+- SPF, DKIM, and DMARC are configured and passing.
+- Unsubscribe link and suppression handling are ready and tested.
+- Test sends are limited to an internal test mailbox.
+- Bulk sending remains disabled until reviewed separately.
+- `DRY_RUN=false` and `DRY_RUN_EMAILS=false` are changed only with explicit production approval.
 
 ## Cloudflare Bindings
 
@@ -147,6 +157,7 @@ Apply incremental migrations manually when needed for existing databases:
 wrangler d1 execute rafid-db --remote --file=./migrations/0001_auth_users.sql
 wrangler d1 execute rafid-db --remote --file=./migrations/0002_opportunity_status_and_dedupe.sql
 wrangler d1 execute rafid-db --remote --file=./migrations/0003_user_content_persistence.sql
+wrangler d1 execute rafid-db --remote --file=./migrations/0004_outreach_dry_run_safety.sql
 ```
 
 Run local migration checks without `--remote` only against a disposable local D1 database.
