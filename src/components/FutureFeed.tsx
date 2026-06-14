@@ -42,11 +42,6 @@ interface FutureFeedProps {
   isFeedLoading?: boolean;
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
   onDeleteFeedItem?: (id: string) => void;
-  onReportPost?: (item: FeedItem) => void | Promise<void>;
-  onReportUser?: (item: FeedItem) => void | Promise<void>;
-  onBlockUser?: (item: FeedItem) => void | Promise<void>;
-  currentUserId?: string;
-  currentUserName?: string;
   isAdminMode?: boolean;
 }
 
@@ -66,11 +61,6 @@ export default function FutureFeed({
   isFeedLoading = false,
   onEditFeedItem,
   onDeleteFeedItem,
-  onReportPost,
-  onReportUser,
-  onBlockUser,
-  currentUserId,
-  currentUserName,
   isAdminMode = false
 }: FutureFeedProps) {
   const [opportunities, setOpportunities] = useState<FeedItem[]>([]);
@@ -131,6 +121,22 @@ export default function FutureFeed({
       contentEN,
       contentAR,
       contentKU,
+
+      // High-end localization spec data model fields
+      original_language: item.original_language || item.originalLanguage,
+      title_original: item.title_original || item.titleOriginal || item.title,
+      body_original: item.body_original || item.bodyOriginal || item.content_original || item.contentOriginal || item.description || item.summary,
+      caption_original: item.caption_original || item.captionOriginal,
+      title_ar: item.title_ar || item.titleAR || titleAR,
+      body_ar: item.body_ar || item.bodyAR || item.content_ar || item.contentAR || contentAR,
+      caption_ar: item.caption_ar || item.captionAR,
+      title_ku: item.title_ku || item.titleKU || titleKU,
+      body_ku: item.body_ku || item.bodyKU || item.content_ku || item.contentKU || contentKU,
+      caption_ku: item.caption_ku || item.captionKU,
+      title_en: item.title_en || item.titleEN || titleEN,
+      body_en: item.body_en || item.bodyEN || item.content_en || item.contentEN || contentEN,
+      caption_en: item.caption_en || item.captionEN,
+
       author: {
         name: orgName,
         role: 'institution' as const,
@@ -157,8 +163,8 @@ export default function FutureFeed({
       workplaceType: item.workplaceType || 'On-site',
       whoCanApply: item.whoCanApply || 'Interested applicants',
       salary: item.salary || 'Recruiter structured',
-      application_link: applyUrl,
-      original_source_url: sourceUrl,
+      applyUrl,
+      sourceUrl,
       universityAppliedCount: Number(item.applied_count || 5),
       applied: false
     };
@@ -233,7 +239,7 @@ export default function FutureFeed({
         const isApplied = !item.applied;
         
         // Open opportunity apply link safely after applying
-        const urlToOpen = item.application_link || item.original_source_url;
+        const urlToOpen = item.applyUrl || item.sourceUrl;
         if (urlToOpen && isApplied) {
           try {
             window.open(urlToOpen, '_blank', 'noopener,noreferrer');
@@ -720,11 +726,6 @@ export default function FutureFeed({
                      onAddComment={onAddComment}
                      onEditFeedItem={onEditFeedItem}
                      onDeleteFeedItem={onDeleteFeedItem}
-                     onReportPost={onReportPost}
-                     onReportUser={onReportUser}
-                     onBlockUser={onBlockUser}
-                     currentUserId={currentUserId}
-                     currentUserName={currentUserName}
                      isAdminMode={isAdminMode}
                    />
                 ))}
@@ -762,11 +763,6 @@ export default function FutureFeed({
                      onAddComment={onAddComment}
                      onEditFeedItem={onEditFeedItem}
                      onDeleteFeedItem={onDeleteFeedItem}
-                     onReportPost={onReportPost}
-                     onReportUser={onReportUser}
-                     onBlockUser={onBlockUser}
-                     currentUserId={currentUserId}
-                     currentUserName={currentUserName}
                      isAdminMode={isAdminMode}
                    />
                 ))}
@@ -795,11 +791,6 @@ export default function FutureFeed({
                   onAddComment={onAddComment}
                   onEditFeedItem={onEditFeedItem}
                   onDeleteFeedItem={onDeleteFeedItem}
-                  onReportPost={onReportPost}
-                  onReportUser={onReportUser}
-                  onBlockUser={onBlockUser}
-                  currentUserId={currentUserId}
-                  currentUserName={currentUserName}
                   isAdminMode={isAdminMode}
                 />
               ))}
@@ -827,11 +818,6 @@ export default function FutureFeed({
                   onAddComment={onAddComment}
                   onEditFeedItem={onEditFeedItem}
                   onDeleteFeedItem={onDeleteFeedItem}
-                  onReportPost={onReportPost}
-                  onReportUser={onReportUser}
-                  onBlockUser={onBlockUser}
-                  currentUserId={currentUserId}
-                  currentUserName={currentUserName}
                   isAdminMode={isAdminMode}
                 />
               ))}
@@ -859,11 +845,6 @@ export default function FutureFeed({
                   onAddComment={onAddComment}
                   onEditFeedItem={onEditFeedItem}
                   onDeleteFeedItem={onDeleteFeedItem}
-                  onReportPost={onReportPost}
-                  onReportUser={onReportUser}
-                  onBlockUser={onBlockUser}
-                  currentUserId={currentUserId}
-                  currentUserName={currentUserName}
                   isAdminMode={isAdminMode}
                 />
               ))}
@@ -891,11 +872,6 @@ export default function FutureFeed({
                   onAddComment={onAddComment}
                   onEditFeedItem={onEditFeedItem}
                   onDeleteFeedItem={onDeleteFeedItem}
-                  onReportPost={onReportPost}
-                  onReportUser={onReportUser}
-                  onBlockUser={onBlockUser}
-                  currentUserId={currentUserId}
-                  currentUserName={currentUserName}
                   isAdminMode={isAdminMode}
                 />
               ))}
@@ -932,11 +908,6 @@ export default function FutureFeed({
                   onAddComment={onAddComment}
                   onEditFeedItem={onEditFeedItem}
                   onDeleteFeedItem={onDeleteFeedItem}
-                  onReportPost={onReportPost}
-                  onReportUser={onReportUser}
-                  onBlockUser={onBlockUser}
-                  currentUserId={currentUserId}
-                  currentUserName={currentUserName}
                   isAdminMode={isAdminMode}
                 />
               ))}

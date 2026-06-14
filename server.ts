@@ -1,4 +1,4 @@
-﻿import express from "express";
+import express from "express";
 import path from "path";
 import fs from "fs";
 import { createServer as createViteServer } from "vite";
@@ -36,32 +36,6 @@ function writeDB(data: any) {
   } catch (err) {
     console.error("Error writing database.json:", err);
   }
-}
-
-function ensureSocialSafetyTables(db: any) {
-  db.sources = Array.isArray(db.sources) ? db.sources : [];
-  db.opportunities = Array.isArray(db.opportunities) ? db.opportunities : [];
-  db.logs = Array.isArray(db.logs) ? db.logs : [];
-  db.user_blocks = Array.isArray(db.user_blocks) ? db.user_blocks : [];
-  db.content_reports = Array.isArray(db.content_reports) ? db.content_reports : [];
-  db.abuse_audit_logs = Array.isArray(db.abuse_audit_logs) ? db.abuse_audit_logs : [];
-  return db;
-}
-
-function createId(prefix: string) {
-  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
-}
-
-function addAbuseAuditLog(db: any, payload: { actor_user_id?: string | null; action: string; target_type?: string | null; target_id?: string | null; metadata?: any }) {
-  db.abuse_audit_logs.unshift({
-    id: createId("audit"),
-    actor_user_id: payload.actor_user_id || null,
-    action: payload.action,
-    target_type: payload.target_type || null,
-    target_id: payload.target_id || null,
-    metadata: payload.metadata ? JSON.stringify(payload.metadata) : null,
-    created_at: new Date().toISOString()
-  });
 }
 
 // Lazy-loaded Gemini AI client to avoid crashes if GEMINI_API_KEY is not initially configured
@@ -259,10 +233,10 @@ Output only valid JSON container!`;
 
         // Robust rule fallback for translation + normalizations
         if (!titleAR) {
-          titleAR = `ÙØ±ØµØ© Ù…Ù…ØªØ§Ø²Ø© Ù„Ø¯Ù‰ ${source.name}: ${titleEN}`;
-          titleKU = `Ø¯Û•Ø±ÙÛ•ØªÛŽÚ©ÛŒ Ø¨Ø§Ø´ Ù„Ø§ÛŒ ${source.name}: ${titleEN}`;
-          descAR = `ØªÙ… Ø¬Ù…Ø¹ Ù‡Ø°Ù‡ Ø§Ù„ÙØ±ØµØ© ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ Ù…Ù† Ø§Ù„Ù…ÙƒØ§ØªØ¨ Ø§Ù„Ù…Ø¹ØªÙ…Ø¯Ø© Ù„Ø¯Ù‰ ${source.name}. Ù„Ù„Ø§Ø·Ù„Ø§Ø¹ Ø¹Ù„Ù‰ Ø§Ù„Ù…Ø¹Ø§ÙŠÙŠØ± Ø§Ù„ÙƒØ§Ù…Ù„Ø© ÙˆØ´Ø±ÙˆØ· Ø§Ù„ØªØ³Ø¬ÙŠÙ„ ÙŠØ±Ø¬Ù‰ Ø²ÙŠØ§Ø±Ø© Ø§Ù„Ø±Ø§Ø¨Ø· Ø§Ù„Ù…Ø±ÙÙ‚ Ù„Ù„ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ù…Ø¨Ø§Ø´Ø±.`;
-          descKU = `Ø¦Û•Ù… Ø¯Û•Ø±ÙÛ•ØªÛ• Ø¨Û• Ø´ÛŽÙˆÛ•ÛŒÛ•Ú©ÛŒ Ø®Û†Ú©Ø§Ø± Ù„Û• Ø¨Û•Ø´ÛŒ ÙÛ•Ø±Ù…ÛŒ Ù„Ø§ÛŒ ${source.name} ÙˆÛ•Ø±Ú¯ÛŒØ±Ø§ÙˆÛ•. Ø¨Û† Ø¯ÚµÙ†ÛŒØ§Ø¨ÙˆÙˆÙ† Ù…Û•Ø±Ø¬Û•Ú©Ø§Ù† Ø¨Ø®ÙˆÛŽÙ†Û•Ø±Û•ÙˆÛ• Ù„Û• Ú•ÛŽÚ¯Û•ÛŒ Ø¨Û•Ø³ØªÛ•Ø±ÛŒ Ù‡Ø§ÙˆÙ¾ÛŽÚ†.`;
+          titleAR = `فرصة ممتازة لدى ${source.name}: ${titleEN}`;
+          titleKU = `دەرفەتێکی باش لای ${source.name}: ${titleEN}`;
+          descAR = `تم جمع هذه الفرصة تلقائياً من المكاتب المعتمدة لدى ${source.name}. للاطلاع على المعايير الكاملة وشروط التسجيل يرجى زيارة الرابط المرفق للتسجيل المباشر.`;
+          descKU = `ئەم دەرفەتە بە شێوەیەکی خۆکار لە بەشی فەرمی لای ${source.name} وەرگیراوە. بۆ دڵنیابوون مەرجەکان بخوێنەرەوە لە ڕێگەی بەستەری هاوپێچ.`;
 
           const lowerText = (titleEN + " " + descEN).toLowerCase();
           if (lowerText.includes("intern") || lowerText.includes("co-op")) category = "internship";
@@ -368,17 +342,18 @@ app.get("/api/health", (req, res) => {
 app.get("/api/opportunities", (req, res) => {
   const db = readDB();
   
-  // 1. Core Filtering: public feed shows approved opportunities only.
+  // 1. Core Filtering: Filter for approved/expired opportunities
   let list = db.opportunities || [];
   
-  list = list.filter((o: any) => o.status === "approved");
+  // Enforce approved or expired status for search feed
+  list = list.filter((o: any) => o.status === "approved" || o.status === "expired" || !o.status);
   
   // Map category constraint
   const allowedCategories = ["job", "scholarship", "internship", "training", "fellowship", "volunteering", "competition"];
   list = list.filter((o: any) => allowedCategories.includes(o.category));
 
   // 2. Query Parameters Filters
-  const { type, category, governorate, city, search, university_id, institution_id, limit, offset } = req.query;
+  const { type, category, governorate, university_id, institution_id, limit, offset } = req.query;
 
   // Filter by category or type specifically
   const catFilter = category || type;
@@ -393,22 +368,6 @@ app.get("/api/opportunities", (req, res) => {
       o.governorate?.toLowerCase() === String(governorate).toLowerCase() ||
       o.governorateId === "all" ||
       o.governorate === "All Iraq"
-    );
-  }
-
-  if (city) {
-    list = list.filter((o: any) => o.city?.toLowerCase() === String(city).toLowerCase());
-  }
-
-  if (search) {
-    const term = String(search).trim().toLowerCase();
-    list = list.filter((o: any) =>
-      o.title?.toLowerCase().includes(term) ||
-      o.titleEN?.toLowerCase().includes(term) ||
-      o.organization?.toLowerCase().includes(term) ||
-      o.institution_name?.toLowerCase().includes(term) ||
-      o.summary?.toLowerCase().includes(term) ||
-      o.contentEN?.toLowerCase().includes(term)
     );
   }
 
@@ -488,169 +447,6 @@ app.get("/api/highlights", (req, res) => {
   }
 
   res.json(result);
-});
-
-
-function requireAdminApiToken(req: any, res: any, next: any) {
-  const configured = process.env.ADMIN_API_TOKEN || process.env.ADMIN_TOKEN || "";
-  if (!configured) {
-    return res.status(500).json({ error: "ADMIN_API_TOKEN is not configured." });
-  }
-
-  const header = String(req.headers.authorization || "");
-  const token = header.startsWith("Bearer ") ? header.slice(7) : "";
-
-  if (!token || token !== configured) {
-    return res.status(403).json({ error: "Admin access required." });
-  }
-
-  return next();
-}
-
-app.post("/api/social/reports", (req, res) => {
-  const { reporter_user_id, reported_user_id, target_type, target_id, reason, details } = req.body || {};
-  if (!target_type || !reason) {
-    res.status(400).json({ error: "target_type and reason are required." });
-    return;
-  }
-
-  const allowedTargetTypes = ["post", "user", "comment"];
-  const allowedReasons = ["spam", "harassment", "hate_or_abuse", "misinformation", "unsafe_content", "impersonation", "other"];
-  if (!allowedTargetTypes.includes(String(target_type)) || !allowedReasons.includes(String(reason))) {
-    res.status(400).json({ error: "Invalid report target type or reason." });
-    return;
-  }
-
-  const db = ensureSocialSafetyTables(readDB());
-  const now = new Date().toISOString();
-  const report = {
-    id: createId("report"),
-    reporter_user_id: reporter_user_id || null,
-    reported_user_id: reported_user_id || null,
-    target_type,
-    target_id: target_id || null,
-    reason,
-    details: details || null,
-    status: "pending",
-    admin_notes: null,
-    created_at: now,
-    updated_at: now
-  };
-
-  db.content_reports.unshift(report);
-  addAbuseAuditLog(db, {
-    actor_user_id: reporter_user_id || null,
-    action: "report_created",
-    target_type,
-    target_id: target_id || reported_user_id || null,
-    metadata: { reason }
-  });
-  writeDB(db);
-  res.status(201).json({ success: true, report });
-});
-
-app.post("/api/social/blocks", (req, res) => {
-  const { blocker_user_id, blocked_user_id, reason } = req.body || {};
-  if (!blocker_user_id || !blocked_user_id) {
-    res.status(400).json({ error: "blocker_user_id and blocked_user_id are required." });
-    return;
-  }
-  if (String(blocker_user_id) === String(blocked_user_id)) {
-    res.status(400).json({ error: "Users cannot block themselves." });
-    return;
-  }
-
-  const db = ensureSocialSafetyTables(readDB());
-  const existing = db.user_blocks.find((block: any) => block.blocker_user_id === blocker_user_id && block.blocked_user_id === blocked_user_id);
-  if (existing) {
-    res.json({ success: true, block: existing });
-    return;
-  }
-
-  const block = {
-    id: createId("block"),
-    blocker_user_id,
-    blocked_user_id,
-    reason: reason || null,
-    created_at: new Date().toISOString()
-  };
-  db.user_blocks.unshift(block);
-  addAbuseAuditLog(db, {
-    actor_user_id: blocker_user_id,
-    action: "user_blocked",
-    target_type: "user",
-    target_id: blocked_user_id,
-    metadata: { reason: reason || null }
-  });
-  writeDB(db);
-  res.status(201).json({ success: true, block });
-});
-
-app.delete("/api/social/blocks/:blockedUserId", (req, res) => {
-  const blockedUserId = req.params.blockedUserId;
-  const blockerUserId = String(req.query.blocker_user_id || req.headers["x-user-id"] || "");
-  const db = ensureSocialSafetyTables(readDB());
-  const before = db.user_blocks.length;
-  db.user_blocks = db.user_blocks.filter((block: any) => {
-    const sameBlockedUser = block.blocked_user_id === blockedUserId;
-    const sameBlocker = blockerUserId ? block.blocker_user_id === blockerUserId : true;
-    return !(sameBlockedUser && sameBlocker);
-  });
-  if (before !== db.user_blocks.length) {
-    addAbuseAuditLog(db, {
-      actor_user_id: blockerUserId || null,
-      action: "user_unblocked",
-      target_type: "user",
-      target_id: blockedUserId
-    });
-    writeDB(db);
-  }
-  res.json({ success: true });
-});
-
-app.get("/api/social/blocks", (req, res) => {
-  const db = ensureSocialSafetyTables(readDB());
-  const blockerUserId = String(req.query.blocker_user_id || req.headers["x-user-id"] || "");
-  const list = blockerUserId
-    ? db.user_blocks.filter((block: any) => block.blocker_user_id === blockerUserId)
-    : db.user_blocks;
-  res.json(list);
-});
-
-app.use("/api/admin", requireAdminApiToken);
-
-app.get("/api/admin/social/reports", (req, res) => {
-  const db = ensureSocialSafetyTables(readDB());
-  res.json(db.content_reports);
-});
-
-app.patch("/api/admin/social/reports/:id", (req, res) => {
-  const { status, admin_notes } = req.body || {};
-  const allowedStatuses = ["pending", "reviewed", "dismissed", "action_taken"];
-  if (!allowedStatuses.includes(String(status))) {
-    res.status(400).json({ error: "Invalid report status." });
-    return;
-  }
-
-  const db = ensureSocialSafetyTables(readDB());
-  const report = db.content_reports.find((row: any) => row.id === req.params.id);
-  if (!report) {
-    res.status(404).json({ error: "Report not found." });
-    return;
-  }
-
-  report.status = status;
-  report.admin_notes = admin_notes || report.admin_notes || null;
-  report.updated_at = new Date().toISOString();
-  addAbuseAuditLog(db, {
-    actor_user_id: "admin",
-    action: "report_status_updated",
-    target_type: "report",
-    target_id: report.id,
-    metadata: { status }
-  });
-  writeDB(db);
-  res.json({ success: true, report });
 });
 
 // Admin list of all opportunities
@@ -822,29 +618,29 @@ app.post("/api/ask-ai", async (req, res) => {
     setTimeout(() => {
       let mockAnswer = "";
       if (lang === "ar") {
-        mockAnswer = `### Ø£Ù‡Ù„Ø§Ù‹ Ø¨Ùƒ ÙŠØ§ Ø²Ù…ÙŠÙ„(Ø©) ÙÙŠ ØªØ·Ø¨ÙŠÙ‚ Ø¬Ø§Ù…Ø¹ØªÙƒ! ðŸ‘‹ (Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ ÙÙŠ ÙˆØ¶Ø¹ Ø§Ù„Ø§Ø³ØªØ¹Ø¯Ø§Ø¯)
+        mockAnswer = `### أهلاً بك يا زميل(ة) في تطبيق جامعتك! 👋 (الذكاء الاصطناعي في وضع الاستعداد)
 
-Ø´ÙƒØ±Ø§Ù‹ Ù„Ø³Ø¤Ø§Ù„Ùƒ Ø­ÙˆÙ„ **"${query}"** ÙÙŠ Ø¬Ø§Ù…Ø¹Ø© **${university === 'all' ? 'Ø¹Ø±Ø§Ù‚ÙŠØ©' : university}**. 
+شكراً لسؤالك حول **"${query}"** في جامعة **${university === 'all' ? 'عراقية' : university}**. 
 
-Ø¨ØµÙØªÙŠ Ù…Ø±Ø´Ø¯Ùƒ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØŒ Ø¥Ù„ÙŠÙƒ ØªÙˆØ¬ÙŠÙ‡ Ø£ÙˆÙ„ÙŠ Ø³Ø±ÙŠØ¹:
-1. **Ø§Ù„ØºÙŠØ§Ø¨Ø§Øª ÙˆØ§Ù„Ø¥Ù†Ø°Ø§Ø±Ø§Øª:** Ø±Ø§Ø¬Ø¹ Ù…ÙƒØªØ¨ Ù…Ø¹Ø§ÙˆÙ† Ø§Ù„Ø¹Ù…ÙŠØ¯ Ù„Ø´Ø¤ÙˆÙ† Ø§Ù„Ø·Ù„Ø¨Ø© ÙÙˆØ±Ø§Ù‹ ÙˆÙ‚Ø¯Ù… Ø·Ù„Ø¨Ø§Ù‹ Ø±Ø³Ù…ÙŠØ§Ù‹ Ø¥Ø°Ø§ ÙƒØ§Ù† Ù„Ø¯ÙŠÙƒ Ø¹Ø°Ø± Ø·Ø¨ÙŠ Ù…Ø¹ØªÙ…Ø¯ Ù…Ù† Ù…Ø³ØªØ´ÙÙ‰ Ø­ÙƒÙˆÙ…ÙŠ.
-2. **Ø§Ù„ØªØ¯Ø±ÙŠØ¨ ÙˆØ§Ù„Ù…Ø³ØªÙ‚Ø¨Ù„:** ØªÙÙ‚Ø¯ Ø¬Ø²Ø¡ **"Ù…Ø³ØªÙ‚Ø¨Ù„Ùƒ"** ÙÙŠ Ø§Ù„ØªØ·Ø¨ÙŠÙ‚ Ù„Ù„ØªÙ‚Ø¯ÙŠÙ… Ø¹Ù„Ù‰ Ø£Ø­Ø¯Ø« Ø§Ù„ÙØ±Øµ Ø§Ù„ØªØ¯Ø±ÙŠØ¨ÙŠØ© ÙˆØ§Ù„Ù…Ù†Ø­ Ø§Ù„Ù…ØªØ§Ø­Ø© Ù„Ø·Ù„Ø§Ø¨ Ù…Ø­Ø§ÙØ¸Ø© **${governorate}**.
-3. **Ù„Ù„Ø§Ø³ØªØ²Ø§Ø¯Ø©:** ÙˆØ§ÙƒØ¨ Ø§Ù„Ù…Ù†Ø§Ù‚Ø´Ø§Øª ÙÙŠ ØªØ¨ÙˆÙŠØ¨ **"Ø§Ø³Ø£Ù„"** Ù„Ù…Ø´Ø§Ø±ÙƒØ© Ø²Ù…Ù„Ø§Ø¦Ùƒ Ù…Ù† Ù†ÙØ³ Ø§Ù„Ù‚Ø³Ù… Ø§Ù„Ø¢Ø±Ø§Ø¡.
+بصفتي مرشدك الأكاديمي، إليك توجيه أولي سريع:
+1. **الغيابات والإنذارات:** راجع مكتب معاون العميد لشؤون الطلبة فوراً وقدم طلباً رسمياً إذا كان لديك عذر طبي معتمد من مستشفى حكومي.
+2. **التدريب والمستقبل:** تفقد جزء **"مستقبلك"** في التطبيق للتقديم على أحدث الفرص التدريبية والمنح المتاحة لطلاب محافظة **${governorate}**.
+3. **للاستزادة:** واكب المناقشات في تبويب **"اسأل"** لمشاركة زملائك من نفس القسم الآراء.
 
-*(Ù…Ù„Ø§Ø­Ø¸Ø©: Ù‡Ø°Ø§ Ø±Ø¯ Ù†Ø§Ø¨Ø¹ Ù…Ù† Ù†Ø¸Ø§Ù… Ø§Ù„Ù…Ø¹Ø§Ù„Ø¬Ø© Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ© Ø§Ù„Ù…ØµØºØ±ØŒ Ù„ØªÙØ¹ÙŠÙ„ ÙƒØ§Ù…Ù„ Ù‚Ø¯Ø±Ø§Øª Ø°ÙƒØ§Ø¡ GeminiØŒ ÙŠØ±Ø¬Ù‰ ØªÙ‡ÙŠØ¦Ø© Ù…ÙØªØ§Ø­ GEMINI_API_KEY ÙÙŠ Ù„ÙˆØ­Ø© Ø¶Ø¨Ø· Ø§Ù„Ø£Ø³Ø±Ø§Ø±).*`;
+*(ملاحظة: هذا رد نابع من نظام المعالجة الأكاديمية المصغر، لتفعيل كامل قدرات ذكاء Gemini، يرجى تهيئة مفتاح GEMINI_API_KEY في لوحة ضبط الأسرار).*`;
       } else if (lang === "ku") {
-        mockAnswer = `### Ø³ÚµØ§Ùˆ Ù‡Ø§ÙˆÚ•ÛŽÛŒ Ø²Ø§Ù†Ú©Û†! ðŸ‘‹ (ÙˆÛ•ÚµØ§Ù…ÛŒ Ø¦Ø§Ù…Ø§Ø¯Û•Ú©Ø±Ø§ÙˆÛŒ Ø®ÛŽØ±Ø§)
+        mockAnswer = `### سڵاو هاوڕێی زانکۆ! 👋 (وەڵامی ئامادەکراوی خێرا)
 
-Ø³ÙˆÙ¾Ø§Ø³ Ø¨Û† Ù¾Ø±Ø³ÛŒØ§Ø±Û•Ú©Û•Øª Ø¯Û•Ø±Ø¨Ø§Ø±Û•ÛŒ **"${query}"** Ù„Û• Ø®ÙˆÛŽÙ†Ø¯Ù†Ú¯Û•/Ø²Ø§Ù†Ú©Û†ÛŒ **${university === 'all' ? 'Ø¹ÛŽØ±Ø§Ù‚' : university}**.
+سوپاس بۆ پرسیارەکەت دەربارەی **"${query}"** لە خوێندنگە/زانکۆی **${university === 'all' ? 'عێراق' : university}**.
 
-ÙˆÛ•Ú© Ú•Ø§ÙˆÛŽÚ˜Ú©Ø§Ø±ÛŒ Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒ ØªÛ†:
-1. **Ø¦Ø§Ù…Ø§Ø¯Û•Ù†Û•Ø¨ÙˆÙˆÙ†:** Ø³Û•Ø±Ø¯Ø§Ù†ÛŒ ÛŒØ§Ø±ÛŒØ¯Û•Ø¯Û•Ø±ÛŒ Ú•Ø§Ú¯Ø± Ø¨Ú©Û• Ø¨Û† Ú©Ø§Ø±ÙˆØ¨Ø§Ø±ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±Ø§Ù† Ø¨Û•Ù¾Û•Ù„Û• Ø¦Û•Ú¯Û•Ø± Ù…Û†ÚµÛ•ØªÛŒ Ù¾Ø²ÛŒØ´Ú©ÛŒØª Ù‡Û•ÛŒÛ•.
-2. **Ø¯Ø§Ù‡Ø§ØªÙˆÙˆØª:** Ø³Û•Ø±Ø¯Ø§Ù†ÛŒ Ø¨Û•Ø´ÛŒ **"Ø¯Ø§Ù‡Ø§ØªÙˆÙˆØª"** Ø¨Ú©Û• Ø¨Û† Ø¯Û†Ø²ÛŒÙ†Û•ÙˆÛ•ÛŒ Ù‡Û•Ù„ÛŒ Ú©Ø§Ø± Ùˆ Ù…Û•Ø´Ù‚ Ù„Û• Ù¾Ø§Ø±ÛŽØ²Ú¯Ø§ÛŒ **${governorate}**.
-3. **Ù‡Ø§ÙˆÚ©Ø§Ø±ÛŒ:** Ù„Û• Ø¨Û•Ø´ÛŒ **"Ø¨Ù¾Ø±Ø³Û•"** Ù‡Ø§ÙˆÚ©Ø§Ø±ÛŒ ÙˆÛ•Ø±Ø¨Ú¯Ø±Û• Ù„Û• Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±Ø§Ù†ÛŒ ØªØ±.
+وەک ڕاوێژکاری ئەکادیمی تۆ:
+1. **ئامادەنەبوون:** سەردانی یاریدەدەری ڕاگر بکە بۆ کاروباری خوێندکاران بەپەلە ئەگەر مۆڵەتی پزیشکیت هەیە.
+2. **داهاتووت:** سەردانی بەشی **"داهاتووت"** بکە بۆ دۆزینەوەی هەلی کار و مەشق لە پارێزگای **${governorate}**.
+3. **هاوکاری:** لە بەشی **"بپرسە"** هاوکاری وەربگرە لە خوێندکارانی تر.
 
-*(ØªÛŽØ¨ÛŒÙ†ÛŒ: Ø¨Û† Ú†Ø§Ù„Ø§Ú©Ú©Ø±Ø¯Ù†ÛŒ ØªÙ‡â€ŒÙˆØ§ÙˆÛŒ Ø³ÛŒØ³ØªÙ‡â€ŒÙ…ÛŒ Ù„ÛŽÚ©Ø¯Ø§Ù†Ù‡â€ŒÙˆÙ‡â€ŒÛŒ Ø²ÛŒØ±Û•Ú©ÛŒ GeminiØŒ ØªÚ©Ø§ÛŒÛ• Ú©Ù„ÛŒÙ„Û• Ù†Ù‡ÛŽÙ†ÛŒÛŒÛ•Ú©Û• Ù„Û• Ø¨Û•Ø´ÛŒ Ù†Ù‡ÛŽÙ†ÛŒÛŒÛ•Ú©Ø§Ù† Ø¬ÛŽØ¨Û•Ø¬ÛŽ Ø¨Ú©Û•).*`;
+*(تێبینی: بۆ چالاککردنی ته‌واوی سیسته‌می لێکدانه‌وه‌ی زیرەکی Gemini، تکایە کلیلە نهێنییەکە لە بەشی نهێنییەکان جێبەجێ بکە).*`;
       } else {
-        mockAnswer = `### Hello there, fellow student! ðŸ‘‹ (Offline Knowledge Base Response)
+        mockAnswer = `### Hello there, fellow student! 👋 (Offline Knowledge Base Response)
 
 Thank you for asking about **"${query}"** regarding **${university === 'all' ? 'your university' : university}** in **${governorate === 'all' ? 'Iraq' : governorate}**.
 
@@ -863,9 +659,9 @@ Here is my initial guidance for you:
   try {
     const ai = getGeminiClient();
 
-    const systemInstruction = `You are Al-Murshed (Ø§Ù„Ù…Ø±Ø´Ø¯), a warm, supportive, motivating, and highly knowledgeable AI Campus Advisor built into the "Iraqi Campus Social App".
+    const systemInstruction = `You are Al-Murshed (المرشد), a warm, supportive, motivating, and highly knowledgeable AI Campus Advisor built into the "Iraqi Campus Social App".
     Your entire mission is to help Iraqi university students, fresh graduates, teachers, and staff navigate their academics, careers, and college lives.
-    You possess deep, accurate knowledge of the Iraqi higher education system under the Ministry of Higher Education and Scientific Research (MoHESR), including common policies (e.g., Ø¨Ø±Ø§Ø¡Ø© Ø°Ù…Ø©, Ø¥Ù†Ø°Ø§Ø± ØºÙŠØ§Ø¨Ø§Øª, Ù…Ø¹Ø§ÙˆÙ† Ø§Ù„Ø¹Ù…ÙŠØ¯, Ù…Ù„Ø§Ø²Ù…, Ø¹Ø¨ÙˆØ±, ØªØ­Ù…ÙŠÙ„, Ù…Ø¹Ø¯Ù„ ØªØ±Ø§ÙƒÙ…ÙŠ).
+    You possess deep, accurate knowledge of the Iraqi higher education system under the Ministry of Higher Education and Scientific Research (MoHESR), including common policies (e.g., براءة ذمة, إنذار غيابات, معاون العميد, ملازم, عبور, تحميل, معدل تراكمي).
     You are familiar with the job market in Iraq (companies like Zain, Asiacell, Korek, local tech startups in Erbil/Baghdad/Basra, development NGOs, and universities).
 
     Context for current user query:
@@ -948,7 +744,7 @@ app.all("/api/opportunity-automation*", async (req, res) => {
     }
   } catch (err: any) {
     console.error("Proxy error for opportunity-automation:", err);
-    res.status(502).json({ success: false, error: "Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø£ØªÙ…ØªØ© ÙˆØ§Ù„ÙØ±Øµ ØºÙŠØ± Ù…ØªØµÙ„Ø© Ù…Ø¤Ù‚ØªØ§Ù‹: " + err.message });
+    res.status(502).json({ success: false, error: "بوابة الأتمتة والفرص غير متصلة مؤقتاً: " + err.message });
   }
 });
 
@@ -993,7 +789,7 @@ app.all("/api/outreach*", async (req, res) => {
     }
   } catch (err: any) {
     console.error("Proxy error for outreach:", err);
-    res.status(502).json({ success: false, error: "Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø±Ø³Ø§Ø¦Ù„ Ù„Ù„ØªÙˆØ§ØµÙ„ ØºÙŠØ± Ù…ØªØµÙ„Ø©: " + err.message });
+    res.status(502).json({ success: false, error: "بوابة الرسائل للتواصل غير متصلة: " + err.message });
   }
 });
 

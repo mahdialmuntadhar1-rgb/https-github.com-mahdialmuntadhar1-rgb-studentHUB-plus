@@ -23,11 +23,6 @@ interface AskFeedProps {
   isFeedLoading?: boolean;
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
   onDeleteFeedItem?: (id: string) => void;
-  onReportPost?: (item: FeedItem) => void | Promise<void>;
-  onReportUser?: (item: FeedItem) => void | Promise<void>;
-  onBlockUser?: (item: FeedItem) => void | Promise<void>;
-  currentUserId?: string;
-  currentUserName?: string;
   isAdminMode?: boolean;
 }
 
@@ -47,11 +42,6 @@ export default function AskFeed({
   isFeedLoading = false,
   onEditFeedItem,
   onDeleteFeedItem,
-  onReportPost,
-  onReportUser,
-  onBlockUser,
-  currentUserId,
-  currentUserName,
   isAdminMode = false
 }: AskFeedProps) {
   const [askQuery, setAskQuery] = useState('');
@@ -307,11 +297,6 @@ export default function AskFeed({
               onAddComment={onAddComment}
               onEditFeedItem={onEditFeedItem}
               onDeleteFeedItem={onDeleteFeedItem}
-              onReportPost={onReportPost}
-              onReportUser={onReportUser}
-              onBlockUser={onBlockUser}
-              currentUserId={currentUserId}
-              currentUserName={currentUserName}
               isAdminMode={isAdminMode}
             />
           ))
