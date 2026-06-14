@@ -68,7 +68,31 @@ CREATE TABLE IF NOT EXISTS raw_scraped_items (
 CREATE INDEX IF NOT EXISTS idx_raw_scraped_items_opportunity ON raw_scraped_items(opportunity_id);
 CREATE INDEX IF NOT EXISTS idx_raw_scraped_items_status ON raw_scraped_items(review_status);
 
--- 3. Portal settings for public homepage customization.
+-- 3. Authentication users and password reset audit records.
+CREATE TABLE IF NOT EXISTS users (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  email TEXT NOT NULL UNIQUE,
+  role TEXT NOT NULL DEFAULT 'student'
+    CHECK (role IN ('student', 'graduate', 'teacher', 'staff', 'institution', 'admin', 'super_admin')),
+  passwordHash TEXT NOT NULL,
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_users_email ON users(email);
+
+CREATE TABLE IF NOT EXISTS passwordResets (
+  id TEXT PRIMARY KEY,
+  userId TEXT NOT NULL,
+  email TEXT NOT NULL,
+  tokenHash TEXT NOT NULL,
+  mode TEXT NOT NULL DEFAULT 'DRY_RUN',
+  createdAt TEXT NOT NULL DEFAULT CURRENT_TIMESTAMP,
+  usedAt TEXT,
+  FOREIGN KEY (userId) REFERENCES users(id)
+);
+
+-- 4. Portal settings for public homepage customization.
 -- GET is public-readable for the homepage; writes must be protected by admin auth.
 CREATE TABLE IF NOT EXISTS portal_settings (
   id TEXT PRIMARY KEY DEFAULT 'default',
@@ -87,7 +111,7 @@ CREATE TABLE IF NOT EXISTS portal_settings (
   updated_by TEXT
 );
 
--- 4. Scraper Logs Schema
+-- 5. Scraper Logs Schema
 CREATE TABLE IF NOT EXISTS scraper_logs (
   id TEXT PRIMARY KEY,
   timestamp TEXT NOT NULL,
@@ -99,7 +123,7 @@ CREATE TABLE IF NOT EXISTS scraper_logs (
   errors TEXT
 );
 
--- 5. User-generated content and engagement persistence
+-- 6. User-generated content and engagement persistence
 CREATE TABLE IF NOT EXISTS posts (
   id TEXT PRIMARY KEY,
   userId TEXT NOT NULL,

@@ -54,6 +54,52 @@ npm run build
 
 The build outputs the frontend and bundled local server to `dist/`.
 
+## Promote an Admin User
+
+Registration creates normal `student` users. Promote a backend-confirmed admin/staff user only through this utility or a direct D1 admin action.
+
+Promote an existing local JSON user:
+
+```bash
+npm run admin:promote -- --email=admin@example.com --role=staff
+```
+
+Create a local JSON admin user only when explicitly needed for local dev:
+
+```bash
+npm run admin:promote -- --email=admin@example.com --role=admin --create --name="Jamiaati Admin" --password=replace-with-12-plus-chars
+```
+
+Generate safe production D1 promotion SQL for an existing registered user:
+
+```bash
+npm run admin:promote -- --email=admin@example.com --role=staff --sql > promote-admin.sql
+wrangler d1 execute rafid-db --remote --file=./promote-admin.sql
+```
+
+Allowed utility roles are `staff` and `admin`. The script does not print password hashes or secrets. For production, register the user normally first, then promote the existing D1 row.
+
+Admin verification checklist:
+
+```bash
+npm run lint
+npm run build
+npm run admin:promote -- --email=admin@example.com --role=staff
+```
+
+Then log in as that user locally and verify:
+
+```bash
+curl http://127.0.0.1:3000/api/opportunity-automation/stats
+# expected without token: 401
+
+curl -H "Authorization: Bearer $ADMIN_JWT" \
+  http://127.0.0.1:3000/api/opportunity-automation/stats
+# expected with backend-confirmed staff/admin token: 200
+```
+
+This does not deploy and does not send emails.
+
 ## Environment
 
 Required or supported variables:
@@ -95,7 +141,7 @@ Apply the full schema manually:
 wrangler d1 execute rafid-db --remote --file=./schema.sql
 ```
 
-Apply incremental migrations manually when needed:
+Apply incremental migrations manually when needed for existing databases:
 
 ```bash
 wrangler d1 execute rafid-db --remote --file=./migrations/0001_auth_users.sql
