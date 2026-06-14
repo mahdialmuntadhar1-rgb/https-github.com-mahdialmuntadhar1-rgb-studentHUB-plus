@@ -178,6 +178,73 @@ const studentStoriesMockData: StudentStory[] = [
   }
 ];
 
+export const middleEasternAvatars = [
+  {
+    id: 'av_female_med',
+    url: '/src/assets/images/me_female_med_student_1781347010284.jpg',
+    emoji: '👩‍⚕️',
+    labelEN: 'Medical Student (Female)',
+    labelAR: 'طالبة طب (إناث)',
+    labelKU: 'قوتابی پزیشکی (مێ)',
+  },
+  {
+    id: 'av_male_eng',
+    url: '/src/assets/images/me_male_eng_student_1781347025742.jpg',
+    emoji: '👨‍💻',
+    labelEN: 'Engineering Student (Male)',
+    labelAR: 'طالب هندسة (ذكور)',
+    labelKU: 'قوتابی ئەندازیاری (نێر)',
+  },
+  {
+    id: 'av_female_cs',
+    url: '/src/assets/images/me_female_cs_student_1781347041085.jpg',
+    emoji: '👩‍💻',
+    labelEN: 'Tech Student (Female)',
+    labelAR: 'طالبة لغات برمجة (إناث)',
+    labelKU: 'قوتابی تەکنەلۆجیا (مێ)',
+  },
+  {
+    id: 'av_male_arts',
+    url: '/src/assets/images/me_male_arts_student_1781347058036.jpg',
+    emoji: '👨‍🎓',
+    labelEN: 'Arts Student (Male)',
+    labelAR: 'طالب آداب وفنون (ذكور)',
+    labelKU: 'قوتابی هونەر (نێر)',
+  },
+  {
+    id: 'av_sara',
+    url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
+    emoji: '👩‍⚕️',
+    labelEN: 'Sara Ahmed',
+    labelAR: 'سارة أحمد',
+    labelKU: 'سارە ئەحمەد',
+  },
+  {
+    id: 'av_mustafa',
+    url: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200',
+    emoji: '👨‍💻',
+    labelEN: 'Mustafa Ali',
+    labelAR: 'مصطفى علي',
+    labelKU: 'مستەفا عەلی',
+  },
+  {
+    id: 'av_rawan',
+    url: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
+    emoji: '👩‍🎨',
+    labelEN: 'Rawan Omer',
+    labelAR: 'روان عمر',
+    labelKU: 'ڕەوان عومەر',
+  },
+  {
+    id: 'av_ali',
+    url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+    emoji: '👨‍⚕️',
+    labelEN: 'Ali Jabbar',
+    labelAR: 'علي جبار',
+    labelKU: 'عەلی جەبار',
+  }
+];
+
 interface StudentStoriesProps {
   language: Language;
   onAwardPoints?: (points: number) => void;
@@ -189,6 +256,7 @@ export default function StudentStories({
   onAwardPoints,
   showToast
 }: StudentStoriesProps) {
+  const [selectedAvatar, setSelectedAvatar] = useState(middleEasternAvatars[0]);
   // Read/Write active list including user stories
   const [stories, setStories] = useState<StudentStory[]>(() => {
     // Read seen status from local storage
@@ -380,7 +448,8 @@ export default function StudentStories({
       uniEN: language === 'ar' ? 'جامعة بغداد 🎓' : language === 'ku' ? 'زانکۆی بەغدا 🎓' : 'Univ of Baghdad 🎓',
       uniAR: 'جامعة بغداد 🎓',
       uniKU: 'زانکۆی بەغدا 🎓',
-      avatarEmoji: selectedTemplate === 'custom' ? slideEmoji : (storyTemplates.find(t => t.id === selectedTemplate)?.emoji || '🎓'),
+      avatarEmoji: selectedAvatar.emoji || (selectedTemplate === 'custom' ? slideEmoji : (storyTemplates.find(t => t.id === selectedTemplate)?.emoji || '🎓')),
+      avatarUrl: selectedAvatar.url,
       avatarColor: 'bg-violet-600',
       slides: [resultSlide],
       isSeen: false
@@ -589,10 +658,21 @@ export default function StudentStories({
                 
                 {/* Central Inner Circle */}
                 <div className="relative flex items-center justify-center w-12.5 h-12.5 bg-slate-900 rounded-full border-2 border-[#070314] overflow-hidden">
-                  <span className={`absolute inset-0 ${story.avatarColor} opacity-20`} />
-                  <span className="text-xl select-none transition-transform duration-300 group-hover:scale-110">
-                    {story.avatarEmoji}
-                  </span>
+                  {story.avatarUrl ? (
+                    <img
+                      src={story.avatarUrl}
+                      alt={name}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover transition-transform duration-300 group-hover:scale-110"
+                    />
+                  ) : (
+                    <>
+                      <span className={`absolute inset-0 ${story.avatarColor} opacity-20`} />
+                      <span className="text-xl select-none transition-transform duration-300 group-hover:scale-110">
+                        {story.avatarEmoji}
+                      </span>
+                    </>
+                  )}
                 </div>
 
                 {/* Sparkling Mini Badges */}
@@ -659,8 +739,17 @@ export default function StudentStories({
                 <div className="flex items-center justify-between">
                   {/* Left Side: Avatar, Name & University */}
                   <div className="flex items-center gap-2.5">
-                    <div className="w-9 h-9 bg-slate-900 rounded-full border border-yellow-400 flex items-center justify-center text-lg shadow-sm">
-                      {currentStory.avatarEmoji}
+                    <div className="w-9 h-9 bg-slate-900 rounded-full border border-yellow-400 flex items-center justify-center text-lg shadow-sm overflow-hidden">
+                      {currentStory.avatarUrl ? (
+                        <img
+                          src={currentStory.avatarUrl}
+                          alt={language === 'ar' ? currentStory.nameAR : currentStory.nameEN}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover"
+                        />
+                      ) : (
+                        currentStory.avatarEmoji
+                      )}
                     </div>
                     <div className="flex flex-col">
                       <span className="text-xs font-black text-white flex items-center gap-1">
@@ -693,10 +782,21 @@ export default function StudentStories({
               </div>
 
               {/* Large Central Content Slide Area */}
-              <div className={`flex-1 flex flex-col items-center justify-center p-6 bg-gradient-to-br ${currentSlide.bgColor} relative`}>
+              <div className={`flex-1 flex flex-col items-center justify-center p-6 bg-gradient-to-br ${currentSlide.bgColor} relative overflow-hidden`}>
+                {/* Visual Backdrop Illustration if provided */}
+                {currentSlide.bgImage && (
+                  <div className="absolute inset-0 z-0 pointer-events-none">
+                    <img 
+                      src={currentSlide.bgImage} 
+                      alt="Story Scene" 
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover opacity-30 mix-blend-overlay"
+                    />
+                  </div>
+                )}
                 
                 {/* Decorative background grid pattern */}
-                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none" />
+                <div className="absolute inset-0 bg-[linear-gradient(rgba(255,255,255,0.04)_1px,transparent_1px),linear-gradient(90deg,rgba(255,255,255,0.04)_1px,transparent_1px)] bg-[size:24px_24px] pointer-events-none z-1" />
 
                 {/* Click and tap zones to go backwards or forwards directly */}
                 <div 
@@ -859,6 +959,49 @@ export default function StudentStories({
                     placeholder="Enter name..."
                     className="w-full text-xs font-bold text-white bg-slate-800/80 border border-slate-750 rounded-xl px-3 py-2.5 focus:outline-none focus:border-violet-500 transition-colors"
                   />
+                </div>
+
+                {/* Select Middle Eastern Portrait Avatar */}
+                <div>
+                  <label className="block text-[10px] uppercase font-black text-[#FFD21F] mb-1.5 flex items-center gap-1 leading-none">
+                    <span>✨</span>
+                    <span>
+                      {language === 'ar' ? 'اختر صورتك الرمزية (وجوه عراقية وكردية واقعية) 📸' : language === 'ku' ? 'وێنەی خاوەن چیرۆکەکەت دیاریبکە (شێوازی کوردی و عێراقی) 📸' : 'SELECT MIDDLE EASTERN PROFILE IMAGE 📸'}
+                    </span>
+                  </label>
+                  <p className="text-[9px] text-slate-300 mb-2 leading-relaxed">
+                    {language === 'ar' ? 'اختر واحدة من صورنا الشخصية الواقعية لطلبة عراقيين وكرد لتضفي طابعاً فريداً على قصتك!' : language === 'ku' ? 'یەکێک لە وێنە ڕاستەقینە دیزاینکراوەکانی خوێندکارانمان هەڵبژێرە بۆ چیرۆکەکەت.' : 'Pick one of our high-quality realistic Middle Eastern student portraits to personalize your stories.'}
+                  </p>
+                  <div className="grid grid-cols-4 gap-2 mb-2 p-1.5 bg-[#090D1A]/80 rounded-xl border border-[#161B30] max-h-36 overflow-y-auto">
+                    {middleEasternAvatars.map(av => (
+                      <button
+                        key={av.id}
+                        type="button"
+                        onClick={() => setSelectedAvatar(av)}
+                        className={`relative aspect-square rounded-xl overflow-hidden border-2 transition-all p-0.5 cursor-pointer ${
+                          selectedAvatar.id === av.id
+                            ? 'border-yellow-400 scale-95 shadow-[0px_0px_8px_rgba(255,210,31,0.6)]'
+                            : 'border-[#1F2E4D] hover:border-violet-500 opacity-80 hover:opacity-100'
+                        }`}
+                      >
+                        <img 
+                          src={av.url} 
+                          alt={av.labelEN}
+                          referrerPolicy="no-referrer"
+                          className="w-full h-full object-cover rounded-lg"
+                        />
+                        <span className="absolute bottom-1 right-1 bg-black/75 text-[10px] w-4 h-4 rounded-full flex items-center justify-center">
+                          {av.emoji}
+                        </span>
+                      </button>
+                    ))}
+                  </div>
+                  <div className="text-[9px] text-slate-300 font-bold bg-[#141C2E] px-2.5 py-1.5 rounded-lg inline-block border border-slate-750">
+                    {language === 'ar' ? 'الصورة الرمزية المحددة: ' : language === 'ku' ? 'وێنەی هەڵبژێردراو: ' : 'Selected Avatar: '}
+                    <span className="text-yellow-405 font-black">
+                      {language === 'ar' ? selectedAvatar.labelAR : language === 'ku' ? selectedAvatar.labelKU : selectedAvatar.labelEN}
+                    </span>
+                  </div>
                 </div>
 
                 {/* Grid Template Picker */}
