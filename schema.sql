@@ -1,48 +1,87 @@
--- Cloudflare D1 Table Schema for Iraq Student Opportunities Automation
--- This file defines the tables used for storing sources, scraped opportunities, and scraping activity logs in D1.
+-- Jamiaati / StudentHUB-plus opportunity automation schema for Cloudflare D1.
+-- Safe to re-run: all tables use IF NOT EXISTS and seed rows use INSERT OR IGNORE.
 
--- 1. Sources Website Table
-CREATE TABLE IF NOT EXISTS sources (
+CREATE TABLE IF NOT EXISTS opportunity_sources (
   id TEXT PRIMARY KEY,
   name TEXT NOT NULL,
   url TEXT NOT NULL UNIQUE,
-  type TEXT NOT NULL, -- 'jobs' | 'scholarships' | 'trainings' | 'events' | 'competitions'
-  enabled INTEGER DEFAULT 1, -- 0 = disabled, 1 = enabled
+  type TEXT NOT NULL,
+  university TEXT,
+  governorate TEXT,
+  city TEXT,
+  active INTEGER DEFAULT 1,
+  enabled INTEGER DEFAULT 1,
   last_checked TEXT,
-  error_status TEXT
-);
-
--- 2. Opportunities Schema
-CREATE TABLE IF NOT EXISTS opportunities (
-  id TEXT PRIMARY KEY,
-  titleEN TEXT NOT NULL,
-  titleAR TEXT NOT NULL,
-  titleKU TEXT NOT NULL,
-  contentEN TEXT NOT NULL,
-  contentAR TEXT NOT NULL,
-  contentKU TEXT NOT NULL,
-  organization TEXT NOT NULL,
-  category TEXT NOT NULL, -- 'job' | 'internship' | 'scholarship' | 'training' | 'event' | 'volunteering' | 'fellowship' | 'competition' | 'announcement'
-  country TEXT NOT NULL DEFAULT 'Iraq',
-  governorateId TEXT DEFAULT 'all', -- 'baghdad', 'sulaymaniyah', 'nineveh', 'all', etc.
-  deadline TEXT, -- ISO string or legible date
-  application_link TEXT NOT NULL,
-  original_source_url TEXT NOT NULL,
-  published_date TEXT,
-  imageUrl TEXT,
-  status TEXT DEFAULT 'pending', -- 'pending' | 'approved' | 'rejected' | 'expired'
+  error_status TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
-  workplaceType TEXT DEFAULT 'On-site', -- 'On-site' | 'Remote' | 'Hybrid'
-  whoCanApply TEXT,
-  salary TEXT,
-  location TEXT,
-  savedCount INTEGER DEFAULT 0,
-  universityAppliedCount INTEGER DEFAULT 0,
-  companyVerified INTEGER DEFAULT 0 -- 0 = false, 1 = true
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
 );
 
--- 3. Scraper Logs Schema
-CREATE TABLE IF NOT EXISTS scraper_logs (
+CREATE TABLE IF NOT EXISTS opportunity_candidates (
+  id TEXT PRIMARY KEY,
+  title TEXT NOT NULL,
+  titleEN TEXT,
+  titleAR TEXT,
+  titleKU TEXT,
+  category TEXT NOT NULL CHECK (category IN (
+    'job',
+    'scholarship',
+    'event',
+    'news',
+    'announcement',
+    'internship',
+    'training',
+    'fellowship',
+    'competition',
+    'registration',
+    'exam',
+    'deadline'
+  )),
+  university TEXT,
+  organization TEXT,
+  governorate TEXT,
+  governorateId TEXT DEFAULT 'all',
+  city TEXT,
+  country TEXT DEFAULT 'Iraq',
+  source_website TEXT,
+  source_url TEXT NOT NULL,
+  original_source_url TEXT,
+  application_link TEXT,
+  summary TEXT,
+  contentEN TEXT,
+  contentAR TEXT,
+  contentKU TEXT,
+  deadline TEXT,
+  published_date TEXT,
+  language TEXT,
+  status TEXT DEFAULT 'pending_review' CHECK (status IN (
+    'pending_review',
+    'pending',
+    'approved',
+    'rejected',
+    'duplicate',
+    'expired'
+  )),
+  raw_extracted_text TEXT,
+  confidence_score REAL DEFAULT 0,
+  duplicate_key TEXT,
+  rejection_reason TEXT,
+  duplicate_seen_at TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS opportunity_raw_items (
+  id TEXT PRIMARY KEY,
+  source_id TEXT,
+  source_name TEXT,
+  source_url TEXT,
+  raw_text TEXT,
+  extracted_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  error TEXT
+);
+
+CREATE TABLE IF NOT EXISTS opportunity_run_logs (
   id TEXT PRIMARY KEY,
   timestamp TEXT NOT NULL,
   source_id TEXT,
@@ -53,21 +92,57 @@ CREATE TABLE IF NOT EXISTS scraper_logs (
   errors TEXT
 );
 
--- Insert Initial Default Sources for Iraqi Students
-INSERT OR IGNORE INTO sources (id, name, url, type, enabled, last_checked, error_status) VALUES
-('asiacell-careers', 'Asiacell Careers Office', 'https://www.asiacell.com/en/about-us/careers', 'jobs', 1, NULL, NULL),
-('un-jobs-iraq', 'United Nations Iraq Portal', 'https://iraq.un.org/en/jobs', 'jobs', 1, NULL, NULL),
-('daad-iraq', 'DAAD German Scholarships Iraq', 'https://www.daad-iraq.org/en/', 'scholarships', 1, NULL, NULL),
-('mhe-kurdish', 'MHESR Kurdistan Scholarships', 'https://mhe.gov.krd/', 'scholarships', 1, NULL, NULL),
-('five-one-labs', 'Five One Labs Incubator & Training', 'https://fiveonelabs.org/', 'trainings', 1, NULL, NULL),
-('mohesr-iraq-scholarships', 'Iraqi MoHESR Scholarships', 'https://mohesr.gov.iq/ar/category/scholarships/', 'scholarships', 1, NULL, NULL),
-('iraq-internships-hub', 'Iraq Internships & Cooperational Training Hub', 'https://www.iraqinternships.com/listings', 'internships', 1, NULL, NULL),
-('reiraq-tech-academy', 'ReIraq Tech Training Academy', 'https://www.reiraqtech.org/trainings', 'trainings', 1, NULL, NULL),
-('iraq-tech-calendar', 'Iraq Tech & Startup Ecosystem Calendar', 'https://iraqstartupcalendar.org/events', 'events', 1, NULL, NULL),
-('ircs-volunteering', 'Iraqi Red Crescent Society Volunteering', 'https://ircs.org.iq/volunteering', 'volunteering', 1, NULL, NULL),
-('ruwwad-iraq-fellowships', 'Ruwwad Al-Iraq Fellowship Program', 'https://ruwwad-iraq.net/fellowship', 'fellowships', 1, NULL, NULL),
-('iraqicpc-competition', 'Iraq National Collegiate Programming Contest', 'https://iraqicpc.org/competition', 'competitions', 1, NULL, NULL),
-('uobaghdad-student-bulletin', 'University of Baghdad Student Affairs Bulletin', 'https://uobaghdad.edu.iq/news/student-announcements', 'announcements', 1, NULL, NULL),
-('dirasat-gate-registration', 'Central Admissions Registration Portal Iraq', 'https://www.dirasat-gate.org/registration', 'registration', 1, NULL, NULL),
-('moedu-exam-timetables', 'Ministry of Education Exam Timetables', 'https://moedu.gov.iq/exams', 'exams', 1, NULL, NULL),
-('iraqiyouth-hub-listings', 'Iraqi Youth Hub Mixed Announcements', 'https://iraqiyouthhub.org/listings', 'mixed', 1, NULL, NULL);
+CREATE TABLE IF NOT EXISTS admin_users (
+  email TEXT PRIMARY KEY,
+  role TEXT NOT NULL DEFAULT 'staff',
+  permissions TEXT,
+  is_main_admin INTEGER DEFAULT 0,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE TABLE IF NOT EXISTS app_config (
+  key TEXT PRIMARY KEY,
+  value_json TEXT NOT NULL,
+  updated_by TEXT,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP
+);
+
+CREATE INDEX IF NOT EXISTS idx_opportunity_candidates_status ON opportunity_candidates(status);
+CREATE INDEX IF NOT EXISTS idx_opportunity_candidates_category ON opportunity_candidates(category);
+CREATE INDEX IF NOT EXISTS idx_opportunity_candidates_governorate ON opportunity_candidates(governorateId);
+CREATE INDEX IF NOT EXISTS idx_opportunity_candidates_city ON opportunity_candidates(city);
+CREATE INDEX IF NOT EXISTS idx_opportunity_candidates_university ON opportunity_candidates(university);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_opportunity_candidates_duplicate_key ON opportunity_candidates(duplicate_key);
+
+-- Backward-compatible table names used by earlier local builds.
+CREATE TABLE IF NOT EXISTS sources AS SELECT * FROM opportunity_sources WHERE 0;
+CREATE TABLE IF NOT EXISTS opportunities AS SELECT * FROM opportunity_candidates WHERE 0;
+CREATE TABLE IF NOT EXISTS scraper_logs AS SELECT * FROM opportunity_run_logs WHERE 0;
+
+INSERT OR IGNORE INTO opportunity_sources (id, name, url, type, university, governorate, city, active, enabled) VALUES
+('uobaghdad-news', 'University of Baghdad News', 'https://uobaghdad.edu.iq/', 'news', 'University of Baghdad', 'Baghdad', 'Baghdad', 1, 1),
+('uotechnology-announcements', 'University of Technology Announcements', 'https://uotechnology.edu.iq/', 'announcement', 'University of Technology', 'Baghdad', 'Baghdad', 1, 1),
+('mustansiriyah-news', 'Mustansiriyah University News', 'https://uomustansiriyah.edu.iq/', 'news', 'Mustansiriyah University', 'Baghdad', 'Baghdad', 1, 1),
+('basrah-news', 'University of Basrah News', 'https://uobasrah.edu.iq/', 'news', 'University of Basrah', 'Basra', 'Basra', 1, 1),
+('mosul-news', 'University of Mosul News', 'https://uomosul.edu.iq/', 'news', 'University of Mosul', 'Nineveh', 'Mosul', 1, 1),
+('kufa-news', 'University of Kufa News', 'https://uokufa.edu.iq/', 'news', 'University of Kufa', 'Najaf', 'Najaf', 1, 1),
+('karbala-news', 'University of Karbala News', 'https://uokerbala.edu.iq/', 'news', 'University of Karbala', 'Karbala', 'Karbala', 1, 1),
+('duhok-news', 'University of Duhok News', 'https://uod.ac/', 'news', 'University of Duhok', 'Duhok', 'Duhok', 1, 1),
+('sulaimani-news', 'University of Sulaimani News', 'https://univsul.edu.iq/', 'news', 'University of Sulaimani', 'Sulaymaniyah', 'Sulaymaniyah', 1, 1),
+('koya-news', 'Koya University News', 'https://koyauniversity.org/', 'news', 'Koya University', 'Erbil', 'Koya', 1, 1),
+('mohesr-iraq', 'Iraqi Ministry of Higher Education', 'https://mohesr.gov.iq/', 'announcement', '', '', '', 1, 1),
+('mhe-krg', 'KRG Ministry of Higher Education', 'https://mhe.gov.krd/', 'scholarship', '', 'Erbil', 'Erbil', 1, 1),
+('daad-iraq', 'DAAD Iraq', 'https://www.daad-iraq.org/en/', 'scholarship', '', '', '', 1, 1),
+('un-jobs-iraq', 'United Nations Iraq Jobs', 'https://iraq.un.org/en/jobs', 'job', '', '', '', 1, 1),
+('asiacell-careers', 'Asiacell Careers', 'https://www.asiacell.com/en/about-us/careers', 'job', '', 'Sulaymaniyah', 'Sulaymaniyah', 1, 1),
+('five-one-labs', 'Five One Labs Programs', 'https://fiveonelabs.org/', 'training', '', 'Sulaymaniyah', 'Sulaymaniyah', 1, 1);
+
+INSERT OR IGNORE INTO admin_users (email, role, permissions, is_main_admin) VALUES
+('safaribosafar@gmail.com', 'staff', '["hero:write","posts:manage","uploads:manage"]', 1);
+
+INSERT OR IGNORE INTO app_config (key, value_json, updated_by) VALUES
+('hero', '{"imageUrl":"https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600","titleEN":"","titleAR":"","titleKU":"","subtitleEN":"","subtitleAR":"","subtitleKU":""}', 'safaribosafar@gmail.com');
+
+INSERT OR IGNORE INTO sources (id, name, url, type, enabled, last_checked, error_status)
+SELECT id, name, url, type, enabled, last_checked, error_status FROM opportunity_sources;

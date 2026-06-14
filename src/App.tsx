@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Language, FeedItem, UserProfile, Comment } from './types';
+import { Language, FeedItem, UserProfile, Comment, HeroConfig } from './types';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from './data/mockData';
 import { getTranslation } from './data/translations';
 import { brandingThemes } from './data/themes';
@@ -15,6 +15,17 @@ import AdminAutomation from './components/AdminAutomation';
 import { BACKEND_URL } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
+
+const MAIN_ADMIN_EMAIL = 'safaribosafar@gmail.com';
+const DEFAULT_HERO_CONFIG: HeroConfig = {
+  imageUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600',
+  titleEN: '',
+  titleAR: '',
+  titleKU: '',
+  subtitleEN: '',
+  subtitleAR: '',
+  subtitleKU: ''
+};
 
 export default function App() {
   // Locale States
@@ -95,11 +106,29 @@ export default function App() {
     const saved = localStorage.getItem('jamiaati_profile_v2');
     return saved ? JSON.parse(saved) : defaultUserProfile;
   });
+  const isMainAdmin = (userProfile.email || '').toLowerCase() === MAIN_ADMIN_EMAIL && userProfile.role === 'staff';
+  const [heroConfig, setHeroConfig] = useState<HeroConfig>(() => {
+    const saved = localStorage.getItem('jamiaati_hero_config_v1');
+    return saved ? { ...DEFAULT_HERO_CONFIG, ...JSON.parse(saved) } : DEFAULT_HERO_CONFIG;
+  });
 
   // Sync to local states
   useEffect(() => {
     localStorage.setItem('jamiaati_feed_v2', JSON.stringify(feedItems));
   }, [feedItems]);
+
+  useEffect(() => {
+    localStorage.setItem('jamiaati_hero_config_v1', JSON.stringify(heroConfig));
+  }, [heroConfig]);
+
+  useEffect(() => {
+    fetch(`${BACKEND_URL}/api/config/hero`)
+      .then(res => res.ok ? res.json() : null)
+      .then(data => {
+        if (data) setHeroConfig(prev => ({ ...prev, ...data }));
+      })
+      .catch(err => console.warn('Hero config load failed:', err));
+  }, []);
 
   // Institutions Dynamic Loading States
   const [institutions, setInstitutions] = useState<any[]>([]);
@@ -593,7 +622,7 @@ export default function App() {
     return matchesGov && matchesUni;
   };
 
-  const filteredFeedItems = feedItems.filter(matchesGovAndUni);
+  const filteredFeedItems = feedItems.filter(item => !(item as any).hidden && matchesGovAndUni(item));
 
   // Active filter helper callbacks
   const handleShowAllLife = () => {
@@ -637,6 +666,7 @@ export default function App() {
             institutionsLoading={institutionsLoading}
             institutionsError={institutionsError}
             onRetryInstitutions={handleRetryInstitutions}
+            heroConfig={heroConfig}
           />
         );
       case 'life':
@@ -717,7 +747,7 @@ export default function App() {
               );
             }}
             onTriggerAuth={() => setIsAuthModalOpen(true)}
-            onNavigateAdmin={() => setActiveTab('admin')}
+            onNavigateAdmin={isMainAdmin ? () => setActiveTab('admin') : undefined}
           />
         );
       case 'admin':
@@ -727,6 +757,11 @@ export default function App() {
             onBack={() => setActiveTab('profile')}
             showToast={showToast}
             userRole={userProfile.role}
+            userEmail={userProfile.email || ''}
+            heroConfig={heroConfig}
+            onHeroConfigChange={setHeroConfig}
+            feedItems={feedItems}
+            onFeedItemsChange={setFeedItems}
           />
         );
       default:
@@ -843,12 +878,17 @@ export default function App() {
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
           language={language}
-          onAuthSuccess={(newUsername) => {
+          onAuthSuccess={(newUsername, email) => {
+            const normalizedEmail = email.trim().toLowerCase();
+            const isAdminEmail = normalizedEmail === MAIN_ADMIN_EMAIL;
             setIsLoggedIn(true);
             localStorage.setItem('jamiaati_logged_in', 'true');
             setUserProfile(prev => ({
               ...prev,
-              name: newUsername || 'Zara Al-Iraqi'
+              name: newUsername || (isAdminEmail ? 'Safari Bosafar' : 'Zara Al-Iraqi'),
+              email: normalizedEmail,
+              role: isAdminEmail ? 'staff' : prev.role,
+              avatar: isAdminEmail ? 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200' : prev.avatar
             }));
             showToast(
               language === 'ar' ? `مرحباً بك مجدداً يا ${newUsername || 'زارا'}! 👋 تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'زارا'}! 👋 دابەزاندن سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Zara'}! 👋 Signed in`, 

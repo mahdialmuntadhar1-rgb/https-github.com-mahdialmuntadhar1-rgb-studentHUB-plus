@@ -262,6 +262,18 @@ export const opportunityAutomation = {
     }
   },
 
+  async deleteCandidate(id: string, lang: Language = 'ar') {
+    try {
+      const res = await fetch(`${API_BASE}/opportunity-automation/candidates/${id}`, {
+        method: 'DELETE',
+        headers: getHeaders(),
+      });
+      return await handleResponse(res, lang);
+    } catch (err: any) {
+      throw err;
+    }
+  },
+
   async getLogs(params: { page?: number; limit?: number; status?: string; source?: string } = {}, lang: Language = 'ar') {
     try {
       const query = new URLSearchParams();

@@ -3,7 +3,7 @@
 async function init() {
   const client = await pool.connect();
   try {
-    await client.query(\
+    await client.query(`
       CREATE TABLE IF NOT EXISTS users (
         id SERIAL PRIMARY KEY,
         email TEXT UNIQUE NOT NULL,
@@ -12,7 +12,7 @@ async function init() {
         role TEXT DEFAULT 'user',
         created_at TIMESTAMP DEFAULT NOW()
       );
-    \);
+    `);
     console.log('✅ Users table created');
   } catch (err) {
     console.error('Migration error:', err);

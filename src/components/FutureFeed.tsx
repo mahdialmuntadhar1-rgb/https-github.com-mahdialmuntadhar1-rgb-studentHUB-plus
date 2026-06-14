@@ -78,8 +78,14 @@ export default function FutureFeed({
       displayCategory = 'Competition';
     } else if (categoryRaw.includes('exam')) {
       displayCategory = 'Exam';
+    } else if (categoryRaw.includes('news')) {
+      displayCategory = 'News';
     } else if (categoryRaw.includes('announc')) {
       displayCategory = 'Announcement';
+    } else if (categoryRaw.includes('registr')) {
+      displayCategory = 'Registration';
+    } else if (categoryRaw.includes('deadline')) {
+      displayCategory = 'Deadline';
     } else if (categoryRaw.includes('fellow')) {
       displayCategory = 'Fellowship';
     } else if (categoryRaw.includes('graduation') || categoryRaw.includes('project')) {
@@ -94,7 +100,8 @@ export default function FutureFeed({
     const contentAR = item.contentAR || item.description_ar || item.description || item.summary || contentEN;
     const contentKU = item.contentKU || item.description_ku || item.description || item.summary || contentEN;
 
-    const orgName = item.organization || item.institution_name || item.company || 'Recruiter/Provider';
+    const orgName = item.organization || item.university || item.institution_name || item.company || 'Recruiter/Provider';
+    const universityName = item.university || item.institution_name || '';
     const gov = item.governorateId || item.governorate || 'all';
     const country = item.country || 'Iraq';
     const city = item.city || '';
@@ -130,7 +137,9 @@ export default function FutureFeed({
       commentsList: [],
       governorateId: gov,
       country: country,
-      universityId: 'all',
+      universityId: item.university_id || item.universityId || (universityName ? universityName : 'all'),
+      universityName,
+      city,
       tags: [categoryRaw, displayCategory],
       company: orgName,
       companyLogo: imgUrl || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
@@ -243,6 +252,8 @@ export default function FutureFeed({
   const [filterGov, setFilterGov] = useState<string>('all');
   const [filterCountry, setFilterCountry] = useState<string>('all');
   const [filterDeadline, setFilterDeadline] = useState<string>('all');
+  const [filterCity, setFilterCity] = useState<string>('all');
+  const [filterUniversity, setFilterUniversity] = useState<string>('all');
   
   // Pagination State
   const [visibleCount, setVisibleCount] = useState<number>(12);
@@ -258,8 +269,11 @@ export default function FutureFeed({
     { id: 'volunteering', labelEN: 'Volunteering 🤝', labelAR: 'عمل تطوعي', labelKU: 'خۆبەخشی' },
     { id: 'fellowship', labelEN: 'Fellowships 🎖️', labelAR: 'زمالات دراسية', labelKU: 'زەمالەکان' },
     { id: 'competition', labelEN: 'Competitions 🏆', labelAR: 'مسابقات وبطولات', labelKU: 'پێشبڕکێکان' },
+    { id: 'news', labelEN: 'University News 📰', labelAR: 'أخبار الجامعات', labelKU: 'هەواڵی زانکۆکان' },
     { id: 'announcement', labelEN: 'Announcements 📢', labelAR: 'إعلانات جامعية', labelKU: 'ڕاگەیەندراوەکان' },
+    { id: 'registration', labelEN: 'Registration 🧾', labelAR: 'إشعارات التسجيل', labelKU: 'ئاگاداری تۆمارکردن' },
     { id: 'exam', labelEN: 'Exams 📝', labelAR: 'امتحانات واختبارات', labelKU: 'تاقیکردنەوەکان' },
+    { id: 'deadline', labelEN: 'Deadlines 📌', labelAR: 'المواعيد النهائية', labelKU: 'کۆتا مۆڵەتەکان' },
     { id: 'deadline_soon', labelEN: 'Closing Soon ⏳', labelAR: 'قريب الإغلاق', labelKU: 'نزیک لە مۆڵەت' },
   ];
 
@@ -301,11 +315,14 @@ export default function FutureFeed({
       'job', 'internship', 'scholarship', 'training', 
       'part_time_job', 'full_time_job', 'volunteering', 
       'competition', 'graduation_project_support', 'fellowship',
-      'event', 'announcement', 'exam'
+      'event', 'announcement', 'news', 'exam', 'registration', 'deadline'
     ].includes(item.type) || !!item.opportunityCategory;
   };
 
-  // Filter logic across Search + Governorate + Country + Deadline
+  const availableCities = Array.from(new Set(opportunities.map(item => item.city).filter(Boolean) as string[])).sort();
+  const availableUniversities = Array.from(new Set(opportunities.map(item => item.universityName || item.universityId).filter(value => value && value !== 'all') as string[])).sort();
+
+  // Filter logic across Search + Governorate + City + University + Country + Deadline
   const filteredBaseOpportunities = opportunities.filter(item => {
     const isOpp = getIsOpportunity(item) || item.type === 'study_group';
     if (!isOpp) return false;
@@ -322,6 +339,21 @@ export default function FutureFeed({
     // Governorate filter
     if (filterGov !== 'all') {
       if (item.governorateId !== filterGov && item.governorateId !== 'all') {
+        return false;
+      }
+    }
+
+    // City filter
+    if (filterCity !== 'all') {
+      if ((item.city || '').toLowerCase() !== filterCity.toLowerCase()) {
+        return false;
+      }
+    }
+
+    // University filter
+    if (filterUniversity !== 'all') {
+      const uni = (item.universityName || item.universityId || '').toLowerCase();
+      if (uni !== filterUniversity.toLowerCase()) {
         return false;
       }
     }
@@ -382,8 +414,17 @@ export default function FutureFeed({
       if (activeChip === 'announcement') {
         return item.type === 'announcement' || cat.includes('announc');
       }
+      if (activeChip === 'news') {
+        return item.type === 'news' || cat.includes('news');
+      }
+      if (activeChip === 'registration') {
+        return item.type === 'registration' || cat.includes('registr');
+      }
       if (activeChip === 'exam') {
         return item.type === 'exam' || cat.includes('exam') || cat.includes('test');
+      }
+      if (activeChip === 'deadline') {
+        return item.type === 'deadline' || cat.includes('deadline');
       }
       if (activeChip === 'deadline_soon') {
         if (!item.deadline) return false;
@@ -403,7 +444,7 @@ export default function FutureFeed({
   const finalFilteredOpportunityItems = resolveChipFilteredItems();
 
   // Extracting data specifically for the boards (Featured when search is simple and no custom drop filters active)
-  const isCustomFiltersActive = filterGov !== 'all' || filterCountry !== 'all' || filterDeadline !== 'all' || searchQuery;
+  const isCustomFiltersActive = filterGov !== 'all' || filterCountry !== 'all' || filterDeadline !== 'all' || filterCity !== 'all' || filterUniversity !== 'all' || searchQuery;
 
   // Board layout queries (only fallback to default if all dropdowns/search are 'all')
   const featuredUniItems = filteredBaseOpportunities.filter(item => 
@@ -498,14 +539,14 @@ export default function FutureFeed({
         )}
       </div>
 
-      {/* Advanced Filters deck (Governorate, Country, Deadline) */}
+      {/* Advanced Filters deck (Governorate, City, University, Country, Deadline) */}
       <div className="bg-white border-2 border-[#161A33] rounded-2xl p-3.5 mb-4 shadow-[2px_2px_0px_0px_#161A33]" id="advanced-filters-panel">
         <div className="flex items-center gap-1.5 text-[10px] font-black text-[#161A33] uppercase tracking-wider mb-2.5">
           <Filter className="w-3.5 h-3.5 text-[#6B25C9]" />
           <span>{language === 'ar' ? 'تصفية ذكية للمستقبل' : language === 'ku' ? 'پاڵاوتنی پێشکەوتوو' : 'Advanced Filters'}</span>
         </div>
         
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2">
           {/* Governorate select */}
           <div className="flex flex-col gap-1">
             <span className="text-[8px] font-black uppercase text-slate-400">
@@ -520,6 +561,45 @@ export default function FutureFeed({
               {IraqiGovernorates.map(g => (
                 <option key={g.id} value={g.id}>
                   {language === 'ar' ? g.nameAR : language === 'ku' ? g.nameKU : g.nameEN}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          {/* City select */}
+          <div className="flex flex-col gap-1">
+            <span className="text-[8px] font-black uppercase text-slate-400">
+              {language === 'ar' ? 'المدينة' : language === 'ku' ? 'شار' : 'City'}
+            </span>
+            <select
+              value={filterCity}
+              onChange={e => { setFilterCity(e.target.value); setVisibleCount(12); }}
+              className="text-[10px] font-bold text-[#161A33] bg-[#F3F7FF] border border-[#161A33]/20 rounded-lg p-1.5 focus:outline-none focus:border-[#6B25C9]"
+            >
+              <option value="all">{language === 'ar' ? 'كل المدن' : language === 'ku' ? 'هەموو شارەکان' : 'All cities'}</option>
+              {availableCities.map(city => (
+                <option key={city} value={city}>{city}</option>
+              ))}
+            </select>
+          </div>
+
+          {/* University select */}
+          <div className="flex flex-col gap-1">
+            <span className="text-[8px] font-black uppercase text-slate-400">
+              {language === 'ar' ? 'الجامعة' : language === 'ku' ? 'زانکۆ' : 'University'}
+            </span>
+            <select
+              value={filterUniversity}
+              onChange={e => { setFilterUniversity(e.target.value); setVisibleCount(12); }}
+              className="text-[10px] font-bold text-[#161A33] bg-[#F3F7FF] border border-[#161A33]/20 rounded-lg p-1.5 focus:outline-none focus:border-[#6B25C9]"
+            >
+              <option value="all">{language === 'ar' ? 'كل الجامعات' : language === 'ku' ? 'هەموو زانکۆکان' : 'All universities'}</option>
+              {availableUniversities.map(uni => (
+                <option key={uni} value={uni}>{uni}</option>
+              ))}
+              {availableUniversities.length === 0 && IraqiUniversities.map(uni => (
+                <option key={uni.id} value={language === 'ar' ? uni.nameAR : language === 'ku' ? uni.nameKU : uni.nameEN}>
+                  {language === 'ar' ? uni.nameAR : language === 'ku' ? uni.nameKU : uni.nameEN}
                 </option>
               ))}
             </select>

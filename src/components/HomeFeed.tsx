@@ -1,5 +1,5 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { FeedItem, Language, University } from '../types';
+import { FeedItem, HeroConfig, Language, University } from '../types';
 import { getTranslation } from '../data/translations';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from '../data/mockData';
 import { Sparkles, MessageSquare, Briefcase, PlusCircle, CheckCircle, Info, Image, EyeOff, MapPin, School, Palette, X, Calendar, Megaphone, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
@@ -30,6 +30,7 @@ interface HomeFeedProps {
   institutionsLoading?: boolean;
   institutionsError?: string | null;
   onRetryInstitutions?: () => void;
+  heroConfig?: HeroConfig;
 }
 
 // Global reuseable beautiful pulse Skeleton Loader
@@ -89,7 +90,8 @@ export default function HomeFeed({
   institutions = [],
   institutionsLoading = false,
   institutionsError = null,
-  onRetryInstitutions
+  onRetryInstitutions,
+  heroConfig
 }: HomeFeedProps) {
   // Main tab selection state (Campus Life or Opportunities)
   const [activeSubTab, setActiveSubTab] = useState<'campus' | 'opportunities'>('campus');
@@ -138,6 +140,10 @@ export default function HomeFeed({
     setActiveSubTab(tab);
     setActiveStoryFilter(null);
   };
+
+  const heroImageUrl = heroConfig?.imageUrl || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600';
+  const customHeroTitle = language === 'ar' ? heroConfig?.titleAR : language === 'ku' ? heroConfig?.titleKU : heroConfig?.titleEN;
+  const customHeroSubtitle = language === 'ar' ? heroConfig?.subtitleAR : language === 'ku' ? heroConfig?.subtitleKU : heroConfig?.subtitleEN;
 
   // New post publisher collapsible state
   const [showPublisher, setShowPublisher] = useState(false);
@@ -296,7 +302,7 @@ export default function HomeFeed({
         id="homepage-academic-banner-hero"
       >
         <img 
-          src="https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600" 
+          src={heroImageUrl} 
           alt="Iraqi Academic Campus" 
           className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
           referrerPolicy="no-referrer"
@@ -309,7 +315,7 @@ export default function HomeFeed({
           </div>
           
           <h2 className="text-sm md:text-base font-black tracking-tight leading-tight uppercase text-white drop-shadow-md">
-            {language === 'ar' ? (
+            {customHeroTitle ? customHeroTitle : language === 'ar' ? (
               <>تميّز وابنِ <span className="text-[#FFD21F]">مستقبلك الأكاديمي!</span> 🚀</>
             ) : language === 'ku' ? (
               <>داهاتوویەکی <span className="text-[#FFD21F]">پڕشنگدار بنيات بنێ!</span> 🚀</>
@@ -319,7 +325,7 @@ export default function HomeFeed({
           </h2>
           
           <p className="text-[10px] text-slate-200 mt-1 font-medium leading-tight max-w-[300px] drop-shadow-sm">
-            {language === 'ar' ? 'البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب' : language === 'ku' ? 'یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق' : 'The ultimate collegiate hub for premium opportunities & academic resources'}
+            {customHeroSubtitle || (language === 'ar' ? 'البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب' : language === 'ku' ? 'یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق' : 'The ultimate collegiate hub for premium opportunities & academic resources')}
           </p>
 
           <div className="mt-2.5 flex items-center justify-between">

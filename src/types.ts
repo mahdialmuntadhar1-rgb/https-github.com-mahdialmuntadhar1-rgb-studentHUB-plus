@@ -1,5 +1,16 @@
 export type Language = 'en' | 'ar' | 'ku';
 
+export interface HeroConfig {
+  imageUrl: string;
+  titleEN?: string;
+  titleAR?: string;
+  titleKU?: string;
+  subtitleEN?: string;
+  subtitleAR?: string;
+  subtitleKU?: string;
+  updated_at?: string | null;
+}
+
 export interface Governorate {
   id: string;
   nameEN: string;
@@ -53,6 +64,7 @@ export interface FeedItem {
     | 'poll'
     | 'anonymous_question'
     | 'announcement'
+    | 'news'
     | 'job'
     | 'internship'
     | 'scholarship'
@@ -66,7 +78,9 @@ export interface FeedItem {
     | 'competition'
     | 'graduation_project_support'
     | 'fellowship'
-    | 'exam';
+    | 'exam'
+    | 'registration'
+    | 'deadline';
   
   // Localized Content
   titleEN: string;
@@ -95,6 +109,8 @@ export interface FeedItem {
   // Relations
   universityId?: string; // 'all' or specific
   governorateId?: string; // 'all' or specific
+  universityName?: string;
+  city?: string;
   
   // Specific Type Data
   videoUrl?: string; // Placeholder ratio string or actual link
@@ -144,6 +160,7 @@ export interface FeedItem {
 export interface UserProfile {
   id: string;
   name: string;
+  email?: string;
   avatar: string;
   role: 'student' | 'graduate' | 'teacher' | 'staff' | 'institution';
   universityId: string;

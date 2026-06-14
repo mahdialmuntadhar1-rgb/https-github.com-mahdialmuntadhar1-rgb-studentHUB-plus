@@ -66,17 +66,20 @@ async function runMainScraper(env: Env, triggerType: string): Promise<any> {
   let sourcesList: any[] = [];
   try {
     const { results } = await env.DB.prepare(
-      "SELECT id, name, url, type FROM sources WHERE enabled = 1"
+      "SELECT id, name, url, type, university, governorate, city FROM opportunity_sources WHERE enabled = 1 OR active = 1"
     ).all();
     sourcesList = results || [];
   } catch (err) {
-    console.error("Error reading D1 sources, fallback configured:", err);
-    // Worker fallback
-    sourcesList = [
-      { id: "asiacell", name: "Asiacell Careers Office", url: "https://www.asiacell.com/en/about-us/careers", type: "jobs" },
-      { id: "daad", name: "DAAD German Exchange Service", url: "https://www.daad-iraq.org/en/", type: "scholarships" },
-      { id: "fiveonelabs", name: "Five One Labs Incubator", url: "https://fiveonelabs.org/", type: "trainings" }
-    ];
+    console.error("Error reading opportunity_sources, trying legacy sources:", err);
+    try {
+      const { results } = await env.DB.prepare(
+        "SELECT id, name, url, type FROM sources WHERE enabled = 1"
+      ).all();
+      sourcesList = results || [];
+    } catch (legacyErr) {
+      console.error("Error reading legacy sources:", legacyErr);
+      sourcesList = [];
+    }
   }
 
   const resultsStats = {
@@ -203,6 +206,8 @@ function extractOpportunitiesFromHTML(html: string, source: any): any[] {
     const href = match[1];
     const text = match[2].replace(/<[^>]*>/g, "").trim();
 
+    if (isLowValueTitle(text)) continue;
+
     if (text.length > 25 && (href.toLowerCase().includes("job") || href.toLowerCase().includes("career") || href.toLowerCase().includes("scholar") || href.toLowerCase().includes("apply") || href.toLowerCase().includes("intern") || href.toLowerCase().includes("training"))) {
       let resolvedLink = href;
       if (href.startsWith("/")) {
@@ -224,21 +229,29 @@ function extractOpportunitiesFromHTML(html: string, source: any): any[] {
     }
   }
 
-  // If no targets were matched, generate a dynamic high-fidelity simulated scraped element matching realistic Iraq listings
-  if (items.length === 0) {
-    items.push({
-      titleEN: `New Opportunities Intake Announcement at ${source.name}`,
-      contentEN: `Freshly updated academic opening. Highly tailored for student developers, tech enthusiasts and multi-lingual candidates inside Iraq. Consult original listing for terms.`,
-      organization: source.name,
-      original_source_url: source.url,
-      application_link: source.url,
-      published_date: new Date().toISOString().split("T")[0],
-      deadline: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000).toISOString().split("T")[0],
-      imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600"
-    });
-  }
-
   return items;
+}
+
+function isLowValueTitle(text: string): boolean {
+  const normalized = text.replace(/\s+/g, " ").trim().toLowerCase();
+  const blocked = new Set([
+    "home",
+    "news",
+    "events",
+    "announcements",
+    "careers",
+    "contact us",
+    "read more",
+    "المركز الخبري",
+    "الأخبار",
+    "الاخبار",
+    "الإعلانات",
+    "اعلانات",
+    "اقرأ المزيد"
+  ]);
+  if (blocked.has(normalized)) return true;
+  if (normalized.length < 12) return true;
+  return /^(more|view|all|archive|الرئيسية|الكليات|عن الجامعة|الجامعة)$/.test(normalized);
 }
 
 /**
@@ -337,9 +350,14 @@ function classifyOpportunityCategory(text: string, sourceType: string): string {
  */
 async function checkDuplicateInD1(env: Env, originalUrl: string): Promise<boolean> {
   try {
-    const record = await env.DB.prepare(
-      "SELECT id FROM opportunities WHERE original_source_url = ? LIMIT 1"
-    ).bind(originalUrl).first();
+    let record = await env.DB.prepare(
+      "SELECT id FROM opportunity_candidates WHERE original_source_url = ? OR source_url = ? LIMIT 1"
+    ).bind(originalUrl, originalUrl).first();
+    if (!record) {
+      record = await env.DB.prepare(
+        "SELECT id FROM opportunities WHERE original_source_url = ? LIMIT 1"
+      ).bind(originalUrl).first();
+    }
     return !!record;
   } catch {
     return false;
@@ -349,6 +367,42 @@ async function checkDuplicateInD1(env: Env, originalUrl: string): Promise<boolea
 async function insertOpportunityToD1(env: Env, item: any): Promise<void> {
   const newId = `scraped-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
   try {
+    await env.DB.prepare(
+      `INSERT INTO opportunity_candidates (
+        id, titleEN, titleAR, titleKU, contentEN, contentAR, contentKU,
+        title, summary, organization, university, category, country, governorateId, governorate, city,
+        deadline, application_link, original_source_url, source_url, source_website,
+        published_date, status, raw_extracted_text, confidence_score
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`
+    ).bind(
+      newId,
+      item.titleEN,
+      item.titleAR || item.titleEN,
+      item.titleKU || item.titleEN,
+      item.contentEN,
+      item.contentAR || item.contentEN,
+      item.contentKU || item.contentEN,
+      item.titleEN,
+      item.contentEN,
+      item.organization || "Scraped Board",
+      item.university || "",
+      item.category,
+      item.country || "Iraq",
+      item.governorateId || "all",
+      item.governorate || "",
+      item.city || "",
+      item.deadline,
+      item.application_link,
+      item.original_source_url,
+      item.original_source_url,
+      safeHost(item.original_source_url),
+      item.published_date,
+      "pending_review",
+      item.raw_extracted_text || item.contentEN || item.titleEN,
+      item.confidence_score || 0.72
+    ).run();
+  } catch (err) {
+    console.error("D1 write transaction error:", err);
     await env.DB.prepare(
       `INSERT INTO opportunities (
         id, titleEN, titleAR, titleKU, contentEN, contentAR, contentKU,
@@ -373,14 +427,20 @@ async function insertOpportunityToD1(env: Env, item: any): Promise<void> {
       item.original_source_url,
       item.published_date,
       item.imageUrl,
-      "pending",
+      "pending_review",
       item.workplaceType || "On-site",
       item.whoCanApply || "Open to all Iraqi undergraduates and fresh graduates.",
       item.salary || "Depends on qualification recruiter check",
       item.location || "Iraq (Multi-center)"
     ).run();
-  } catch (err) {
-    console.error("D1 write transaction error:", err);
+  }
+}
+
+function safeHost(url: string): string {
+  try {
+    return new URL(url).host;
+  } catch {
+    return "";
   }
 }
 
@@ -397,20 +457,26 @@ function isOpportunityExpired(deadline: string): boolean {
 }
 
 async function cleanExpiredOpportunitiesInD1(env: Env): Promise<void> {
+  const nowStr = new Date().toISOString().split("T")[0];
   try {
-    const nowStr = new Date().toISOString().split("T")[0];
     await env.DB.prepare(
-      "UPDATE opportunities SET status = 'expired' WHERE deadline < ? AND status = 'approved'"
+      "UPDATE opportunity_candidates SET status = 'expired' WHERE deadline < ? AND status = 'approved' AND category NOT IN ('news', 'announcement')"
     ).bind(nowStr).run();
   } catch (err) {
-    console.error("D1 expire transaction process error:", err);
+    try {
+      await env.DB.prepare(
+        "UPDATE opportunities SET status = 'expired' WHERE deadline < ? AND status = 'approved' AND category NOT IN ('news', 'announcement')"
+      ).bind(nowStr).run();
+    } catch (legacyErr) {
+      console.error("D1 expire transaction process error:", legacyErr);
+    }
   }
 }
 
 async function logScrapingActivity(env: Env, log: any): Promise<void> {
   try {
     await env.DB.prepare(
-      `INSERT INTO scraper_logs (
+      `INSERT INTO opportunity_run_logs (
         id, timestamp, source_id, source_name, items_found, items_new, items_duplicate, errors
       ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
     ).bind(
@@ -424,6 +490,23 @@ async function logScrapingActivity(env: Env, log: any): Promise<void> {
       log.errors
     ).run();
   } catch (err) {
-    console.error("D1 logger action error:", err);
+    try {
+      await env.DB.prepare(
+        `INSERT INTO scraper_logs (
+          id, timestamp, source_id, source_name, items_found, items_new, items_duplicate, errors
+        ) VALUES (?, ?, ?, ?, ?, ?, ?, ?)`
+      ).bind(
+        log.id,
+        log.timestamp,
+        log.source_id,
+        log.source_name,
+        log.items_found,
+        log.items_new,
+        log.items_duplicate,
+        log.errors
+      ).run();
+    } catch (legacyErr) {
+      console.error("D1 logger action error:", legacyErr);
+    }
   }
 }

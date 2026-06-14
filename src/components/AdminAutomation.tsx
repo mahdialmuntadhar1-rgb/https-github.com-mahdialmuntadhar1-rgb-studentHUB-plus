@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import { Language, FeedItem } from '../types';
-import { opportunityAutomation } from '../lib/api';
+import { FeedItem, HeroConfig, Language } from '../types';
+import { BACKEND_URL, opportunityAutomation } from '../lib/api';
 import { 
   Activity, 
   Settings, 
@@ -33,15 +33,25 @@ interface AdminAutomationProps {
   onBack: () => void;
   showToast: (message: string, type: 'success' | 'error' | 'info') => void;
   userRole: string;
+  userEmail: string;
+  heroConfig: HeroConfig;
+  onHeroConfigChange: (config: HeroConfig) => void;
+  feedItems: FeedItem[];
+  onFeedItemsChange: React.Dispatch<React.SetStateAction<FeedItem[]>>;
 }
 
-type TabType = 'dashboard' | 'sources' | 'import' | 'pending' | 'approved' | 'rejected' | 'duplicates' | 'expired' | 'logs' | 'settings';
+type TabType = 'dashboard' | 'hero' | 'posts' | 'sources' | 'import' | 'pending' | 'approved' | 'rejected' | 'duplicates' | 'expired' | 'logs' | 'settings';
 
 export default function AdminAutomation({
   language,
   onBack,
   showToast,
-  userRole
+  userRole,
+  userEmail,
+  heroConfig,
+  onHeroConfigChange,
+  feedItems,
+  onFeedItemsChange
 }: AdminAutomationProps) {
   const [activeTab, setActiveTab] = useState<TabType>('dashboard');
   
@@ -86,13 +96,21 @@ export default function AdminAutomation({
   });
   const [runningScraper, setRunningScraper] = useState(false);
   const [uploadStats, setUploadStats] = useState<any | null>(null);
+  const [heroDraft, setHeroDraft] = useState<HeroConfig>(heroConfig);
+  const [newAdminPost, setNewAdminPost] = useState({ title: '', body: '' });
 
   // Checks Authorization quickly
-  const isAdmin = userRole === 'staff';
+  const isAdmin = userRole === 'staff' && userEmail.toLowerCase() === 'safaribosafar@gmail.com';
+
+  useEffect(() => {
+    setHeroDraft(heroConfig);
+  }, [heroConfig]);
 
   const t = {
     title: { en: 'Opportunity Automation Center', ar: 'مركز أتمتة الفرص المتقدم', ku: 'ناوەندی خۆکارکردنی دەرفەتەکان' },
     dashboard: { en: 'Dashboard', ar: 'لوحة التحكم', ku: 'داشبۆرد' },
+    hero: { en: 'Hero Photos', ar: 'صور الواجهة', ku: 'وێنەی سەرەکی' },
+    posts: { en: 'Feed Posts', ar: 'منشورات الخلاصة', ku: 'بابەتەکانی فید' },
     sources: { en: 'Crawl Sources', ar: 'مصادر الزحف', ku: 'سەرچاوەکانی زانیاری' },
     import: { en: 'Import CSV', ar: 'استيراد CSV', ku: 'هێنانی فایلی CSV' },
     pending: { en: 'Pending Review', ar: 'قيد المراجعة', ku: 'چاوەڕوانی چاوپێداخشان' },
@@ -103,7 +121,7 @@ export default function AdminAutomation({
     logs: { en: 'Run Logs', ar: 'سجلات التشغيل', ku: 'لۆگی کارکردن' },
     settings: { en: 'Settings', ar: 'الإعدادات', ku: 'ڕێکخستنەکان' },
     back: { en: 'Back', ar: 'رجوع', ku: 'گەڕانەوە' },
-    noPermission: { en: 'Admin Access Only. Please authenticate with staff role.', ar: 'وصول للمسؤولين فقط. يرجى تسجيل الدخول بحساب مشرف.', ku: 'تەنها بۆ سەرپەرشتیارەکان ڕێگەپێدراوە.' }
+    noPermission: { en: 'Main admin access only. Sign in as safaribosafar@gmail.com.', ar: 'وصول المسؤول الرئيسي فقط. سجل الدخول عبر safaribosafar@gmail.com.', ku: 'تەنها بەڕێوەبەری سەرەکی. بە safaribosafar@gmail.com بچۆ ژوورەوە.' }
   };
 
   const getL = (key: keyof typeof t) => t[key][language] || t[key]['en'];
@@ -298,6 +316,18 @@ export default function AdminAutomation({
     }
   };
 
+  const handleDeleteCandidate = async (id: string) => {
+    if (!confirm(language === 'ar' ? 'هل تريد حذف هذه الفرصة نهائياً؟' : 'Delete this opportunity permanently?')) return;
+    try {
+      await opportunityAutomation.deleteCandidate(id, language);
+      showToast(language === 'ar' ? 'تم حذف الفرصة.' : 'Opportunity deleted.', 'success');
+      fetchTabContent();
+      fetchCoreStats();
+    } catch (e: any) {
+      showToast(e.message, 'error');
+    }
+  };
+
   // Inline Candidate updates
   const handleSaveCandidateEdit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -325,6 +355,92 @@ export default function AdminAutomation({
     } catch (e: any) {
       showToast(e.message, 'error');
     }
+  };
+
+  const adminHeaders = () => ({
+    'Content-Type': 'application/json',
+    'x-admin-email': userEmail
+  });
+
+  const handleHeroSave = async () => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/api/admin/config/hero`, {
+        method: 'POST',
+        headers: adminHeaders(),
+        body: JSON.stringify(heroDraft)
+      });
+      const data = await res.json();
+      if (!res.ok) throw new Error(data.error || 'Failed to save hero settings');
+      onHeroConfigChange(data.hero);
+      showToast(language === 'ar' ? 'تم تحديث صورة الواجهة.' : 'Hero settings saved.', 'success');
+    } catch (e: any) {
+      showToast(e.message, 'error');
+    }
+  };
+
+  const handleHeroUpload = async (file?: File) => {
+    if (!file) return;
+    if (!file.type.startsWith('image/')) {
+      showToast(language === 'ar' ? 'الملف يجب أن يكون صورة.' : 'Please choose an image file.', 'error');
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = async () => {
+      try {
+        const res = await fetch(`${BACKEND_URL}/api/admin/upload`, {
+          method: 'POST',
+          headers: adminHeaders(),
+          body: JSON.stringify({ fileName: file.name, mimeType: file.type, dataUrl: reader.result })
+        });
+        const data = await res.json();
+        if (!res.ok) throw new Error(data.error || 'Upload failed');
+        setHeroDraft(prev => ({ ...prev, imageUrl: data.url }));
+        showToast(language === 'ar' ? 'تم رفع الصورة. احفظ التغييرات لنشرها.' : 'Image uploaded. Save to publish it.', 'success');
+      } catch (e: any) {
+        showToast(e.message, 'error');
+      }
+    };
+    reader.readAsDataURL(file);
+  };
+
+  const updatePost = (id: string, patch: Partial<FeedItem> & Record<string, any>) => {
+    onFeedItemsChange(prev => prev.map(item => item.id === id ? { ...item, ...patch } : item));
+  };
+
+  const deletePost = (id: string) => {
+    if (!confirm(language === 'ar' ? 'حذف هذا المنشور؟' : 'Delete this post?')) return;
+    onFeedItemsChange(prev => prev.filter(item => item.id !== id));
+    showToast(language === 'ar' ? 'تم حذف المنشور.' : 'Post deleted.', 'success');
+  };
+
+  const createAdminPost = () => {
+    if (!newAdminPost.body.trim()) return;
+    const post: FeedItem = {
+      id: `admin-post-${Date.now()}`,
+      type: 'announcement',
+      titleEN: newAdminPost.title || 'Admin announcement',
+      titleAR: newAdminPost.title || 'إعلان إداري',
+      titleKU: newAdminPost.title || 'ئاگاداری بەڕێوەبەر',
+      contentEN: newAdminPost.body,
+      contentAR: newAdminPost.body,
+      contentKU: newAdminPost.body,
+      author: {
+        name: 'Safari Bosafar',
+        role: 'staff',
+        avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
+        verified: true
+      },
+      date: 'Just now',
+      likes: 0,
+      commentsCount: 0,
+      commentsList: [],
+      governorateId: 'all',
+      universityId: 'all',
+      tags: ['Admin', 'Announcement']
+    };
+    onFeedItemsChange(prev => [post, ...prev]);
+    setNewAdminPost({ title: '', body: '' });
+    showToast(language === 'ar' ? 'تم إنشاء المنشور.' : 'Post created.', 'success');
   };
 
   if (!isAdmin) {
@@ -367,7 +483,7 @@ export default function AdminAutomation({
 
       {/* Ten Navigation Subtabs slider */}
       <div className="flex gap-1.5 overflow-x-auto pb-3 mb-5 scrollbar-none" id="automation-subtabs-tray">
-        {(['dashboard', 'sources', 'import', 'pending', 'approved', 'rejected', 'duplicates', 'expired', 'logs', 'settings'] as TabType[]).map((tab) => {
+        {(['dashboard', 'hero', 'posts', 'sources', 'import', 'pending', 'approved', 'rejected', 'duplicates', 'expired', 'logs', 'settings'] as TabType[]).map((tab) => {
           const isSelected = activeTab === tab;
           const label = getL(tab);
 
@@ -470,6 +586,98 @@ export default function AdminAutomation({
                 Opportunities auto-crawled from official ministries, job portals, other university groups, and local NGO networks. Every opportunity undergoes deduplication and classification before hitting your console. Approved items immediately populate the public screen.
               </p>
             </div>
+          </div>
+        )}
+
+        {/* TAB 2: HERO */}
+        {activeTab === 'hero' && (
+          <div className="flex flex-col gap-4 text-left">
+            <div className="bg-white border-2 border-[#161A33] rounded-3xl p-4 shadow-[3px_3px_0px_0px_#161A33]">
+              <h3 className="text-xs font-black uppercase text-[#161A33] mb-3">
+                {language === 'ar' ? 'إدارة صورة الواجهة الرئيسية' : 'Homepage hero photo'}
+              </h3>
+              <div className="relative rounded-2xl overflow-hidden border-2 border-[#161A33] min-h-[140px] mb-3">
+                <img src={heroDraft.imageUrl} alt="Hero preview" className="absolute inset-0 w-full h-full object-cover" />
+                <div className="absolute inset-0 bg-gradient-to-t from-slate-950/80 to-transparent" />
+                <div className="relative z-10 p-4 text-white mt-14">
+                  <p className="text-xs font-black">{heroDraft.titleEN || 'Master Your Campus Journey!'}</p>
+                  <p className="text-[10px] text-slate-200">{heroDraft.subtitleEN || 'The current public homepage layout is preserved.'}</p>
+                </div>
+              </div>
+
+              <label className="block text-[9px] font-black uppercase text-slate-400 mb-1">Image URL</label>
+              <input
+                value={heroDraft.imageUrl}
+                onChange={e => setHeroDraft(prev => ({ ...prev, imageUrl: e.target.value }))}
+                className="w-full text-[10px] font-bold border border-[#E6E1F5] rounded-xl p-2 mb-3"
+              />
+
+              <label className="flex items-center gap-2 text-[10px] font-black bg-[#F3F7FF] border-2 border-[#161A33] rounded-xl p-3 cursor-pointer mb-3">
+                <Upload className="w-4 h-4 text-[#6B25C9]" />
+                <span>{language === 'ar' ? 'رفع صورة بديلة آمنة' : 'Upload replacement image'}</span>
+                <input type="file" accept="image/*" className="hidden" onChange={e => handleHeroUpload(e.target.files?.[0])} />
+              </label>
+
+              <div className="grid grid-cols-1 gap-2">
+                <input value={heroDraft.titleAR || ''} onChange={e => setHeroDraft(prev => ({ ...prev, titleAR: e.target.value }))} placeholder="Arabic hero title (optional)" className="text-xs border border-[#E6E1F5] rounded-xl p-2 text-right" />
+                <input value={heroDraft.titleKU || ''} onChange={e => setHeroDraft(prev => ({ ...prev, titleKU: e.target.value }))} placeholder="Kurdish hero title (optional)" className="text-xs border border-[#E6E1F5] rounded-xl p-2 text-right" />
+                <input value={heroDraft.titleEN || ''} onChange={e => setHeroDraft(prev => ({ ...prev, titleEN: e.target.value }))} placeholder="English hero title (optional)" className="text-xs border border-[#E6E1F5] rounded-xl p-2" />
+                <textarea value={heroDraft.subtitleAR || ''} onChange={e => setHeroDraft(prev => ({ ...prev, subtitleAR: e.target.value }))} placeholder="Arabic subtitle (optional)" className="text-xs border border-[#E6E1F5] rounded-xl p-2 text-right" rows={2} />
+                <textarea value={heroDraft.subtitleKU || ''} onChange={e => setHeroDraft(prev => ({ ...prev, subtitleKU: e.target.value }))} placeholder="Kurdish subtitle (optional)" className="text-xs border border-[#E6E1F5] rounded-xl p-2 text-right" rows={2} />
+                <textarea value={heroDraft.subtitleEN || ''} onChange={e => setHeroDraft(prev => ({ ...prev, subtitleEN: e.target.value }))} placeholder="English subtitle (optional)" className="text-xs border border-[#E6E1F5] rounded-xl p-2" rows={2} />
+              </div>
+
+              <button onClick={handleHeroSave} className="mt-3 w-full py-3 bg-[#FFD21F] text-[#161A33] border-2 border-[#161A33] rounded-xl font-black text-xs cursor-pointer shadow-[2px_2px_0px_0px_#161A33]">
+                {language === 'ar' ? 'حفظ ونشر صورة الواجهة' : 'Save Hero Changes'}
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* TAB 3: POSTS */}
+        {activeTab === 'posts' && (
+          <div className="flex flex-col gap-4 text-left">
+            <div className="bg-white border-2 border-[#161A33] rounded-2xl p-4 shadow-[2px_2px_0px_0px_#161A33]">
+              <h3 className="text-xs font-black uppercase mb-3">{language === 'ar' ? 'إنشاء منشور إداري' : 'Create admin feed post'}</h3>
+              <input value={newAdminPost.title} onChange={e => setNewAdminPost(prev => ({ ...prev, title: e.target.value }))} placeholder="Title" className="w-full text-xs border border-[#E6E1F5] rounded-xl p-2 mb-2" />
+              <textarea value={newAdminPost.body} onChange={e => setNewAdminPost(prev => ({ ...prev, body: e.target.value }))} placeholder="Post body" rows={3} className="w-full text-xs border border-[#E6E1F5] rounded-xl p-2 mb-2" />
+              <button onClick={createAdminPost} className="w-full py-2 bg-[#161A33] text-white rounded-xl font-black text-[10px] cursor-pointer">
+                {language === 'ar' ? 'نشر' : 'Create Post'}
+              </button>
+            </div>
+
+            <span className="text-[10px] font-black uppercase text-slate-400">{feedItems.length} feed posts</span>
+            {feedItems.map(item => (
+              <div key={item.id} className="bg-white border-2 border-[#161A33] rounded-2xl p-4 shadow-[2px_2px_0px_0px_#161A33] flex flex-col gap-2">
+                <div className="flex justify-between gap-2">
+                  <input
+                    value={item.titleEN}
+                    onChange={e => updatePost(item.id, { titleEN: e.target.value, titleAR: e.target.value, titleKU: e.target.value })}
+                    className="flex-1 text-xs font-black border border-[#E6E1F5] rounded-lg p-2"
+                  />
+                  <span className={`text-[8px] font-black px-2 py-1 rounded h-max ${(item as any).hidden ? 'bg-slate-200 text-slate-700' : 'bg-emerald-100 text-emerald-800'}`}>
+                    {(item as any).hidden ? 'HIDDEN' : 'VISIBLE'}
+                  </span>
+                </div>
+                <textarea
+                  value={item.contentEN}
+                  onChange={e => updatePost(item.id, { contentEN: e.target.value, contentAR: e.target.value, contentKU: e.target.value })}
+                  rows={2}
+                  className="text-[10px] border border-[#E6E1F5] rounded-lg p-2"
+                />
+                <div className="flex gap-2">
+                  <button onClick={() => updatePost(item.id, { hidden: !(item as any).hidden } as any)} className="flex-1 py-2 bg-slate-100 border border-slate-200 rounded-xl text-[9px] font-black cursor-pointer">
+                    {(item as any).hidden ? 'Unhide' : 'Hide'}
+                  </button>
+                  <button onClick={() => updatePost(item.id, { status: 'approved', hidden: false } as any)} className="flex-1 py-2 bg-emerald-100 text-emerald-900 rounded-xl text-[9px] font-black cursor-pointer">
+                    Approve
+                  </button>
+                  <button onClick={() => deletePost(item.id)} className="flex-1 py-2 bg-red-100 text-red-900 rounded-xl text-[9px] font-black cursor-pointer">
+                    Delete
+                  </button>
+                </div>
+              </div>
+            ))}
           </div>
         )}
 
@@ -744,6 +952,14 @@ export default function AdminAutomation({
                       >
                         <Edit className="w-3.5 h-3.5" />
                       </button>
+
+                      <button
+                        onClick={() => handleDeleteCandidate(opp.id)}
+                        className="py-2 px-3 bg-red-50 text-red-900 border-2 border-[#161A33] font-black rounded-xl hover:bg-red-100 transition-colors cursor-pointer"
+                        title={language === 'ar' ? 'حذف' : 'Delete'}
+                      >
+                        <Trash2 className="w-3.5 h-3.5" />
+                      </button>
                     </div>
                   </div>
                 ))}
@@ -794,6 +1010,12 @@ export default function AdminAutomation({
                           Expire ⏳
                         </button>
                       )}
+                      <button 
+                        onClick={() => handleDeleteCandidate(opp.id)}
+                        className="px-3 py-1.5 bg-red-50 text-red-800 border border-red-800/10 hover:border-red-800 rounded-lg text-[9px] font-black cursor-pointer"
+                      >
+                        Delete
+                      </button>
                     </div>
                   </div>
                 ))}
