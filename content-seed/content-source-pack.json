@@ -1,0 +1,336 @@
+{
+  "sources": [
+    {
+      "id": "un-iraq-jobs-official",
+      "name": "United Nations Iraq Jobs",
+      "url": "https://iraq.un.org/en/jobs",
+      "type": "jobs"
+    },
+    {
+      "id": "undp-iraq-jobs",
+      "name": "UNDP Iraq Jobs",
+      "url": "https://jobs.undp.org",
+      "type": "jobs"
+    },
+    {
+      "id": "reliefweb-iraq-jobs",
+      "name": "ReliefWeb Iraq Jobs",
+      "url": "https://reliefweb.int/jobs?advanced-search=%28C104%29",
+      "type": "jobs"
+    },
+    {
+      "id": "ncci-iraq-jobs",
+      "name": "NCCI Iraq Jobs",
+      "url": "https://ncciraqjobs.com",
+      "type": "jobs"
+    },
+    {
+      "id": "iom-iraq-careers",
+      "name": "IOM Iraq Careers",
+      "url": "https://iraq.iom.int/careers",
+      "type": "jobs"
+    },
+    {
+      "id": "zain-iraq-careers",
+      "name": "Zain Iraq Careers",
+      "url": "https://iq.zain.com/en/careers",
+      "type": "jobs"
+    },
+    {
+      "id": "asiacell-careers-official",
+      "name": "Asiacell Careers",
+      "url": "https://www.asiacell.com/en/about-us/careers",
+      "type": "jobs"
+    },
+    {
+      "id": "korek-careers",
+      "name": "Korek Telecom Careers",
+      "url": "https://www.korektel.com",
+      "type": "jobs"
+    },
+    {
+      "id": "bayt-iraq-jobs",
+      "name": "Bayt Iraq Jobs",
+      "url": "https://www.bayt.com/en/iraq/jobs/",
+      "type": "jobs"
+    },
+    {
+      "id": "linkedin-iraq-jobs",
+      "name": "LinkedIn Iraq Jobs",
+      "url": "https://www.linkedin.com/jobs/search/?location=Iraq",
+      "type": "jobs"
+    },
+
+    {
+      "id": "daad-iraq-scholarship-database",
+      "name": "DAAD Iraq Scholarship Database",
+      "url": "https://www.daad-iraq.org/en/find-funding/scholarship-database/",
+      "type": "scholarships"
+    },
+    {
+      "id": "chevening-iraq",
+      "name": "Chevening Iraq Scholarships",
+      "url": "https://www.chevening.org/scholarships/iraq/",
+      "type": "scholarships"
+    },
+    {
+      "id": "erasmus-mundus-catalogue",
+      "name": "Erasmus Mundus Joint Masters Catalogue",
+      "url": "https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en",
+      "type": "scholarships"
+    },
+    {
+      "id": "turkiye-scholarships",
+      "name": "Türkiye Scholarships",
+      "url": "https://www.turkiyeburslari.gov.tr",
+      "type": "scholarships"
+    },
+    {
+      "id": "mext-japan-iraq",
+      "name": "MEXT Japan Scholarships Iraq",
+      "url": "https://www.iraq.emb-japan.go.jp",
+      "type": "scholarships"
+    },
+    {
+      "id": "campus-france-iraq-scholarships",
+      "name": "Campus France Iraq Scholarships",
+      "url": "https://www.iraq.campusfrance.org",
+      "type": "scholarships"
+    },
+    {
+      "id": "fulbright-iraq",
+      "name": "Fulbright Iraq",
+      "url": "https://iq.usembassy.gov/education-culture/exchange-programs/",
+      "type": "scholarships"
+    },
+    {
+      "id": "study-in-canada-scholarships",
+      "name": "Study in Canada Scholarships",
+      "url": "https://www.educanada.ca/scholarships-bourses/index.aspx",
+      "type": "scholarships"
+    },
+    {
+      "id": "opportunity-desk",
+      "name": "Opportunity Desk",
+      "url": "https://opportunitydesk.org",
+      "type": "scholarships"
+    },
+    {
+      "id": "for9a-scholarships",
+      "name": "For9a Scholarships",
+      "url": "https://www.for9a.com",
+      "type": "scholarships"
+    },
+
+    {
+      "id": "university-of-baghdad-news",
+      "name": "University of Baghdad News",
+      "url": "https://uobaghdad.edu.iq",
+      "type": "announcements"
+    },
+    {
+      "id": "mustansiriyah-university-news",
+      "name": "Al-Mustansiriya University News",
+      "url": "https://uomustansiriyah.edu.iq",
+      "type": "announcements"
+    },
+    {
+      "id": "university-of-sulaimani-news",
+      "name": "University of Sulaimani News",
+      "url": "https://univsul.edu.iq",
+      "type": "announcements"
+    },
+    {
+      "id": "salahaddin-university-news",
+      "name": "Salahaddin University News",
+      "url": "https://su.edu.krd",
+      "type": "announcements"
+    },
+    {
+      "id": "university-of-mosul-news",
+      "name": "University of Mosul News",
+      "url": "https://uomosul.edu.iq",
+      "type": "announcements"
+    },
+    {
+      "id": "university-of-basrah-news",
+      "name": "University of Basrah News",
+      "url": "https://uobasrah.edu.iq",
+      "type": "announcements"
+    },
+    {
+      "id": "koya-university-news",
+      "name": "Koya University News",
+      "url": "https://koyauniversity.org",
+      "type": "announcements"
+    },
+    {
+      "id": "auis-news",
+      "name": "American University of Iraq Sulaimani News",
+      "url": "https://auis.edu.krd",
+      "type": "announcements"
+    },
+
+    {
+      "id": "the-station-iraq-events",
+      "name": "The Station Iraq Events",
+      "url": "https://the-station.iq",
+      "type": "events"
+    },
+    {
+      "id": "five-one-labs-events",
+      "name": "Five One Labs Events and Programs",
+      "url": "https://fiveonelabs.org",
+      "type": "events"
+    },
+    {
+      "id": "kapita-iraq-events",
+      "name": "KAPITA Iraq Events",
+      "url": "https://kapita.iq",
+      "type": "events"
+    }
+  ],
+
+  "pendingOpportunities": [
+    {
+      "id": "seed-scholarship-daad-iraq",
+      "category": "scholarship",
+      "organization": "DAAD Iraq",
+      "titleEN": "DAAD Scholarship Database for Iraqi Students",
+      "titleAR": "قاعدة بيانات منح DAAD للطلاب العراقيين",
+      "titleKU": "بنکەی زانیاری بورسەکانی DAAD بۆ قوتابیانی عێراق",
+      "contentEN": "A trusted scholarship database for Iraqi students, graduates, researchers, and academics looking for study and research funding in Germany. Check the official DAAD page for the exact current deadline and requirements.",
+      "contentAR": "قاعدة موثوقة للمنح الدراسية للطلاب والخريجين والباحثين والأكاديميين العراقيين الراغبين بالدراسة أو البحث في ألمانيا. يرجى مراجعة صفحة DAAD الرسمية لمعرفة آخر موعد وشروط التقديم الحالية.",
+      "contentKU": "بنکەیەکی باوەڕپێکراو بۆ بورسەکانی قوتابیان، دەرچووان، توێژەران و ئەکادیمییە عێراقییەکان بۆ خوێندن و توێژینەوە لە ئەڵمانیا. تکایە پەڕەی فەرمی DAAD ببینە بۆ دوا وادە و مەرجەکان.",
+      "country": "Germany",
+      "governorateId": "all",
+      "deadline": "Check official website",
+      "application_link": "https://www.daad-iraq.org/en/find-funding/scholarship-database/",
+      "original_source_url": "https://www.daad-iraq.org/en/find-funding/scholarship-database/",
+      "location": "Germany",
+      "workplaceType": "Study abroad",
+      "whoCanApply": "Iraqi students, graduates, researchers, and academics",
+      "imageUrl": "https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=900"
+    },
+    {
+      "id": "seed-scholarship-chevening-iraq",
+      "category": "scholarship",
+      "organization": "Chevening",
+      "titleEN": "Chevening Scholarships for Iraq",
+      "titleAR": "منح تشيفنينغ للعراق",
+      "titleKU": "بورسی Chevening بۆ عێراق",
+      "contentEN": "A major UK scholarship route for future leaders from Iraq to study a one-year master's degree. Applicants should always check the official Chevening Iraq page for the current cycle dates and eligibility details.",
+      "contentAR": "مسار مهم للمنح البريطانية لقادة المستقبل من العراق لدراسة الماجستير لمدة سنة واحدة. يجب دائماً مراجعة صفحة تشيفنينغ الرسمية للعراق لمعرفة مواعيد الدورة الحالية وشروط الأهلية.",
+      "contentKU": "ڕێگایەکی گرنگی بورسی بەریتانیاست بۆ ڕابەرانی داهاتووی عێراق بۆ خوێندنی ماستەر بۆ ماوەی ساڵێک. هەمیشە پەڕەی فەرمی Chevening Iraq بپشکنە بۆ وادە و مەرجە نوێیەکان.",
+      "country": "United Kingdom",
+      "governorateId": "all",
+      "deadline": "Check official website",
+      "application_link": "https://www.chevening.org/scholarships/iraq/",
+      "original_source_url": "https://www.chevening.org/scholarships/iraq/",
+      "location": "United Kingdom",
+      "workplaceType": "Study abroad",
+      "whoCanApply": "Eligible Iraqi applicants for master's study",
+      "imageUrl": "https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&q=80&w=900"
+    },
+    {
+      "id": "seed-scholarship-erasmus-mundus",
+      "category": "scholarship",
+      "organization": "European Union",
+      "titleEN": "Erasmus Mundus Joint Masters Scholarships",
+      "titleAR": "منح إيراسموس موندوس للماجستير المشترك",
+      "titleKU": "بورسی Erasmus Mundus بۆ ماستەری هاوبەش",
+      "contentEN": "A popular European scholarship path for international students, including Iraqi applicants, through selected joint master's programs. Students should browse the official catalogue and check each program's deadline.",
+      "contentAR": "مسار أوروبي مشهور للمنح للطلاب الدوليين، ومن ضمنهم المتقدمون من العراق، عبر برامج ماجستير مشتركة مختارة. يجب تصفح الفهرس الرسمي ومراجعة موعد كل برنامج.",
+      "contentKU": "ڕێگایەکی ناسراوی ئەورووپییە بۆ خوێندکارانی نێودەوڵەتی، بە قوتابیانی عێراقیشەوە، لە ڕێگەی بەرنامەکانی ماستەری هاوبەش. قوتابی دەبێت کاتەلۆگی فەرمی ببینێت و دوا وادەی هەر بەرنامەیەک بپشکنێت.",
+      "country": "Europe",
+      "governorateId": "all",
+      "deadline": "Depends on selected program",
+      "application_link": "https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en",
+      "original_source_url": "https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en",
+      "location": "Europe",
+      "workplaceType": "Study abroad",
+      "whoCanApply": "International students applying to eligible joint master's programs",
+      "imageUrl": "https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&q=80&w=900"
+    },
+    {
+      "id": "seed-scholarship-turkiye",
+      "category": "scholarship",
+      "organization": "Türkiye Scholarships",
+      "titleEN": "Türkiye Scholarships",
+      "titleAR": "منح تركيا",
+      "titleKU": "بورسی تورکیا",
+      "contentEN": "Government-funded scholarships for international students at multiple study levels. Iraqi students should check the official portal for the current application cycle, programs, and eligibility.",
+      "contentAR": "منح ممولة من الحكومة التركية للطلاب الدوليين في عدة مستويات دراسية. على الطلاب العراقيين مراجعة البوابة الرسمية لمعرفة دورة التقديم الحالية والبرامج والشروط.",
+      "contentKU": "بورسییەکی حکومی تورکیایە بۆ خوێندکارانی نێودەوڵەتی لە چەند ئاستێکی خوێندن. قوتابیانی عێراق پێویستە پۆرتاڵی فەرمی ببینن بۆ خولی نوێی پێشکەشکردن و بەرنامە و مەرجەکان.",
+      "country": "Turkey",
+      "governorateId": "all",
+      "deadline": "Check official website",
+      "application_link": "https://www.turkiyeburslari.gov.tr",
+      "original_source_url": "https://www.turkiyeburslari.gov.tr",
+      "location": "Turkey",
+      "workplaceType": "Study abroad",
+      "whoCanApply": "International students, including Iraqi applicants",
+      "imageUrl": "https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&q=80&w=900"
+    },
+    {
+      "id": "seed-scholarship-campus-france-iraq",
+      "category": "scholarship",
+      "organization": "Campus France Iraq",
+      "titleEN": "Campus France Iraq Scholarships and Study Routes",
+      "titleAR": "منح ومسارات الدراسة عبر كامبوس فرانس العراق",
+      "titleKU": "بورس و ڕێگاکانی خوێندن لە ڕێگەی Campus France Iraq",
+      "contentEN": "A useful route for Iraqi students exploring study in France, scholarship information, and admission guidance. Students should check the official Campus France Iraq site for updated calls.",
+      "contentAR": "مسار مفيد للطلاب العراقيين الراغبين بالدراسة في فرنسا، ومعرفة معلومات المنح والإرشادات. يجب مراجعة موقع كامبوس فرانس العراق الرسمي لمعرفة الإعلانات الجديدة.",
+      "contentKU": "ڕێگایەکی باشە بۆ قوتابیانی عێراق کە دەتەوێت لە فەرەنسا بخوێنن و زانیاریی بورس و وەرگرتن وەربگرن. تکایە ماڵپەڕی فەرمی Campus France Iraq ببینن بۆ بانگەوازە نوێیەکان.",
+      "country": "France",
+      "governorateId": "all",
+      "deadline": "Check official website",
+      "application_link": "https://www.iraq.campusfrance.org",
+      "original_source_url": "https://www.iraq.campusfrance.org",
+      "location": "France",
+      "workplaceType": "Study abroad",
+      "whoCanApply": "Iraqi students interested in France study routes",
+      "imageUrl": "https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&q=80&w=900"
+    },
+    {
+      "id": "seed-social-campus-welcome-english",
+      "category": "activity",
+      "organization": "Jamiaati Campus Life",
+      "titleEN": "Welcome to the Campus Life Wall",
+      "titleAR": "أهلاً بك في ساحة الحياة الجامعية",
+      "titleKU": "بەخێربێیت بۆ دیواری ژیانی زانکۆ",
+      "contentEN": "This is a starter social post until students begin posting their real campus questions, photos, study groups, and daily university updates. The goal is to keep the app warm without pretending this is official news.",
+      "contentAR": "هذا منشور اجتماعي تجريبي إلى أن يبدأ الطلاب بنشر أسئلتهم وصورهم ومجموعات الدراسة وتحديثاتهم اليومية. الهدف هو جعل التطبيق حيّاً دون ادعاء أنه خبر رسمي.",
+      "contentKU": "ئەمە پۆستێکی کۆمەڵایەتی سەرەتاییە تا قوتابیان دەست بکەن بە بڵاوکردنەوەی پرسیار، وێنە، گروپی خوێندن و نوێکارییەکانی زانکۆ. ئامانج ئەوەیە ئەپەکە زیندوو بێت بەبێ ئەوەی وەک هەواڵی فەرمی پیشان بدرێت.",
+      "country": "Iraq",
+      "governorateId": "all",
+      "deadline": "",
+      "application_link": "https://https-github-com-mahdialmuntadhar1-rgb-studenthub-plus.pages.dev",
+      "original_source_url": "internal-demo-campus-life",
+      "location": "All Iraq",
+      "workplaceType": "Campus Life",
+      "whoCanApply": "Students, graduates, teachers, and staff",
+      "imageUrl": "https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?auto=format&fit=crop&q=80&w=900"
+    },
+    {
+      "id": "seed-social-study-group-demo",
+      "category": "student_club",
+      "organization": "Jamiaati Campus Life",
+      "titleEN": "Looking for study partners this week?",
+      "titleAR": "هل تبحث عن زملاء للدراسة هذا الأسبوع؟",
+      "titleKU": "ئەم هەفتەیە هاوڕێی خوێندن دەگەڕێیت؟",
+      "contentEN": "A sample campus-life post encouraging students to create study groups, ask questions, and share helpful notes. This can be replaced by real user posts once the app grows.",
+      "contentAR": "منشور تجريبي من الحياة الجامعية يشجع الطلاب على إنشاء مجموعات دراسة وطرح الأسئلة ومشاركة الملازم المفيدة. يمكن استبداله بمنشورات المستخدمين لاحقاً.",
+      "contentKU": "پۆستێکی نموونەییە بۆ ژیانی زانکۆ کە قوتابیان هاندەدات گروپی خوێندن دروست بکەن، پرسیار بکەن و تێبینییە بەسوودەکان هاوبەش بکەن. دواتر دەتوانرێت بە پۆستی ڕاستەقینەی بەکارهێنەران بگۆڕدرێت.",
+      "country": "Iraq",
+      "governorateId": "all",
+      "deadline": "",
+      "application_link": "https://https-github-com-mahdialmuntadhar1-rgb-studenthub-plus.pages.dev",
+      "original_source_url": "internal-demo-study-group",
+      "location": "All Iraq",
+      "workplaceType": "Campus Life",
+      "whoCanApply": "Students",
+      "imageUrl": "https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=900"
+    }
+  ]
+}
