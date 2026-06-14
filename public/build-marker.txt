@@ -1,0 +1,5 @@
+Jamiaati Official Frontend
+Worker: https-github
+URL: https://https-github.mahdialmuntadhar1.workers.dev/
+API: https://rafid-api.mahdialmuntadhar1.workers.dev
+Build timestamp: 2026-06-10T19:49:00Z

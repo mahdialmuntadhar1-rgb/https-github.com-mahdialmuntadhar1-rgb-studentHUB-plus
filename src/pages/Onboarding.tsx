@@ -6,8 +6,8 @@ import {
   CheckCircle2, Info, Sparkles, User, BookOpen,
   Briefcase, Award, Users, Rocket, BarChart3
 } from 'lucide-react';
-import { GOVERNORATES, SAMPLE_INSTITUTIONS } from '../constants';
-import { updateProfile } from '../lib/api';
+import { GOVERNORATES } from '../constants';
+import { AcademicInstitution, getInstitutions, updateProfile } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 
 interface OnboardingProps {
@@ -18,6 +18,8 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
   const { user, refreshProfile } = useAuth();
   const [step, setStep] = useState(1);
   const [searchQuery, setSearchQuery] = useState('');
+  const [institutions, setInstitutions] = useState<AcademicInstitution[]>([]);
+  const [institutionsLoading, setInstitutionsLoading] = useState(false);
   const [isFinishing, setIsFinishing] = useState(false);
   const [data, setData] = useState({
     role: '',
@@ -34,6 +36,33 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
 
   const nextStep = () => setStep(s => s + 1);
   const prevStep = () => setStep(s => s - 1);
+
+  useEffect(() => {
+    if (step !== 3 || !data.governorate) return;
+    let cancelled = false;
+
+    const loadInstitutions = async () => {
+      setInstitutionsLoading(true);
+      try {
+        const result = await getInstitutions({
+          governorate: data.governorate,
+          q: searchQuery,
+          limit: 100,
+        });
+        if (!cancelled) setInstitutions(result.institutions);
+      } catch (err) {
+        console.error('Error loading institutions:', err);
+        if (!cancelled) setInstitutions([]);
+      } finally {
+        if (!cancelled) setInstitutionsLoading(false);
+      }
+    };
+
+    loadInstitutions();
+    return () => {
+      cancelled = true;
+    };
+  }, [step, data.governorate, searchQuery]);
 
   const handleFinish = async () => {
     if (!user) return;
@@ -166,10 +195,7 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
         );
 
       case 3:
-        const filteredInsts = SAMPLE_INSTITUTIONS.filter(i => 
-          (i.governorate === data.governorate) &&
-          (i.name.includes(searchQuery) || i.nameEn?.toLowerCase().includes(searchQuery.toLowerCase()))
-        );
+        const filteredInsts = institutions;
 
         return (
           <div className="flex flex-col gap-8 pb-10">
@@ -190,16 +216,21 @@ export default function Onboarding({ onComplete }: OnboardingProps) {
             </div>
 
             <div className="flex flex-col gap-4 overflow-y-auto max-h-[45vh] hide-scrollbar pb-10">
+              {institutionsLoading && (
+                <div className="p-5 rounded-[2rem] bg-white border border-gray-50 text-gray-400 font-bold text-sm text-center">
+                  جاري تحميل المؤسسات...
+                </div>
+              )}
               {filteredInsts.map((inst) => (
                 <button
                   key={inst.id}
-                  onClick={() => { setData({ ...data, institution: inst.name, institutionId: inst.id }); nextStep(); }}
+                  onClick={() => { setData({ ...data, institution: inst.name_ar || inst.name_en || '', institutionId: inst.id }); nextStep(); }}
                   className="group flex items-center gap-5 p-5 rounded-[2.5rem] bg-white border border-gray-50 hover:border-primary/40 transition-all text-right shadow-sm"
                 >
-                  <img src={inst.logo} alt={inst.name} className="w-14 h-14 rounded-2xl object-cover ring-4 ring-surface" referrerPolicy="no-referrer" />
+                  <img src={`https://picsum.photos/seed/${inst.id}/100/100`} alt={inst.name_ar || inst.name_en || ''} className="w-14 h-14 rounded-2xl object-cover ring-4 ring-surface" referrerPolicy="no-referrer" />
                   <div className="flex-1">
-                    <div className="font-black text-secondary text-base leading-tight mb-1">{inst.name}</div>
-                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{inst.type} • {inst.city}</div>
+                    <div className="font-black text-secondary text-base leading-tight mb-1">{inst.name_ar || inst.name_en}</div>
+                    <div className="text-[10px] text-gray-400 font-bold uppercase tracking-wider">{inst.type} • {inst.city || inst.governorate}</div>
                   </div>
                   <ChevronLeft className="text-gray-300 group-hover:translate-x-[-5px] transition-transform" size={20} />
                 </button>

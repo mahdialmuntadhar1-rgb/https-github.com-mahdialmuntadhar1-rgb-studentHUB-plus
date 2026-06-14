@@ -1,0 +1,4 @@
+﻿title,category,organization,description,summary,eligibility,deadline,published_date,apply_url,source_url,image_url,country,governorate,city,language,salary_or_funding,source_name
+Frontend Developer 2026 Unique A,job,Test Company A,Frontend job test,Frontend developer test,Bachelor degree,2026-12-31,2026-06-10,https://example.com/apply-a,https://example.com/job-a,,Iraq,Baghdad,Baghdad,en,$1000,Manual Test
+Scholarship 2026 Unique B,scholarship,Test University B,Scholarship test,Scholarship for Iraqi students,Iraqi students,2027-06-30,2026-06-10,https://example.com/apply-b,https://example.com/job-b,,Iraq,Erbil,Erbil,en,Full funding,Manual Test
+Training 2026 Unique C,training,Test Center C,Training test,Web training,Beginners,2026-08-20,2026-06-10,https://example.com/apply-c,https://example.com/job-c,,Iraq,Basra,Basra,en,Free,Manual Test

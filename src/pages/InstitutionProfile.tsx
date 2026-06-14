@@ -37,7 +37,7 @@ export default function InstitutionProfile({ institution, onBack }: InstitutionP
     try {
       const data = await getPosts({ institution: institution.name });
 
-      const transformedPosts: Post[] = (data || []).map((p: any) => ({
+      const transformedPosts: Post[] = (data?.posts || []).map((p: any) => ({
         id: p.id,
         type: p.type,
         institutionName: p.institution,

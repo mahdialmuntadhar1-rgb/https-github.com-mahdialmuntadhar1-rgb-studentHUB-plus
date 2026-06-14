@@ -10,6 +10,7 @@ import { likePost, getToken } from '../lib/api';
 import { useLanguage } from '../contexts/LanguageContext';
 
 interface PostCardProps {
+  key?: React.Key;
   post: Post;
   delay?: number;
   onComment?: (post: Post) => void;

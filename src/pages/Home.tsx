@@ -5,7 +5,7 @@ import {
   MapPin, Users, Activity, Heart, MessageCircle, 
   Share2, Award, BookOpen, Star
 } from 'lucide-react';
-import { SAMPLE_INSTITUTIONS, SAMPLE_POSTS, SAMPLE_OPPORTUNITIES } from '../constants';
+import { SAMPLE_INSTITUTIONS, SAMPLE_POSTS } from '../constants';
 
 interface HomeProps {
   onStart: () => void;
@@ -286,49 +286,9 @@ export default function Home({ onStart, onSelectInstitution }: HomeProps) {
                 <p className="text-white/60 text-lg">اربط دراستك بسوق العمل الحقيقي. اكتشف المئات من الفرص المتاحة حصرياً عبر المؤسسات الأكاديمية.</p>
             </div>
             
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8 mb-16">
-                {SAMPLE_OPPORTUNITIES.map((opp, i) => (
-                    <motion.div 
-                      key={opp.id} 
-                      whileHover={{ scale: 1.02 }}
-                      className="bg-white/5 backdrop-blur-xl p-8 rounded-[3.5rem] border border-white/10 flex flex-col md:flex-row gap-8 group transition-all hover:bg-white/10"
-                    >
-                        <div className="w-20 h-20 bg-white rounded-3xl flex items-center justify-center shrink-0 shadow-2xl group-hover:rotate-3 transition-transform">
-                            <img src={opp.institutionLogo} className="w-14 h-14 object-contain rounded-xl" alt={opp.institutionName} referrerPolicy="no-referrer" />
-                        </div>
-                        <div className="flex-1">
-                            <div className="flex items-center gap-3 mb-4">
-                                <span className={`text-[10px] font-black px-3 py-1 rounded-full uppercase tracking-widest ${opp.type === 'internship' ? 'bg-blue-500' : 'bg-primary'} text-white`}>
-                                  {opp.type}
-                                </span>
-                                <span className="text-xs text-white/40 font-bold">{opp.institutionName}</span>
-                            </div>
-                            <h3 className="text-2xl font-black mb-6 group-hover:text-primary transition-colors leading-tight">{opp.title}</h3>
-                            <div className="flex flex-wrap gap-2 mb-8">
-                                {opp.tags.map(tag => (
-                                    <span key={tag} className="text-[9px] font-bold px-4 py-2 bg-white/10 rounded-full text-white/80 border border-white/5 active:bg-white/20 transition-colors uppercase font-inter">
-                                      #{tag}
-                                    </span>
-                                ))}
-                            </div>
-                            <div className="flex items-center justify-between border-t border-white/10 pt-6 mt-auto">
-                                <div className="flex items-center gap-2 text-white/40">
-                                    <Activity size={14} className="text-primary" />
-                                    <span className="text-[10px] font-black uppercase font-inter tracking-widest">Ends in {opp.deadline}</span>
-                                </div>
-                                <button className="text-primary font-black text-sm flex items-center gap-2 group-hover:gap-4 transition-all">
-                                    <span>تفاصيل أكثر</span>
-                                    <ChevronLeft className="w-4 h-4 rotate-180" />
-                                </button>
-                            </div>
-                        </div>
-                    </motion.div>
-                ))}
-            </div>
-            
             <div className="text-center">
                 <button className="bg-primary hover:bg-white text-secondary font-black px-12 py-5 rounded-3xl shadow-2xl shadow-primary/20 transition-all active:scale-95 text-lg">
-                    استكشف جميع الفرص — ١٢٤٠ فرصة عمل
+                    استكشف جميع الفرص
                 </button>
             </div>
         </div>
@@ -435,6 +395,8 @@ export default function Home({ onStart, onSelectInstitution }: HomeProps) {
       {/* SIMPLE FOOTER */}
       <footer className="py-12 text-center text-gray-400 text-[10px] font-black uppercase tracking-widest border-t border-gray-100">
         &copy; 2026 Rafid Hub — Crafted for Iraqi Students
+        <br />
+        <span className="text-[9px] text-gray-300 mt-2 block">Build: Jamiaati Official Frontend — Worker https-github — API rafid-api</span>
       </footer>
 
     </div>

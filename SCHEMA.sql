@@ -1,66 +1,82 @@
--- Run this in your Supabase SQL Editor
+-- Cloudflare D1 Table Schema for Iraq Student Opportunities Automation
+-- This file defines the tables used for storing sources, scraped opportunities, and scraping activity logs in D1.
 
--- 1. PROFILES TABLE (Linked to Auth)
-CREATE TABLE profiles (
-  id UUID REFERENCES auth.users ON DELETE CASCADE PRIMARY KEY,
-  full_name TEXT,
-  governorate TEXT,
-  institution TEXT,
-  institution_id TEXT,
-  stage TEXT,
-  interests TEXT[],
-  bio TEXT,
-  avatar_url TEXT,
-  role TEXT DEFAULT 'student',
-  updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- 1. Sources Website Table
+CREATE TABLE IF NOT EXISTS sources (
+  id TEXT PRIMARY KEY,
+  name TEXT NOT NULL,
+  url TEXT NOT NULL UNIQUE,
+  type TEXT NOT NULL,
+  category_scope TEXT,
+  source_type TEXT,
+  country_scope TEXT,
+  governorate_scope TEXT,
+  language TEXT,
+  enabled INTEGER DEFAULT 1, -- 0 = disabled, 1 = enabled
+  crawl_frequency_hours INTEGER DEFAULT 24,
+  last_checked TEXT,
+  error_status TEXT
 );
 
--- 2. POSTS TABLE
-CREATE TABLE posts (
-  id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
-  author_id UUID REFERENCES profiles(id) ON DELETE CASCADE NOT NULL,
-  type TEXT NOT NULL, -- 'announcement', 'event', 'opportunity', 'student', 'urgent', 'insight'
-  title TEXT,
-  content TEXT NOT NULL,
-  image_url TEXT,
-  governorate TEXT NOT NULL,
-  institution TEXT NOT NULL,
-  institution_id TEXT NOT NULL,
-  likes_count INTEGER DEFAULT 0,
-  comments_count INTEGER DEFAULT 0,
-  views_count INTEGER DEFAULT 0,
-  is_verified BOOLEAN DEFAULT FALSE,
-  metadata JSONB DEFAULT '{}'::jsonb, -- For event dates, etc.
-  created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
+-- 2. Opportunities Schema
+CREATE TABLE IF NOT EXISTS opportunities (
+  id TEXT PRIMARY KEY,
+  titleEN TEXT NOT NULL,
+  titleAR TEXT NOT NULL,
+  titleKU TEXT NOT NULL,
+  contentEN TEXT NOT NULL,
+  contentAR TEXT NOT NULL,
+  contentKU TEXT NOT NULL,
+  organization TEXT NOT NULL,
+  category TEXT NOT NULL CHECK (category IN ('job', 'internship', 'scholarship', 'training', 'event', 'volunteering', 'fellowship', 'competition', 'announcement', 'registration', 'exam')),
+  country TEXT NOT NULL DEFAULT 'Iraq',
+  governorateId TEXT DEFAULT 'all', -- 'baghdad', 'sulaymaniyah', 'nineveh', 'all', etc.
+  deadline TEXT, -- ISO string or legible date
+  application_link TEXT NOT NULL,
+  original_source_url TEXT NOT NULL,
+  published_date TEXT,
+  imageUrl TEXT,
+  status TEXT DEFAULT 'pending_review' CHECK (status IN ('pending_review', 'approved', 'rejected', 'expired', 'duplicate')),
+  rejection_reason TEXT,
+  created_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  workplaceType TEXT DEFAULT 'On-site', -- 'On-site' | 'Remote' | 'Hybrid'
+  whoCanApply TEXT,
+  salary TEXT,
+  location TEXT,
+  savedCount INTEGER DEFAULT 0,
+  universityAppliedCount INTEGER DEFAULT 0,
+  companyVerified INTEGER DEFAULT 0 -- 0 = false, 1 = true
 );
 
--- 3. STORAGE BUCKET (Create this in Supabase Storage UI named 'posts')
--- Make sure to set bucket to public if you want easy link sharing
+-- 3. Scraper Logs Schema
+CREATE TABLE IF NOT EXISTS scraper_logs (
+  id TEXT PRIMARY KEY,
+  timestamp TEXT NOT NULL,
+  source_id TEXT,
+  source_name TEXT,
+  items_found INTEGER DEFAULT 0,
+  items_new INTEGER DEFAULT 0,
+  items_duplicate INTEGER DEFAULT 0,
+  errors TEXT,
+  source_logs TEXT
+);
 
--- 4. RLS RULES (Security)
-
--- Profiles
-ALTER TABLE profiles ENABLE ROW LEVEL SECURITY;
-CREATE POLICY "Public profiles are viewable by everyone." ON profiles FOR SELECT USING (true);
-CREATE POLICY "Users can insert their own profile." ON profiles FOR INSERT WITH CHECK (auth.uid() = id);
-CREATE POLICY "Users can update own profile." ON profiles FOR UPDATE USING (auth.uid() = id);
-
--- Posts
-ALTER TABLE posts ENABLE ROW LEVEL SECURITY;
-
--- Allow reading based on rules: SAME institution OR "All Iraq" (represented by open reads)
--- Rule: Users only see posts from their institution by default, but we'll filter in the app.
--- For true security based on institution, you could add:
--- CREATE POLICY "View posts from same institution" ON posts FOR SELECT 
--- USING (institution = (SELECT institution FROM profiles WHERE id = auth.uid()));
-
-CREATE POLICY "Posts are viewable by everyone." ON posts FOR SELECT USING (true);
-
-CREATE POLICY "Authenticated users can create posts." ON posts FOR INSERT 
-WITH CHECK (auth.uid() = author_id);
-
-CREATE POLICY "Users can update their own posts." ON posts FOR UPDATE 
-USING (auth.uid() = author_id);
-
-CREATE POLICY "Users can delete their own posts." ON posts FOR DELETE 
-USING (auth.uid() = author_id);
+-- Insert Initial Default Sources for Iraqi Students
+INSERT OR IGNORE INTO sources (id, name, url, type, enabled, last_checked, error_status) VALUES
+('asiacell-careers', 'Asiacell Careers Office', 'https://www.asiacell.com/en/about-us/careers', 'jobs', 1, NULL, NULL),
+('un-jobs-iraq', 'United Nations Iraq Portal', 'https://iraq.un.org/en/jobs', 'jobs', 1, NULL, NULL),
+('daad-iraq', 'DAAD German Scholarships Iraq', 'https://www.daad-iraq.org/en/', 'scholarships', 1, NULL, NULL),
+('mhe-kurdish', 'MHESR Kurdistan Scholarships', 'https://mhe.gov.krd/', 'scholarships', 1, NULL, NULL),
+('five-one-labs', 'Five One Labs Incubator & Training', 'https://fiveonelabs.org/', 'trainings', 1, NULL, NULL),
+('mohesr-iraq-scholarships', 'Iraqi MoHESR Scholarships', 'https://mohesr.gov.iq/ar/category/scholarships/', 'scholarships', 1, NULL, NULL),
+('iraq-internships-hub', 'Iraq Internships & Cooperational Training Hub', 'https://www.iraqinternships.com/listings', 'internships', 1, NULL, NULL),
+('reiraq-tech-academy', 'ReIraq Tech Training Academy', 'https://www.reiraqtech.org/trainings', 'trainings', 1, NULL, NULL),
+('iraq-tech-calendar', 'Iraq Tech & Startup Ecosystem Calendar', 'https://iraqstartupcalendar.org/events', 'events', 1, NULL, NULL),
+('ircs-volunteering', 'Iraqi Red Crescent Society Volunteering', 'https://ircs.org.iq/volunteering', 'volunteering', 1, NULL, NULL),
+('ruwwad-iraq-fellowships', 'Ruwwad Al-Iraq Fellowship Program', 'https://ruwwad-iraq.net/fellowship', 'fellowships', 1, NULL, NULL),
+('iraqicpc-competition', 'Iraq National Collegiate Programming Contest', 'https://iraqicpc.org/competition', 'competitions', 1, NULL, NULL),
+('uobaghdad-student-bulletin', 'University of Baghdad Student Affairs Bulletin', 'https://uobaghdad.edu.iq/news/student-announcements', 'announcements', 1, NULL, NULL),
+('dirasat-gate-registration', 'Central Admissions Registration Portal Iraq', 'https://www.dirasat-gate.org/registration', 'registration', 1, NULL, NULL),
+('moedu-exam-timetables', 'Ministry of Education Exam Timetables', 'https://moedu.gov.iq/exams', 'exams', 1, NULL, NULL),
+('iraqiyouth-hub-listings', 'Iraqi Youth Hub Mixed Announcements', 'https://iraqiyouthhub.org/listings', 'mixed', 1, NULL, NULL);

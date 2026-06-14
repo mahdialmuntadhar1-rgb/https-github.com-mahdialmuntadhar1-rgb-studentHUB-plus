@@ -89,7 +89,7 @@ export default function App() {
     <Routes>
       <Route path="/admin/login" element={<Auth adminOnly />} />
       <Route path="/admin/outreach" element={<AdminUnavailable />} />
-      <Route path="/admin/opportunity-automation" element={<AdminGate><AdminOpportunityAutomationPage /></AdminGate>} />
+      <Route path="/admin/opportunity-automation" element={<AdminUnavailable />} />
       <Route path="/opportunities" element={<PublicShell title="الفرص"><OpportunitiesPage /></PublicShell>} />
       <Route path="/reset-password" element={<ResetPassword />} />
       <Route path="*" element={<PublicShell title="جامعتي"><PublicHome /></PublicShell>} />

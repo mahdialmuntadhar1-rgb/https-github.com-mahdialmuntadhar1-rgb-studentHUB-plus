@@ -1,0 +1,132 @@
+﻿[
+  {
+    "id": "7ec1e6d3-9309-4794-afa3-b02ffbcac153",
+    "source": "dash_template",
+    "strategy": "percentage",
+    "author_email": "mahdialmuntadhar1@gmail.com",
+    "annotations": {
+      "workers/message": "Automatic deployment on upload.",
+      "workers/triggered_by": "upload"
+    },
+    "versions": [
+      {
+        "version_id": "540d31d7-0b0d-4e76-8da2-9b28548488ed",
+        "percentage": 100
+      }
+    ],
+    "created_on": "2026-06-10T17:52:31.020824Z"
+  },
+  {
+    "id": "2306c736-9b85-4eaf-9ecb-a6a7dc4a1463",
+    "source": "dash_template",
+    "strategy": "percentage",
+    "author_email": "mahdialmuntadhar1@gmail.com",
+    "annotations": {
+      "workers/message": "Automatic deployment on upload.",
+      "workers/triggered_by": "upload"
+    },
+    "versions": [
+      {
+        "version_id": "1cda5124-7547-458e-ad20-f1f828b0c770",
+        "percentage": 100
+      }
+    ],
+    "created_on": "2026-06-10T17:52:32.881443Z"
+  },
+  {
+    "id": "8268c5c3-787b-46b8-9205-def636201360",
+    "source": "wrangler",
+    "strategy": "percentage",
+    "author_email": "mahdialmuntadhar1@gmail.com",
+    "annotations": {
+      "workers/triggered_by": "deployment"
+    },
+    "versions": [
+      {
+        "version_id": "e2dddbc5-ad3c-45c7-8da0-957ccb349a55",
+        "percentage": 100
+      }
+    ],
+    "created_on": "2026-06-10T17:54:37.774857Z"
+  },
+  {
+    "id": "4eb3e270-2f57-492d-995c-751e4847c68a",
+    "source": "wrangler",
+    "strategy": "percentage",
+    "author_email": "mahdialmuntadhar1@gmail.com",
+    "annotations": {
+      "workers/triggered_by": "deployment"
+    },
+    "versions": [
+      {
+        "version_id": "817ac07d-7b51-415f-91e4-b03f3a36de67",
+        "percentage": 100
+      }
+    ],
+    "created_on": "2026-06-11T09:00:55.768889Z"
+  },
+  {
+    "id": "7208cb80-11b4-4695-93d8-97caa28fce8f",
+    "source": "wrangler",
+    "strategy": "percentage",
+    "author_email": "mahdialmuntadhar1@gmail.com",
+    "annotations": {
+      "workers/triggered_by": "deployment"
+    },
+    "versions": [
+      {
+        "version_id": "6f682dbd-82d7-4460-adf7-87ce6cc5aef8",
+        "percentage": 100
+      }
+    ],
+    "created_on": "2026-06-11T12:34:49.510371Z"
+  },
+  {
+    "id": "c73f2de8-754b-4534-9dff-4ae70be8fabb",
+    "source": "wrangler",
+    "strategy": "percentage",
+    "author_email": "mahdialmuntadhar1@gmail.com",
+    "annotations": {
+      "workers/triggered_by": "deployment"
+    },
+    "versions": [
+      {
+        "version_id": "1cd0f42f-9134-4673-9ca5-d84434ae689a",
+        "percentage": 100
+      }
+    ],
+    "created_on": "2026-06-11T12:37:44.014535Z"
+  },
+  {
+    "id": "9347b38b-8258-4532-8d0c-0a09b456693f",
+    "source": "wrangler",
+    "strategy": "percentage",
+    "author_email": "mahdialmuntadhar1@gmail.com",
+    "annotations": {
+      "workers/triggered_by": "deployment"
+    },
+    "versions": [
+      {
+        "version_id": "b6275aac-a173-4c17-bbfd-b9799770b55f",
+        "percentage": 100
+      }
+    ],
+    "created_on": "2026-06-12T03:10:09.407369Z"
+  },
+  {
+    "id": "5300583c-0768-4425-85ac-4f2f171f7aa8",
+    "source": "wrangler",
+    "strategy": "percentage",
+    "author_email": "mahdialmuntadhar1@gmail.com",
+    "annotations": {
+      "workers/triggered_by": "deployment"
+    },
+    "versions": [
+      {
+        "version_id": "754a9bad-9c3b-4a64-861e-2c510bb32f24",
+        "percentage": 100
+      }
+    ],
+    "created_on": "2026-06-12T03:40:14.251514Z"
+  }
+]

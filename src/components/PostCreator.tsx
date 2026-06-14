@@ -1,9 +1,8 @@
-import React, { useState, useRef } from 'react';
+import React, { useEffect, useState, useRef } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Image, Video, Smile, Send, Loader2, MapPin } from 'lucide-react';
 import { useAuth } from '../contexts/AuthContext';
-import { createPost, uploadImage } from '../lib/api';
-import { SAMPLE_INSTITUTIONS } from '../constants';
+import { AcademicInstitution, createPost, getInstitutions, uploadImage } from '../lib/api';
 
 interface PostCreatorProps {
   open: boolean;
@@ -24,8 +23,32 @@ export default function PostCreator({ open, onClose, onPosted }: PostCreatorProp
   const [isUploading, setIsUploading] = useState(false);
   const [isPosting, setIsPosting] = useState(false);
   const [showEmoji, setShowEmoji] = useState(false);
+  const [institutions, setInstitutions] = useState<AcademicInstitution[]>([]);
   const fileInputRef = useRef<HTMLInputElement>(null);
   const textareaRef = useRef<HTMLTextAreaElement>(null);
+
+  useEffect(() => {
+    if (!open) return;
+    let cancelled = false;
+
+    const loadInstitutions = async () => {
+      try {
+        const result = await getInstitutions({
+          governorate: city || profile?.governorate || undefined,
+          limit: 200,
+        });
+        if (!cancelled) setInstitutions(result.institutions);
+      } catch (err) {
+        console.error('Error loading institutions:', err);
+        if (!cancelled) setInstitutions([]);
+      }
+    };
+
+    loadInstitutions();
+    return () => {
+      cancelled = true;
+    };
+  }, [open, city, profile?.governorate]);
 
   const handleMediaSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
@@ -227,8 +250,8 @@ export default function PostCreator({ open, onClose, onPosted }: PostCreatorProp
                     dir="rtl"
                   >
                     <option value="">اختر</option>
-                    {SAMPLE_INSTITUTIONS.map(inst => (
-                      <option key={inst.id} value={inst.name}>{inst.name}</option>
+                    {institutions.map(inst => (
+                      <option key={inst.id} value={inst.name_ar || inst.name_en || ''}>{inst.name_ar || inst.name_en}</option>
                     ))}
                   </select>
                 </div>

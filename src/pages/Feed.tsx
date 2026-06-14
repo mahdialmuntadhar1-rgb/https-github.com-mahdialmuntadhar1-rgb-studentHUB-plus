@@ -3,10 +3,10 @@ import { motion, AnimatePresence } from 'motion/react';
 import PostCard from '../components/PostCard';
 import HeroCarousel from '../components/HeroCarousel';
 import PostModal from '../components/PostModal';
-import { ALL_POSTS, HERO_POSTS, SAMPLE_INSTITUTIONS } from '../constants';
+import { ALL_POSTS, HERO_POSTS } from '../constants';
 import { Sparkles, TrendingUp, GraduationCap, RefreshCw, ArrowRightLeft, ChevronDown } from 'lucide-react';
 import { PostSkeleton } from '../components/Skeletons';
-import { getPosts } from '../lib/api';
+import { AcademicInstitution, getInstitutions, getPosts } from '../lib/api';
 import { useAuth } from '../contexts/AuthContext';
 import { Post } from '../types';
 import { usePaginatedQuery } from '../hooks/usePaginatedQuery';
@@ -31,11 +31,34 @@ export default function Feed() {
   const [isLoading, setIsLoading] = useState(true);
   const [isFetchingMore, setIsFetchingMore] = useState(false);
   const [posts, setPosts] = useState<Post[]>([]);
+  const [institutions, setInstitutions] = useState<AcademicInstitution[]>([]);
   const [error, setError] = useState<string | null>(null);
   const [hasMore, setHasMore] = useState(true);
   const [page, setPage] = useState(0);
   const observerTarget = useRef<HTMLDivElement>(null);
   const POSTS_PER_PAGE = 5;
+
+  useEffect(() => {
+    let cancelled = false;
+
+    const loadInstitutions = async () => {
+      try {
+        const result = await getInstitutions({
+          governorate: activeFilter !== 'كل العراق' && activeFilter !== 'مؤسستي' && activeFilter !== 'تريند' ? activeFilter : undefined,
+          limit: 200,
+        });
+        if (!cancelled) setInstitutions(result.institutions);
+      } catch (err) {
+        console.error('Error loading institutions:', err);
+        if (!cancelled) setInstitutions([]);
+      }
+    };
+
+    loadInstitutions();
+    return () => {
+      cancelled = true;
+    };
+  }, [activeFilter]);
 
   const fetchPosts = async (currentPage: number, append = false) => {
     if (currentPage === 0) setIsLoading(true);
@@ -216,8 +239,8 @@ export default function Feed() {
                 dir="rtl"
               >
                 <option value="">🎓</option>
-                {SAMPLE_INSTITUTIONS.map(i => (
-                  <option key={i.id} value={i.name}>{i.name}</option>
+                {institutions.map(i => (
+                  <option key={i.id} value={i.name_ar || i.name_en || ''}>{i.name_ar || i.name_en}</option>
                 ))}
               </select>
               <ChevronDown size={11} className={`absolute left-1.5 md:left-2 top-1/2 -translate-y-1/2 pointer-events-none ${uniFilter ? 'text-white' : 'text-gray-400'}`} />

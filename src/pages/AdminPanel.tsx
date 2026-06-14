@@ -2,13 +2,29 @@ import React, { useState } from 'react';
 import { motion, AnimatePresence } from 'motion/react';
 import { 
   Shield, User, Check, X, AlertOctagon, Terminal, Info, 
-  ArrowLeft, ChevronLeft, ChevronRight, RefreshCw, Key, UploadCloud, Radio, Trash2, Save
+  ArrowLeft, ChevronLeft, ChevronRight, RefreshCw, Key, UploadCloud, Radio, Trash2, Save,
+  Sparkles, ExternalLink, Plus
 } from 'lucide-react';
 import { usePaginatedQuery } from '../hooks/usePaginatedQuery';
-import { ApiClient, AdminUser, SystemLog } from '../lib/api';
+import {
+  ApiClient,
+  AdminUser,
+  SystemLog,
+  createAdminHighlight,
+  createHighlightSource,
+  getAdminHighlights,
+  getHighlightSources,
+  HighlightCategory,
+  HighlightItem,
+  HighlightSource,
+  runHighlightImport,
+  setHighlightSourceEnabled,
+  setHighlightStatus,
+  updateAdminHighlight
+} from '../lib/api';
 
 export default function AdminPanel({ onBack }: { onBack: () => void }) {
-  const [activeSubTab, setActiveSubTab] = useState<'users' | 'logs'>('users');
+  const [activeSubTab, setActiveSubTab] = useState<'users' | 'logs' | 'highlights'>('users');
   
   // Track individual row saves
   const [editedUsers, setEditedUsers] = useState<Record<string, { role?: 'admin' | 'user'; canUpload?: boolean }>>({});
@@ -20,6 +36,18 @@ export default function AdminPanel({ onBack }: { onBack: () => void }) {
 
   // Log filtering level
   const [logLevelFilter, setLogLevelFilter] = useState<'all' | 'info' | 'warn' | 'error'>('all');
+  const [highlightItems, setHighlightItems] = useState<HighlightItem[]>([]);
+  const [highlightSources, setHighlightSources] = useState<HighlightSource[]>([]);
+  const [highlightCategory, setHighlightCategory] = useState<HighlightCategory | ''>('');
+  const [highlightStatus, setHighlightStatusFilter] = useState<'pending_review' | 'approved' | 'rejected' | 'duplicate' | 'expired' | ''>('pending_review');
+  const [highlightGovFilter, setHighlightGovFilter] = useState('');
+  const [highlightUniversityFilter, setHighlightUniversityFilter] = useState('');
+  const [highlightLoading, setHighlightLoading] = useState(false);
+  const [highlightError, setHighlightError] = useState<string | null>(null);
+  const [editingHighlightId, setEditingHighlightId] = useState<string | null>(null);
+  const [editingHighlight, setEditingHighlight] = useState<Partial<HighlightItem>>({});
+  const [newHighlight, setNewHighlight] = useState({ title: '', category: 'event' as HighlightCategory, organization: '', governorate: '', summary: '', apply_url: '', deadline: '', event_date: '' });
+  const [newSource, setNewSource] = useState({ name: '', source_url: '', category: 'event' as HighlightCategory, governorate_scope: '' });
 
   // Users Paginated Query (using custom usePaginatedQuery hook)
   const usersPageLimit = 5;
@@ -137,6 +165,95 @@ export default function AdminPanel({ onBack }: { onBack: () => void }) {
     return log.level === logLevelFilter;
   });
 
+  const loadHighlights = async () => {
+    setHighlightLoading(true);
+    setHighlightError(null);
+    try {
+      const [items, sources] = await Promise.all([
+        getAdminHighlights({
+          status: highlightStatus,
+          category: highlightCategory,
+          governorate: highlightGovFilter,
+          university_id: highlightUniversityFilter,
+        }),
+        getHighlightSources()
+      ]);
+      setHighlightItems(items);
+      setHighlightSources(sources);
+    } catch (err: any) {
+      setHighlightError(err?.message || 'فشل تحميل الهايلايتس');
+    } finally {
+      setHighlightLoading(false);
+    }
+  };
+
+  React.useEffect(() => {
+    if (activeSubTab === 'highlights') loadHighlights();
+  }, [activeSubTab, highlightCategory, highlightStatus, highlightGovFilter, highlightUniversityFilter]);
+
+  const handleHighlightAction = async (id: string, action: 'approve' | 'reject' | 'mark-duplicate') => {
+    await setHighlightStatus(id, action);
+    await loadHighlights();
+  };
+
+  const handleCreateHighlight = async () => {
+    if (!newHighlight.title.trim()) return;
+    await createAdminHighlight(newHighlight);
+    setNewHighlight({ title: '', category: 'event', organization: '', governorate: '', summary: '', apply_url: '', deadline: '', event_date: '' });
+    await loadHighlights();
+  };
+
+  const startEditHighlight = (item: HighlightItem) => {
+    setEditingHighlightId(item.id);
+    setEditingHighlight({
+      title: item.title,
+      category: item.category,
+      organization: item.organization || '',
+      governorate: item.governorate || '',
+      city: item.city || '',
+      university_id: item.university_id || '',
+      summary: item.summary || '',
+      apply_url: item.apply_url || '',
+      source_url: item.source_url || '',
+      deadline: item.deadline || '',
+      event_date: item.event_date || '',
+      status: item.status,
+    });
+  };
+
+  const handleSaveHighlightEdit = async () => {
+    if (!editingHighlightId) return;
+    await updateAdminHighlight(editingHighlightId, editingHighlight);
+    setEditingHighlightId(null);
+    setEditingHighlight({});
+    await loadHighlights();
+  };
+
+  const handleCreateSource = async () => {
+    if (!newSource.name.trim() || !newSource.source_url.trim()) return;
+    await createHighlightSource({ ...newSource, enabled: true, source_type: 'web', scraping_priority: 50 });
+    setNewSource({ name: '', source_url: '', category: 'event', governorate_scope: '' });
+    await loadHighlights();
+  };
+
+  const handleRunImport = async () => {
+    setHighlightLoading(true);
+    try {
+      const result = await runHighlightImport();
+      alert(`تم الفحص: ${result.sourcesChecked} مصادر، جديد: ${result.itemsAdded}، مكرر: ${result.duplicatesFound}`);
+      await loadHighlights();
+    } catch (err: any) {
+      alert(err?.message || 'فشل تشغيل الاستيراد');
+    } finally {
+      setHighlightLoading(false);
+    }
+  };
+
+  const handleToggleSource = async (source: HighlightSource) => {
+    await setHighlightSourceEnabled(source.id, !(source.enabled === 1 || source.enabled === true));
+    await loadHighlights();
+  };
+
   return (
     <div className="min-h-screen bg-surface pb-32 pt-6 px-4 max-w-4xl mx-auto">
       {/* Top Bar with Elegant Actions */}
@@ -160,7 +277,8 @@ export default function AdminPanel({ onBack }: { onBack: () => void }) {
         <button 
           onClick={() => {
             if (activeSubTab === 'users') usersRefresh();
-            else logsRefresh();
+            else if (activeSubTab === 'logs') logsRefresh();
+            else loadHighlights();
           }}
           className="p-3 bg-primary/5 text-primary border border-primary/10 rounded-2xl hover:bg-primary/10 transition-all active:scale-95 flex items-center gap-2 text-xs font-black tracking-widest uppercase"
         >
@@ -199,6 +317,21 @@ export default function AdminPanel({ onBack }: { onBack: () => void }) {
             <span className="text-xl font-black">تتبع الأخطاء والعمليات</span>
           </div>
           <Terminal size={28} className={activeSubTab === 'logs' ? 'text-primary' : 'text-gray-300'} />
+        </button>
+
+        <button
+          onClick={() => setActiveSubTab('highlights')}
+          className={`p-6 rounded-[2.25rem] border-2 text-right transition-all flex items-center justify-between ${
+            activeSubTab === 'highlights'
+              ? 'bg-secondary text-white border-secondary shadow-lg'
+              : 'bg-white text-gray-400 border-gray-50 hover:border-primary/20'
+          }`}
+        >
+          <div>
+            <span className="text-[10px] font-black uppercase tracking-widest block opacity-70 mb-1">Highlights Automation</span>
+            <span className="text-xl font-black">إدارة الهايلايتس</span>
+          </div>
+          <Sparkles size={28} className={activeSubTab === 'highlights' ? 'text-primary' : 'text-gray-300'} />
         </button>
       </div>
 
@@ -392,7 +525,7 @@ export default function AdminPanel({ onBack }: { onBack: () => void }) {
               )}
             </div>
           </motion.div>
-        ) : (
+        ) : activeSubTab === 'logs' ? (
           <motion.div
             key="logs-tab"
             initial={{ opacity: 0, y: 10 }}
@@ -504,6 +637,181 @@ export default function AdminPanel({ onBack }: { onBack: () => void }) {
                     لا تشمل التصفية الحالية أي سجلات مطابقة
                   </div>
                 )}
+              </div>
+            </div>
+          </motion.div>
+        ) : (
+          <motion.div
+            key="highlights-tab"
+            initial={{ opacity: 0, y: 10 }}
+            animate={{ opacity: 1, y: 0 }}
+            exit={{ opacity: 0, y: -10 }}
+            className="space-y-6 text-right"
+            dir="rtl"
+          >
+            <div className="bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-sm">
+              <div className="flex flex-wrap items-center justify-between gap-3 mb-6">
+                <div>
+                  <h3 className="font-black text-base text-secondary">مراجعة واعتماد الهايلايتس</h3>
+                  <p className="text-[10px] font-bold text-gray-400">كل العناصر الجديدة تبقى قيد المراجعة قبل الظهور للطلاب</p>
+                </div>
+                <button
+                  onClick={handleRunImport}
+                  disabled={highlightLoading}
+                  className="px-4 py-3 bg-primary text-secondary rounded-2xl text-xs font-black flex items-center gap-2 disabled:opacity-50"
+                >
+                  <RefreshCw size={14} className={highlightLoading ? 'animate-spin' : ''} />
+                  تشغيل الاستيراد الآن
+                </button>
+              </div>
+
+              <div className="flex gap-3 mb-6 overflow-x-auto hide-scrollbar">
+                <select value={highlightStatus} onChange={(e) => setHighlightStatusFilter(e.target.value as any)} className="bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-black outline-none">
+                  <option value="pending_review">قيد المراجعة</option>
+                  <option value="approved">معتمد</option>
+                  <option value="rejected">مرفوض</option>
+                  <option value="duplicate">مكرر</option>
+                  <option value="expired">منتهي</option>
+                  <option value="">الكل</option>
+                </select>
+                <select value={highlightCategory} onChange={(e) => setHighlightCategory(e.target.value as any)} className="bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-black outline-none">
+                  <option value="">كل التصنيفات</option>
+                  <option value="event">Events</option>
+                  <option value="job">Jobs</option>
+                  <option value="internship">Internships</option>
+                  <option value="scholarship">Scholarships</option>
+                  <option value="student_club">Student Clubs</option>
+                </select>
+                <input
+                  value={highlightGovFilter}
+                  onChange={(e) => setHighlightGovFilter(e.target.value)}
+                  placeholder="فلترة حسب المحافظة"
+                  className="bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-black outline-none"
+                />
+                <input
+                  value={highlightUniversityFilter}
+                  onChange={(e) => setHighlightUniversityFilter(e.target.value)}
+                  placeholder="فلترة حسب الجامعة"
+                  className="bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-black outline-none"
+                />
+              </div>
+
+              {highlightError && (
+                <div className="p-4 bg-red-50 text-red-500 rounded-2xl text-xs font-bold mb-4">{highlightError}</div>
+              )}
+
+              <div className="space-y-3">
+                {highlightItems.map(item => (
+                  <div key={item.id} className="p-4 rounded-3xl border border-gray-100 bg-surface/50">
+                    <div className="flex items-start justify-between gap-4">
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-2">
+                          <span className="px-2 py-1 bg-primary/10 text-primary rounded-lg text-[10px] font-black">{item.category}</span>
+                          <span className="px-2 py-1 bg-white text-gray-400 rounded-lg text-[10px] font-black">{item.status}</span>
+                          <span className="text-[10px] text-gray-400 font-bold">{item.confidence_score || 0}% ثقة</span>
+                        </div>
+                        <h4 className="font-black text-secondary leading-tight">{item.title}</h4>
+                        <p className="text-xs text-gray-500 font-bold mt-1 line-clamp-2">{item.summary}</p>
+                        <p className="text-[10px] text-gray-400 font-bold mt-2">
+                          {item.organization || item.source_name || 'Manual'} · {item.governorate || 'كل العراق'} · {item.deadline || item.event_date || 'بدون موعد'}
+                        </p>
+                      </div>
+                      {item.source_url && (
+                        <a href={item.source_url} target="_blank" rel="noreferrer" className="p-3 bg-white rounded-2xl text-primary border border-gray-100">
+                          <ExternalLink size={16} />
+                        </a>
+                      )}
+                    </div>
+                    <div className="flex flex-wrap gap-2 mt-4">
+                      <button onClick={() => handleHighlightAction(item.id, 'approve')} className="px-4 py-2 bg-green-50 text-green-600 rounded-xl text-xs font-black flex items-center gap-1"><Check size={14} /> اعتماد</button>
+                      <button onClick={() => handleHighlightAction(item.id, 'reject')} className="px-4 py-2 bg-red-50 text-red-500 rounded-xl text-xs font-black flex items-center gap-1"><X size={14} /> رفض</button>
+                      <button onClick={() => startEditHighlight(item)} className="px-4 py-2 bg-blue-50 text-blue-600 rounded-xl text-xs font-black">تعديل</button>
+                      <button onClick={() => handleHighlightAction(item.id, 'mark-duplicate')} className="px-4 py-2 bg-gray-100 text-gray-500 rounded-xl text-xs font-black">تمييز كمكرر</button>
+                    </div>
+                    {editingHighlightId === item.id && (
+                      <div className="grid md:grid-cols-2 gap-3 mt-4 p-4 bg-white rounded-2xl border border-gray-100">
+                        <input value={editingHighlight.title || ''} onChange={(e) => setEditingHighlight({ ...editingHighlight, title: e.target.value })} placeholder="العنوان" className="bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                        <select value={editingHighlight.category || 'event'} onChange={(e) => setEditingHighlight({ ...editingHighlight, category: e.target.value as HighlightCategory })} className="bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none">
+                          <option value="event">Event</option>
+                          <option value="job">Job</option>
+                          <option value="internship">Internship</option>
+                          <option value="scholarship">Scholarship</option>
+                          <option value="student_club">Student Club</option>
+                        </select>
+                        <input value={editingHighlight.organization || ''} onChange={(e) => setEditingHighlight({ ...editingHighlight, organization: e.target.value })} placeholder="الجهة" className="bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                        <input value={editingHighlight.governorate || ''} onChange={(e) => setEditingHighlight({ ...editingHighlight, governorate: e.target.value })} placeholder="المحافظة" className="bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                        <input value={editingHighlight.city || ''} onChange={(e) => setEditingHighlight({ ...editingHighlight, city: e.target.value })} placeholder="المدينة" className="bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                        <input value={editingHighlight.university_id || ''} onChange={(e) => setEditingHighlight({ ...editingHighlight, university_id: e.target.value })} placeholder="الجامعة / المؤسسة" className="bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                        <input value={editingHighlight.deadline || ''} onChange={(e) => setEditingHighlight({ ...editingHighlight, deadline: e.target.value })} placeholder="Deadline YYYY-MM-DD" className="bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                        <input value={editingHighlight.event_date || ''} onChange={(e) => setEditingHighlight({ ...editingHighlight, event_date: e.target.value })} placeholder="Event date YYYY-MM-DD" className="bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                        <input value={editingHighlight.apply_url || ''} onChange={(e) => setEditingHighlight({ ...editingHighlight, apply_url: e.target.value })} placeholder="رابط التقديم" className="md:col-span-2 bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                        <textarea value={editingHighlight.summary || ''} onChange={(e) => setEditingHighlight({ ...editingHighlight, summary: e.target.value })} placeholder="ملخص قصير" className="md:col-span-2 bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none min-h-24" />
+                        <div className="md:col-span-2 flex gap-2">
+                          <button onClick={handleSaveHighlightEdit} className="px-4 py-2 bg-secondary text-white rounded-xl text-xs font-black">حفظ التعديل</button>
+                          <button onClick={() => { setEditingHighlightId(null); setEditingHighlight({}); }} className="px-4 py-2 bg-gray-100 text-gray-500 rounded-xl text-xs font-black">إلغاء</button>
+                        </div>
+                      </div>
+                    )}
+                  </div>
+                ))}
+                {!highlightLoading && highlightItems.length === 0 && (
+                  <div className="py-12 text-center text-gray-400 font-black text-sm">لا توجد عناصر بهذا الفلتر</div>
+                )}
+              </div>
+            </div>
+
+            <div className="grid md:grid-cols-2 gap-4">
+              <div className="bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-sm">
+                <h3 className="font-black text-secondary mb-4 flex items-center gap-2"><Plus size={18} className="text-primary" /> إضافة يدوية</h3>
+                <div className="space-y-3">
+                  <input value={newHighlight.title} onChange={(e) => setNewHighlight({ ...newHighlight, title: e.target.value })} placeholder="العنوان" className="w-full bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                  <select value={newHighlight.category} onChange={(e) => setNewHighlight({ ...newHighlight, category: e.target.value as HighlightCategory })} className="w-full bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none">
+                    <option value="event">Event</option>
+                    <option value="job">Job</option>
+                    <option value="internship">Internship</option>
+                    <option value="scholarship">Scholarship</option>
+                    <option value="student_club">Student Club</option>
+                  </select>
+                  <input value={newHighlight.organization} onChange={(e) => setNewHighlight({ ...newHighlight, organization: e.target.value })} placeholder="الجهة / النادي / المؤسسة" className="w-full bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                  <input value={newHighlight.governorate} onChange={(e) => setNewHighlight({ ...newHighlight, governorate: e.target.value })} placeholder="المحافظة" className="w-full bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                  <textarea value={newHighlight.summary} onChange={(e) => setNewHighlight({ ...newHighlight, summary: e.target.value })} placeholder="ملخص قصير فقط" className="w-full bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none min-h-24" />
+                  <input value={newHighlight.apply_url} onChange={(e) => setNewHighlight({ ...newHighlight, apply_url: e.target.value })} placeholder="رابط التقديم / التفاصيل" className="w-full bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                  <button onClick={handleCreateHighlight} className="w-full bg-secondary text-white rounded-2xl py-3 text-xs font-black">حفظ كقيد المراجعة</button>
+                </div>
+              </div>
+
+              <div className="bg-white rounded-[2.5rem] p-6 border border-gray-100 shadow-sm">
+                <h3 className="font-black text-secondary mb-4">مصادر الأتمتة</h3>
+                <div className="space-y-3 mb-5">
+                  <input value={newSource.name} onChange={(e) => setNewSource({ ...newSource, name: e.target.value })} placeholder="اسم المصدر" className="w-full bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                  <input value={newSource.source_url} onChange={(e) => setNewSource({ ...newSource, source_url: e.target.value })} placeholder="رابط المصدر العام" className="w-full bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                  <select value={newSource.category} onChange={(e) => setNewSource({ ...newSource, category: e.target.value as HighlightCategory })} className="w-full bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none">
+                    <option value="event">Event</option>
+                    <option value="job">Job</option>
+                    <option value="internship">Internship</option>
+                    <option value="scholarship">Scholarship</option>
+                  </select>
+                  <input value={newSource.governorate_scope} onChange={(e) => setNewSource({ ...newSource, governorate_scope: e.target.value })} placeholder="نطاق المحافظة اختياري" className="w-full bg-surface border border-gray-100 rounded-2xl px-4 py-3 text-xs font-bold outline-none" />
+                  <button onClick={handleCreateSource} className="w-full bg-primary text-secondary rounded-2xl py-3 text-xs font-black">إضافة مصدر</button>
+                </div>
+                <div className="space-y-2 max-h-72 overflow-y-auto">
+                  {highlightSources.map(source => (
+                    <div key={source.id} className="p-3 bg-surface rounded-2xl border border-gray-100">
+                      <div className="flex items-center justify-between gap-3">
+                        <div className="min-w-0">
+                          <p className="font-black text-xs text-secondary">{source.name}</p>
+                          <p className="text-[10px] font-bold text-gray-400 truncate">{source.category} · {source.source_url}</p>
+                        </div>
+                        <button
+                          onClick={() => handleToggleSource(source)}
+                          className={`px-3 py-1.5 rounded-xl text-[10px] font-black ${source.enabled === 1 || source.enabled === true ? 'bg-green-50 text-green-600' : 'bg-gray-100 text-gray-500'}`}
+                        >
+                          {source.enabled === 1 || source.enabled === true ? 'Enabled' : 'Disabled'}
+                        </button>
+                      </div>
+                    </div>
+                  ))}
+                </div>
               </div>
             </div>
           </motion.div>
