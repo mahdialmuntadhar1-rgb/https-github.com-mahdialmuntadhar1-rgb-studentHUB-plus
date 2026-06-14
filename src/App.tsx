@@ -14,6 +14,7 @@ import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
 import { BACKEND_URL } from './lib/api';
+import { firstLocalizedText, localizeCategoryLabel } from './lib/localize';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
 // Public launch mode keeps the first release simple.
@@ -302,17 +303,29 @@ export default function App() {
               const category = item.category || item.type || 'job';
               const actionUrl = item.apply_url || item.source_url || item.application_link;
 
+              const titleEN = firstLocalizedText(item, ['title_en', 'titleEN', 'titleEnglish', 'title'], 'Untitled Opportunity');
+              const titleAR = firstLocalizedText(item, ['title_ar', 'titleAR', 'titleArabic', 'title'], 'فرصة غير معنونة');
+              const titleKU = firstLocalizedText(item, ['title_ku', 'titleKU', 'titleKurdish', 'title_ar', 'titleAR', 'title'], 'هەلی بێ ناونیشان');
+
+              const contentEN = firstLocalizedText(item, ['description_en', 'summary_en', 'contentEN', 'description', 'summary'], 'Check original portal for instructions.');
+              const contentAR = firstLocalizedText(item, ['description_ar', 'summary_ar', 'contentAR', 'description', 'summary'], 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.');
+              const contentKU = firstLocalizedText(item, ['description_ku', 'summary_ku', 'contentKU', 'description_ar', 'summary_ar', 'description', 'summary'], 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.');
+
+              const providerName = firstLocalizedText(item, ['organization_ar', 'institution_name_ar', 'organization', 'institution_name'], 'Opportunity Provider');
+              const locationText = firstLocalizedText(item, ['location_ar', 'city_ar', 'governorate_ar', 'location', 'city', 'governorate'], 'Iraq-wide');
+              const whoCanApplyText = firstLocalizedText(item, ['eligibility_ar', 'whoCanApply_ar', 'eligibility', 'whoCanApply'], 'Iraqi students');
+
               return {
                 id: String(item.id || `scraped-${Date.now()}-${Math.random()}`),
                 type: category as any,
-                titleEN: item.title || item.titleEN || 'Untitled Opportunity',
+                titleEN,
                 titleAR: item.title || item.titleAR || 'ÙØ±ØµØ© ØºÙŠØ± Ù…Ø¹Ù†ÙˆÙ†Ø©',
                 titleKU: item.title || item.titleKU || 'Ù‡Û•Ù„ÛŒ Ø¨ÛŽ Ù†Ø§ÙˆÙ†ÛŒØ´Ø§Ù†',
-                contentEN: item.description || item.summary || item.contentEN || 'Check original portal for instructions.',
+                contentEN,
                 contentAR: item.description || item.summary || item.contentAR || 'ÙŠØ±Ø¬Ù‰ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù…ØµØ¯Ø± Ø§Ù„Ø£ØµÙ„ÙŠ Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„ØªÙ‚Ø¯ÙŠÙ….',
                 contentKU: item.description || item.summary || item.contentKU || 'ØªÚ©Ø§ÛŒÛ• Ø³Û•Ø±Ú†Ø§ÙˆÛ•ÛŒ Ø³Û•Ø±Û•Ú©ÛŒ Ø¨Ø¨ÛŒÙ†Û• Ø¨Û† Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ.',
                 author: {
-                  name: item.organization || item.institution_name || 'Scraped Recruiter',
+                  name: providerName,
                   role: 'institution' as const,
                   avatar: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
                   verified: true
@@ -326,9 +339,9 @@ export default function App() {
                 tags: item.tags || ['opportunity', category],
                 original_source_url: item.source_url,
                 application_link: actionUrl,
-                company: item.organization || item.institution_name,
+                company: providerName,
                 companyLogo: item.institution_logo || 'ðŸ’¼',
-                location: item.location || item.city || item.governorate || 'Iraq-wide',
+                location: locationText,
                 deadline: item.deadline || undefined,
                 imageUrl: item.imageUrl || item.image_url,
                 opportunityCategory: (category === 'internship' ? 'Internship' :
@@ -336,9 +349,9 @@ export default function App() {
                                       category === 'training' ? 'Training' :
                                       category === 'volunteering' ? 'Volunteering' :
                                       category === 'competition' ? 'Competition' :
-                                      category === 'graduation_support' ? 'Graduation project support' : 'Full-time graduate job') as any,
+                                      category === 'graduation_support' ? localizeCategoryLabel('Graduation project support', 'en') : localizeCategoryLabel('Full-time graduate job', 'en')) as any,
                 workplaceType: item.workplaceType || 'On-site',
-                whoCanApply: item.eligibility || item.whoCanApply || 'Iraqi students',
+                whoCanApply: whoCanApplyText,
                 salary: item.salary || item.salary_or_funding || undefined
               };
             });
@@ -353,10 +366,10 @@ export default function App() {
             const mappedHighlights = hList.map((item: any) => ({
               id: String(item.id || `highlight-${Date.now()}-${Math.random()}`),
               type: (item.category || 'news') as any,
-              titleEN: item.title || item.titleEN || 'Campus Notification',
+              titleEN: firstLocalizedText(item, ['title_en', 'titleEN', 'title'], 'Campus Notification'),
               titleAR: item.title || item.titleAR || 'ØªÙ†Ø¨ÙŠÙ‡ Ø¬Ø§Ù…Ø¹ÙŠ',
               titleKU: item.title || item.titleKU || 'Ø¦Ø§Ú¯Ø§Ø¯Ø§Ø±ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±Ø§Ù†',
-              contentEN: item.summary || item.contentEN || 'Check original university channel for details.',
+              contentEN: firstLocalizedText(item, ['summary_en', 'contentEN', 'summary'], 'Check original university channel for details.'),
               contentAR: item.summary || item.contentAR || 'ÙŠØ±Ø¬Ù‰ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù‚Ù†Ø§Ø© Ø§Ù„Ø±Ø³Ù…ÙŠØ© Ù„Ù„Ù…Ø²ÙŠØ¯ Ù…Ù† Ø§Ù„ØªÙØ§ØµÙŠÙ„.',
               contentKU: item.summary || item.contentKU || 'ØªÚ©Ø§ÛŒÛ• Ø³Û•Ø±Ú†Ø§ÙˆÛ•ÛŒ ÙÛ•Ø±Ù…ÛŒ Ø¨Ø¨ÛŒÙ†Û• Ø¨Û† Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ.',
               author: {

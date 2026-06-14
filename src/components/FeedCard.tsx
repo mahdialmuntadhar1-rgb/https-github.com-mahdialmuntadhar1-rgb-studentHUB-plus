@@ -4,6 +4,7 @@ import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
 import { getImageWithFallback } from '../lib/fallbackImages';
+import { cleanLocalizedText, localizeCategoryLabel, localizeFeedDate, localizeLocation, localizeWorkplaceType, translateUi } from '../lib/localize';
 import { 
   Heart, 
   MessageSquare, 
@@ -69,9 +70,15 @@ export default function FeedCard({
   const [editContentKU, setEditContentKU] = useState(item.contentKU || '');
   const [editImage, setEditImage] = useState(item.imageUrl || '');
 
-  // Select proper localized strings
+  // Select proper localized strings and repair broken Arabic mojibake.
   const title = language === 'ar' ? item.titleAR : language === 'ku' ? item.titleKU : item.titleEN;
   const content = language === 'ar' ? item.contentAR : language === 'ku' ? item.contentKU : item.contentEN;
+  const isRTL = language === 'ar' || language === 'ku';
+  const displayTitle = cleanLocalizedText(title || item.titleEN || item.titleAR || item.titleKU);
+  const displayContent = cleanLocalizedText(content || item.contentEN || item.contentAR || item.contentKU);
+  const displayDate = localizeFeedDate(item.date, language);
+  const uiCampusHighlight = translateUi('campusHighlight', language);
+  const uiViewFullscreen = translateUi('viewFullscreen', language);
 
   // Resolve Governorate & University labels
   const matchedUni = IraqiUniversities.find(u => u.id === item.universityId);
@@ -111,10 +118,10 @@ export default function FeedCard({
     if (additionalImages.length === 0) {
       return (
         <div className="group relative rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] transition-all duration-300 shadow-md hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
-          <img src={displayImageUrl} alt={title} className="w-full h-auto max-h-[380px] object-cover" referrerPolicy="no-referrer" />
+          <img src={displayImageUrl} alt={displayTitle} className="w-full h-auto max-h-[380px] object-cover" referrerPolicy="no-referrer" />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between text-white text-[10px] font-black">
-            <span>✨ Campus Highlight</span>
-            <span>View Fullscreen 🔎</span>
+            <span>{uiCampusHighlight}</span>
+            <span>{uiViewFullscreen}</span>
           </div>
         </div>
       );
@@ -125,11 +132,11 @@ export default function FeedCard({
       return (
         <div className="grid grid-cols-5 gap-2 rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] h-48 select-none">
           <div className="col-span-3 h-full relative group cursor-pointer overflow-hidden">
-            <img src={displayImageUrl} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
+            <img src={displayImageUrl} alt={displayTitle} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
             <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors" />
           </div>
           <div className="col-span-2 h-full relative group cursor-pointer overflow-hidden">
-            <img src={additionalImages[0]} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
+            <img src={additionalImages[0]} alt={displayTitle} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
             <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors" />
           </div>
         </div>
@@ -140,15 +147,15 @@ export default function FeedCard({
     return (
       <div className="grid grid-cols-3 gap-2 rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] h-52 select-none">
         <div className="col-span-2 h-full relative group cursor-pointer overflow-hidden">
-          <img src={displayImageUrl} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-550" referrerPolicy="no-referrer" />
+          <img src={displayImageUrl} alt={displayTitle} className="w-full h-full object-cover hover:scale-105 transition-transform duration-550" referrerPolicy="no-referrer" />
           <div className="absolute inset-0 bg-black/5 hover:bg-transparent transition-colors" />
         </div>
         <div className="col-span-1 flex flex-col gap-2 h-full">
           <div className="h-1/2 overflow-hidden relative group cursor-pointer rounded-tr-lg">
-            <img src={additionalImages[0]} alt={title} className="w-full h-full object-cover hover:scale-108 transition-transform duration-500" referrerPolicy="no-referrer" />
+            <img src={additionalImages[0]} alt={displayTitle} className="w-full h-full object-cover hover:scale-108 transition-transform duration-500" referrerPolicy="no-referrer" />
           </div>
           <div className="h-1/2 overflow-hidden relative group cursor-pointer rounded-br-lg">
-            <img src={additionalImages[1]} alt={title} className="w-full h-full object-cover hover:scale-108 transition-transform duration-500" referrerPolicy="no-referrer" />
+            <img src={additionalImages[1]} alt={displayTitle} className="w-full h-full object-cover hover:scale-108 transition-transform duration-500" referrerPolicy="no-referrer" />
           </div>
         </div>
       </div>
@@ -203,6 +210,7 @@ export default function FeedCard({
   };
 
   const badge = getTypeBadge();
+  const displayBadgeText = localizeCategoryLabel(badge.text, language);
 
   // Helper for role translation
   const getRoleLabel = (role: string) => {
@@ -241,7 +249,8 @@ export default function FeedCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.3 }}
-      className={`bg-white rounded-3xl transition-all duration-300 p-5 mb-5 relative flex flex-col ${
+      dir={isRTL ? 'rtl' : 'ltr'}
+      className={`bg-white rounded-3xl transition-all duration-300 p-5 mb-5 relative flex flex-col ${isRTL ? 'text-right' : 'text-left'} ${
         item.author.verified 
           ? 'border-3 border-[#6B25C9] shadow-md shadow-[#6B25C9]/5' 
           : 'border-2 border-[#E6E1F5] hover:border-[#6B25C9] shadow-sm'
@@ -389,7 +398,7 @@ export default function FeedCard({
                   {item.isDemo && (
                     <span className="text-[7px] font-black uppercase bg-cyan-100 text-cyan-700 px-1.5 py-0.5 rounded-md border border-cyan-300 tracking-tight flex items-center gap-0.5 shadow-sm">
                       <Sparkles className="w-3 h-3" />
-                      Demo
+                      {translateUi('demo', language)}
                     </span>
                   )}
                 </div>
@@ -408,7 +417,7 @@ export default function FeedCard({
                     </span>
                   )}
                   <span className="text-slate-300">•</span>
-                  <span className="font-bold text-slate-500 text-[9px]">{item.date}</span>
+                  <span className="font-bold text-slate-500 text-[9px]">{displayDate}</span>
                 </div>
               </div>
             </div>
@@ -442,7 +451,7 @@ export default function FeedCard({
 
               {/* Content Type Badge */}
               <span className={`text-[10px] font-black uppercase tracking-wider px-2.5 py-1 rounded-xl border leading-none bg-[#F7F4FF] ${badge.color}`}>
-                {badge.text}
+                {displayBadgeText}
               </span>
             </div>
           </div>
@@ -452,7 +461,7 @@ export default function FeedCard({
         {/* Localized Title */}
         {title && (
           <h2 className="text-sm font-black text-[#161A33] tracking-tight leading-snug mb-1.5 flex flex-wrap items-center gap-1.5">
-            <span>{title}</span>
+            <span>{displayTitle}</span>
             {['job', 'internship', 'scholarship', 'training', 'part_time_job', 'full_time_job', 'volunteering', 'competition', 'graduation_project_support', 'fellowship', 'event', 'news', 'announcement', 'exam', 'registration', 'student_club', 'activity'].includes(item.type) && (
               <>
                 {(item.date?.includes('Recently') || item.isNew) && (
@@ -483,7 +492,7 @@ export default function FeedCard({
 
         {/* Localized Content Text */}
         <p className="text-xs font-semibold text-slate-700 leading-relaxed break-words whitespace-pre-line mb-3">
-          {content}
+          {displayContent}
         </p>
 
         {item.application_link && !['job', 'internship', 'scholarship', 'training', 'part_time_job', 'full_time_job', 'volunteering', 'competition', 'graduation_project_support', 'fellowship'].includes(item.type) && (
@@ -503,7 +512,7 @@ export default function FeedCard({
         {/* Video simulation */}
         {item.type === 'video' && item.videoThumbnail && (
           <div className="rounded-xl overflow-hidden mb-3 border border-[#1F2E4D] h-48 bg-gray-950 relative flex items-center justify-center">
-            <img src={item.videoThumbnail} alt={title} className="w-full h-full object-cover opacity-70" referrerPolicy="no-referrer" />
+            <img src={item.videoThumbnail} alt={displayTitle} className="w-full h-full object-cover opacity-70" referrerPolicy="no-referrer" />
             <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
               <div className="w-12 h-12 rounded-full bg-white text-indigo-600 flex items-center justify-center shrink-0 shadow-lg cursor-pointer hover:scale-105 active:scale-95 transition-all">
                 <svg className="w-5 h-5 fill-current ml-1" viewBox="0 0 24 24">
@@ -514,7 +523,7 @@ export default function FeedCard({
             {/* Fake Tik Tok / Reels like telemetry overlays */}
             <div className="absolute bottom-2 left-2 text-[10px] bg-[#0B1020]/80 text-white rounded px-1.5 py-0.5 backdrop-blur-sm flex items-center gap-1 border border-[#1F2E4D]">
               <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-              <span>Campus Reels</span>
+              <span>{translateUi('campusReels', language)}</span>
             </div>
           </div>
         )}
@@ -525,7 +534,7 @@ export default function FeedCard({
         {item.type === 'poll' && item.pollOptions && (
           <div className="bg-amber-500/5 p-3 rounded-xl border border-amber-500/20 mb-3 flex flex-col gap-2">
             {item.pollOptions.map((opt) => {
-              const optText = language === 'ar' ? opt.textAR : language === 'ku' ? opt.textKU : opt.textEN;
+              const optText = cleanLocalizedText(language === 'ar' ? opt.textAR : language === 'ku' ? opt.textKU : opt.textEN);
               const hasVoted = !!item.pollVotedId;
               const percentage = Math.round((opt.votes / totalVotes) * 100);
               const isUserSelection = item.pollVotedId === opt.id;
@@ -584,22 +593,22 @@ export default function FeedCard({
                 <div>
                   <div className="flex items-center gap-1.5 flex-wrap">
                     <h4 className="text-[12px] font-black text-[#161A33] leading-tight">
-                      {item.company || 'Iraq Opportunity Provider'}
+                      {cleanLocalizedText(item.company) || translateUi('opportunityProvider', language)}
                     </h4>
                     {(item.companyVerified || item.author.verified) && (
                       <span className="text-[9px] font-extrabold bg-[#FFD21F]/20 text-[#161A33] px-1.5 py-0.2 rounded border border-[#161A33]/10 flex items-center gap-0.5 leading-none shrink-0">
-                        ✓ Verified
+                        ✓ {translateUi('verified', language)}
                       </span>
                     )}
                   </div>
                   <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold mt-1.5">
                     <span className="flex items-center gap-0.5 text-[#2F7CCB]">
                       <MapPin className="w-3 text-[#2F7CCB]" />
-                      {item.location || 'All Iraq'}
+                      {localizeLocation(item.location || 'All Iraq', language)}
                     </span>
                     <span>•</span>
                     <span className="bg-[#6B25C9]/10 text-[#6B25C9] border border-[#6B25C9]/15 px-1.5 py-0.2 rounded text-[9px] font-black">
-                      {item.workplaceType || 'On-site'}
+                      {localizeWorkplaceType(item.workplaceType || 'On-site', language)}
                     </span>
                   </div>
                 </div>
@@ -608,7 +617,7 @@ export default function FeedCard({
               {/* Deadline Tag with youthful animation */}
               {item.deadline && (
                 <div className="text-right shrink-0">
-                  <span className="text-[8px] font-black uppercase tracking-wider text-[#D9272E] block">Deadline</span>
+                  <span className="text-[8px] font-black uppercase tracking-wider text-[#D9272E] block">{translateUi('deadline', language)}</span>
                   <span className="text-[10px] font-extrabold text-[#D9272E] bg-[#D9272E]/10 border border-[#D9272E]/20 px-2 py-0.5 rounded-lg flex items-center gap-0.5 mt-1 animate-pulse">
                     ⏰ {item.deadline}
                   </span>
@@ -621,8 +630,8 @@ export default function FeedCard({
               <div className="bg-amber-50 p-2.5 rounded-lg border-2 border-[#161A33] text-[10px] text-slate-700 leading-relaxed relative z-10 font-bold flex items-start gap-1.5 shadow-[2px_2px_0px_0px_#161A33]">
                 <span className="text-sm shrink-0 leading-none">🎯</span>
                 <div>
-                  <span className="text-amber-700 font-black text-[9px] uppercase tracking-wider block mb-0.5">Who can apply</span>
-                  <span className="text-slate-800 font-extrabold">{item.whoCanApply}</span>
+                  <span className="text-amber-700 font-black text-[9px] uppercase tracking-wider block mb-0.5">{translateUi('whoCanApply', language)}</span>
+                  <span className="text-slate-800 font-extrabold">{cleanLocalizedText(item.whoCanApply)}</span>
                 </div>
               </div>
             )}
@@ -635,17 +644,17 @@ export default function FeedCard({
                 <div className="w-5 h-5 rounded-full bg-white border border-[#161A33] text-[8px] flex items-center justify-center font-bold shadow-sm">✨</div>
               </div>
               <p className="text-[10px] text-emerald-800 font-extrabold leading-tight">
-                {item.universityAppliedCount || 6} students from your university applied
+                {language === 'en' ? `${item.universityAppliedCount || 6} ${translateUi('studentsAppliedSuffix', language)}` : `${translateUi('studentsAppliedPrefix', language)} ${item.universityAppliedCount || 6} ${translateUi('studentsAppliedSuffix', language)}`}
               </p>
             </div>
 
             {/* Saves and Badges Stats tracker */}
             <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold justify-between pt-1">
               <span className="flex items-center gap-1 bg-[#F3F7FF] text-[#161A33] border border-[#E6E1F5] px-2 py-0.5 rounded-md text-[9px] font-black uppercase">
-                🏷️ {item.opportunityCategory || 'Career'}
+                🏷️ {localizeCategoryLabel(item.opportunityCategory || 'Career', language)}
               </span>
               <span className="text-[#6B25C9] flex items-center gap-0.5 bg-[#6B25C9]/10 px-2 py-0.5 rounded-lg text-[9px] font-black">
-                ⭐ {item.savedByUser ? (item.savedCount || 12) + 1 : (item.savedCount || 12)} saved by peers
+                ⭐ {item.savedByUser ? (item.savedCount || 12) + 1 : (item.savedCount || 12)} {translateUi('savedByPeers', language)}
               </span>
             </div>
 
@@ -669,7 +678,7 @@ export default function FeedCard({
                 {item.applied ? (
                   <>
                     <UserCheck className="w-4 h-4 text-emerald-950" />
-                    <span>Applied Successfully!</span>
+                    <span>{translateUi('appliedSuccessfully', language)}</span>
                   </>
                 ) : (
                   <>
@@ -720,7 +729,7 @@ export default function FeedCard({
         {item.type === 'study_group' && (
           <div className="bg-indigo-50 p-3.5 rounded-2xl border-2 border-[#161A33] mb-3 flex flex-col gap-2 shadow-[2px_2px_0px_0px_#161A33]">
             <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
-              <span className="text-[#6B25C9] uppercase text-[9px] tracking-wider font-extrabold">Subject</span>
+              <span className="text-[#6B25C9] uppercase text-[9px] tracking-wider font-extrabold">{translateUi('subject', language)}</span>
               <span className="text-[#161A33] bg-white border border-[#E6E1F5] px-2.5 py-0.5 rounded-md font-black">
                 {item.subject}
               </span>
@@ -729,7 +738,7 @@ export default function FeedCard({
             <div className="flex items-center justify-between border-t border-[#E6E1F5] pt-2 mt-1">
               <span className="text-[10px] text-slate-700 font-bold flex items-center gap-1">
                 <Users className="w-4 h-4 text-[#6B25C9]" />
-                {item.memberCount || 1} studying inside
+                {item.memberCount || 1} {translateUi('studyingInside', language)}
               </span>
 
               <button
@@ -752,7 +761,7 @@ export default function FeedCard({
           <div className="bg-[#F3F7FF] p-3 rounded-2xl border-2 border-[#E6E1F5] mb-3 flex flex-col gap-1.5">
             <div className="flex justify-between items-center text-[10px] font-bold text-[#161A33]">
               <span className="bg-[#FFD21F] text-[#161A33] px-2 py-0.5 rounded-full uppercase text-[8px] font-black shadow-sm">
-                Nearest Campus Asset
+                {translateUi('nearestCampusAsset', language)}
               </span>
               <span className="text-yellow-500 font-extrabold">
                 ★ {item.serviceRating || '5.0'}
