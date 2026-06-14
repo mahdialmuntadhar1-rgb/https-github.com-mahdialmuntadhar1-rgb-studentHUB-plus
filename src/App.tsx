@@ -14,7 +14,7 @@ import OpportunitiesPage from './pages/OpportunitiesPage';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
-import { BACKEND_URL } from './lib/api';
+import { BACKEND_URL, blockUser, getBlockedUsers, reportPost, reportUser } from './lib/api';
 import { firstLocalizedText, localizeCategoryLabel } from './lib/localize';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
@@ -120,8 +120,17 @@ export default function App() {
   // User profile state (gamification & badges tracker)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
     const saved = localStorage.getItem('jamiaati_profile_v2');
-    return saved ? JSON.parse(saved) : defaultUserProfile;
+    const parsed = saved ? JSON.parse(saved) : defaultUserProfile;
+    return { ...defaultUserProfile, ...parsed, profileVisibility: parsed.profileVisibility || 'public' };
   });
+
+  const [blockedUserIds, setBlockedUserIds] = useState<string[]>([]);
+
+  useEffect(() => {
+    getBlockedUsers()
+      .then(blocks => setBlockedUserIds(blocks.map(block => block.blocked_user_id)))
+      .catch(() => setBlockedUserIds([]));
+  }, []);
 
   // Sync to local states - save only user-created custom posts
   useEffect(() => {
@@ -326,11 +335,13 @@ export default function App() {
                 contentAR: item.description || item.summary || item.contentAR || 'ÙŠØ±Ø¬Ù‰ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù…ØµØ¯Ø± Ø§Ù„Ø£ØµÙ„ÙŠ Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„ØªÙ‚Ø¯ÙŠÙ….',
                 contentKU: item.description || item.summary || item.contentKU || 'ØªÚ©Ø§ÛŒÛ• Ø³Û•Ø±Ú†Ø§ÙˆÛ•ÛŒ Ø³Û•Ø±Û•Ú©ÛŒ Ø¨Ø¨ÛŒÙ†Û• Ø¨Û† Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ.',
                 author: {
+                  id: providerName,
                   name: providerName,
                   role: 'institution' as const,
                   avatar: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
                   verified: true
                 },
+                authorId: providerName,
                 date: item.published_date ? `Posted on ${item.published_date}` : 'Recently posted ðŸ””',
                 likes: item.likes || 12,
                 commentsCount: 0,
@@ -374,11 +385,13 @@ export default function App() {
               contentAR: item.summary || item.contentAR || 'ÙŠØ±Ø¬Ù‰ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù‚Ù†Ø§Ø© Ø§Ù„Ø±Ø³Ù…ÙŠØ© Ù„Ù„Ù…Ø²ÙŠØ¯ Ù…Ù† Ø§Ù„ØªÙØ§ØµÙŠÙ„.',
               contentKU: item.summary || item.contentKU || 'ØªÚ©Ø§ÛŒÛ• Ø³Û•Ø±Ú†Ø§ÙˆÛ•ÛŒ ÙÛ•Ø±Ù…ÛŒ Ø¨Ø¨ÛŒÙ†Û• Ø¨Û† Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ.',
               author: {
+                id: item.organization || item.source_name || 'Academic Center Feed',
                 name: item.organization || 'Academic Center Feed',
                 role: 'institution' as const,
                 avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
                 verified: true
               },
+              authorId: item.organization || item.source_name || 'Academic Center Feed',
               date: item.created_at ? `Posted on ${new Date(item.created_at).toLocaleDateString()}` : 'Recently posted ðŸ””',
               likes: item.likes || 15,
               commentsCount: 0,
@@ -476,12 +489,80 @@ export default function App() {
     );
   };
 
+  const getItemAuthorSafetyId = (item: FeedItem) => item.authorId || item.author.id || item.author.name;
+
+  const isOwnFeedItem = (item: FeedItem) => {
+    return item.authorId === userProfile.id ||
+      item.author.id === userProfile.id ||
+      (String(item.id).startsWith('custom-') && item.author.name === userProfile.name);
+  };
+
   const handleDeleteFeedItem = (id: string) => {
+    const target = feedItems.find(item => item.id === id);
+    if (!target) return;
+
+    const canDelete = isOwnFeedItem(target) || (!PUBLIC_LAUNCH_MODE && userProfile.role === 'staff');
+    if (!canDelete) {
+      showToast(language === 'ar' ? 'يمكنك حذف منشوراتك فقط.' : language === 'ku' ? 'تەنها دەتوانیت بابەتەکانی خۆت بسڕیتەوە.' : 'You can delete only your own posts.', 'error');
+      return;
+    }
+
     setFeedItems(prev => prev.filter(item => item.id !== id));
     showToast(
-      language === 'ar' ? 'ØªÙ… Ø­Ø°Ù Ø§Ù„Ù…Ù†Ø´ÙˆØ± Ø¨Ù†Ø¬Ø§Ø­! ðŸ—‘ï¸' : 'Post deleted successfully by admin! ðŸ—‘ï¸', 
+      language === 'ar' ? 'تم حذف المنشور.' : language === 'ku' ? 'بابەتەکە سڕایەوە.' : 'Post deleted.',
       'success'
     );
+  };
+
+  const handleReportPost = async (item: FeedItem) => {
+    try {
+      await reportPost({
+        reporter_user_id: userProfile.id,
+        reported_user_id: getItemAuthorSafetyId(item),
+        post_id: item.id,
+        reason: 'other',
+        details: `Reported from card: ${item.titleEN || item.titleAR || item.titleKU || item.id}`
+      });
+      showToast(language === 'ar' ? 'تم إرسال البلاغ.' : language === 'ku' ? 'ڕاپۆرتەکە نێردرا.' : 'Report submitted.', 'success');
+    } catch {
+      showToast(language === 'ar' ? 'تعذر إرسال البلاغ الآن.' : language === 'ku' ? 'ئێستا ناتوانرێت ڕاپۆرت بنێردرێت.' : 'Could not submit report right now.', 'error');
+    }
+  };
+
+  const handleReportUser = async (item: FeedItem) => {
+    try {
+      await reportUser({
+        reporter_user_id: userProfile.id,
+        reported_user_id: getItemAuthorSafetyId(item),
+        reason: 'other',
+        details: `Reported user from post ${item.id}`
+      });
+      showToast(language === 'ar' ? 'تم إرسال البلاغ.' : language === 'ku' ? 'ڕاپۆرتەکە نێردرا.' : 'Report submitted.', 'success');
+    } catch {
+      showToast(language === 'ar' ? 'تعذر إرسال البلاغ الآن.' : language === 'ku' ? 'ئێستا ناتوانرێت ڕاپۆرت بنێردرێت.' : 'Could not submit report right now.', 'error');
+    }
+  };
+
+  const handleBlockUser = async (item: FeedItem) => {
+    const blockedId = getItemAuthorSafetyId(item);
+    if (!blockedId || blockedId === userProfile.id) return;
+
+    try {
+      await blockUser({
+        blocker_user_id: userProfile.id,
+        blocked_user_id: blockedId,
+        reason: `Blocked from post ${item.id}`
+      });
+      setBlockedUserIds(prev => Array.from(new Set([...prev, blockedId])));
+      showToast(language === 'ar' ? 'تم حظر المستخدم وإخفاء منشوراته.' : language === 'ku' ? 'بەکارهێنەرەکە بلۆک کرا و بابەتەکانی شاردەوە.' : 'User blocked and posts hidden.', 'success');
+    } catch {
+      showToast(language === 'ar' ? 'تعذر الحظر الآن.' : language === 'ku' ? 'ئێستا بلۆککردن نەکرا.' : 'Could not block user right now.', 'error');
+    }
+  };
+
+  const handleUpdateProfileVisibility = (visibility: UserProfile['profileVisibility']) => {
+    setUserProfile(prev => ({ ...prev, profileVisibility: visibility || 'public' }));
+    showToast(language === 'ar' ? 'تم تحديث ظهور الملف الشخصي.' : language === 'ku' ? 'دیاریبوونی پرۆفایل نوێکرایەوە.' : 'Profile visibility updated.', 'success');
   };
 
   const handleSave = (id: string) => {
@@ -672,11 +753,13 @@ export default function App() {
       contentAR: body,
       contentKU: body,
       imageUrl: imageUrl || undefined,
+      authorId: userProfile.id,
       author: anonymous ? {
         name: 'Anonymous Student',
         role: 'student',
         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100'
       } : {
+        id: userProfile.id,
         name: userProfile.name,
         role: userProfile.role,
         avatar: userProfile.avatar,
@@ -744,7 +827,9 @@ export default function App() {
     return matchesGov && matchesUni;
   };
 
-  const filteredFeedItems = feedItems.filter(matchesGovAndUni);
+  const isNotBlocked = (item: FeedItem) => !blockedUserIds.includes(getItemAuthorSafetyId(item));
+  const visibleFeedItems = feedItems.filter(isNotBlocked);
+  const filteredFeedItems = visibleFeedItems.filter(matchesGovAndUni);
 
   // Active filter helper callbacks
   const handleShowAllLife = () => {
@@ -789,6 +874,11 @@ export default function App() {
           onAddComment={handleAddComment}
           onEditFeedItem={handleEditFeedItem}
           onDeleteFeedItem={handleDeleteFeedItem}
+          onReportPost={handleReportPost}
+          onReportUser={handleReportUser}
+          onBlockUser={handleBlockUser}
+          currentUserId={userProfile.id}
+          currentUserName={userProfile.name}
           isAdminMode={!PUBLIC_LAUNCH_MODE && userProfile.role === 'staff'}
         />
       );
@@ -822,6 +912,11 @@ export default function App() {
             onRetryInstitutions={handleRetryInstitutions}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
+            onReportPost={handleReportPost}
+            onReportUser={handleReportUser}
+            onBlockUser={handleBlockUser}
+            currentUserId={userProfile.id}
+            currentUserName={userProfile.name}
             isAdminMode={!PUBLIC_LAUNCH_MODE && userProfile.role === 'staff'}
             onSelectSection={setSelectedSection}
           />
@@ -844,6 +939,11 @@ export default function App() {
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
+            onReportPost={handleReportPost}
+            onReportUser={handleReportUser}
+            onBlockUser={handleBlockUser}
+            currentUserId={userProfile.id}
+            currentUserName={userProfile.name}
             isAdminMode={!PUBLIC_LAUNCH_MODE && userProfile.role === 'staff'}
           />
         );
@@ -865,6 +965,11 @@ export default function App() {
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
+            onReportPost={handleReportPost}
+            onReportUser={handleReportUser}
+            onBlockUser={handleBlockUser}
+            currentUserId={userProfile.id}
+            currentUserName={userProfile.name}
             isAdminMode={!PUBLIC_LAUNCH_MODE && userProfile.role === 'staff'}
           />
         );
@@ -886,6 +991,11 @@ export default function App() {
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
+            onReportPost={handleReportPost}
+            onReportUser={handleReportUser}
+            onBlockUser={handleBlockUser}
+            currentUserId={userProfile.id}
+            currentUserName={userProfile.name}
             isAdminMode={!PUBLIC_LAUNCH_MODE && userProfile.role === 'staff'}
           />
         );
@@ -893,7 +1003,7 @@ export default function App() {
         return (
           <ProfileView
             user={userProfile}
-            feedItems={feedItems}
+            feedItems={visibleFeedItems}
             language={language}
             onLike={handleLike}
             onSave={handleSave}
@@ -916,6 +1026,10 @@ export default function App() {
             onNavigateAdmin={PUBLIC_LAUNCH_MODE ? undefined : () => setActiveTab('admin')}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
+            onReportPost={handleReportPost}
+            onReportUser={handleReportUser}
+            onBlockUser={handleBlockUser}
+            onUpdateProfileVisibility={handleUpdateProfileVisibility}
             isAdminMode={!PUBLIC_LAUNCH_MODE && userProfile.role === 'staff'}
           />
         );

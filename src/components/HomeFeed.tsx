@@ -33,6 +33,11 @@ interface HomeFeedProps {
   onRetryInstitutions?: () => void;
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
   onDeleteFeedItem?: (id: string) => void;
+  onReportPost?: (item: FeedItem) => void | Promise<void>;
+  onReportUser?: (item: FeedItem) => void | Promise<void>;
+  onBlockUser?: (item: FeedItem) => void | Promise<void>;
+  currentUserId?: string;
+  currentUserName?: string;
   isAdminMode?: boolean;
   onSelectSection?: (sectionId: string) => void;
 }
@@ -97,6 +102,11 @@ export default function HomeFeed({
   onRetryInstitutions,
   onEditFeedItem,
   onDeleteFeedItem,
+  onReportPost,
+  onReportUser,
+  onBlockUser,
+  currentUserId,
+  currentUserName,
   isAdminMode = false,
   onSelectSection
 }: HomeFeedProps) {
@@ -931,6 +941,11 @@ export default function HomeFeed({
               onAddComment={onAddComment}
               onEditFeedItem={onEditFeedItem}
               onDeleteFeedItem={onDeleteFeedItem}
+              onReportPost={onReportPost}
+              onReportUser={onReportUser}
+              onBlockUser={onBlockUser}
+              currentUserId={currentUserId}
+              currentUserName={currentUserName}
               isAdminMode={isAdminMode}
             />
           ))

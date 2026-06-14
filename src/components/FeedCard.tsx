@@ -22,7 +22,10 @@ import {
   Send,
   HelpCircle,
   Hash,
-  Sparkles
+  Sparkles,
+  Flag,
+  ShieldOff,
+  Trash2
 } from 'lucide-react';
 
 interface FeedCardProps {
@@ -39,6 +42,11 @@ interface FeedCardProps {
   allPostsHighlightDisabled?: boolean;
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
   onDeleteFeedItem?: (id: string) => void;
+  onReportPost?: (item: FeedItem) => void | Promise<void>;
+  onReportUser?: (item: FeedItem) => void | Promise<void>;
+  onBlockUser?: (item: FeedItem) => void | Promise<void>;
+  currentUserId?: string;
+  currentUserName?: string;
   isAdminMode?: boolean;
 }
 
@@ -54,11 +62,17 @@ export default function FeedCard({
   onAddComment,
   onEditFeedItem,
   onDeleteFeedItem,
+  onReportPost,
+  onReportUser,
+  onBlockUser,
+  currentUserId,
+  currentUserName,
   isAdminMode = false
 }: FeedCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [copied, setCopied] = useState(false);
+  const [safetyMessage, setSafetyMessage] = useState('');
 
   // Administrative local edit states
   const [isEditingFeed, setIsEditingFeed] = useState(false);
@@ -79,6 +93,62 @@ export default function FeedCard({
   const displayDate = localizeFeedDate(item.date, language);
   const uiCampusHighlight = translateUi('campusHighlight', language);
   const uiViewFullscreen = translateUi('viewFullscreen', language);
+  const authorSafetyId = item.authorId || item.author.id || item.author.name;
+  const isOwnPost = !!currentUserId && (
+    item.authorId === currentUserId ||
+    item.author.id === currentUserId ||
+    (String(item.id).startsWith('custom-') && !!currentUserName && item.author.name === currentUserName)
+  );
+  const canUseUserSafetyActions = !!authorSafetyId && !isOwnPost && item.type !== 'anonymous_question';
+
+  const showTemporarySafetyMessage = (text: string) => {
+    setSafetyMessage(text);
+    window.setTimeout(() => setSafetyMessage(''), 3000);
+  };
+
+  const handleReportPostClick = async () => {
+    const confirmText = language === 'ar'
+      ? 'هل تريد إرسال بلاغ عن هذا المنشور؟'
+      : language === 'ku'
+        ? 'دەتەوێت ڕاپۆرت لەسەر ئەم بابەتە بنێریت؟'
+        : 'Report this post for review?';
+    if (!window.confirm(confirmText)) return;
+    await onReportPost?.(item);
+    showTemporarySafetyMessage(language === 'ar' ? 'تم إرسال البلاغ.' : language === 'ku' ? 'ڕاپۆرتەکە نێردرا.' : 'Report submitted.');
+  };
+
+  const handleReportUserClick = async () => {
+    const confirmText = language === 'ar'
+      ? 'هل تريد إرسال بلاغ عن هذا المستخدم؟'
+      : language === 'ku'
+        ? 'دەتەوێت ڕاپۆرت لەسەر ئەم بەکارهێنەرە بنێریت؟'
+        : 'Report this user for review?';
+    if (!window.confirm(confirmText)) return;
+    await onReportUser?.(item);
+    showTemporarySafetyMessage(language === 'ar' ? 'تم إرسال البلاغ.' : language === 'ku' ? 'ڕاپۆرتەکە نێردرا.' : 'Report submitted.');
+  };
+
+  const handleBlockUserClick = async () => {
+    const confirmText = language === 'ar'
+      ? 'حظر هذا المستخدم سيخفي منشوراته من جهازك. متابعة؟'
+      : language === 'ku'
+        ? 'بلۆککردن بابەتەکانی لە ئامێرەکەت دەشارێتەوە. بەردەوام بیت؟'
+        : 'Block this user and hide their posts locally?';
+    if (!window.confirm(confirmText)) return;
+    await onBlockUser?.(item);
+    showTemporarySafetyMessage(language === 'ar' ? 'تم حظر المستخدم.' : language === 'ku' ? 'بەکارهێنەرەکە بلۆک کرا.' : 'User blocked.');
+  };
+
+  const handleOwnDeleteClick = () => {
+    const confirmText = language === 'ar'
+      ? 'حذف منشورك من هذا الجهاز؟'
+      : language === 'ku'
+        ? 'بابەتەکەت لەم ئامێرە بسڕدرێتەوە؟'
+        : 'Delete your post from this device?';
+    if (window.confirm(confirmText)) {
+      onDeleteFeedItem?.(item.id);
+    }
+  };
 
   // Resolve Governorate & University labels
   const matchedUni = IraqiUniversities.find(u => u.id === item.universityId);
@@ -423,6 +493,17 @@ export default function FeedCard({
             </div>
 
             <div className="flex items-center gap-1.5 flex-wrap">
+              {!isAdminMode && isOwnPost && onDeleteFeedItem && (
+                <button
+                  onClick={handleOwnDeleteClick}
+                  className="p-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-700 rounded-lg text-[9px] font-black border border-red-200 cursor-pointer shadow-sm uppercase shrink-0 flex items-center gap-1"
+                  title={language === 'ar' ? 'حذف منشوري' : language === 'ku' ? 'سڕینەوەی بابەتم' : 'Delete my post'}
+                >
+                  <Trash2 className="w-3 h-3" />
+                  <span>{language === 'ar' ? 'حذف' : language === 'ku' ? 'سڕینەوە' : 'Delete'}</span>
+                </button>
+              )}
+
               {isAdminMode && (
                 <div className="flex items-center gap-1.5 border border-[#161A33]/10 bg-[#FAF9FF] p-1 rounded-xl shadow-xs" id={`card-admin-row-${item.id}`}>
                   <span className="text-[8.5px] font-black bg-[#6B25C9] text-white px-2 py-0.5 rounded-md leading-none select-none">
@@ -455,6 +536,43 @@ export default function FeedCard({
               </span>
             </div>
           </div>
+
+          {(onReportPost || onReportUser || onBlockUser) && (
+            <div className="flex flex-wrap items-center gap-1.5 mb-3 -mt-1 text-[9px] font-black text-slate-500" id={`card-safety-actions-${item.id}`}>
+              {onReportPost && !isOwnPost && (
+                <button
+                  onClick={handleReportPostClick}
+                  className="px-2 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 cursor-pointer transition-colors flex items-center gap-1"
+                >
+                  <Flag className="w-3 h-3" />
+                  <span>{language === 'ar' ? 'بلاغ منشور' : language === 'ku' ? 'ڕاپۆرتی بابەت' : 'Report post'}</span>
+                </button>
+              )}
+              {onReportUser && canUseUserSafetyActions && (
+                <button
+                  onClick={handleReportUserClick}
+                  className="px-2 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-amber-50 hover:text-amber-700 hover:border-amber-200 cursor-pointer transition-colors flex items-center gap-1"
+                >
+                  <Flag className="w-3 h-3" />
+                  <span>{language === 'ar' ? 'بلاغ مستخدم' : language === 'ku' ? 'ڕاپۆرتی بەکارهێنەر' : 'Report user'}</span>
+                </button>
+              )}
+              {onBlockUser && canUseUserSafetyActions && (
+                <button
+                  onClick={handleBlockUserClick}
+                  className="px-2 py-1 rounded-lg border border-slate-200 bg-slate-50 hover:bg-red-50 hover:text-red-700 hover:border-red-200 cursor-pointer transition-colors flex items-center gap-1"
+                >
+                  <ShieldOff className="w-3 h-3" />
+                  <span>{language === 'ar' ? 'حظر' : language === 'ku' ? 'بلۆک' : 'Block'}</span>
+                </button>
+              )}
+              {safetyMessage && (
+                <span className="text-emerald-700 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-lg">
+                  {safetyMessage}
+                </span>
+              )}
+            </div>
+          )}
 
       {/* Main Body */}
       <div className="flex-1" id={`card-body-${item.id}`}>

@@ -24,6 +24,10 @@ interface ProfileViewProps {
   onNavigateAdmin?: () => void;
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
   onDeleteFeedItem?: (id: string) => void;
+  onReportPost?: (item: FeedItem) => void | Promise<void>;
+  onReportUser?: (item: FeedItem) => void | Promise<void>;
+  onBlockUser?: (item: FeedItem) => void | Promise<void>;
+  onUpdateProfileVisibility?: (visibility: UserProfile['profileVisibility']) => void;
   isAdminMode?: boolean;
 }
 
@@ -45,6 +49,10 @@ export default function ProfileView({
   onNavigateAdmin,
   onEditFeedItem,
   onDeleteFeedItem,
+  onReportPost,
+  onReportUser,
+  onBlockUser,
+  onUpdateProfileVisibility,
   isAdminMode = false
 }: ProfileViewProps) {
   const [activeTab, setActiveTab] = useState<'bookmarks' | 'activities'>('bookmarks');
@@ -62,6 +70,7 @@ export default function ProfileView({
 
   const bio = language === 'ar' ? user.bioAR : language === 'ku' ? user.bioKU : user.bioEN;
   const major = language === 'ar' ? user.majorAR : language === 'ku' ? user.majorKU : user.majorEN;
+  const profileVisibility = user.profileVisibility || 'public';
 
   // Bookmarked / Saved Items selector
   const bookmarkedItems = feedItems.filter(item => item.savedByUser);
@@ -181,6 +190,21 @@ export default function ProfileView({
           "{bio}"
         </div>
 
+        <div className="mt-3 bg-[#101726]/70 border border-[#1F2E4D] rounded-2xl p-3 text-left" id="profile-visibility-control">
+          <label className="text-[9px] font-black uppercase tracking-wider text-cyan-400 block mb-1.5">
+            {language === 'ar' ? 'ظهور الملف الشخصي' : language === 'ku' ? 'دیاریبوونی پرۆفایل' : 'Profile visibility'}
+          </label>
+          <select
+            value={profileVisibility}
+            onChange={(event) => onUpdateProfileVisibility?.(event.target.value as UserProfile['profileVisibility'])}
+            className="w-full bg-[#0B1020] border border-[#1F2E4D] rounded-xl px-3 py-2 text-[11px] font-bold text-white focus:outline-none focus:border-cyan-400"
+          >
+            <option value="public">{language === 'ar' ? 'عام' : language === 'ku' ? 'گشتی' : 'Public'}</option>
+            <option value="university_only">{language === 'ar' ? 'للجامعة فقط' : language === 'ku' ? 'تەنها زانکۆ' : 'University only'}</option>
+            <option value="private">{language === 'ar' ? 'خاص' : language === 'ku' ? 'تایبەت' : 'Private'}</option>
+          </select>
+        </div>
+
         {/* Gamified stats panel */}
         <div className="grid grid-cols-2 gap-3 mt-4.5 pt-3.5 border-t border-[#1F2E4D]">
           <div className="bg-[#16223F] p-3 rounded-2xl border border-cyan-500/15 text-center shadow-inner">
@@ -261,6 +285,11 @@ export default function ProfileView({
                 onAddComment={onAddComment}
                 onEditFeedItem={onEditFeedItem}
                 onDeleteFeedItem={onDeleteFeedItem}
+                onReportPost={onReportPost}
+                onReportUser={onReportUser}
+                onBlockUser={onBlockUser}
+                currentUserId={user.id}
+                currentUserName={user.name}
                 isAdminMode={isAdminMode}
               />
             ))
@@ -287,6 +316,11 @@ export default function ProfileView({
                 onAddComment={onAddComment}
                 onEditFeedItem={onEditFeedItem}
                 onDeleteFeedItem={onDeleteFeedItem}
+                onReportPost={onReportPost}
+                onReportUser={onReportUser}
+                onBlockUser={onBlockUser}
+                currentUserId={user.id}
+                currentUserName={user.name}
                 isAdminMode={isAdminMode}
               />
             ))
