@@ -34,8 +34,29 @@ export default {
   async fetch(request: Request, env: Env, ctx: any): Promise<Response> {
     const url = new URL(request.url);
 
+    if (request.method === "OPTIONS") {
+      return jsonResponse({ ok: true });
+    }
+
     if (url.pathname === "/api/health" && request.method === "GET") {
       return jsonResponse({ status: "ok", worker: "rafid-api", time: new Date().toISOString() });
+    }
+
+    if (url.pathname === "/api/auth/register" && request.method === "POST") {
+      return handleRegister(request, env);
+    }
+
+    if (url.pathname === "/api/auth/login" && request.method === "POST") {
+      return handleLogin(request, env);
+    }
+
+    if (url.pathname === "/api/auth/me" && request.method === "GET") {
+      const user = await requireWorkerAuth(request, env);
+      return user instanceof Response ? user : jsonResponse({ user: publicUser(user) });
+    }
+
+    if (url.pathname === "/api/auth/forgot-password" && request.method === "POST") {
+      return handleForgotPassword(request, env);
     }
 
     if (url.pathname === "/api/institutions" && request.method === "GET") {
@@ -51,6 +72,24 @@ export default {
     if ((url.pathname === "/api/opportunities" || url.pathname === "/api/highlights") && request.method === "GET") {
       const kind = url.pathname.endsWith("/highlights") ? "highlights" : "opportunities";
       return jsonResponse(await getPublicFeed(env, url, kind));
+    }
+
+    if (url.pathname === "/api/admin/portal-settings" && request.method === "GET") {
+      return jsonResponse({ settings: await getPortalSettings(env) });
+    }
+
+    if (url.pathname === "/api/admin/portal-settings" && request.method === "PATCH") {
+      const user = await requireWorkerAdmin(request, env);
+      if (user instanceof Response) return user;
+      const body = await readJson(request);
+      const settings = await savePortalSettings(env, body?.settings || body || {}, user.id);
+      return jsonResponse({ success: true, settings });
+    }
+
+    if (url.pathname.startsWith("/api/opportunity-automation")) {
+      const user = await requireWorkerAdmin(request, env);
+      if (user instanceof Response) return user;
+      return handleAutomationRequest(request, env, url, user);
     }
 
     // Enforce POST security or manual triggers
@@ -78,8 +117,175 @@ export default {
 function jsonResponse(data: any, status = 200) {
   return new Response(JSON.stringify(data), {
     status,
-    headers: { "Content-Type": "application/json" }
+    headers: {
+      "Content-Type": "application/json",
+      "Access-Control-Allow-Origin": "*",
+      "Access-Control-Allow-Headers": "Content-Type, Authorization",
+      "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS"
+    }
   });
+}
+
+async function readJson(request: Request) {
+  try {
+    return await request.json();
+  } catch {
+    return {};
+  }
+}
+
+function base64UrlEncode(bytes: ArrayBuffer | Uint8Array | string) {
+  const source = typeof bytes === "string" ? new TextEncoder().encode(bytes) : bytes instanceof Uint8Array ? bytes : new Uint8Array(bytes);
+  let binary = "";
+  source.forEach((byte) => binary += String.fromCharCode(byte));
+  return btoa(binary).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/g, "");
+}
+
+function base64UrlDecode(value: string) {
+  const normalized = value.replace(/-/g, "+").replace(/_/g, "/").padEnd(Math.ceil(value.length / 4) * 4, "=");
+  const binary = atob(normalized);
+  return Uint8Array.from(binary, char => char.charCodeAt(0));
+}
+
+async function hmacSha256(secret: string, value: string) {
+  const key = await crypto.subtle.importKey(
+    "raw",
+    new TextEncoder().encode(secret),
+    { name: "HMAC", hash: "SHA-256" },
+    false,
+    ["sign"]
+  );
+  return crypto.subtle.sign("HMAC", key, new TextEncoder().encode(value));
+}
+
+async function signToken(env: Env, user: any) {
+  const secret = env.JWT_SECRET;
+  if (!secret) throw new Error("JWT_SECRET is not configured.");
+  const now = Math.floor(Date.now() / 1000);
+  const header = base64UrlEncode(JSON.stringify({ alg: "HS256", typ: "JWT" }));
+  const payload = base64UrlEncode(JSON.stringify({
+    sub: user.id,
+    email: user.email,
+    role: user.role,
+    name: user.name,
+    iat: now,
+    exp: now + 60 * 60 * 24 * 7
+  }));
+  const signature = base64UrlEncode(await hmacSha256(secret, `${header}.${payload}`));
+  return `${header}.${payload}.${signature}`;
+}
+
+async function verifyToken(env: Env, token: string) {
+  try {
+    const secret = env.JWT_SECRET;
+    if (!secret) return null;
+    const [header, payload, signature] = token.split(".");
+    if (!header || !payload || !signature) return null;
+    const expected = base64UrlEncode(await hmacSha256(secret, `${header}.${payload}`));
+    if (expected !== signature) return null;
+    const claims = JSON.parse(new TextDecoder().decode(base64UrlDecode(payload)));
+    if (!claims.exp || claims.exp < Math.floor(Date.now() / 1000)) return null;
+    return claims;
+  } catch {
+    return null;
+  }
+}
+
+function getBearerToken(request: Request) {
+  const header = request.headers.get("authorization") || "";
+  const match = header.match(/^Bearer\s+(.+)$/i);
+  return match ? match[1] : null;
+}
+
+async function hashPassword(password: string, salt = crypto.getRandomValues(new Uint8Array(16))) {
+  const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
+  const bits = await crypto.subtle.deriveBits(
+    { name: "PBKDF2", salt, iterations: 210000, hash: "SHA-256" },
+    key,
+    256
+  );
+  return `pbkdf2:${base64UrlEncode(salt)}:${base64UrlEncode(bits)}`;
+}
+
+async function verifyPassword(password: string, storedHash: string) {
+  const [scheme, saltText, hashText] = String(storedHash || "").split(":");
+  if (scheme !== "pbkdf2" || !saltText || !hashText) return false;
+  const candidate = await hashPassword(password, base64UrlDecode(saltText));
+  return candidate === storedHash;
+}
+
+function publicUser(user: any) {
+  return { id: user.id, name: user.name, email: user.email, role: user.role };
+}
+
+async function findUserByEmail(env: Env, email: string) {
+  return env.DB.prepare("SELECT * FROM users WHERE lower(email) = lower(?) LIMIT 1").bind(email).first();
+}
+
+async function requireWorkerAuth(request: Request, env: Env) {
+  const token = getBearerToken(request);
+  if (!token) return jsonResponse({ error: "Authentication required." }, 401);
+  const claims = await verifyToken(env, token);
+  if (!claims?.sub) return jsonResponse({ error: "Authentication required." }, 401);
+  const user = await env.DB.prepare("SELECT * FROM users WHERE id = ? LIMIT 1").bind(claims.sub).first();
+  return user || jsonResponse({ error: "Authentication required." }, 401);
+}
+
+async function requireWorkerAdmin(request: Request, env: Env) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+  return ["staff", "admin", "super_admin"].includes(user.role)
+    ? user
+    : jsonResponse({ error: "Admin access only." }, 403);
+}
+
+async function handleRegister(request: Request, env: Env) {
+  const body: any = await readJson(request);
+  const name = String(body.name || "").trim();
+  const email = String(body.email || "").trim().toLowerCase();
+  const password = String(body.password || "");
+  if (!name || !email.includes("@") || password.length < 6) {
+    return jsonResponse({ error: "Name, valid email, and password with at least 6 characters are required." }, 400);
+  }
+  if (await findUserByEmail(env, email)) {
+    return jsonResponse({ error: "Email already exists." }, 409);
+  }
+  const user = {
+    id: `user-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+    name,
+    email,
+    role: "student",
+    passwordHash: await hashPassword(password),
+    createdAt: new Date().toISOString()
+  };
+  await env.DB.prepare(
+    "INSERT INTO users (id, name, email, role, passwordHash, createdAt) VALUES (?, ?, ?, ?, ?, ?)"
+  ).bind(user.id, user.name, user.email, user.role, user.passwordHash, user.createdAt).run();
+  return jsonResponse({ token: await signToken(env, user), user: publicUser(user) }, 201);
+}
+
+async function handleLogin(request: Request, env: Env) {
+  const body: any = await readJson(request);
+  const email = String(body.email || "").trim().toLowerCase();
+  const password = String(body.password || "");
+  const user = await findUserByEmail(env, email);
+  if (!user || !(await verifyPassword(password, user.passwordHash))) {
+    return jsonResponse({ error: "Invalid email or password." }, 401);
+  }
+  return jsonResponse({ token: await signToken(env, user), user: publicUser(user) });
+}
+
+async function handleForgotPassword(request: Request, env: Env) {
+  const body: any = await readJson(request);
+  const email = String(body.email || "").trim().toLowerCase();
+  if (!email.includes("@")) return jsonResponse({ error: "Valid email is required." }, 400);
+  const user = await findUserByEmail(env, email);
+  if (user) {
+    await env.DB.prepare(
+      "INSERT INTO passwordResets (id, userId, email, tokenHash, mode, createdAt) VALUES (?, ?, ?, ?, 'DRY_RUN', ?)"
+    ).bind(`reset-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`, user.id, email, await hashPassword(crypto.randomUUID()), new Date().toISOString()).run();
+  }
+  return jsonResponse({ success: true, dryRun: true, message: "Password reset email is simulated in DRY_RUN mode. No real email was sent." });
 }
 
 async function getPublicFeed(env: Env, url: URL, kind: "opportunities" | "highlights") {
@@ -118,6 +324,246 @@ async function getPublicFeed(env: Env, url: URL, kind: "opportunities" | "highli
       hasMore: offset + items.length < total
     }
   };
+}
+
+const DEFAULT_PORTAL_SETTINGS = {
+  heroImage: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600",
+  heroTitle: {
+    en: "Master Your Campus Journey!",
+    ar: "تميّز وابنِ مستقبلك الأكاديمي!",
+    ku: "داهاتوویەکی پڕشنگدار بنيات بنێ!"
+  },
+  heroDescription: {
+    en: "The ultimate collegiate hub for premium opportunities & academic resources",
+    ar: "البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب",
+    ku: "یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق"
+  },
+  heroTag: {
+    en: "PORTAL ACCELERATION",
+    ar: "بوابة هويتنا الأكاديمية",
+    ku: "دەروازەی ئەکادیمی عێراق"
+  },
+  defaultStories: [
+    { id: "story-sara", name: "Sara Ahmed", avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200", text: "Morning lab session checking microscopic cells! 🔬" },
+    { id: "story-mustafa", name: "Mustafa Ali", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200", text: "Building our AI-powered student assistant with Gemini API! 🤖🚀" },
+    { id: "story-rawan", name: "Rawan Omer", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200", text: "Sunset over Mount Goizha from campus was stunning today! 🌄☕" },
+    { id: "story-ali", name: "Ali Jabbar", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200", text: "Long shift in clinical practice! Basra Heat is here but we keep smiling! 🩺🥤" },
+    { id: "story-zahid", name: "Noor Al-Huda", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200", text: "Setting up our chemical reaction samples. They look like glowing gems! 🧪💎" },
+    { id: "story-soran", name: "Soran Dler", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200", text: "Beautiful morning at Erbil Citadel before lectures start 🎒🏰" }
+  ]
+};
+
+function normalizePortalSettings(raw: any = {}) {
+  const stories = Array.isArray(raw.defaultStories) ? raw.defaultStories : DEFAULT_PORTAL_SETTINGS.defaultStories;
+  return {
+    heroImage: String(raw.heroImage || DEFAULT_PORTAL_SETTINGS.heroImage),
+    heroTitle: {
+      en: String(raw.heroTitle?.en || DEFAULT_PORTAL_SETTINGS.heroTitle.en),
+      ar: String(raw.heroTitle?.ar || DEFAULT_PORTAL_SETTINGS.heroTitle.ar),
+      ku: String(raw.heroTitle?.ku || DEFAULT_PORTAL_SETTINGS.heroTitle.ku)
+    },
+    heroDescription: {
+      en: String(raw.heroDescription?.en || DEFAULT_PORTAL_SETTINGS.heroDescription.en),
+      ar: String(raw.heroDescription?.ar || DEFAULT_PORTAL_SETTINGS.heroDescription.ar),
+      ku: String(raw.heroDescription?.ku || DEFAULT_PORTAL_SETTINGS.heroDescription.ku)
+    },
+    heroTag: {
+      en: String(raw.heroTag?.en || DEFAULT_PORTAL_SETTINGS.heroTag.en),
+      ar: String(raw.heroTag?.ar || DEFAULT_PORTAL_SETTINGS.heroTag.ar),
+      ku: String(raw.heroTag?.ku || DEFAULT_PORTAL_SETTINGS.heroTag.ku)
+    },
+    defaultStories: stories.map((story: any, index: number) => ({
+      id: String(story?.id || DEFAULT_PORTAL_SETTINGS.defaultStories[index]?.id || `story-${index + 1}`),
+      name: String(story?.name || DEFAULT_PORTAL_SETTINGS.defaultStories[index]?.name || "Student"),
+      avatar: String(story?.avatar || DEFAULT_PORTAL_SETTINGS.defaultStories[index]?.avatar || ""),
+      text: String(story?.text || DEFAULT_PORTAL_SETTINGS.defaultStories[index]?.text || "")
+    }))
+  };
+}
+
+async function getPortalSettings(env: Env) {
+  const row = await env.DB.prepare("SELECT * FROM portal_settings WHERE id = 'default' LIMIT 1").first();
+  if (!row) return DEFAULT_PORTAL_SETTINGS;
+  return normalizePortalSettings({
+    heroImage: row.hero_image,
+    heroTitle: { en: row.hero_title_en, ar: row.hero_title_ar, ku: row.hero_title_ku },
+    heroDescription: { en: row.hero_description_en, ar: row.hero_description_ar, ku: row.hero_description_ku },
+    heroTag: { en: row.hero_tag_en, ar: row.hero_tag_ar, ku: row.hero_tag_ku },
+    defaultStories: JSON.parse(row.default_stories_json || "[]")
+  });
+}
+
+async function savePortalSettings(env: Env, rawSettings: any, userId: string) {
+  const settings = normalizePortalSettings(rawSettings);
+  await env.DB.prepare(
+    `INSERT INTO portal_settings (
+      id, hero_image, hero_title_en, hero_title_ar, hero_title_ku,
+      hero_description_en, hero_description_ar, hero_description_ku,
+      hero_tag_en, hero_tag_ar, hero_tag_ku, default_stories_json, updated_at, updated_by
+    ) VALUES ('default', ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    ON CONFLICT(id) DO UPDATE SET
+      hero_image = excluded.hero_image,
+      hero_title_en = excluded.hero_title_en,
+      hero_title_ar = excluded.hero_title_ar,
+      hero_title_ku = excluded.hero_title_ku,
+      hero_description_en = excluded.hero_description_en,
+      hero_description_ar = excluded.hero_description_ar,
+      hero_description_ku = excluded.hero_description_ku,
+      hero_tag_en = excluded.hero_tag_en,
+      hero_tag_ar = excluded.hero_tag_ar,
+      hero_tag_ku = excluded.hero_tag_ku,
+      default_stories_json = excluded.default_stories_json,
+      updated_at = excluded.updated_at,
+      updated_by = excluded.updated_by`
+  ).bind(
+    settings.heroImage,
+    settings.heroTitle.en,
+    settings.heroTitle.ar,
+    settings.heroTitle.ku,
+    settings.heroDescription.en,
+    settings.heroDescription.ar,
+    settings.heroDescription.ku,
+    settings.heroTag.en,
+    settings.heroTag.ar,
+    settings.heroTag.ku,
+    JSON.stringify(settings.defaultStories),
+    new Date().toISOString(),
+    userId
+  ).run();
+  return settings;
+}
+
+function normalizeStatus(status: string) {
+  return ["pending_review", "approved", "rejected", "duplicate", "expired"].includes(status) ? status : "pending_review";
+}
+
+async function handleAutomationRequest(request: Request, env: Env, url: URL, user: any) {
+  const path = url.pathname.replace("/api/opportunity-automation", "");
+  if (path === "/status" && request.method === "GET") {
+    const last = await env.DB.prepare("SELECT timestamp FROM scraper_logs ORDER BY timestamp DESC LIMIT 1").first();
+    return jsonResponse({ status: "idle", last_run_timestamp: last?.timestamp || null, frequency_hours: 6, is_active: true, dry_run_email: true });
+  }
+
+  if (path === "/stats" && request.method === "GET") {
+    const rows = await env.DB.prepare("SELECT status, COUNT(*) AS count FROM opportunities GROUP BY status").all();
+    const counts: Record<string, number> = {};
+    (rows.results || []).forEach((row: any) => counts[normalizeStatus(row.status)] = Number(row.count || 0));
+    return jsonResponse({
+      total_scraped: Object.values(counts).reduce((sum, value) => sum + value, 0),
+      duplicates_blocked: counts.duplicate || 0,
+      pending_review: counts.pending_review || 0,
+      approved: counts.approved || 0,
+      rejected: counts.rejected || 0,
+      duplicate: counts.duplicate || 0,
+      expired: counts.expired || 0,
+      errors_prevented: 0
+    });
+  }
+
+  if (path === "/sources" && request.method === "GET") {
+    const search = `%${String(url.searchParams.get("search") || "").toLowerCase()}%`;
+    const rows = await env.DB.prepare(
+      "SELECT * FROM sources WHERE lower(name || ' ' || url) LIKE ? ORDER BY name"
+    ).bind(search).all();
+    return jsonResponse({ data: rows.results || [], total: rows.results?.length || 0 });
+  }
+
+  if (path === "/sources" && request.method === "POST") {
+    const body: any = await readJson(request);
+    if (!body.name || !body.url || !body.type) return jsonResponse({ error: "Source name, url, and type are required." }, 400);
+    const source = { id: `source-${Date.now()}`, name: body.name, url: body.url, type: body.type, enabled: body.active === false ? 0 : 1 };
+    await env.DB.prepare("INSERT INTO sources (id, name, url, type, enabled) VALUES (?, ?, ?, ?, ?)").bind(source.id, source.name, source.url, source.type, source.enabled).run();
+    return jsonResponse(source, 201);
+  }
+
+  const sourceMatch = path.match(/^\/sources\/([^/]+)$/);
+  if (sourceMatch && request.method === "PATCH") {
+    const body: any = await readJson(request);
+    const enabled = typeof body.active === "boolean" ? (body.active ? 1 : 0) : typeof body.enabled === "boolean" ? (body.enabled ? 1 : 0) : undefined;
+    if (enabled === undefined) return jsonResponse({ error: "Only enabled/active updates are supported." }, 400);
+    await env.DB.prepare("UPDATE sources SET enabled = ? WHERE id = ?").bind(enabled, sourceMatch[1]).run();
+    return jsonResponse({ success: true });
+  }
+  if (sourceMatch && request.method === "DELETE") {
+    await env.DB.prepare("DELETE FROM sources WHERE id = ?").bind(sourceMatch[1]).run();
+    return jsonResponse({ success: true });
+  }
+
+  if (path === "/candidates" && request.method === "GET") {
+    const status = normalizeStatus(String(url.searchParams.get("status") || "pending_review"));
+    const rows = await env.DB.prepare("SELECT * FROM opportunities WHERE status = ? ORDER BY created_at DESC").bind(status).all();
+    return jsonResponse({ data: rows.results || [], total: rows.results?.length || 0 });
+  }
+
+  const candidateActionMatch = path.match(/^\/candidates\/([^/]+)\/(approve|reject|mark-duplicate|mark-expired)$/);
+  if (candidateActionMatch && request.method === "POST") {
+    const [, id, action] = candidateActionMatch;
+    const body: any = await readJson(request);
+    const status = action === "approve" ? "approved" : action === "reject" ? "rejected" : action === "mark-duplicate" ? "duplicate" : "expired";
+    await env.DB.prepare("UPDATE opportunities SET status = ? WHERE id = ?").bind(status, id).run();
+    await env.DB.prepare("UPDATE raw_scraped_items SET review_status = ? WHERE opportunity_id = ?").bind(status, id).run();
+    if (status === "rejected" && body.reason) {
+      await env.DB.prepare("UPDATE opportunities SET rejectionReason = ? WHERE id = ?").bind(String(body.reason), id).run();
+    }
+    return jsonResponse({ success: true, item: { id, status, reviewedBy: user.id } });
+  }
+
+  const candidateMatch = path.match(/^\/candidates\/([^/]+)$/);
+  if (candidateMatch && request.method === "GET") {
+    const item = await env.DB.prepare("SELECT * FROM opportunities WHERE id = ? LIMIT 1").bind(candidateMatch[1]).first();
+    return item ? jsonResponse(item) : jsonResponse({ error: "Candidate not found." }, 404);
+  }
+  if (candidateMatch && request.method === "PATCH") {
+    const body: any = await readJson(request);
+    await env.DB.prepare(
+      `UPDATE opportunities SET
+        titleEN = COALESCE(?, titleEN),
+        titleAR = COALESCE(?, titleAR),
+        titleKU = COALESCE(?, titleKU),
+        contentEN = COALESCE(?, contentEN),
+        contentAR = COALESCE(?, contentAR),
+        contentKU = COALESCE(?, contentKU),
+        category = COALESCE(?, category),
+        deadline = COALESCE(?, deadline),
+        application_link = COALESCE(?, application_link),
+        original_source_url = COALESCE(?, original_source_url)
+       WHERE id = ?`
+    ).bind(
+      body.titleEN || null,
+      body.titleAR || null,
+      body.titleKU || null,
+      body.contentEN || null,
+      body.contentAR || null,
+      body.contentKU || null,
+      body.category || null,
+      body.deadline || null,
+      body.application_link || null,
+      body.original_source_url || body.application_link || null,
+      candidateMatch[1]
+    ).run();
+    const updated = await env.DB.prepare("SELECT * FROM opportunities WHERE id = ? LIMIT 1").bind(candidateMatch[1]).first();
+    return jsonResponse(updated || { success: true });
+  }
+
+  if (path === "/logs" && request.method === "GET") {
+    const rows = await env.DB.prepare("SELECT * FROM scraper_logs ORDER BY timestamp DESC LIMIT 100").all();
+    return jsonResponse({ data: rows.results || [], total: rows.results?.length || 0 });
+  }
+
+  if (path === "/run-now" && request.method === "POST") {
+    return jsonResponse(await runMainScraper(env, "manual_admin"));
+  }
+
+  const runSourceMatch = path.match(/^\/run-source\/([^/]+)$/);
+  if (runSourceMatch && request.method === "POST") {
+    return jsonResponse({ success: false, error: "Single-source run is not supported in Worker mode yet. Use Run All." }, 501);
+  }
+
+  if (path === "/import-csv" && request.method === "POST") {
+    return jsonResponse({ success: false, inserted: 0, duplicates: 0, errors: ["Worker CSV import is not enabled yet. Use the local/admin import path."], defaultStatus: "pending_review" }, 501);
+  }
+
+  return jsonResponse({ error: "Not found." }, 404);
 }
 
 /**

@@ -174,6 +174,26 @@ wrangler secret put DRY_RUN_AUTOMATION
 wrangler secret put DRY_RUN_EMAILS
 ```
 
+The Worker currently supports the production-critical API surface:
+
+- `GET /api/health`
+- `POST /api/auth/register`
+- `POST /api/auth/login`
+- `GET /api/auth/me`
+- `POST /api/auth/forgot-password` in DRY_RUN mode
+- `GET /api/institutions`
+- `GET /api/opportunities`
+- `GET /api/highlights`
+- `GET/PATCH /api/admin/portal-settings`
+- `GET /api/opportunity-automation/status`
+- `GET /api/opportunity-automation/stats`
+- source list/create/enable/delete endpoints
+- candidate list/edit/approve/reject/duplicate/expired endpoints
+- `GET /api/opportunity-automation/logs`
+- `POST /api/opportunity-automation/run-now`
+
+Worker mode intentionally does not yet support single-source run or CSV import. Those routes return a clear `501` instead of silently doing the wrong thing.
+
 ## Manual Frontend Deploy
 
 Build the frontend:
