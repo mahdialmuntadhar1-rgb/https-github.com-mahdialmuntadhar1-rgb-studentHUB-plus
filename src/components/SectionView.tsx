@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Language, FeedItem, Comment } from '../types';
 import { IraqiGovernorates, IraqiUniversities } from '../data/mockData';
+import { DEMO_ITEMS, getDemoItemsByCategory } from '../data/demoData';
 import { 
   ArrowLeft, 
   ArrowRight,
@@ -223,6 +224,19 @@ const categoryConfigs: Record<string, {
   }
 };
 
+const normalizeGovernorate = (raw: string | null | undefined): string => {
+  if (!raw) return 'all';
+  const val = raw.trim().toLowerCase();
+  if (val === 'all iraq') return 'all';
+  if (val === 'baghdad') return 'baghdad';
+  if (val === 'nineveh' || val.includes('mosul')) return 'nineveh';
+  if (val === 'basra' || val === 'basrah') return 'basra';
+  if (val === 'sulaymaniyah' || val === 'sulaimani' || val === 'sulaimaniyah') return 'sulaymaniyah';
+  if (val === 'erbil') return 'erbil';
+  if (val === 'duhok' || val === 'dohuk') return 'duhok';
+  return val.replace(/\s+/g, '_');
+};
+
 export default function SectionView({
   sectionId,
   language,
@@ -308,30 +322,16 @@ export default function SectionView({
 
             // Map standard FeedItem objects
             const mapped = filteredResults.map((item: any) => {
+              const category = item.category || item.type || categoryConfig.categoryValue;
               return {
                 id: item.id || `scraped-${Date.now()}-${Math.random()}`,
-                type: (item.category || item.type || categoryConfig.categoryValue) as any,
+                type: category as any,
                 titleEN: item.titleEN || item.title || 'Untitled Opportunity',
                 titleAR: item.titleAR || item.title || 'فرصة غير معنونة',
                 titleKU: item.titleKU || item.title || 'هەلی بێ ناونیشان',
-                contentEN: item.contentEN || item.content || 'Check original portal for instructions.',
-                contentAR: item.contentAR || item.content || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
-                contentKU: item.contentKU || item.content || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
-                
-                // Add high-end translation support fields
-                original_language: item.original_language || item.originalLanguage,
-                title_original: item.title_original || item.titleOriginal,
-                body_original: item.body_original || item.bodyOriginal || item.content_original || item.contentOriginal,
-                caption_original: item.caption_original || item.captionOriginal,
-                title_ar: item.title_ar || item.titleAR,
-                body_ar: item.body_ar || item.bodyAR || item.content_ar || item.contentAR,
-                caption_ar: item.caption_ar || item.captionAR,
-                title_ku: item.title_ku || item.titleKU,
-                body_ku: item.body_ku || item.bodyKU || item.content_ku || item.contentKU,
-                caption_ku: item.caption_ku || item.captionKU,
-                title_en: item.title_en || item.titleEN,
-                body_en: item.body_en || item.bodyEN || item.content_en || item.contentEN,
-                caption_en: item.caption_en || item.captionEN,
+                contentEN: item.description || item.summary || item.contentEN || item.content || 'Check original portal for instructions.',
+                contentAR: item.contentAR || item.summary || item.description || item.content || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
+                contentKU: item.contentKU || item.summary || item.description || item.content || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
                 author: {
                   name: item.organization || item.institution_name || item.author?.name || 'Academic Center',
                   role: 'institution' as const,
@@ -342,14 +342,15 @@ export default function SectionView({
                 likes: item.likes || 10,
                 commentsCount: 0,
                 commentsList: [],
-                governorateId: item.governorateId || item.governorate || 'all',
-                universityId: item.universityId || item.university_id || 'all',
+                governorateId: normalizeGovernorate(item.governorateId || item.governorate),
+                universityId: item.universityId || item.university_id || item.institution_id || 'all',
                 tags: item.tags || [categoryConfig.categoryValue, 'Iraq'],
                 imageUrl: item.imageUrl || item.image_url || undefined,
+                original_source_url: item.source_url,
                 application_link: item.application_link || item.apply_url || item.source_url || undefined,
                 deadline: item.deadline || undefined,
                 company: item.organization || item.institution_name || undefined,
-                location: item.location || item.city || 'Iraq',
+                location: item.location || item.city || item.governorate || 'Iraq-wide',
                 whoCanApply: item.eligibility || item.whoCanApply || undefined,
                 salary: item.salary || item.salary_or_funding || undefined,
                 workplaceType: item.workplaceType || undefined,
@@ -382,11 +383,39 @@ export default function SectionView({
   }, [normalizedKey, selectedGov, selectedUni]);
 
   // Apply visual governorate and university filtering
-  const filteredItems = items.filter(item => {
-    const matchesGov = selectedGov === 'all' || !item.governorateId || item.governorateId === 'all' || item.governorateId === selectedGov;
-    const matchesUni = selectedUni === 'all' || !item.universityId || item.universityId === 'all' || item.universityId === selectedUni;
-    return matchesGov && matchesUni;
-  });
+  // Add demo items only if real section is sparse (less than 3 items)
+  const filteredItems = useMemo(() => {
+    const realItems = items.filter(item => !item.isDemo);
+    
+    // Filter real items by governorate and university
+    const filteredRealItems = realItems.filter(item => {
+      const matchesGov = selectedGov === 'all' || !item.governorateId || item.governorateId === 'all' || item.governorateId === selectedGov;
+      const matchesUni = selectedUni === 'all' || !item.universityId || item.universityId === 'all' || item.universityId === selectedUni;
+      return matchesGov && matchesUni;
+    });
+    
+    // If we have enough real items, don't add demo items
+    if (filteredRealItems.length >= 3) {
+      return filteredRealItems;
+    }
+    
+    // Get demo items matching the category
+    const categoryDemoItems = getDemoItemsByCategory(normalizedKey);
+    
+    // Filter demo items by governorate and university
+    const filteredDemoItems = categoryDemoItems.filter(demo => {
+      const matchesGov = selectedGov === 'all' || demo.governorateId === 'all' || demo.governorateId === selectedGov;
+      const matchesUni = selectedUni === 'all' || demo.universityId === 'all' || demo.universityId === selectedUni;
+      return matchesGov && matchesUni;
+    });
+    
+    // Limit demo items to fill up to 5 total items max
+    const slotsNeeded = Math.max(0, 5 - filteredRealItems.length);
+    const demoItemsToShow = filteredDemoItems.slice(0, slotsNeeded);
+    
+    // Return real items first, then demo items
+    return [...filteredRealItems, ...demoItemsToShow];
+  }, [items, selectedGov, selectedUni, normalizedKey]);
 
   const availableUnis = selectedGov === 'all' 
     ? IraqiUniversities 

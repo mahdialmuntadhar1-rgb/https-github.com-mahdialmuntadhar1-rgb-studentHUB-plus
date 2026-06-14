@@ -6,3 +6,11 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Local diagnostic reports - do not commit
+LOCAL_PRESERVE_DIAG_*/
+COMPARE_PRESERVED_BRANCH_*/
+FINAL_SAFETY_AUDIT_*/
+.env
+.env.local
+PR1_CONFLICT_REPORT_*/

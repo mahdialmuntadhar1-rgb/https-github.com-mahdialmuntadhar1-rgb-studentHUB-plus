@@ -1,8 +1,9 @@
 import React, { useState } from 'react';
-import { Language, FeedItem, Comment, getLocalizedContent, hasAlternativeLanguages } from '../types';
+import { Language, FeedItem, Comment } from '../types';
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
+import { getImageWithFallback } from '../lib/fallbackImages';
 import { 
   Heart, 
   MessageSquare, 
@@ -19,7 +20,8 @@ import {
   UserCheck,
   Send,
   HelpCircle,
-  Hash
+  Hash,
+  Sparkles
 } from 'lucide-react';
 
 interface FeedCardProps {
@@ -68,9 +70,8 @@ export default function FeedCard({
   const [editImage, setEditImage] = useState(item.imageUrl || '');
 
   // Select proper localized strings
-  const [showOriginal, setShowOriginal] = useState(false);
-  const title = getLocalizedContent(item, 'title', language, showOriginal);
-  const content = getLocalizedContent(item, 'content', language, showOriginal);
+  const title = language === 'ar' ? item.titleAR : language === 'ku' ? item.titleKU : item.titleEN;
+  const content = language === 'ar' ? item.contentAR : language === 'ku' ? item.contentKU : item.contentEN;
 
   // Resolve Governorate & University labels
   const matchedUni = IraqiUniversities.find(u => u.id === item.universityId);
@@ -86,7 +87,8 @@ export default function FeedCard({
 
   // Helper to render high-contrast, youthful Instagram-like galleries and mosaics
   const renderImageGallery = () => {
-    if (!item.imageUrl) return null;
+    // Use fallback image if imageUrl is missing
+    const displayImageUrl = getImageWithFallback(item.imageUrl, item.type);
 
     // Create a list of complementary pictures for mosaic based on item ID
     let additionalImages: string[] = [];
@@ -109,7 +111,7 @@ export default function FeedCard({
     if (additionalImages.length === 0) {
       return (
         <div className="group relative rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] transition-all duration-300 shadow-md hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
-          <img src={item.imageUrl} alt={title} className="w-full h-auto max-h-[380px] object-cover" referrerPolicy="no-referrer" />
+          <img src={displayImageUrl} alt={title} className="w-full h-auto max-h-[380px] object-cover" referrerPolicy="no-referrer" />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between text-white text-[10px] font-black">
             <span>✨ Campus Highlight</span>
             <span>View Fullscreen 🔎</span>
@@ -123,7 +125,7 @@ export default function FeedCard({
       return (
         <div className="grid grid-cols-5 gap-2 rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] h-48 select-none">
           <div className="col-span-3 h-full relative group cursor-pointer overflow-hidden">
-            <img src={item.imageUrl} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
+            <img src={displayImageUrl} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
             <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors" />
           </div>
           <div className="col-span-2 h-full relative group cursor-pointer overflow-hidden">
@@ -138,7 +140,7 @@ export default function FeedCard({
     return (
       <div className="grid grid-cols-3 gap-2 rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] h-52 select-none">
         <div className="col-span-2 h-full relative group cursor-pointer overflow-hidden">
-          <img src={item.imageUrl} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-550" referrerPolicy="no-referrer" />
+          <img src={displayImageUrl} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-550" referrerPolicy="no-referrer" />
           <div className="absolute inset-0 bg-black/5 hover:bg-transparent transition-colors" />
         </div>
         <div className="col-span-1 flex flex-col gap-2 h-full">
@@ -160,6 +162,8 @@ export default function FeedCard({
     switch (item.type) {
       case 'announcement':
         return { text: language === 'ar' ? 'إعلان رسمي' : language === 'ku' ? 'ڕاگەیاندن' : 'Official', color: 'bg-red-500/10 text-red-400 border-red-500/20' };
+      case 'news':
+        return { text: language === 'ar' ? 'خبر جامعي' : language === 'ku' ? 'هەواڵ' : 'News', color: 'bg-amber-500/10 text-amber-700 border-amber-300' };
       case 'job':
       case 'full_time_job':
         return { text: language === 'ar' ? 'دوام كامل' : language === 'ku' ? 'دەوامی تەواو' : 'Full-Time Job', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' };
@@ -382,6 +386,12 @@ export default function FeedCard({
                       ✨ {getTranslation('verifiedPartner', language)}
                     </span>
                   )}
+                  {item.isDemo && (
+                    <span className="text-[7px] font-black uppercase bg-cyan-100 text-cyan-700 px-1.5 py-0.5 rounded-md border border-cyan-300 tracking-tight flex items-center gap-0.5 shadow-sm">
+                      <Sparkles className="w-3 h-3" />
+                      Demo
+                    </span>
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500 mt-1.5" id={`card-author-meta-${item.id}`}>
                   <span className="font-black text-[#6B25C9] bg-[#6B25C9]/10 px-2 py-0.5 rounded-md shrink-0">
@@ -443,7 +453,7 @@ export default function FeedCard({
         {title && (
           <h2 className="text-sm font-black text-[#161A33] tracking-tight leading-snug mb-1.5 flex flex-wrap items-center gap-1.5">
             <span>{title}</span>
-            {['job', 'internship', 'scholarship', 'training', 'part_time_job', 'full_time_job', 'volunteering', 'competition', 'graduation_project_support', 'fellowship', 'event', 'announcement', 'exam'].includes(item.type) && (
+            {['job', 'internship', 'scholarship', 'training', 'part_time_job', 'full_time_job', 'volunteering', 'competition', 'graduation_project_support', 'fellowship', 'event', 'news', 'announcement', 'exam', 'registration', 'student_club', 'activity'].includes(item.type) && (
               <>
                 {(item.date?.includes('Recently') || item.isNew) && (
                   <span className="text-[8px] font-black uppercase text-emerald-600 bg-emerald-100 border border-emerald-300 px-1.5 py-0.5 rounded shadow-sm leading-none shrink-0 animate-pulse">
@@ -476,22 +486,14 @@ export default function FeedCard({
           {content}
         </p>
 
-        {/* Translation toggler (Facebook style) */}
-        {hasAlternativeLanguages(item, language) && (
+        {item.application_link && !['job', 'internship', 'scholarship', 'training', 'part_time_job', 'full_time_job', 'volunteering', 'competition', 'graduation_project_support', 'fellowship'].includes(item.type) && (
           <button
             type="button"
-            onClick={() => setShowOriginal(!showOriginal)}
-            className="text-[10px] font-black text-[#6B25C9] hover:underline cursor-pointer mb-3 inline-flex items-center gap-1.5 bg-[#6B25C9]/5 px-2.5 py-1 rounded-lg border border-[#E6E1F5]/10 select-none shadow-xs transition-transform transform active:scale-95 duration-200"
+            onClick={() => window.open(item.application_link, '_blank', 'noopener,noreferrer')}
+            className="mb-3 inline-flex w-fit items-center gap-1.5 rounded-xl border-2 border-[#161A33] bg-[#FFD21F] px-3 py-2 text-[11px] font-black text-[#161A33] shadow-[2px_2px_0px_0px_#161A33] transition-all active:scale-95"
           >
-            {showOriginal ? (
-              <>
-                🌐 {language === 'ar' ? 'عرض الترجمة' : language === 'ku' ? 'پیشاندانی وەرگێڕان' : 'Show translated'}
-              </>
-            ) : (
-              <>
-                🌐 {language === 'ar' ? 'عرض الأصل' : language === 'ku' ? 'پیشاندانی دەقی سەرەکی' : 'Show original'}
-              </>
-            )}
+            <FileText className="w-3.5 h-3.5" />
+            <span>{language === 'ar' ? 'اقرأ المزيد' : language === 'ku' ? 'زیاتر بخوێنەوە' : 'Read More'}</span>
           </button>
         )}
 
@@ -620,7 +622,7 @@ export default function FeedCard({
                 <span className="text-sm shrink-0 leading-none">🎯</span>
                 <div>
                   <span className="text-amber-700 font-black text-[9px] uppercase tracking-wider block mb-0.5">Who can apply</span>
-                  <span className="text-slate-800 font-extrabold">{getLocalizedContent(item, 'whoCanApply', language, showOriginal)}</span>
+                  <span className="text-slate-800 font-extrabold">{item.whoCanApply}</span>
                 </div>
               </div>
             )}
@@ -651,7 +653,13 @@ export default function FeedCard({
             <div className="flex gap-1.5 mt-1 pt-2 border-t border-[#E6E1F5] relative z-10 font-sans">
               <button
                 id={`apply-btn-${item.id}`}
-                onClick={() => onApply(item.id)}
+                onClick={() => {
+                  if (item.application_link) {
+                    window.open(item.application_link, '_blank', 'noopener,noreferrer');
+                    return;
+                  }
+                  onApply(item.id);
+                }}
                 className={`flex-1 py-2.5 rounded-xl text-xs font-black tracking-tight cursor-pointer transition-all flex items-center justify-center gap-1.5 transform active:scale-95 border-2 border-[#161A33] ${
                   item.applied
                     ? 'bg-emerald-100 text-emerald-900 shadow-[2px_2px_0px_0px_#161A33]'
@@ -862,7 +870,24 @@ export default function FeedCard({
                 </div>
               ) : (
                 item.commentsList.map(comment => (
-                  <CommentRow key={comment.id} comment={comment} language={language} getRoleLabel={getRoleLabel} />
+                  <div key={comment.id} className="flex gap-2 text-xs bg-[#F3F7FF] p-2.5 rounded-xl border border-[#E6E1F5] text-slate-700">
+                    <img 
+                      src={comment.authorAvatar} 
+                      alt={comment.authorName} 
+                      className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-350"
+                      referrerPolicy="no-referrer"
+                    />
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between">
+                        <span className="font-extrabold text-[#161A33]">{comment.authorName}</span>
+                        <span className="text-[9px] text-slate-500">{comment.date}</span>
+                      </div>
+                      <span className="text-[9px] text-[#6B25C9] font-extrabold bg-[#6B25C9]/10 border border-[#6B25C9]/25 px-1.5 py-0.2 rounded mt-0.5 block w-max leading-none">
+                        {getRoleLabel(comment.authorRole)}
+                      </span>
+                      <p className="text-slate-700 text-[11px] font-medium mt-1 leading-normal break-words">{comment.content}</p>
+                    </div>
+                  </div>
                 ))
               )}
             </div>
@@ -893,54 +918,3 @@ export default function FeedCard({
     </motion.div>
   );
 }
-
-function CommentRow({
-  comment,
-  language,
-  getRoleLabel
-}: {
-  comment: Comment;
-  language: Language;
-  getRoleLabel: (role: string) => string;
-  key?: string;
-}) {
-  const [showOriginal, setShowOriginal] = useState(false);
-  const commentContent = getLocalizedContent(comment, 'content', language, showOriginal);
-
-  return (
-    <div className="flex gap-2 text-xs bg-[#F3F7FF] p-2.5 rounded-xl border border-[#E6E1F5] text-slate-700">
-      <img 
-        src={comment.authorAvatar} 
-        alt={comment.authorName} 
-        className="w-7 h-7 rounded-lg object-cover shrink-0 border border-slate-350"
-        referrerPolicy="no-referrer"
-      />
-      <div className="flex-1">
-        <div className="flex items-center justify-between">
-          <span className="font-extrabold text-[#161A33]">{comment.authorName}</span>
-          <span className="text-[9px] text-slate-500">{comment.date}</span>
-        </div>
-        <span className="text-[9px] text-[#6B25C9] font-extrabold bg-[#6B25C9]/10 border border-[#6B25C9]/25 px-1.5 py-0.2 rounded mt-0.5 block w-max leading-none">
-          {getRoleLabel(comment.authorRole)}
-        </span>
-        <p className="text-slate-700 text-[11px] font-medium mt-1 leading-normal break-words">
-          {commentContent}
-        </p>
-        {hasAlternativeLanguages(comment, language) && (
-          <button
-            type="button"
-            onClick={() => setShowOriginal(!showOriginal)}
-            className="text-[9px] font-black text-[#6B25C9] hover:underline cursor-pointer mt-1.5 inline-flex items-center gap-1 bg-[#6B25C9]/5 px-1.5 py-0.5 rounded"
-          >
-            🌐 {showOriginal ? (
-              language === 'ar' ? 'عرض الترجمة' : language === 'ku' ? 'پیشاندانی وەرگێڕان' : 'Show translated'
-            ) : (
-              language === 'ar' ? 'عرض الأصل' : language === 'ku' ? 'پیشاندانی دەقی سەرەکی' : 'Show original'
-            )}
-          </button>
-        )}
-      </div>
-    </div>
-  );
-}
-

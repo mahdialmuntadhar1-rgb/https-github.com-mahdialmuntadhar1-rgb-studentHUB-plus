@@ -59,6 +59,7 @@ export interface FeedItem {
     | 'story'
     | 'poll'
     | 'anonymous_question'
+    | 'news'
     | 'announcement'
     | 'job'
     | 'internship'
@@ -73,7 +74,10 @@ export interface FeedItem {
     | 'competition'
     | 'graduation_project_support'
     | 'fellowship'
-    | 'exam';
+    | 'exam'
+    | 'registration'
+    | 'student_club'
+    | 'activity';
   
   // Localized Content
   titleEN: string;
@@ -161,6 +165,9 @@ export interface FeedItem {
   serviceCategory?: 'cafe' | 'photocopy' | 'dorm' | 'stationery' | 'restaurant' | 'gym';
   serviceRating?: number;
   serviceDistance?: string; // e.g., '50m from gate'
+  
+  // Demo/Preview flag for frontend-only sample items
+  isDemo?: boolean;
 }
 
 export interface UserProfile {

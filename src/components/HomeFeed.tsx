@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { FeedItem, Language, University } from '../types';
 import { getTranslation } from '../data/translations';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from '../data/mockData';
+import { DEMO_ITEMS, getDemoItemsByGovernorate, getDemoItemsByUniversity } from '../data/demoData';
 import { Sparkles, MessageSquare, Briefcase, PlusCircle, CheckCircle, Info, Image, EyeOff, MapPin, School, Palette, X, Calendar, Megaphone, HelpCircle, ChevronLeft, ChevronRight } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
@@ -361,12 +362,30 @@ export default function HomeFeed({
     setTimeout(() => setMessage(''), 3000);
   };
 
-  // Filter out any opportunities/careers listings from the main home feed, allowing only social, campus posts, and highlights.
-  const opportunityTypes = ['job', 'scholarship', 'internship', 'training', 'fellowship', 'volunteering', 'competition', 'part_time_job', 'graduation_project_support'];
-  const filteredFeedItems = feedItems.filter(item => {
-    const isOpportunity = opportunityTypes.includes(item.type);
-    return !isOpportunity;
-  });
+  // The homepage is a unified feed: approved campus highlights and opportunities live together.
+  // Add demo items only if real feed is sparse (less than 3 items)
+  const filteredFeedItems = useMemo(() => {
+    const realItems = feedItems.filter(item => !item.isDemo);
+    
+    // If we have enough real items, don't add demo items
+    if (realItems.length >= 3) {
+      return realItems;
+    }
+    
+    // Filter demo items by governorate and university
+    let demoItemsToShow = DEMO_ITEMS.filter(demo => {
+      const matchesGov = selectedGov === 'all' || demo.governorateId === 'all' || demo.governorateId === selectedGov;
+      const matchesUni = selectedUni === 'all' || demo.universityId === 'all' || demo.universityId === selectedUni;
+      return matchesGov && matchesUni;
+    });
+    
+    // Limit demo items to fill up to 5 total items max
+    const slotsNeeded = Math.max(0, 5 - realItems.length);
+    demoItemsToShow = demoItemsToShow.slice(0, slotsNeeded);
+    
+    // Return real items first, then demo items
+    return [...realItems, ...demoItemsToShow];
+  }, [feedItems, selectedGov, selectedUni]);
 
   return (
     <div className="px-3.5 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-[#0B1020]" id="home-feed-container">
@@ -1088,7 +1107,7 @@ export default function HomeFeed({
 
       {/* Temporary Admin Debug Card (Visible in development mode) */}
       {(() => {
-        const isDev = process.env.NODE_ENV !== 'production' || window.location.hostname.includes('localhost') || window.location.hostname.includes('run.app') || true;
+        const isDev = window.location.hostname === 'localhost' || window.location.hostname.includes('run.app');
         const sourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
         const govUnis = selectedGov === 'all' ? sourceList : sourceList.filter(u => u.governorateId === selectedGov);
         

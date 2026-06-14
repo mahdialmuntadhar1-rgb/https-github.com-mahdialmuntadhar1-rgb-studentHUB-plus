@@ -293,43 +293,50 @@ export default function App() {
         if (oppsResponse.ok) {
           const list = await oppsResponse.json();
           if (Array.isArray(list)) {
-            const mappedOpps = list.map((item: any) => ({
-              id: String(item.id || `scraped-${Date.now()}-${Math.random()}`),
-              type: (item.category || item.type || 'job') as any,
-              titleEN: item.title || item.titleEN || 'Untitled Opportunity',
-              titleAR: item.title || item.titleAR || 'فرصة غير معنونة',
-              titleKU: item.title || item.titleKU || 'هەلی بێ ناونیشان',
-              contentEN: item.description || item.summary || item.contentEN || 'Check original portal for instructions.',
-              contentAR: item.description || item.summary || item.contentAR || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
-              contentKU: item.description || item.summary || item.contentKU || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
-              author: {
-                name: item.organization || item.institution_name || 'Scraped Recruiter',
-                role: 'institution' as const,
-                avatar: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
-                verified: true
-              },
-              date: item.published_date ? `Posted on ${item.published_date}` : 'Recently scraped 🔔',
-              likes: item.likes || 12,
-              commentsCount: 0,
-              commentsList: [],
-              governorateId: item.governorateId || item.governorate || 'all',
-              universityId: item.universityId || item.university_id || 'all',
-              tags: item.tags || ['scraped', item.category || 'career'],
-              company: item.organization || item.institution_name,
-              companyLogo: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
-              location: item.location || item.city || 'Iraq',
-              deadline: item.deadline || 'August 2026',
-              imageUrl: item.imageUrl || item.image_url,
-              opportunityCategory: (item.category === 'internship' ? 'Internship' : 
-                                     item.category === 'scholarship' ? 'Scholarship' : 
-                                     item.category === 'training' ? 'Training' : 
-                                     item.category === 'volunteering' ? 'Volunteering' : 
-                                     item.category === 'competition' ? 'Competition' : 
-                                     item.category === 'graduation_support' ? 'Graduation project support' : 'Full-time graduate job') as any,
-              workplaceType: item.workplaceType || 'On-site',
-              whoCanApply: item.eligibility || item.whoCanApply || 'Iraqi students',
-              salary: item.salary || item.salary_or_funding || 'Recruiter structured'
-            }));
+            const mappedOpps = list.map((item: any) => {
+              const category = item.category || item.type || 'job';
+              const actionUrl = item.apply_url || item.source_url || item.application_link;
+
+              return {
+                id: String(item.id || `scraped-${Date.now()}-${Math.random()}`),
+                type: category as any,
+                titleEN: item.title || item.titleEN || 'Untitled Opportunity',
+                titleAR: item.title || item.titleAR || 'فرصة غير معنونة',
+                titleKU: item.title || item.titleKU || 'هەلی بێ ناونیشان',
+                contentEN: item.description || item.summary || item.contentEN || 'Check original portal for instructions.',
+                contentAR: item.description || item.summary || item.contentAR || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
+                contentKU: item.description || item.summary || item.contentKU || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
+                author: {
+                  name: item.organization || item.institution_name || 'Scraped Recruiter',
+                  role: 'institution' as const,
+                  avatar: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+                  verified: true
+                },
+                date: item.published_date ? `Posted on ${item.published_date}` : 'Recently posted 🔔',
+                likes: item.likes || 12,
+                commentsCount: 0,
+                commentsList: [],
+                governorateId: normalizeGovernorate(item.governorateId || item.governorate),
+                universityId: item.universityId || item.university_id || item.institution_id || 'all',
+                tags: item.tags || ['opportunity', category],
+                original_source_url: item.source_url,
+                application_link: actionUrl,
+                company: item.organization || item.institution_name,
+                companyLogo: item.institution_logo || '💼',
+                location: item.location || item.city || item.governorate || 'Iraq-wide',
+                deadline: item.deadline || undefined,
+                imageUrl: item.imageUrl || item.image_url,
+                opportunityCategory: (category === 'internship' ? 'Internship' :
+                                      category === 'scholarship' ? 'Scholarship' :
+                                      category === 'training' ? 'Training' :
+                                      category === 'volunteering' ? 'Volunteering' :
+                                      category === 'competition' ? 'Competition' :
+                                      category === 'graduation_support' ? 'Graduation project support' : 'Full-time graduate job') as any,
+                workplaceType: item.workplaceType || 'On-site',
+                whoCanApply: item.eligibility || item.whoCanApply || 'Iraqi students',
+                salary: item.salary || item.salary_or_funding || undefined
+              };
+            });
             dbItems = [...dbItems, ...mappedOpps];
           }
         }
@@ -357,10 +364,11 @@ export default function App() {
               likes: item.likes || 15,
               commentsCount: 0,
               commentsList: [],
-              governorateId: item.governorate || item.governorateId || 'all',
+              governorateId: normalizeGovernorate(item.governorate || item.governorateId),
               universityId: item.university_id || item.universityId || 'all',
               tags: ['Campus', item.category || 'highlights'],
               imageUrl: item.image_url || item.imageUrl,
+              original_source_url: item.source_url,
               application_link: item.apply_url || item.source_url || item.application_link,
               deadline: item.deadline || undefined,
             }));
@@ -607,41 +615,12 @@ export default function App() {
   };
 
   const handleAddComment = (itemId: string, content: string) => {
-    const originalLanguage = language;
-    const contentOriginal = content;
-
-    let contentEN = content;
-    let contentAR = content;
-    let contentKU = content;
-
-    if (language === 'en') {
-      contentEN = content;
-      contentAR = `${content} (مترجم)`;
-      contentKU = `${content} (وەرگێڕدراو)`;
-    } else if (language === 'ar') {
-      contentAR = content;
-      contentEN = `${content} (Auto-translated)`;
-      contentKU = `${content} (وەرگێڕدراو)`;
-    } else if (language === 'ku') {
-      contentKU = content;
-      contentEN = `${content} (Auto-translated)`;
-      contentAR = `${content} (مترجم)`;
-    }
-
     const newComment: Comment = {
       id: `c-${Date.now()}`,
       authorName: userProfile.name,
       authorRole: userProfile.role,
       authorAvatar: userProfile.avatar,
       content,
-      
-      // Multilingual structural bindings
-      original_language: originalLanguage,
-      content_original: contentOriginal,
-      content_en: contentEN,
-      content_ar: contentAR,
-      content_ku: contentKU,
-
       date: 'Just now'
     };
 
@@ -664,64 +643,15 @@ export default function App() {
   };
 
   const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post', imageUrl?: string) => {
-    // Generate original and translated contents
-    const originalLanguage = language;
-    const titleOriginal = title;
-    const bodyOriginal = body;
-
-    let titleEN = title;
-    let titleAR = title;
-    let titleKU = title;
-    let contentEN = body;
-    let contentAR = body;
-    let contentKU = body;
-
-    if (language === 'en') {
-      titleEN = title;
-      contentEN = body;
-      titleAR = `${title} (مترجم للطلاب)`;
-      contentAR = `${body}\n\n[تم الترجمة تلقائياً إلى العربية عبر خادم الطلاب]`;
-      titleKU = `${title} (وەرگێڕدراو)`;
-      contentKU = `${body}\n\n[بە شیوازێکی ئۆتۆماتیکی وەرگێڕدراوە بۆ کوردی]`;
-    } else if (language === 'ar') {
-      titleAR = title;
-      contentAR = body;
-      titleEN = `${title} (Auto-translated)`;
-      contentEN = `${body}\n\n[Auto-translated to English via Jamiaati Translate Engine]`;
-      titleKU = `${title} (وەرگێڕدراو)`;
-      contentKU = `${body}\n\n[بە شیوازێکی ئۆتۆماتیکی وەرگێڕدراوە بۆ کوردی]`;
-    } else if (language === 'ku') {
-      titleKU = title;
-      contentKU = body;
-      titleEN = `${title} (Auto-translated)`;
-      contentEN = `${body}\n\n[Auto-translated to English via Jamiaati Translate Engine]`;
-      titleAR = `${title} (مترجم للطلاب)`;
-      contentAR = `${body}\n\n[تم الترجمة تلقائياً إلى العربية عبر خادم الطلاب]`;
-    }
-
     const freshPost: FeedItem = {
       id: `custom-${Date.now()}`,
       type: customType as any,
-      
-      // Traditional localized fields for display fallbacks
-      titleEN,
-      titleAR,
-      titleKU,
-      contentEN,
-      contentAR,
-      contentKU,
-
-      // High-end localization spec data model fields
-      original_language: originalLanguage,
-      title_original: titleOriginal,
-      body_original: bodyOriginal,
-      title_en: titleEN,
-      body_en: contentEN,
-      title_ar: titleAR,
-      body_ar: contentAR,
-      title_ku: titleKU,
-      body_ku: contentKU,
-
+      titleEN: title,
+      titleAR: title,
+      titleKU: title,
+      contentEN: body,
+      contentAR: body,
+      contentKU: body,
       imageUrl: imageUrl || undefined,
       author: anonymous ? {
         name: 'Anonymous Student',

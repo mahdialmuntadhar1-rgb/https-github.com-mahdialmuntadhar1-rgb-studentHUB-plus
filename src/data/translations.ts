@@ -410,6 +410,171 @@ export const translations = {
     en: 'No student shares here yet. Broaden your selectors to see the rest of Iraq!',
     ar: 'لا توجد منشورات للطلاب هنا لهذه التصفية. وسّع نطاق تحديد المحافظة أو الجامعة لترى المزيد!',
     ku: 'هیچ پۆستێک نییە بەم گەڕانەت. گەڕانەکەت فراوانتر بکە بۆ بینینی هەموو زانکۆکانی عێراق!',
+  },
+  scholarshipsPageTitle: {
+    en: 'Scholarships',
+    ar: 'المنح الدراسية',
+    ku: 'بورسیەکان'
+  },
+  scholarshipsPageSubtitle: {
+    en: 'Browse scholarship opportunities for Iraqi students',
+    ar: 'تصفح فرص المنح الدراسية للطلاب العراقيين',
+    ku: 'بورسیەکان بۆ خوێندکارانی عێراقی ببینە'
+  },
+  searchScholarships: {
+    en: 'Search scholarships...',
+    ar: 'ابحث عن المنح...',
+    ku: 'گەڕان بەدوای بورسیە...'
+  },
+  filterScholarships: {
+    en: 'Filters',
+    ar: 'الفلترة',
+    ku: 'فلتەر'
+  },
+  clearAllFilters: {
+    en: 'Clear all',
+    ar: 'مسح الكل',
+    ku: 'سڕینەوەی هەموو'
+  },
+  allCountries: {
+    en: 'All Countries',
+    ar: 'جميع البلدان',
+    ku: 'هەموو وڵاتان'
+  },
+  allDegreeLevels: {
+    en: 'All Levels',
+    ar: 'جميع المستويات',
+    ku: 'هەموو ئاستەکان'
+  },
+  allFundingTypes: {
+    en: 'All Types',
+    ar: 'جميع الأنواع',
+    ku: 'هەموو جۆرەکان'
+  },
+  allDeadlines: {
+    en: 'All Deadlines',
+    ar: 'جميع المواعيد',
+    ku: 'هەموو موێتەکان'
+  },
+  closingSoon: {
+    en: 'Closing Soon',
+    ar: 'تغلق قريباً',
+    ku: 'بەمزووە دەبەت'
+  },
+  thisMonth: {
+    en: 'This Month',
+    ar: 'هذا الشهر',
+    ku: 'ئەم مانگە'
+  },
+  iraqEligibility: {
+    en: 'Iraq Eligibility',
+    ar: 'الأهلية للعراق',
+    ku: 'ئەھلییەتی بۆ عێراق'
+  },
+  eligibleForIraq: {
+    en: 'Eligible for Iraq',
+    ar: 'متاح للعراق',
+    ku: 'بۆ عێراق'
+  },
+  checkEligibility: {
+    en: 'Check eligibility',
+    ar: 'تحقق',
+    ku: 'پشکنین'
+  },
+  unknownEligibility: {
+    en: 'Unknown',
+    ar: 'غير معروف',
+    ku: 'نەزانراو'
+  },
+  officialSource: {
+    en: 'Official source',
+    ar: 'مصدر رسمي',
+    ku: 'سەرچاوەی فەرمی'
+  },
+  discoverySource: {
+    en: 'Discovery source',
+    ar: 'مصدر اكتشاف',
+    ku: 'سەرچاوەی دۆزینەوە'
+  },
+  featured: {
+    en: 'Featured',
+    ar: 'مميز',
+    ku: 'تایبەت'
+  },
+  applyOnOfficialWebsite: {
+    en: 'Apply on Official Website',
+    ar: 'التقديم على الموقع الرسمي',
+    ku: 'پێشکەشکردن لەسەر سایتە فەرمییەکە'
+  },
+  viewSource: {
+    en: 'View Source',
+    ar: 'عرض المصدر',
+    ku: 'بینینی سەرچاوە'
+  },
+  save: {
+    en: 'Save',
+    ar: 'حفظ',
+    ku: 'پاشەکەوت'
+  },
+  saved: {
+    en: 'Saved',
+    ar: 'محفوظ',
+    ku: 'پاشەکەوتکراو'
+  },
+  share: {
+    en: 'Share',
+    ar: 'مشاركة',
+    ku: 'هاوبەشکردن'
+  },
+  noScholarshipsFound: {
+    en: 'No results found',
+    ar: 'لا توجد نتائج',
+    ku: 'هیچ ئەنجامێک نییە'
+  },
+  tryDifferentFilters: {
+    en: 'Try changing filters or searching with different keywords',
+    ar: 'جرب تغيير الفلاتر أو البحث بكلمات مختلفة',
+    ku: 'فلتەرەکە بگۆڕە یان بە وشەی جیاواز بگەڕێ'
+  },
+  scholarshipsAvailable: {
+    en: 'scholarships available',
+    ar: 'منحة متاحة',
+    ku: 'بورسیە بەردەستە'
+  },
+  country: {
+    en: 'Country',
+    ar: 'البلد',
+    ku: 'وڵات'
+  },
+  degreeLevel: {
+    en: 'Degree Level',
+    ar: 'مستوى الدرجة',
+    ku: 'ئاستی بڕوانامە'
+  },
+  fundingType: {
+    en: 'Funding Type',
+    ar: 'نوع التمويل',
+    ku: 'جۆری تمۆژەرکردن'
+  },
+  deadline: {
+    en: 'Deadline',
+    ar: 'الموعد النهائي',
+    ku: 'کۆتایی مۆڵەت'
+  },
+  requirements: {
+    en: 'Requirements',
+    ar: 'المتطلبات',
+    ku: 'پاڵاوتنەکان'
+  },
+  source: {
+    en: 'Source',
+    ar: 'المصدر',
+    ku: 'سەرچاوە'
+  },
+  all: {
+    en: 'All',
+    ar: 'الكل',
+    ku: 'هەموو'
   }
 };
 

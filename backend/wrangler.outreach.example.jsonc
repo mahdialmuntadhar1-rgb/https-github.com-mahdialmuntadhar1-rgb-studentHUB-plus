@@ -1,0 +1,39 @@
+{
+  "$schema": "../node_modules/wrangler/config-schema.json",
+  "name": "rafid-api",
+  "main": "./outreach-worker.ts",
+  "compatibility_date": "2026-06-10",
+  "vars": {
+    "EMAIL_PROVIDER": "resend",
+    "EMAIL_FROM_NAME": "Jamiaati",
+    "EMAIL_FROM_ADDRESS": "outreach@example.com",
+    "EMAIL_REPLY_TO": "hello@example.com",
+    "PUBLIC_APP_URL": "https://your-app.example.com",
+    "DRY_RUN": "true",
+    "TEST_MODE": "false",
+    "BATCH_SIZE": "25",
+    "DELAY_SECONDS": "30",
+    "MAX_PER_DAY": "500"
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "rafid-db",
+      "database_id": "replace-with-d1-id"
+    }
+  ],
+  "queues": {
+    "producers": [
+      {
+        "binding": "OUTREACH_QUEUE",
+        "queue": "outreach-email"
+      }
+    ],
+    "consumers": [
+      {
+        "queue": "outreach-email",
+        "max_batch_size": 1
+      }
+    ]
+  }
+}
