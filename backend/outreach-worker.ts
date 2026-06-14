@@ -1,4 +1,4 @@
-type D1Value = string | number | boolean | null;
+﻿type D1Value = string | number | boolean | null;
 interface D1PreparedStatement {
   bind(...values: D1Value[]): D1PreparedStatement;
   first<T = Record<string, unknown>>(): Promise<T | null>;
@@ -31,6 +31,7 @@ export interface Env {
   ADMIN_API_TOKEN?: string;
   ADMIN_TEST_EMAIL?: string;
   DRY_RUN?: string;
+  ALLOW_REAL_EMAIL?: string;
   TEST_MODE?: string;
   BATCH_SIZE?: string;
   DELAY_SECONDS?: string;
@@ -525,7 +526,7 @@ async function sendTestEmail(env: Env, campaignId: string) {
   const body: any = await preview.json();
   const sample = body.samples?.[0];
   if (!sample) return json({ error: 'No eligible sample recipient.' }, 400);
-  if (isTruthy(env.DRY_RUN)) return json({ success: true, dryRun: true, to: testEmail, subject: sample.subject });
+  if ((env.DRY_RUN !== 'false' || env.ALLOW_REAL_EMAIL !== 'true')) return json({ success: true, dryRun: true, to: testEmail, subject: sample.subject });
   const provider = getProvider(env);
   const result = await provider.sendEmail(testEmail, `[TEST] ${sample.subject}`, sample.html, sample.text, { campaignId, test: 'true' });
   return json({ success: true, providerMessageId: result.messageId });
@@ -564,7 +565,7 @@ async function processCampaignBatch(env: Env, campaignId: string) {
       continue;
     }
     try {
-      if (isTruthy(env.DRY_RUN)) {
+      if ((env.DRY_RUN !== 'false' || env.ALLOW_REAL_EMAIL !== 'true')) {
         await env.DB.prepare("UPDATE outreach_campaign_recipients SET status = 'sent', provider_message_id = 'dry-run', sent_at = CURRENT_TIMESTAMP, updated_at = CURRENT_TIMESTAMP WHERE id = ?").bind(recipient.id).run();
       } else {
         const result = await provider.sendEmail(to, recipient.personalized_subject, recipient.personalized_html, recipient.personalized_text, { campaignId, recipientId: recipient.id, contactId: recipient.contact_id });
@@ -694,3 +695,4 @@ export default {
     }
   },
 };
+
