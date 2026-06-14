@@ -881,7 +881,7 @@ export default function StudentStories({
                         Select Slide Emoji Key 🎭
                       </label>
                       <div className="flex gap-2.5 overflow-x-auto py-1 scrollbar-none">
-                        {['💻', '🫖', '📚', '🔬', '🎓', '🏥', '🧠', '🎨', '🚀', '💯'].map(emoji => (
+                        {['\u{1F4BB}', '\u{1FAD6}', '\u{1F4DA}', '\u{1F52C}', '\u{1F393}', '\u{1F3E5}', '\u{1F9E0}', '\u{1F3A8}', '\u{1F680}', '\u{1F4AF}'].map(emoji => (
                           <button
                             key={emoji}
                             type="button"
@@ -953,3 +953,4 @@ export default function StudentStories({
     </div>
   );
 }
+
