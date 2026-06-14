@@ -10,6 +10,7 @@ import FutureFeed from './components/FutureFeed';
 import AskFeed from './components/AskFeed';
 import ProfileView from './components/ProfileView';
 import SectionView from './components/SectionView';
+import OpportunitiesPage from './pages/OpportunitiesPage';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
@@ -759,6 +760,14 @@ export default function App() {
     setActiveTab('home');
   };
 
+  if (window.location.pathname === '/opportunities') {
+    return (
+      <div id="jamiaati-portal" className="bg-[#040814] min-h-screen text-slate-900 dark:text-slate-100 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'} lang={language}>
+        <OpportunitiesPage language={language} />
+      </div>
+    );
+  }
+
   // Router dispatcher
   const renderActiveView = () => {
     if (selectedSection) {
@@ -1090,4 +1099,3 @@ export default function App() {
     </div>
   );
 };
-
