@@ -1,6 +1,7 @@
 import { Calendar, ExternalLink, GraduationCap, MapPin, Sparkles } from 'lucide-react';
 import type { HighlightItem } from '../lib/api';
 import type { OpportunitySource } from '../data/opportunitySources';
+import { getFallbackImage, getSafeCardImage, handleCardImageError, looksLikeUrlText } from '../lib/fallbackImages';
 
 type OpportunityCardProps =
   | { kind: 'highlight'; item: HighlightItem; key?: string }
@@ -25,9 +26,21 @@ export default function OpportunityCard(props: OpportunityCardProps) {
   if (props.kind === 'source') {
     const { source } = props;
     const governorateLabel = source.governorates.includes('all') ? 'All Iraq' : source.governorates.join(', ');
+    const sourceImage = getFallbackImage(source.category);
 
     return (
-      <article className="rounded-3xl border border-[#1F2E4D] bg-[#121B2E] p-5 shadow-lg">
+      <article className="overflow-hidden rounded-3xl border border-[#1F2E4D] bg-[#121B2E] shadow-lg">
+        <div className="aspect-[16/9] overflow-hidden bg-slate-950">
+          <img
+            src={sourceImage}
+            alt=""
+            className="h-full w-full object-cover"
+            loading="lazy"
+            referrerPolicy="no-referrer"
+            onError={(event) => handleCardImageError(event, getFallbackImage('post'))}
+          />
+        </div>
+        <div className="p-5">
         <div className="mb-4 flex items-start justify-between gap-3">
           <div className="min-w-0">
             <h3 className="text-base font-black leading-tight text-white">{source.name}</h3>
@@ -46,6 +59,7 @@ export default function OpportunityCard(props: OpportunityCardProps) {
         <a href={`https://${source.website}`} target="_blank" rel="noreferrer" className="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-cyan-400 px-4 py-3 text-xs font-black text-slate-950">
           Open source <ExternalLink size={14} />
         </a>
+        </div>
       </article>
     );
   }
@@ -54,9 +68,25 @@ export default function OpportunityCard(props: OpportunityCardProps) {
   const isEvent = item.category === 'event';
   const dateText = isEvent ? item.event_date : item.deadline;
   const actionText = isEvent ? 'View Details' : item.category === 'student_club' ? 'Contact Club' : 'Apply Now';
+  const resolvedImage = getSafeCardImage(item);
+  const imageFallback = getFallbackImage(item.category);
+  const summaryText = item.summary && !looksLikeUrlText(item.summary)
+    ? item.summary
+    : 'Short summary from the approved source. Open the original link for full details.';
 
   return (
-    <article className="rounded-3xl border border-cyan-400/20 bg-gradient-to-b from-[#16223F] to-[#101827] p-5 shadow-xl shadow-cyan-950/20">
+    <article className="overflow-hidden rounded-3xl border border-cyan-400/20 bg-gradient-to-b from-[#16223F] to-[#101827] shadow-xl shadow-cyan-950/20">
+      <div className="aspect-[16/9] overflow-hidden bg-slate-950">
+        <img
+          src={resolvedImage}
+          alt=""
+          className="h-full w-full object-cover"
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={(event) => handleCardImageError(event, imageFallback)}
+        />
+      </div>
+      <div className="p-5">
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0">
           <p className="mb-2 text-[10px] font-black uppercase tracking-widest text-cyan-300">
@@ -71,7 +101,7 @@ export default function OpportunityCard(props: OpportunityCardProps) {
       </div>
 
       <p className="mb-4 line-clamp-3 text-sm font-semibold leading-6 text-slate-300">
-        {item.summary || 'Short summary from the approved source. Open the original link for full details.'}
+        {summaryText}
       </p>
 
       <div className="mb-5 flex flex-wrap gap-2">
@@ -98,7 +128,7 @@ export default function OpportunityCard(props: OpportunityCardProps) {
           {actionText}
         </a>
       </div>
+      </div>
     </article>
   );
 }
-

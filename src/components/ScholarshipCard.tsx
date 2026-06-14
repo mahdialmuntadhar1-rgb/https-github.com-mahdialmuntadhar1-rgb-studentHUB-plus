@@ -1,6 +1,7 @@
 import { ExternalLink, Globe, GraduationCap, Calendar, MapPin, DollarSign, Bookmark, Share2, Check, AlertCircle } from 'lucide-react';
 import type { Scholarship } from '../data/scholarshipsData';
 import type { Language } from '../types';
+import { getFallbackImage, getSafeCardImage, handleCardImageError, looksLikeUrlText } from '../lib/fallbackImages';
 
 interface ScholarshipCardProps {
   scholarship: Scholarship;
@@ -22,9 +23,17 @@ export default function ScholarshipCard({ scholarship, language, onSave, isSaved
   const degreeLevels = getText(scholarship.degreeLevel.join(', '), scholarship.degreeLevelAR?.join(', '), scholarship.degreeLevelKU?.join(', '));
   const fundingType = getText(scholarship.fundingType, scholarship.fundingTypeAR, scholarship.fundingTypeKU);
   const deadline = getText(scholarship.deadline, scholarship.deadlineAR, scholarship.deadlineKU);
-  const summary = getText(scholarship.summary, scholarship.summaryAR, scholarship.summaryKU);
-  const requirements = getText(scholarship.requirements, scholarship.requirementsAR, scholarship.requirementsKU);
+  const rawSummary = getText(scholarship.summary, scholarship.summaryAR, scholarship.summaryKU);
+  const rawRequirements = getText(scholarship.requirements, scholarship.requirementsAR, scholarship.requirementsKU);
+  const summary = looksLikeUrlText(rawSummary)
+    ? (language === 'ar' ? 'راجع المصدر الرسمي لمعرفة تفاصيل المنحة.' : language === 'ku' ? 'سەرچاوەی فەرمی ببینە بۆ وردەکاری بورسیەکە.' : 'Check the official source for scholarship details.')
+    : rawSummary;
+  const requirements = looksLikeUrlText(rawRequirements)
+    ? (language === 'ar' ? 'تحقق من المتطلبات في المصدر الرسمي.' : language === 'ku' ? 'مەرجەکان لە سەرچاوەی فەرمی بپشکنە.' : 'Check requirements on the official source.')
+    : rawRequirements;
   const sourceName = getText(scholarship.sourceName, scholarship.sourceNameAR, scholarship.sourceNameKU);
+  const resolvedImage = getSafeCardImage({ ...scholarship, category: 'scholarship' });
+  const fallbackImage = getFallbackImage('scholarship');
 
   const iraqEligibleConfig = {
     yes: { icon: Check, color: 'text-emerald-400', bg: 'bg-emerald-400/10', border: 'border-emerald-400/30', label: language === 'ar' ? 'متاح للعراق' : language === 'ku' ? 'بۆ عێراق' : 'Eligible for Iraq' },
@@ -50,7 +59,18 @@ export default function ScholarshipCard({ scholarship, language, onSave, isSaved
   };
 
   return (
-    <article className="rounded-3xl border border-[#1F2E4D] bg-[#121B2E] p-5 shadow-lg hover:border-[#6B25C9]/50 transition-all duration-300">
+    <article className="overflow-hidden rounded-3xl border border-[#1F2E4D] bg-[#121B2E] shadow-lg transition-all duration-300 hover:border-[#6B25C9]/50">
+      <div className="aspect-[16/9] overflow-hidden bg-slate-950">
+        <img
+          src={resolvedImage}
+          alt=""
+          className="h-full w-full object-cover"
+          loading="lazy"
+          referrerPolicy="no-referrer"
+          onError={(event) => handleCardImageError(event, fallbackImage)}
+        />
+      </div>
+      <div className="p-5">
       {/* Header with title and source type badge */}
       <div className="mb-4 flex items-start justify-between gap-3">
         <div className="min-w-0 flex-1">
@@ -152,6 +172,7 @@ export default function ScholarshipCard({ scholarship, language, onSave, isSaved
             {language === 'ar' ? 'مشاركة' : language === 'ku' ? 'هاوبەشکردن' : 'Share'}
           </button>
         </div>
+      </div>
       </div>
     </article>
   );
