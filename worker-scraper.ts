@@ -115,6 +115,7 @@ async function runMainScraper(env: Env, triggerType: string): Promise<any> {
       for (const rawItem of rawOpportunities) {
         // Apply Sanitization & Normalization helpers
         const cleaned = cleanAndNormalizeOpportunity(rawItem);
+        const rawId = await recordRawScrapedItem(env, source, rawItem, runTimestamp);
 
         // Check for duplicates
         const isDuplicate = await checkDuplicateInD1(env, cleaned);
@@ -132,8 +133,13 @@ async function runMainScraper(env: Env, triggerType: string): Promise<any> {
         // D. Auto classify the category using AI or heuristics
         cleaned.category = classifyOpportunityCategory(cleaned.titleEN + " " + cleaned.contentEN, source.type);
 
-        // E. Save to D1 as "pending"
-        await insertOpportunityToD1(env, cleaned);
+        // E. Save normalized opportunity to D1 as pending_review only.
+        const opportunityId = await insertOpportunityToD1(env, cleaned);
+        if (rawId && opportunityId) {
+          await env.DB.prepare(
+            "UPDATE raw_scraped_items SET opportunity_id = ?, review_status = 'pending_review' WHERE id = ?"
+          ).bind(opportunityId, rawId).run();
+        }
         resultsStats.itemsNew++;
       }
 
@@ -324,16 +330,13 @@ async function checkDuplicateInD1(env: Env, item: any): Promise<boolean> {
     const record = await env.DB.prepare(
       `SELECT id FROM opportunities
        WHERE original_source_url = ?
-          OR (lower(titleEN) = lower(?) AND lower(organization) = lower(?))
-          OR (lower(titleEN) = lower(?) AND deadline = ? AND lower(category) = lower(?))
+          OR (lower(titleEN) = lower(?) AND lower(organization) = lower(?) AND deadline = ?)
        LIMIT 1`
     ).bind(
       item.original_source_url,
       item.titleEN,
       item.organization,
-      item.titleEN,
-      item.deadline,
-      item.category
+      item.deadline
     ).first();
     return !!record;
   } catch {
@@ -341,7 +344,7 @@ async function checkDuplicateInD1(env: Env, item: any): Promise<boolean> {
   }
 }
 
-async function insertOpportunityToD1(env: Env, item: any): Promise<void> {
+async function insertOpportunityToD1(env: Env, item: any): Promise<string | null> {
   const newId = `scraped-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
   try {
     await env.DB.prepare(
@@ -374,8 +377,54 @@ async function insertOpportunityToD1(env: Env, item: any): Promise<void> {
       item.salary || "Depends on qualification recruiter check",
       item.location || "Iraq (Multi-center)"
     ).run();
+    return newId;
   } catch (err) {
     console.error("D1 write transaction error:", err);
+    return null;
+  }
+}
+
+async function recordRawScrapedItem(env: Env, source: any, item: any, scrapedAt: string): Promise<string | null> {
+  const rawUrl = String(item.original_source_url || item.application_link || source.url || "").trim();
+  const rawId = `raw-${Date.now()}-${Math.random().toString(36).substr(2, 6)}`;
+  try {
+    const existing = await env.DB.prepare(
+      "SELECT id FROM raw_scraped_items WHERE source_id = ? AND raw_url = ? LIMIT 1"
+    ).bind(source.id, rawUrl).first();
+    if (existing?.id) {
+      await env.DB.prepare(
+        `UPDATE raw_scraped_items
+         SET source_name = ?, raw_title = ?, raw_snippet = ?, last_seen_at = ?
+         WHERE id = ?`
+      ).bind(
+        source.name,
+        item.titleEN || item.title || "",
+        item.contentEN || item.snippet || "",
+        scrapedAt,
+        existing.id
+      ).run();
+      return String(existing.id);
+    }
+
+    await env.DB.prepare(
+      `INSERT INTO raw_scraped_items (
+        id, source_id, source_name, raw_title, raw_url, raw_snippet,
+        scraped_at, last_seen_at, opportunity_id, review_status
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, NULL, 'pending_review')`
+    ).bind(
+      rawId,
+      source.id,
+      source.name,
+      item.titleEN || item.title || "",
+      rawUrl,
+      item.contentEN || item.snippet || "",
+      scrapedAt,
+      scrapedAt
+    ).run();
+    return rawId;
+  } catch (err) {
+    console.error("D1 raw scraped item write error:", err);
+    return null;
   }
 }
 

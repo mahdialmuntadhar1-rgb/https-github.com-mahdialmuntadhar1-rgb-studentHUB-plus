@@ -56,7 +56,7 @@ interface Opportunity {
   original_source_url: string;
   published_date: string;
   imageUrl: string;
-  status: 'pending' | 'pending_review' | 'approved' | 'rejected' | 'duplicate' | 'expired';
+  status: 'pending_review' | 'approved' | 'rejected' | 'duplicate' | 'expired';
   
   // Multilingual Spec Fields
   original_language?: string;
@@ -76,7 +76,7 @@ interface LogEntry {
 }
 
 function getAdminHeaders(json = false) {
-  const token = localStorage.getItem('admin_token') || localStorage.getItem('jamiaati_token');
+  const token = localStorage.getItem('jamiaati_token');
   return {
     ...(json ? { 'Content-Type': 'application/json' } : {}),
     ...(token ? { Authorization: `Bearer ${token}` } : {})

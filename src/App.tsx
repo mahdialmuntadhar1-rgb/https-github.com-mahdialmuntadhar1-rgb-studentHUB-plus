@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Language, FeedItem, UserProfile, Comment } from './types';
-import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from './data/mockData';
+import { defaultUserProfile, IraqiUniversities, IraqiGovernorates } from './data/mockData';
 import { getTranslation } from './data/translations';
 import { brandingThemes } from './data/themes';
 import Header from './components/Header';
@@ -91,8 +91,9 @@ export default function App() {
   }, [selectedGov, selectedUni, activeTab]);
 
   // Auth States
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => Boolean(localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token')));
-  const [isAdminVerified, setIsAdminVerified] = useState<boolean>(() => Boolean(localStorage.getItem('admin_token')));
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => Boolean(localStorage.getItem('jamiaati_token')));
+  const [isAdminVerified, setIsAdminVerified] = useState<boolean>(false);
+  const [authUserRole, setAuthUserRole] = useState<string>('');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
   const isAdminRole = (role?: string) => role === 'admin' || role === 'staff' || role === 'super_admin';
   const toProfileRole = (role?: string): UserProfile['role'] => {
@@ -103,22 +104,22 @@ export default function App() {
   const clearAuthSession = () => {
     setIsLoggedIn(false);
     setIsAdminVerified(false);
+    setAuthUserRole('');
     localStorage.removeItem('jamiaati_logged_in');
     localStorage.removeItem('jamiaati_token');
     localStorage.removeItem('admin_token');
     localStorage.removeItem('jamiaati_user');
+    localStorage.removeItem('jamiaati_profile_v2');
+    setUserProfile(defaultUserProfile);
   };
   const applyAuthSession = (token: string, user: AuthUser) => {
     localStorage.setItem('jamiaati_token', token);
     localStorage.setItem('jamiaati_user', JSON.stringify(user));
-    if (isAdminRole(user.role)) {
-      localStorage.setItem('admin_token', token);
-    } else {
-      localStorage.removeItem('admin_token');
-    }
+    localStorage.removeItem('admin_token');
     localStorage.removeItem('jamiaati_logged_in');
     setIsLoggedIn(true);
     setIsAdminVerified(isAdminRole(user.role));
+    setAuthUserRole(user.role || '');
     setUserProfile(prev => ({
       ...prev,
       id: user.id || prev.id,
@@ -146,12 +147,12 @@ export default function App() {
 
   // User profile state (gamification & badges tracker)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('jamiaati_profile_v2');
+    const saved = localStorage.getItem('jamiaati_token') ? localStorage.getItem('jamiaati_profile_v2') : null;
     return saved ? JSON.parse(saved) : defaultUserProfile;
   });
 
   useEffect(() => {
-    const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+    const token = localStorage.getItem('jamiaati_token');
     if (!token) {
       clearAuthSession();
       return;
@@ -190,6 +191,7 @@ export default function App() {
   const [institutions, setInstitutions] = useState<any[]>([]);
   const [institutionsLoading, setInstitutionsLoading] = useState<boolean>(true);
   const [institutionsError, setInstitutionsError] = useState<string | null>(null);
+  const [feedApiError, setFeedApiError] = useState<string | null>(null);
 
   const normalizeGovernorate = (raw: string | null | undefined): string => {
     if (!raw) return 'all';
@@ -235,11 +237,11 @@ export default function App() {
           throw new Error(`Failed to fetch: ${res.statusText}`);
         }
         const json = await res.json();
-        const list = json.institutions || [];
+        const list = Array.isArray(json.institutions) ? json.institutions : [];
         all = all.concat(list);
         const pag = json.pagination || {};
         offset += list.length;
-        hasMore = pag.hasMore && list.length > 0 && all.length < pag.total;
+        hasMore = Boolean(pag.hasMore) && list.length > 0 && all.length < Number(pag.total || 0);
       }
 
       const colors = [
@@ -346,11 +348,12 @@ export default function App() {
   useEffect(() => {
     const fetchLiveFeed = async () => {
       try {
-        const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+        setFeedApiError(null);
+        const token = localStorage.getItem('jamiaati_token');
         const headers = token ? { Authorization: `Bearer ${token}` } : {};
         const [oppsResponse, highlightsResponse] = await Promise.all([
-          fetch(`${BACKEND_URL}/api/opportunities`, { headers }),
-          fetch(`${BACKEND_URL}/api/highlights`, { headers })
+          fetch(`${BACKEND_URL}/api/opportunities?limit=50`, { headers }),
+          fetch(`${BACKEND_URL}/api/highlights?limit=50`, { headers })
         ]);
 
         let dbItems: FeedItem[] = [];
@@ -358,7 +361,7 @@ export default function App() {
         // 1. Process Opportunities
         if (oppsResponse.ok) {
           const payload = await oppsResponse.json();
-          const list = Array.isArray(payload) ? payload : (payload?.opportunities || []);
+          const list = Array.isArray(payload?.opportunities) ? payload.opportunities : [];
           if (Array.isArray(list)) {
             const mappedOpps = list.map((item: any) => ({
               id: String(item.id || `scraped-${Date.now()}-${Math.random()}`),
@@ -404,12 +407,14 @@ export default function App() {
             }));
             dbItems = [...dbItems, ...mappedOpps];
           }
+        } else {
+          throw new Error(`Opportunities API returned HTTP ${oppsResponse.status}`);
         }
 
         // 2. Process Highlights
         if (highlightsResponse.ok) {
           const highlightsPayload = await highlightsResponse.json();
-          const hList = Array.isArray(highlightsPayload) ? highlightsPayload : (highlightsPayload?.highlights || []);
+          const hList = Array.isArray(highlightsPayload?.highlights) ? highlightsPayload.highlights : [];
           if (Array.isArray(hList)) {
             const mappedHighlights = hList.map((item: any) => ({
               id: String(item.id || `highlight-${Date.now()}-${Math.random()}`),
@@ -439,29 +444,21 @@ export default function App() {
             }));
             dbItems = [...dbItems, ...mappedHighlights];
           }
+        } else {
+          throw new Error(`Highlights API returned HTTP ${highlightsResponse.status}`);
         }
 
         setFeedItems(prev => {
           const customOnly = prev.filter(p => p.id && String(p.id).startsWith('custom-'));
-          if (dbItems.length > 0) {
-            // Live backend listings exist! We show only live + custom posts. We do not mix mock data.
-            return [...customOnly, ...dbItems];
-          } else {
-            // Live backend listings are empty or failed, so fallback to mock details cleanly.
-            return [...customOnly, ...initialFeedItems];
-          }
+          return [...customOnly, ...dbItems];
         });
 
-      } catch (err) {
+      } catch (err: any) {
         console.error("Error loading approved scraped opportunities and highlights:", err);
-        // Fallback to initialFeedItems in case of complete API/fetch issues
+        setFeedApiError(err.message || 'Failed to load live feed from backend.');
         setFeedItems(prev => {
           const customOnly = prev.filter(p => p.id && String(p.id).startsWith('custom-'));
-          const withoutLive = prev.filter(p => p.id && !String(p.id).startsWith('custom-') && !String(p.id).startsWith('scraped-') && !String(p.id).startsWith('highlight-'));
-          if (withoutLive.length === 0) {
-            return [...customOnly, ...initialFeedItems];
-          }
-          return prev;
+          return customOnly;
         });
       }
     };
@@ -512,13 +509,15 @@ export default function App() {
   }, [isLoggedIn]);
 
   useEffect(() => {
-    localStorage.setItem('jamiaati_profile_v2', JSON.stringify(userProfile));
     if (isLoggedIn) {
+      localStorage.setItem('jamiaati_profile_v2', JSON.stringify(userProfile));
       void userContentApi.updateProfile(userProfile, language).catch(() => {
         // Local cache remains responsive; backend will retry on the next profile change.
       });
+    } else {
+      localStorage.removeItem('jamiaati_profile_v2');
     }
-  }, [userProfile]);
+  }, [userProfile, isLoggedIn, language]);
 
   // Adjust application alignment automatically based on language direction
   const isRTL = language === 'ar' || language === 'ku';
@@ -992,7 +991,7 @@ export default function App() {
           onAddComment={handleAddComment}
           onEditFeedItem={handleEditFeedItem}
           onDeleteFeedItem={handleDeleteFeedItem}
-          isAdminMode={userProfile.role === 'staff'}
+          isAdminMode={isAdminVerified}
         />
       );
     }
@@ -1025,7 +1024,7 @@ export default function App() {
             onRetryInstitutions={handleRetryInstitutions}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={isAdminVerified}
             onSelectSection={setSelectedSection}
           />
         );
@@ -1047,7 +1046,7 @@ export default function App() {
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={isAdminVerified}
           />
         );
       case 'ask':
@@ -1068,7 +1067,7 @@ export default function App() {
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={isAdminVerified}
           />
         );
       case 'future':
@@ -1089,7 +1088,7 @@ export default function App() {
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={isAdminVerified}
           />
         );
       case 'profile':
@@ -1127,7 +1126,7 @@ export default function App() {
             language={language}
             onBack={() => setActiveTab('profile')}
             showToast={showToast}
-            userRole={isAdminVerified ? 'staff' : userProfile.role}
+            userRole={isAdminVerified ? authUserRole : 'student'}
           />
         );
       default:
@@ -1150,6 +1149,11 @@ export default function App() {
 
         {/* Dynamic Inner views container */}
         <main className="flex-1 overflow-y-auto bg-[#0B1020]">
+          {feedApiError && (
+            <div className="mx-4 mt-3 rounded-2xl border border-rose-500/30 bg-rose-950/30 px-3 py-2 text-[10px] font-bold text-rose-200">
+              {language === 'ar' ? `تعذر تحميل الخلاصة من الخادم: ${feedApiError}` : language === 'ku' ? `بارکردنی فید لە سێرڤەر سەرکەوتوو نەبوو: ${feedApiError}` : `Could not load live feed from backend: ${feedApiError}`}
+            </div>
+          )}
           {renderActiveView()}
         </main>
 

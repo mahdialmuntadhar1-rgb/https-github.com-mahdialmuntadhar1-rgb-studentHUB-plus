@@ -179,11 +179,7 @@ export default function FutureFeed({
       try {
         const data = await getOpportunities(language);
         if (active) {
-          if (Array.isArray(data)) {
-            setOpportunities(data.map(mapBackendOpportunity));
-          } else {
-            setOpportunities([]);
-          }
+          setOpportunities(data.opportunities.map(mapBackendOpportunity));
         }
       } catch (err: any) {
         if (active) {
@@ -655,7 +651,7 @@ export default function FutureFeed({
               setError(null);
               getOpportunities(language).then(data => {
                 if (active) {
-                  setOpportunities(Array.isArray(data) ? data.map(mapBackendOpportunity) : []);
+                  setOpportunities(data.opportunities.map(mapBackendOpportunity));
                   setIsLoading(false);
                 }
               }).catch(err => {

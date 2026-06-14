@@ -22,13 +22,14 @@ const DB_FILE = path.join(process.cwd(), "database.json");
 function readDB() {
   try {
     if (!fs.existsSync(DB_FILE)) {
-      return { sources: [], opportunities: [], logs: [], users: [], passwordResets: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
+      return { sources: [], opportunities: [], raw_scraped_items: [], logs: [], users: [], passwordResets: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
     }
     const raw = fs.readFileSync(DB_FILE, "utf-8");
     const parsed = JSON.parse(raw);
     return {
       sources: parsed.sources || [],
       opportunities: parsed.opportunities || [],
+      raw_scraped_items: parsed.raw_scraped_items || [],
       logs: parsed.logs || [],
       users: parsed.users || [],
       passwordResets: parsed.passwordResets || [],
@@ -41,7 +42,7 @@ function readDB() {
     };
   } catch (err) {
     console.error("Error reading database.json:", err);
-    return { sources: [], opportunities: [], logs: [], users: [], passwordResets: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
+    return { sources: [], opportunities: [], raw_scraped_items: [], logs: [], users: [], passwordResets: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
   }
 }
 
@@ -228,7 +229,6 @@ function findOpportunityDuplicate(db: any, candidate: any, ignoreId?: string) {
   const title = candidate.titleEN.toLowerCase();
   const org = candidate.organization.toLowerCase();
   const deadline = String(candidate.deadline || "");
-  const category = String(candidate.category || "").toLowerCase();
   const sourceUrl = candidate.original_source_url.toLowerCase();
 
   return db.opportunities.find((opp: any) => {
@@ -236,8 +236,50 @@ function findOpportunityDuplicate(db: any, candidate: any, ignoreId?: string) {
     const normalized = normalizeOpportunity(opp);
     if (!normalized) return false;
     return normalized.original_source_url.toLowerCase() === sourceUrl ||
-      (normalized.titleEN.toLowerCase() === title && normalized.organization.toLowerCase() === org) ||
-      (normalized.titleEN.toLowerCase() === title && String(normalized.deadline || "") === deadline && normalized.category.toLowerCase() === category);
+      (
+        normalized.titleEN.toLowerCase() === title &&
+        normalized.organization.toLowerCase() === org &&
+        String(normalized.deadline || "") === deadline
+      );
+  });
+}
+
+function recordRawScrapedItem(db: any, source: any, item: any, scrapedAt: string) {
+  db.raw_scraped_items = db.raw_scraped_items || [];
+  const rawUrl = String(item.link || item.original_source_url || item.application_link || source.url || "").trim();
+  const existing = db.raw_scraped_items.find((raw: any) =>
+    raw.source_id === source.id && raw.raw_url === rawUrl
+  );
+  const payload = {
+    source_id: source.id,
+    source_name: source.name,
+    raw_title: String(item.title || item.titleEN || "").trim(),
+    raw_url: rawUrl,
+    raw_snippet: String(item.snippet || item.contentEN || "").trim(),
+    review_status: "pending_review",
+    last_seen_at: scrapedAt
+  };
+
+  if (existing) {
+    Object.assign(existing, payload);
+    return existing;
+  }
+
+  const rawRecord = {
+    id: `raw-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`,
+    ...payload,
+    scraped_at: scrapedAt,
+    opportunity_id: null
+  };
+  db.raw_scraped_items.unshift(rawRecord);
+  return rawRecord;
+}
+
+function updateRawReviewStatus(db: any, opportunityId: string, status: string) {
+  (db.raw_scraped_items || []).forEach((raw: any) => {
+    if (raw.opportunity_id === opportunityId) {
+      raw.review_status = normalizeOpportunityStatus(status);
+    }
   });
 }
 
@@ -412,6 +454,7 @@ async function runScraperInExpress() {
       // 2. CLEAN AND CLASSIFY (GEMINI AI preferred, rule heuristic as solid fallback)
       for (const item of itemsToProcess) {
         stats.itemsFound++;
+        const rawRecord = recordRawScrapedItem(db, source, item, runTimestamp);
         
         // Prevent duplicates
         const duplicate = findOpportunityDuplicate(db, {
@@ -539,6 +582,8 @@ Output only valid JSON container!`;
 
         if (newOpp) {
           db.opportunities.unshift(newOpp);
+          rawRecord.opportunity_id = newOpp.id;
+          rawRecord.review_status = newOpp.status;
           stats.itemsNew++;
         }
       }
@@ -859,6 +904,8 @@ app.post("/api/uploads/images", requireAuth, (req, res) => {
 });
 
 app.get("/api/institutions", async (req, res) => {
+  const limit = Math.max(0, parseInt(String(req.query.limit || "50"), 10) || 50);
+  const offset = Math.max(0, parseInt(String(req.query.offset || "0"), 10) || 0);
   try {
     const targetUrl = `https://rafid-api.mahdialmuntadhar1.workers.dev${req.originalUrl}`;
     const response = await fetch(targetUrl, {
@@ -867,14 +914,40 @@ app.get("/api/institutions", async (req, res) => {
       }
     });
     const contentType = response.headers.get("content-type") || "";
-    res.status(response.status);
+    if (!response.ok) {
+      res.json({
+        institutions: [],
+        pagination: { total: 0, limit, offset, hasMore: false },
+        warning: `Institutions service returned HTTP ${response.status}`
+      });
+      return;
+    }
     if (contentType.includes("application/json")) {
-      res.json(await response.json());
+      const data = await response.json();
+      const institutions = Array.isArray(data?.institutions) ? data.institutions : [];
+      const total = Number(data?.pagination?.total ?? institutions.length);
+      res.json({
+        institutions,
+        pagination: {
+          total,
+          limit: Number(data?.pagination?.limit ?? limit),
+          offset: Number(data?.pagination?.offset ?? offset),
+          hasMore: Boolean(data?.pagination?.hasMore ?? offset + institutions.length < total)
+        }
+      });
     } else {
-      res.send(await response.text());
+      res.json({
+        institutions: [],
+        pagination: { total: 0, limit, offset, hasMore: false },
+        warning: await response.text()
+      });
     }
   } catch (err: any) {
-    res.status(502).json({ error: "Institutions service is unavailable: " + err.message });
+    res.json({
+      institutions: [],
+      pagination: { total: 0, limit, offset, hasMore: false },
+      warning: "Institutions service is unavailable: " + err.message
+    });
   }
 });
 
@@ -888,6 +961,7 @@ app.get("/api/opportunities", (req, res) => {
     .map(normalizeOpportunity)
     .filter(Boolean)
     .filter((o: any) => o.status === "approved")
+    .filter((o: any) => !o.deadline || String(o.deadline) >= new Date().toISOString().split("T")[0])
     .filter((o: any) => allowedCategories.includes(o.category));
 
   const { type, category, governorate, university_id, institution_id, limit, offset } = req.query;
@@ -922,7 +996,16 @@ app.get("/api/opportunities", (req, res) => {
     result = result.slice(start, start + size);
   }
 
-  res.json(result.map((o: any) => mergeOpportunityStats(db, o, user?.id)));
+  const opportunities = result.map((o: any) => mergeOpportunityStats(db, o, user?.id));
+  res.json({
+    opportunities,
+    pagination: {
+      total: list.length,
+      limit: size,
+      offset: start,
+      hasMore: start + opportunities.length < list.length
+    }
+  });
 });
 
 // Dynamic Highlights feed (approved public academic notices only)
@@ -934,6 +1017,7 @@ app.get("/api/highlights", (req, res) => {
     .map(normalizeOpportunity)
     .filter(Boolean)
     .filter((o: any) => o.status === "approved")
+    .filter((o: any) => !o.deadline || String(o.deadline) >= new Date().toISOString().split("T")[0])
     .filter((o: any) => allowedCategories.includes(o.category));
 
   const { category, governorate, university_id, institution_id, limit, offset } = req.query;
@@ -967,7 +1051,16 @@ app.get("/api/highlights", (req, res) => {
     result = result.slice(start, start + size);
   }
 
-  res.json(result.map((o: any) => mergeOpportunityStats(db, o, user?.id)));
+  const highlights = result.map((o: any) => mergeOpportunityStats(db, o, user?.id));
+  res.json({
+    highlights,
+    pagination: {
+      total: list.length,
+      limit: size,
+      offset: start,
+      hasMore: start + highlights.length < list.length
+    }
+  });
 });
 
 app.use("/api/admin", requireAdmin);
@@ -1099,6 +1192,7 @@ app.patch("/api/opportunity-automation/candidates/:id", requireAdmin, (req, res)
     updated.duplicateOf = duplicate.id;
   }
   db.opportunities[index] = updated;
+  updateRawReviewStatus(db, updated.id, updated.status);
   writeDB(db);
   res.json(updated);
 });
@@ -1119,11 +1213,13 @@ app.post("/api/opportunity-automation/candidates/:id/approve", requireAdmin, (re
   if (duplicate) {
     item.status = "duplicate";
     item.duplicateOf = duplicate.id;
+    updateRawReviewStatus(db, item.id, item.status);
     writeDB(db);
     res.status(409).json({ error: "Duplicate opportunity detected.", duplicateOf: duplicate.id });
     return;
   }
   Object.assign(item, normalized, { status: "approved", approvedAt: new Date().toISOString(), approvedBy: (req as any).authUser.id });
+  updateRawReviewStatus(db, item.id, item.status);
   writeDB(db);
   res.json({ success: true, item });
 });
@@ -1138,6 +1234,7 @@ app.post("/api/opportunity-automation/candidates/:id/reject", requireAdmin, (req
   item.status = "rejected";
   item.rejectionReason = String(req.body?.reason || "Rejected by admin review.");
   item.rejectedAt = new Date().toISOString();
+  updateRawReviewStatus(db, item.id, item.status);
   writeDB(db);
   res.json({ success: true, item });
 });
@@ -1151,6 +1248,7 @@ app.post("/api/opportunity-automation/candidates/:id/mark-duplicate", requireAdm
   }
   item.status = "duplicate";
   item.duplicateReason = String(req.body?.reason || "Marked duplicate by admin review.");
+  updateRawReviewStatus(db, item.id, item.status);
   writeDB(db);
   res.json({ success: true, item });
 });
@@ -1164,6 +1262,7 @@ app.post("/api/opportunity-automation/candidates/:id/mark-expired", requireAdmin
   }
   item.status = "expired";
   item.expiredAt = new Date().toISOString();
+  updateRawReviewStatus(db, item.id, item.status);
   writeDB(db);
   res.json({ success: true, item });
 });
@@ -1290,6 +1389,19 @@ app.post("/api/opportunity-automation/import-csv", requireAdmin, (req, res) => {
     }
 
     db.opportunities.unshift(candidate);
+    db.raw_scraped_items = db.raw_scraped_items || [];
+    db.raw_scraped_items.unshift({
+      id: `raw-import-${Date.now()}-${rowIndex}-${crypto.randomBytes(3).toString("hex")}`,
+      source_id: "csv-import",
+      source_name: String(req.body?.fileName || "CSV import"),
+      raw_title: value("title"),
+      raw_url: sourceUrl,
+      raw_snippet: value("description"),
+      scraped_at: new Date().toISOString(),
+      last_seen_at: new Date().toISOString(),
+      opportunity_id: candidate.id,
+      review_status: "pending_review"
+    });
     inserted++;
   });
 
@@ -1327,18 +1439,24 @@ app.post("/api/admin/opportunities/action", (req, res) => {
 
   if (action === "approve") {
     item.status = "approved";
+    item.approvedAt = new Date().toISOString();
+    item.approvedBy = (req as any).authUser?.id;
   } else if (action === "reject") {
     item.status = "rejected";
     item.rejectionReason = req.body.reason || item.rejectionReason || "Rejected by admin review.";
+    item.rejectedAt = new Date().toISOString();
   } else if (action === "expire") {
     item.status = "expired";
+    item.expiredAt = new Date().toISOString();
   } else if (action === "duplicate") {
     item.status = "duplicate";
+    item.duplicateReason = req.body.reason || item.duplicateReason || "Marked duplicate by admin review.";
   } else {
     res.status(400).json({ error: "Invalid action. Choose 'approve', 'reject', 'duplicate', or 'expire'." });
     return;
   }
 
+  updateRawReviewStatus(db, item.id, item.status);
   writeDB(db);
   res.json({ success: true, item });
 });
@@ -1622,6 +1740,25 @@ app.get("/api/outreach/campaigns", requireAdmin, (req, res) => {
     total: 0,
     dryRun: true,
     message: "Outreach campaigns are disabled for public launch until unsubscribe handling and real-send approval are configured."
+  });
+});
+
+app.post("/api/outreach/send-test", requireAdmin, (req, res) => {
+  res.json({
+    success: true,
+    dryRun: true,
+    message: "Email outreach is in DRY_RUN mode. No real email was sent."
+  });
+});
+
+app.post("/api/outreach/import-csv", requireAdmin, (req, res) => {
+  res.json({
+    success: true,
+    inserted: 0,
+    duplicates: 0,
+    errors: [],
+    dryRun: true,
+    message: "Outreach CSV import is in DRY_RUN mode. No contacts were imported or emailed."
   });
 });
 

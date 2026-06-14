@@ -122,7 +122,7 @@ export default function AdminAutomation({
   const [uploadStats, setUploadStats] = useState<any | null>(null);
 
   // Checks Authorization quickly
-  const isAdmin = userRole === 'staff';
+  const isAdmin = userRole === 'staff' || userRole === 'admin' || userRole === 'super_admin';
 
   const t = {
     title: { en: 'Opportunity Automation Center', ar: 'مركز أتمتة الفرص المتقدم', ku: 'ناوەندی خۆکارکردنی دەرفەتەکان' },

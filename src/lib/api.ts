@@ -15,7 +15,7 @@ function getHeaders() {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-  const token = localStorage.getItem('admin_token') || localStorage.getItem('jamiaati_token');
+  const token = localStorage.getItem('jamiaati_token');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -330,7 +330,11 @@ export const opportunityAutomation = {
 export async function getOpportunities(lang: Language = 'ar') {
   try {
     const res = await fetch(`${BACKEND_URL}/api/opportunities`);
-    return await handleResponse(res, lang);
+    const data = await handleResponse(res, lang);
+    return {
+      opportunities: Array.isArray(data?.opportunities) ? data.opportunities : [],
+      pagination: data?.pagination || { total: 0, limit: 0, offset: 0, hasMore: false }
+    };
   } catch (err: any) {
     console.error('Error fetching opportunities:', err);
     throw err;

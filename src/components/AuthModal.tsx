@@ -134,18 +134,11 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
         localStorage.setItem('jamiaati_user', JSON.stringify(user));
       }
 
-      if (role === 'admin' || role === 'staff' || role === 'super_admin') {
-        localStorage.setItem('admin_token', token);
-      } else {
-        localStorage.removeItem('admin_token');
-      }
+      localStorage.removeItem('admin_token');
 
       setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
-
-      setTimeout(() => {
-        onAuthSuccess(returnedName, token, role, user);
-        onClose();
-      }, 500);
+      onAuthSuccess(returnedName, token, role, user);
+      onClose();
     } catch (err: any) {
       const rawMessage = String(err?.message || '');
       setError(

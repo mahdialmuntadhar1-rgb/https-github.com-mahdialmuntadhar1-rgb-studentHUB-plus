@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS opportunities (
   original_source_url TEXT NOT NULL,
   published_date TEXT,
   imageUrl TEXT,
-  status TEXT DEFAULT 'pending_review', -- 'pending_review' | 'approved' | 'rejected' | 'duplicate' | 'expired'
+  status TEXT DEFAULT 'pending_review' CHECK (status IN ('pending_review', 'approved', 'rejected', 'duplicate', 'expired')),
   rejectionReason TEXT,
   duplicateOf TEXT,
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
@@ -46,6 +46,27 @@ CREATE TABLE IF NOT EXISTS opportunities (
 CREATE INDEX IF NOT EXISTS idx_opportunities_source_url ON opportunities(original_source_url);
 CREATE INDEX IF NOT EXISTS idx_opportunities_title_org ON opportunities(titleEN, organization);
 CREATE INDEX IF NOT EXISTS idx_opportunities_title_deadline_category ON opportunities(titleEN, deadline, category);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_opportunities_unique_source_url ON opportunities(original_source_url);
+CREATE UNIQUE INDEX IF NOT EXISTS idx_opportunities_unique_title_org_deadline ON opportunities(titleEN, organization, deadline);
+
+-- 2b. Raw scraped/imported item storage before moderation.
+-- Raw rows are kept for auditability; normalized opportunities still enter pending_review only.
+CREATE TABLE IF NOT EXISTS raw_scraped_items (
+  id TEXT PRIMARY KEY,
+  source_id TEXT,
+  source_name TEXT,
+  raw_title TEXT,
+  raw_url TEXT,
+  raw_snippet TEXT,
+  scraped_at TEXT NOT NULL,
+  last_seen_at TEXT,
+  opportunity_id TEXT,
+  review_status TEXT DEFAULT 'pending_review' CHECK (review_status IN ('pending_review', 'approved', 'rejected', 'duplicate', 'expired')),
+  UNIQUE(source_id, raw_url)
+);
+
+CREATE INDEX IF NOT EXISTS idx_raw_scraped_items_opportunity ON raw_scraped_items(opportunity_id);
+CREATE INDEX IF NOT EXISTS idx_raw_scraped_items_status ON raw_scraped_items(review_status);
 
 -- 3. Scraper Logs Schema
 CREATE TABLE IF NOT EXISTS scraper_logs (

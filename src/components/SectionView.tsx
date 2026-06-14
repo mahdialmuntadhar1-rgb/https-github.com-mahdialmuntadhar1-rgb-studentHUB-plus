@@ -295,9 +295,12 @@ export default function SectionView({
         }
         const data = await response.json();
         if (active) {
-          if (Array.isArray(data)) {
+          const items = queryEndpoint === 'opportunities'
+            ? data?.opportunities
+            : data?.highlights;
+          if (Array.isArray(items)) {
             // Apply client-side filtering by category value as safety guarantee
-            let filteredResults = data.filter((item: any) => {
+            let filteredResults = items.filter((item: any) => {
               const itemType = item.category || item.type || '';
               // Match standard category or direct type
               return itemType.toLowerCase() === targetVal.toLowerCase() || 
