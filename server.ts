@@ -342,18 +342,17 @@ app.get("/api/health", (req, res) => {
 app.get("/api/opportunities", (req, res) => {
   const db = readDB();
   
-  // 1. Core Filtering: Filter for approved/expired opportunities
+  // 1. Core Filtering: public feed shows approved opportunities only.
   let list = db.opportunities || [];
   
-  // Enforce approved or expired status for search feed
-  list = list.filter((o: any) => o.status === "approved" || o.status === "expired" || !o.status);
+  list = list.filter((o: any) => o.status === "approved");
   
   // Map category constraint
   const allowedCategories = ["job", "scholarship", "internship", "training", "fellowship", "volunteering", "competition"];
   list = list.filter((o: any) => allowedCategories.includes(o.category));
 
   // 2. Query Parameters Filters
-  const { type, category, governorate, university_id, institution_id, limit, offset } = req.query;
+  const { type, category, governorate, city, search, university_id, institution_id, limit, offset } = req.query;
 
   // Filter by category or type specifically
   const catFilter = category || type;
@@ -368,6 +367,22 @@ app.get("/api/opportunities", (req, res) => {
       o.governorate?.toLowerCase() === String(governorate).toLowerCase() ||
       o.governorateId === "all" ||
       o.governorate === "All Iraq"
+    );
+  }
+
+  if (city) {
+    list = list.filter((o: any) => o.city?.toLowerCase() === String(city).toLowerCase());
+  }
+
+  if (search) {
+    const term = String(search).trim().toLowerCase();
+    list = list.filter((o: any) =>
+      o.title?.toLowerCase().includes(term) ||
+      o.titleEN?.toLowerCase().includes(term) ||
+      o.organization?.toLowerCase().includes(term) ||
+      o.institution_name?.toLowerCase().includes(term) ||
+      o.summary?.toLowerCase().includes(term) ||
+      o.contentEN?.toLowerCase().includes(term)
     );
   }
 
@@ -839,4 +854,3 @@ async function initServer() {
 initServer().catch((error) => {
   console.error("Failed to start server:", error);
 });
-

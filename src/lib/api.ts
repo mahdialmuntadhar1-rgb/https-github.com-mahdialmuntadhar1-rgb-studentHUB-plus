@@ -445,11 +445,15 @@ export async function getHighlights(filters?: {
 export async function getBackendOpportunities(filters?: {
   category?: string;
   governorate?: string;
+  city?: string;
+  search?: string;
   limit?: number;
 }): Promise<BackendOpportunity[]> {
   const params = new URLSearchParams();
   if (filters?.category) params.set('category', filters.category);
   if (filters?.governorate && filters.governorate !== 'all') params.set('governorate', filters.governorate);
+  if (filters?.city) params.set('city', filters.city);
+  if (filters?.search) params.set('search', filters.search);
   if (filters?.limit) params.set('limit', filters.limit.toString());
 
   const response = await fetch(`${API_BASE}/api/opportunities${params.toString() ? `?${params}` : ''}`);

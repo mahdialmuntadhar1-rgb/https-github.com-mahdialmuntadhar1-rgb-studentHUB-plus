@@ -661,7 +661,11 @@ export default function HomeFeed({
                 key={story.id} 
                 className="flex flex-col items-center gap-1.5 snap-start cursor-pointer shrink-0"
                 onClick={() => {
-                  if (onSelectSection) {
+                  if (story.tabType === 'opportunities') {
+                    window.location.href = `/opportunities?category=${encodeURIComponent(story.filterType)}`;
+                  } else if (story.id === 'event') {
+                    window.location.href = '/opportunities?category=event';
+                  } else if (onSelectSection) {
                     onSelectSection(story.id);
                   }
                 }}
