@@ -1,12 +1,12 @@
 -- Jamiaati real D1 content seed
 
--- Generated at 2026-06-14T11:15:42.890Z
+-- Generated at 2026-06-14T11:18:10.105Z
 
 -- Targets: opportunity_sources, opportunity_candidates, highlight_items
 
 
 
-BEGIN TRANSACTION;
+-- No explicit transaction: Cloudflare D1 remote file execution rejects BEGIN/COMMIT here.
 
 INSERT OR IGNORE INTO opportunity_sources (
   id,
@@ -41,8 +41,8 @@ VALUES (
   'jobs',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -78,8 +78,8 @@ VALUES (
   'jobs',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -115,8 +115,8 @@ VALUES (
   'jobs',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -152,8 +152,8 @@ VALUES (
   'jobs',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -189,8 +189,8 @@ VALUES (
   'jobs',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -226,8 +226,8 @@ VALUES (
   'jobs',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -263,8 +263,8 @@ VALUES (
   'jobs',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -300,8 +300,8 @@ VALUES (
   'jobs',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -337,8 +337,8 @@ VALUES (
   'jobs',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -374,8 +374,8 @@ VALUES (
   'jobs',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -411,8 +411,8 @@ VALUES (
   'scholarships',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -448,8 +448,8 @@ VALUES (
   'scholarships',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -485,8 +485,8 @@ VALUES (
   'scholarships',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -522,8 +522,8 @@ VALUES (
   'scholarships',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -559,8 +559,8 @@ VALUES (
   'scholarships',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -596,8 +596,8 @@ VALUES (
   'scholarships',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -633,8 +633,8 @@ VALUES (
   'scholarships',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -670,8 +670,8 @@ VALUES (
   'scholarships',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -707,8 +707,8 @@ VALUES (
   'scholarships',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -744,8 +744,8 @@ VALUES (
   'scholarships',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -781,8 +781,8 @@ VALUES (
   'announcements',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -818,8 +818,8 @@ VALUES (
   'announcements',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -855,8 +855,8 @@ VALUES (
   'announcements',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -892,8 +892,8 @@ VALUES (
   'announcements',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -929,8 +929,8 @@ VALUES (
   'announcements',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -966,8 +966,8 @@ VALUES (
   'announcements',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -1003,8 +1003,8 @@ VALUES (
   'announcements',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -1040,8 +1040,8 @@ VALUES (
   'announcements',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -1077,8 +1077,8 @@ VALUES (
   'events',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -1114,8 +1114,8 @@ VALUES (
   'events',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_sources (
@@ -1151,8 +1151,8 @@ VALUES (
   'events',
   1,
   1,
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO opportunity_candidates (
@@ -1203,7 +1203,7 @@ VALUES (
   'A trusted scholarship database for Iraqi students, graduates, researchers, and academics looking for study and research funding in Germany. Check the official DAAD page for the exact current deadline and requirements.',
   'Iraqi students, graduates, researchers, and academics',
   'Check official website',
-  '2026-06-14T11:15:42.890Z',
+  '2026-06-14T11:18:10.105Z',
   'https://www.daad-iraq.org/en/find-funding/scholarship-database/',
   'https://www.daad-iraq.org/en/find-funding/scholarship-database/',
   'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=900',
@@ -1215,8 +1215,8 @@ VALUES (
   90,
   'seed-opportunity-seed-scholarship-daad-iraq',
   'pending_review',
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z',
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z',
   'DAAD Scholarship Database for Iraqi Students',
   'Ù‚Ø§Ø¹Ø¯Ø© Ø¨ÙŠØ§Ù†Ø§Øª Ù…Ù†Ø­ DAAD Ù„Ù„Ø·Ù„Ø§Ø¨ Ø§Ù„Ø¹Ø±Ø§Ù‚ÙŠÙŠÙ†',
   'Ø¨Ù†Ú©Û•ÛŒ Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ Ø¨ÙˆØ±Ø³Û•Ú©Ø§Ù†ÛŒ DAAD Ø¨Û† Ù‚ÙˆØªØ§Ø¨ÛŒØ§Ù†ÛŒ Ø¹ÛŽØ±Ø§Ù‚',
@@ -1280,7 +1280,7 @@ VALUES (
   'A major UK scholarship route for future leaders from Iraq to study a one-year master''s degree. Applicants should always check the official Chevening Iraq page for the current cycle dates and eligibility details.',
   'Eligible Iraqi applicants for master''s study',
   'Check official website',
-  '2026-06-14T11:15:42.890Z',
+  '2026-06-14T11:18:10.105Z',
   'https://www.chevening.org/scholarships/iraq/',
   'https://www.chevening.org/scholarships/iraq/',
   'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&q=80&w=900',
@@ -1292,8 +1292,8 @@ VALUES (
   90,
   'seed-opportunity-seed-scholarship-chevening-iraq',
   'pending_review',
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z',
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z',
   'Chevening Scholarships for Iraq',
   'Ù…Ù†Ø­ ØªØ´ÙŠÙÙ†ÙŠÙ†Øº Ù„Ù„Ø¹Ø±Ø§Ù‚',
   'Ø¨ÙˆØ±Ø³ÛŒ Chevening Ø¨Û† Ø¹ÛŽØ±Ø§Ù‚',
@@ -1357,7 +1357,7 @@ VALUES (
   'A popular European scholarship path for international students, including Iraqi applicants, through selected joint master''s programs. Students should browse the official catalogue and check each program''s deadline.',
   'International students applying to eligible joint master''s programs',
   'Depends on selected program',
-  '2026-06-14T11:15:42.890Z',
+  '2026-06-14T11:18:10.105Z',
   'https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en',
   'https://www.eacea.ec.europa.eu/scholarships/erasmus-mundus-catalogue_en',
   'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&q=80&w=900',
@@ -1369,8 +1369,8 @@ VALUES (
   90,
   'seed-opportunity-seed-scholarship-erasmus-mundus',
   'pending_review',
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z',
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z',
   'Erasmus Mundus Joint Masters Scholarships',
   'Ù…Ù†Ø­ Ø¥ÙŠØ±Ø§Ø³Ù…ÙˆØ³ Ù…ÙˆÙ†Ø¯ÙˆØ³ Ù„Ù„Ù…Ø§Ø¬Ø³ØªÙŠØ± Ø§Ù„Ù…Ø´ØªØ±Ùƒ',
   'Ø¨ÙˆØ±Ø³ÛŒ Erasmus Mundus Ø¨Û† Ù…Ø§Ø³ØªÛ•Ø±ÛŒ Ù‡Ø§ÙˆØ¨Û•Ø´',
@@ -1434,7 +1434,7 @@ VALUES (
   'Government-funded scholarships for international students at multiple study levels. Iraqi students should check the official portal for the current application cycle, programs, and eligibility.',
   'International students, including Iraqi applicants',
   'Check official website',
-  '2026-06-14T11:15:42.890Z',
+  '2026-06-14T11:18:10.105Z',
   'https://www.turkiyeburslari.gov.tr',
   'https://www.turkiyeburslari.gov.tr',
   'https://images.unsplash.com/photo-1541432901042-2d8bd64b4a9b?auto=format&fit=crop&q=80&w=900',
@@ -1446,8 +1446,8 @@ VALUES (
   90,
   'seed-opportunity-seed-scholarship-turkiye',
   'pending_review',
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z',
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z',
   'TÃ¼rkiye Scholarships',
   'Ù…Ù†Ø­ ØªØ±ÙƒÙŠØ§',
   'Ø¨ÙˆØ±Ø³ÛŒ ØªÙˆØ±Ú©ÛŒØ§',
@@ -1511,7 +1511,7 @@ VALUES (
   'A useful route for Iraqi students exploring study in France, scholarship information, and admission guidance. Students should check the official Campus France Iraq site for updated calls.',
   'Iraqi students interested in France study routes',
   'Check official website',
-  '2026-06-14T11:15:42.890Z',
+  '2026-06-14T11:18:10.105Z',
   'https://www.iraq.campusfrance.org',
   'https://www.iraq.campusfrance.org',
   'https://images.unsplash.com/photo-1495446815901-a7297e633e8d?auto=format&fit=crop&q=80&w=900',
@@ -1523,8 +1523,8 @@ VALUES (
   90,
   'seed-opportunity-seed-scholarship-campus-france-iraq',
   'pending_review',
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z',
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z',
   'Campus France Iraq Scholarships and Study Routes',
   'Ù…Ù†Ø­ ÙˆÙ…Ø³Ø§Ø±Ø§Øª Ø§Ù„Ø¯Ø±Ø§Ø³Ø© Ø¹Ø¨Ø± ÙƒØ§Ù…Ø¨ÙˆØ³ ÙØ±Ø§Ù†Ø³ Ø§Ù„Ø¹Ø±Ø§Ù‚',
   'Ø¨ÙˆØ±Ø³ Ùˆ Ú•ÛŽÚ¯Ø§Ú©Ø§Ù†ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù† Ù„Û• Ú•ÛŽÚ¯Û•ÛŒ Campus France Iraq',
@@ -1585,8 +1585,8 @@ VALUES (
   'seed-highlight-seed-social-campus-welcome-english',
   85,
   'This is a starter social post until students begin posting their real campus questions, photos, study groups, and daily university updates. The goal is to keep the app warm without pretending this is official news.',
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
 INSERT OR IGNORE INTO highlight_items (
@@ -1634,9 +1634,9 @@ VALUES (
   'seed-highlight-seed-social-study-group-demo',
   85,
   'A sample campus-life post encouraging students to create study groups, ask questions, and share helpful notes. This can be replaced by real user posts once the app grows.',
-  '2026-06-14T11:15:42.890Z',
-  '2026-06-14T11:15:42.890Z'
+  '2026-06-14T11:18:10.105Z',
+  '2026-06-14T11:18:10.105Z'
 );
 
-COMMIT;
+-- End seed file.
 

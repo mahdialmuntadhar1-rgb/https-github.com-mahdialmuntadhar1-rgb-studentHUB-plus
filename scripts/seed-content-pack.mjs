@@ -32,7 +32,7 @@ sql.push("-- Jamiaati real D1 content seed");
 sql.push("-- Generated at " + now);
 sql.push("-- Targets: opportunity_sources, opportunity_candidates, highlight_items");
 sql.push("");
-sql.push("BEGIN TRANSACTION;");
+sql.push("-- No explicit transaction: Cloudflare D1 remote file execution rejects BEGIN/COMMIT here.");
 
 for (const s of pack.sources) {
   const categoryScope = categoryScopeFor(s.type);
@@ -136,7 +136,7 @@ VALUES (
     item.organization?.toLowerCase().includes("daad") ? "daad-iraq-scholarship-database" :
     item.organization?.toLowerCase().includes("chevening") ? "chevening-iraq" :
     item.organization?.toLowerCase().includes("erasmus") || item.organization?.toLowerCase().includes("european") ? "erasmus-mundus-catalogue" :
-    item.organization?.toLowerCase().includes("türkiye") || item.organization?.toLowerCase().includes("turkiye") ? "turkiye-scholarships" :
+    item.organization?.toLowerCase().includes("tÃ¼rkiye") || item.organization?.toLowerCase().includes("turkiye") ? "turkiye-scholarships" :
     item.organization?.toLowerCase().includes("campus france") ? "campus-france-iraq-scholarships" :
     null;
 
@@ -219,7 +219,7 @@ VALUES (
 );`.trim());
 }
 
-sql.push("COMMIT;");
+sql.push("-- End seed file.");
 sql.push("");
 
 const outPath = path.join(process.cwd(), "content-seed", "generated-content-seed.sql");
