@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Language, FeedItem, Comment } from '../types';
 import { IraqiGovernorates, IraqiUniversities } from '../data/mockData';
+import { DEMO_ITEMS, getDemoItemsByCategory } from '../data/demoData';
 import { 
   ArrowLeft, 
   ArrowRight,
@@ -382,11 +383,39 @@ export default function SectionView({
   }, [normalizedKey, selectedGov, selectedUni]);
 
   // Apply visual governorate and university filtering
-  const filteredItems = items.filter(item => {
-    const matchesGov = selectedGov === 'all' || !item.governorateId || item.governorateId === 'all' || item.governorateId === selectedGov;
-    const matchesUni = selectedUni === 'all' || !item.universityId || item.universityId === 'all' || item.universityId === selectedUni;
-    return matchesGov && matchesUni;
-  });
+  // Add demo items only if real section is sparse (less than 3 items)
+  const filteredItems = useMemo(() => {
+    const realItems = items.filter(item => !item.isDemo);
+    
+    // Filter real items by governorate and university
+    const filteredRealItems = realItems.filter(item => {
+      const matchesGov = selectedGov === 'all' || !item.governorateId || item.governorateId === 'all' || item.governorateId === selectedGov;
+      const matchesUni = selectedUni === 'all' || !item.universityId || item.universityId === 'all' || item.universityId === selectedUni;
+      return matchesGov && matchesUni;
+    });
+    
+    // If we have enough real items, don't add demo items
+    if (filteredRealItems.length >= 3) {
+      return filteredRealItems;
+    }
+    
+    // Get demo items matching the category
+    const categoryDemoItems = getDemoItemsByCategory(normalizedKey);
+    
+    // Filter demo items by governorate and university
+    const filteredDemoItems = categoryDemoItems.filter(demo => {
+      const matchesGov = selectedGov === 'all' || demo.governorateId === 'all' || demo.governorateId === selectedGov;
+      const matchesUni = selectedUni === 'all' || demo.universityId === 'all' || demo.universityId === selectedUni;
+      return matchesGov && matchesUni;
+    });
+    
+    // Limit demo items to fill up to 5 total items max
+    const slotsNeeded = Math.max(0, 5 - filteredRealItems.length);
+    const demoItemsToShow = filteredDemoItems.slice(0, slotsNeeded);
+    
+    // Return real items first, then demo items
+    return [...filteredRealItems, ...demoItemsToShow];
+  }, [items, selectedGov, selectedUni, normalizedKey]);
 
   const availableUnis = selectedGov === 'all' 
     ? IraqiUniversities 

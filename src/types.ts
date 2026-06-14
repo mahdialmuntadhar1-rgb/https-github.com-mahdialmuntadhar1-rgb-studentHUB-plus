@@ -141,6 +141,9 @@ export interface FeedItem {
   serviceCategory?: 'cafe' | 'photocopy' | 'dorm' | 'stationery' | 'restaurant' | 'gym';
   serviceRating?: number;
   serviceDistance?: string; // e.g., '50m from gate'
+  
+  // Demo/Preview flag for frontend-only sample items
+  isDemo?: boolean;
 }
 
 export interface UserProfile {

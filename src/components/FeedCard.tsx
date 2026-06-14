@@ -3,6 +3,7 @@ import { Language, FeedItem, Comment } from '../types';
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
+import { getImageWithFallback } from '../lib/fallbackImages';
 import { 
   Heart, 
   MessageSquare, 
@@ -19,7 +20,8 @@ import {
   UserCheck,
   Send,
   HelpCircle,
-  Hash
+  Hash,
+  Sparkles
 } from 'lucide-react';
 
 interface FeedCardProps {
@@ -85,7 +87,8 @@ export default function FeedCard({
 
   // Helper to render high-contrast, youthful Instagram-like galleries and mosaics
   const renderImageGallery = () => {
-    if (!item.imageUrl) return null;
+    // Use fallback image if imageUrl is missing
+    const displayImageUrl = getImageWithFallback(item.imageUrl, item.type);
 
     // Create a list of complementary pictures for mosaic based on item ID
     let additionalImages: string[] = [];
@@ -108,7 +111,7 @@ export default function FeedCard({
     if (additionalImages.length === 0) {
       return (
         <div className="group relative rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] transition-all duration-300 shadow-md hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
-          <img src={item.imageUrl} alt={title} className="w-full h-auto max-h-[380px] object-cover" referrerPolicy="no-referrer" />
+          <img src={displayImageUrl} alt={title} className="w-full h-auto max-h-[380px] object-cover" referrerPolicy="no-referrer" />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between text-white text-[10px] font-black">
             <span>✨ Campus Highlight</span>
             <span>View Fullscreen 🔎</span>
@@ -122,7 +125,7 @@ export default function FeedCard({
       return (
         <div className="grid grid-cols-5 gap-2 rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] h-48 select-none">
           <div className="col-span-3 h-full relative group cursor-pointer overflow-hidden">
-            <img src={item.imageUrl} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
+            <img src={displayImageUrl} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
             <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors" />
           </div>
           <div className="col-span-2 h-full relative group cursor-pointer overflow-hidden">
@@ -137,7 +140,7 @@ export default function FeedCard({
     return (
       <div className="grid grid-cols-3 gap-2 rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] h-52 select-none">
         <div className="col-span-2 h-full relative group cursor-pointer overflow-hidden">
-          <img src={item.imageUrl} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-550" referrerPolicy="no-referrer" />
+          <img src={displayImageUrl} alt={title} className="w-full h-full object-cover hover:scale-105 transition-transform duration-550" referrerPolicy="no-referrer" />
           <div className="absolute inset-0 bg-black/5 hover:bg-transparent transition-colors" />
         </div>
         <div className="col-span-1 flex flex-col gap-2 h-full">
@@ -381,6 +384,12 @@ export default function FeedCard({
                   {item.author.verified && (
                     <span className="text-[8px] font-black uppercase bg-[#FFD21F] text-[#161A33] px-1.5 py-0.5 rounded-md border border-[#161A33]/15 tracking-tight flex items-center gap-0.5 shadow-sm">
                       ✨ {getTranslation('verifiedPartner', language)}
+                    </span>
+                  )}
+                  {item.isDemo && (
+                    <span className="text-[7px] font-black uppercase bg-cyan-100 text-cyan-700 px-1.5 py-0.5 rounded-md border border-cyan-300 tracking-tight flex items-center gap-0.5 shadow-sm">
+                      <Sparkles className="w-3 h-3" />
+                      Demo
                     </span>
                   )}
                 </div>
