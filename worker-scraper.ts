@@ -9,8 +9,14 @@
 export interface Env {
   // Cloudflare D1 Database binding
   DB: any; // D1Database
+  // Cloudflare R2 bucket binding for durable uploads when upload handling is enabled
+  UPLOADS?: any; // R2Bucket
   // optional Gemini client key or standard service endpoints
   GEMINI_API_KEY?: string;
+  JWT_SECRET?: string;
+  RESEND_API_KEY?: string;
+  DRY_RUN_AUTOMATION?: string;
+  DRY_RUN_EMAILS?: string;
 }
 
 export default {
@@ -28,32 +34,91 @@ export default {
   async fetch(request: Request, env: Env, ctx: any): Promise<Response> {
     const url = new URL(request.url);
 
+    if (url.pathname === "/api/health" && request.method === "GET") {
+      return jsonResponse({ status: "ok", worker: "rafid-api", time: new Date().toISOString() });
+    }
+
+    if (url.pathname === "/api/institutions" && request.method === "GET") {
+      const limit = Number(url.searchParams.get("limit") || "50");
+      const offset = Number(url.searchParams.get("offset") || "0");
+      return jsonResponse({
+        institutions: [],
+        pagination: { total: 0, limit, offset, hasMore: false },
+        warning: "Institutions source is not configured in this Worker yet."
+      });
+    }
+
+    if ((url.pathname === "/api/opportunities" || url.pathname === "/api/highlights") && request.method === "GET") {
+      const kind = url.pathname.endsWith("/highlights") ? "highlights" : "opportunities";
+      return jsonResponse(await getPublicFeed(env, url, kind));
+    }
+
     // Enforce POST security or manual triggers
     if (url.pathname === "/api/scrape/run" && request.method === "POST") {
       try {
         console.log("[HTTP Trigger] Starting manual scraping execution...");
         const stats = await runMainScraper(env, "manual_admin");
-        return new Response(JSON.stringify({
+        return jsonResponse({
           success: true,
           message: "Scraper completed successfully inside Cloudflare Worker environment.",
           stats
-        }), {
-          headers: { "Content-Type": "application/json" }
         });
       } catch (err: any) {
-        return new Response(JSON.stringify({
+        return jsonResponse({
           success: false,
           error: err.message
-        }), {
-          status: 500,
-          headers: { "Content-Type": "application/json" }
-        });
+        }, 500);
       }
     }
 
     return new Response("Cloudflare Worker Scraper Node: Operational. Waiting for cron or API triggers.", { status: 200 });
   }
 };
+
+function jsonResponse(data: any, status = 200) {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: { "Content-Type": "application/json" }
+  });
+}
+
+async function getPublicFeed(env: Env, url: URL, kind: "opportunities" | "highlights") {
+  const today = new Date().toISOString().split("T")[0];
+  const limit = Math.max(0, Number(url.searchParams.get("limit") || "50"));
+  const offset = Math.max(0, Number(url.searchParams.get("offset") || "0"));
+  const opportunityCategories = ["job", "scholarship", "internship", "training", "fellowship", "volunteering", "competition", "graduation_support"];
+  const highlightCategories = ["event", "news", "announcement", "exam", "registration", "student_club", "activity"];
+  const categories = kind === "opportunities" ? opportunityCategories : highlightCategories;
+  const placeholders = categories.map(() => "?").join(",");
+
+  const countResult = await env.DB.prepare(
+    `SELECT COUNT(*) AS total FROM opportunities
+     WHERE status = 'approved'
+       AND (deadline IS NULL OR deadline = '' OR deadline >= ?)
+       AND category IN (${placeholders})`
+  ).bind(today, ...categories).first();
+
+  const rows = await env.DB.prepare(
+    `SELECT * FROM opportunities
+     WHERE status = 'approved'
+       AND (deadline IS NULL OR deadline = '' OR deadline >= ?)
+       AND category IN (${placeholders})
+     ORDER BY published_date DESC, created_at DESC
+     LIMIT ? OFFSET ?`
+  ).bind(today, ...categories, limit, offset).all();
+
+  const items = rows.results || [];
+  const total = Number(countResult?.total || 0);
+  return {
+    [kind]: items,
+    pagination: {
+      total,
+      limit,
+      offset,
+      hasMore: offset + items.length < total
+    }
+  };
+}
 
 /**
  * MAIN SCOPE EXECUTION

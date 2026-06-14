@@ -109,9 +109,9 @@ function writeDB(data: any) {
 // -------------------------------------------------------------
 // Real local authentication layer
 // -------------------------------------------------------------
-const TOKEN_SECRET = process.env.AUTH_TOKEN_SECRET || (process.env.NODE_ENV === "production" ? "" : "jamiaati-local-dev-token-secret-change-me");
+const TOKEN_SECRET = process.env.JWT_SECRET || process.env.AUTH_TOKEN_SECRET || (process.env.NODE_ENV === "production" ? "" : "jamiaati-local-dev-token-secret-change-me");
 if (!TOKEN_SECRET) {
-  throw new Error("AUTH_TOKEN_SECRET must be configured in production.");
+  throw new Error("JWT_SECRET or AUTH_TOKEN_SECRET must be configured in production.");
 }
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7;
 const ADMIN_ROLES = new Set(["admin", "staff", "super_admin"]);

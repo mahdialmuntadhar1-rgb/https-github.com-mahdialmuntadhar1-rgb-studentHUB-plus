@@ -1,7 +1,7 @@
 import { Language } from '../types';
 
 export const BACKEND_URL =
-  (((import.meta as any).env?.VITE_API_URL as string | undefined) || '').trim().replace(/\/$/, '');
+  (((import.meta as any).env?.VITE_API_URL as string | undefined) || 'https://rafid-api.mahdialmuntadhar1.workers.dev').trim().replace(/\/$/, '');
 const API_BASE = `${BACKEND_URL}/api`;
 
 export type AuthUser = {

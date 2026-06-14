@@ -1,28 +1,178 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+# StudentHUB-plus / Jamiaati
 
-# Run and deploy your AI Studio app
+StudentHUB-plus is a React/Vite frontend with a local Express dev server and a Cloudflare Worker automation backend for Jamiaati student opportunities.
 
-This contains everything you need to run your app locally.
+## Prerequisites
 
-View your app in AI Studio: https://ai.studio/apps/deae2ed9-a6b5-4abd-a9bb-8da43c92c619
+- Node.js 20+
+- npm
+- Cloudflare Wrangler for manual Cloudflare work: `npm install -g wrangler`
+- A Cloudflare D1 database named `rafid-db`
+- Optional R2 bucket named `rafid-uploads` before production uploads are enabled
 
-## Run Locally
-
-**Prerequisites:**  Node.js
-
+## Local Run
 
 1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
 
-## Production readiness notes
+   ```bash
+   npm install
+   ```
 
-- Apply SQL files in `migrations/` to the production database before launch.
-- Set `AUTH_TOKEN_SECRET` to a long random secret in production.
-- Keep `DRY_RUN=true` for email/outreach until unsubscribe handling and explicit send approval are complete.
-- Leave `VITE_API_URL` empty when the frontend and backend are served from the same origin.
-- Configure durable image storage (`R2_PUBLIC_BASE_URL` and upload handling) before enabling production image uploads.
+2. Create local env from the template:
+
+   ```bash
+   cp .env.example .env
+   ```
+
+3. Keep dry-run flags enabled while developing:
+
+   ```env
+   VITE_API_URL=http://127.0.0.1:3000
+   DRY_RUN_AUTOMATION=true
+   DRY_RUN_EMAILS=true
+   DRY_RUN=true
+   ```
+
+4. Run the full-stack local dev server:
+
+   ```bash
+   npm run dev
+   ```
+
+5. Open:
+
+   ```text
+   http://127.0.0.1:3000
+   ```
+
+## Build
+
+```bash
+npm run lint
+npm run build
+```
+
+The build outputs the frontend and bundled local server to `dist/`.
+
+## Environment
+
+Required or supported variables:
+
+- `GEMINI_API_KEY`: Enables live Gemini AI responses and opportunity cleanup.
+- `JWT_SECRET`: Production auth token signing secret. `AUTH_TOKEN_SECRET` is still supported for older setups.
+- `RESEND_API_KEY`: Email provider key, only for future real email sending.
+- `DRY_RUN_AUTOMATION=true`: Keeps automation actions safe.
+- `DRY_RUN_EMAILS=true`: Keeps outreach/password reset email paths from sending real email.
+- `VITE_API_URL`: Frontend backend API origin. Use `http://127.0.0.1:3000` for full local backend testing. Default in code is `https://rafid-api.mahdialmuntadhar1.workers.dev`.
+- `R2_PUBLIC_BASE_URL`: Public base URL for durable R2 uploads after upload handling is configured.
+
+Do not disable email dry-run flags until unsubscribe handling, sender verification, and explicit production approval are complete.
+
+## Cloudflare Bindings
+
+`wrangler.toml` is prepared for the backend Worker:
+
+- Worker name: `rafid-api`
+- Worker entry: `worker-scraper.ts`
+- D1 binding variable: `DB`
+- D1 database name: `rafid-db`
+- R2 binding variable: `UPLOADS`
+- R2 bucket name: `rafid-uploads`
+
+Before deploying, replace the placeholder `database_id` in `wrangler.toml` with the real D1 database ID from Cloudflare.
+
+## D1 Migrations
+
+Create the database once if needed:
+
+```bash
+wrangler d1 create rafid-db
+```
+
+Apply the full schema manually:
+
+```bash
+wrangler d1 execute rafid-db --remote --file=./schema.sql
+```
+
+Apply incremental migrations manually when needed:
+
+```bash
+wrangler d1 execute rafid-db --remote --file=./migrations/0001_auth_users.sql
+wrangler d1 execute rafid-db --remote --file=./migrations/0002_opportunity_status_and_dedupe.sql
+wrangler d1 execute rafid-db --remote --file=./migrations/0003_user_content_persistence.sql
+```
+
+Run local migration checks without `--remote` only against a disposable local D1 database.
+
+## Manual Backend Deploy
+
+This repo must not auto-deploy. When ready, deploy manually:
+
+```bash
+wrangler deploy --config wrangler.toml
+```
+
+Set secrets manually:
+
+```bash
+wrangler secret put GEMINI_API_KEY
+wrangler secret put JWT_SECRET
+wrangler secret put RESEND_API_KEY
+```
+
+Keep these vars true until production approval:
+
+```bash
+wrangler secret put DRY_RUN_AUTOMATION
+wrangler secret put DRY_RUN_EMAILS
+```
+
+## Manual Frontend Deploy
+
+Build the frontend:
+
+```bash
+npm run build
+```
+
+For Cloudflare Pages, set:
+
+```env
+VITE_API_URL=https://rafid-api.mahdialmuntadhar1.workers.dev
+```
+
+Then deploy `dist/` manually through the Cloudflare dashboard or your chosen Pages workflow. Do not run deployment from automation unless explicitly approved.
+
+## Smoke Tests
+
+Local:
+
+```bash
+curl http://127.0.0.1:3000/api/health
+curl "http://127.0.0.1:3000/api/institutions?limit=5"
+curl "http://127.0.0.1:3000/api/opportunities?limit=5"
+curl "http://127.0.0.1:3000/api/highlights?limit=5"
+curl http://127.0.0.1:3000/api/admin/portal-settings
+```
+
+Remote backend after manual deploy:
+
+```bash
+curl https://rafid-api.mahdialmuntadhar1.workers.dev/api/health
+curl "https://rafid-api.mahdialmuntadhar1.workers.dev/api/opportunities?limit=5"
+```
+
+Admin-only smoke tests should use a real admin JWT:
+
+```bash
+curl -H "Authorization: Bearer $ADMIN_JWT" \
+  https://rafid-api.mahdialmuntadhar1.workers.dev/api/opportunity-automation/stats
+```
+
+## Safety Notes
+
+- Scraped/imported opportunities must enter `pending_review`.
+- Public feeds must show `approved` and non-expired opportunities only.
+- Outreach and emails stay in DRY_RUN mode.
+- No deployment should be performed automatically.
