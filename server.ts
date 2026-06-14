@@ -38,6 +38,32 @@ function writeDB(data: any) {
   }
 }
 
+function ensureSocialSafetyTables(db: any) {
+  db.sources = Array.isArray(db.sources) ? db.sources : [];
+  db.opportunities = Array.isArray(db.opportunities) ? db.opportunities : [];
+  db.logs = Array.isArray(db.logs) ? db.logs : [];
+  db.user_blocks = Array.isArray(db.user_blocks) ? db.user_blocks : [];
+  db.content_reports = Array.isArray(db.content_reports) ? db.content_reports : [];
+  db.abuse_audit_logs = Array.isArray(db.abuse_audit_logs) ? db.abuse_audit_logs : [];
+  return db;
+}
+
+function createId(prefix: string) {
+  return `${prefix}-${Date.now()}-${Math.random().toString(36).slice(2, 10)}`;
+}
+
+function addAbuseAuditLog(db: any, payload: { actor_user_id?: string | null; action: string; target_type?: string | null; target_id?: string | null; metadata?: any }) {
+  db.abuse_audit_logs.unshift({
+    id: createId("audit"),
+    actor_user_id: payload.actor_user_id || null,
+    action: payload.action,
+    target_type: payload.target_type || null,
+    target_id: payload.target_id || null,
+    metadata: payload.metadata ? JSON.stringify(payload.metadata) : null,
+    created_at: new Date().toISOString()
+  });
+}
+
 // Lazy-loaded Gemini AI client to avoid crashes if GEMINI_API_KEY is not initially configured
 let aiClient: GoogleGenAI | null = null;
 function getGeminiClient(): GoogleGenAI {
@@ -481,7 +507,152 @@ function requireAdminApiToken(req: any, res: any, next: any) {
   return next();
 }
 
+app.post("/api/social/reports", (req, res) => {
+  const { reporter_user_id, reported_user_id, target_type, target_id, reason, details } = req.body || {};
+  if (!target_type || !reason) {
+    res.status(400).json({ error: "target_type and reason are required." });
+    return;
+  }
+
+  const allowedTargetTypes = ["post", "user", "comment"];
+  const allowedReasons = ["spam", "harassment", "hate_or_abuse", "misinformation", "unsafe_content", "impersonation", "other"];
+  if (!allowedTargetTypes.includes(String(target_type)) || !allowedReasons.includes(String(reason))) {
+    res.status(400).json({ error: "Invalid report target type or reason." });
+    return;
+  }
+
+  const db = ensureSocialSafetyTables(readDB());
+  const now = new Date().toISOString();
+  const report = {
+    id: createId("report"),
+    reporter_user_id: reporter_user_id || null,
+    reported_user_id: reported_user_id || null,
+    target_type,
+    target_id: target_id || null,
+    reason,
+    details: details || null,
+    status: "pending",
+    admin_notes: null,
+    created_at: now,
+    updated_at: now
+  };
+
+  db.content_reports.unshift(report);
+  addAbuseAuditLog(db, {
+    actor_user_id: reporter_user_id || null,
+    action: "report_created",
+    target_type,
+    target_id: target_id || reported_user_id || null,
+    metadata: { reason }
+  });
+  writeDB(db);
+  res.status(201).json({ success: true, report });
+});
+
+app.post("/api/social/blocks", (req, res) => {
+  const { blocker_user_id, blocked_user_id, reason } = req.body || {};
+  if (!blocker_user_id || !blocked_user_id) {
+    res.status(400).json({ error: "blocker_user_id and blocked_user_id are required." });
+    return;
+  }
+  if (String(blocker_user_id) === String(blocked_user_id)) {
+    res.status(400).json({ error: "Users cannot block themselves." });
+    return;
+  }
+
+  const db = ensureSocialSafetyTables(readDB());
+  const existing = db.user_blocks.find((block: any) => block.blocker_user_id === blocker_user_id && block.blocked_user_id === blocked_user_id);
+  if (existing) {
+    res.json({ success: true, block: existing });
+    return;
+  }
+
+  const block = {
+    id: createId("block"),
+    blocker_user_id,
+    blocked_user_id,
+    reason: reason || null,
+    created_at: new Date().toISOString()
+  };
+  db.user_blocks.unshift(block);
+  addAbuseAuditLog(db, {
+    actor_user_id: blocker_user_id,
+    action: "user_blocked",
+    target_type: "user",
+    target_id: blocked_user_id,
+    metadata: { reason: reason || null }
+  });
+  writeDB(db);
+  res.status(201).json({ success: true, block });
+});
+
+app.delete("/api/social/blocks/:blockedUserId", (req, res) => {
+  const blockedUserId = req.params.blockedUserId;
+  const blockerUserId = String(req.query.blocker_user_id || req.headers["x-user-id"] || "");
+  const db = ensureSocialSafetyTables(readDB());
+  const before = db.user_blocks.length;
+  db.user_blocks = db.user_blocks.filter((block: any) => {
+    const sameBlockedUser = block.blocked_user_id === blockedUserId;
+    const sameBlocker = blockerUserId ? block.blocker_user_id === blockerUserId : true;
+    return !(sameBlockedUser && sameBlocker);
+  });
+  if (before !== db.user_blocks.length) {
+    addAbuseAuditLog(db, {
+      actor_user_id: blockerUserId || null,
+      action: "user_unblocked",
+      target_type: "user",
+      target_id: blockedUserId
+    });
+    writeDB(db);
+  }
+  res.json({ success: true });
+});
+
+app.get("/api/social/blocks", (req, res) => {
+  const db = ensureSocialSafetyTables(readDB());
+  const blockerUserId = String(req.query.blocker_user_id || req.headers["x-user-id"] || "");
+  const list = blockerUserId
+    ? db.user_blocks.filter((block: any) => block.blocker_user_id === blockerUserId)
+    : db.user_blocks;
+  res.json(list);
+});
+
 app.use("/api/admin", requireAdminApiToken);
+
+app.get("/api/admin/social/reports", (req, res) => {
+  const db = ensureSocialSafetyTables(readDB());
+  res.json(db.content_reports);
+});
+
+app.patch("/api/admin/social/reports/:id", (req, res) => {
+  const { status, admin_notes } = req.body || {};
+  const allowedStatuses = ["pending", "reviewed", "dismissed", "action_taken"];
+  if (!allowedStatuses.includes(String(status))) {
+    res.status(400).json({ error: "Invalid report status." });
+    return;
+  }
+
+  const db = ensureSocialSafetyTables(readDB());
+  const report = db.content_reports.find((row: any) => row.id === req.params.id);
+  if (!report) {
+    res.status(404).json({ error: "Report not found." });
+    return;
+  }
+
+  report.status = status;
+  report.admin_notes = admin_notes || report.admin_notes || null;
+  report.updated_at = new Date().toISOString();
+  addAbuseAuditLog(db, {
+    actor_user_id: "admin",
+    action: "report_status_updated",
+    target_type: "report",
+    target_id: report.id,
+    metadata: { status }
+  });
+  writeDB(db);
+  res.json({ success: true, report });
+});
+
 // Admin list of all opportunities
 app.get("/api/admin/opportunities", (req, res) => {
   const db = readDB();

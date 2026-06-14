@@ -18,11 +18,55 @@ export interface University {
 }
 
 export interface Author {
+  id?: string;
   name: string;
   role: 'student' | 'graduate' | 'teacher' | 'staff' | 'institution';
   avatar: string;
   verified?: boolean;
   university?: string;
+}
+
+export type ProfileVisibility = 'public' | 'university_only' | 'private';
+
+export type ReportReason =
+  | 'spam'
+  | 'harassment'
+  | 'hate_or_abuse'
+  | 'misinformation'
+  | 'unsafe_content'
+  | 'impersonation'
+  | 'other';
+
+export interface UserBlock {
+  id: string;
+  blocker_user_id: string;
+  blocked_user_id: string;
+  reason?: string | null;
+  created_at?: string;
+}
+
+export interface ContentReport {
+  id: string;
+  reporter_user_id?: string | null;
+  reported_user_id?: string | null;
+  target_type: 'post' | 'user' | 'comment';
+  target_id?: string | null;
+  reason: ReportReason;
+  details?: string | null;
+  status: 'pending' | 'reviewed' | 'dismissed' | 'action_taken';
+  admin_notes?: string | null;
+  created_at?: string;
+  updated_at?: string;
+}
+
+export interface AbuseAuditLog {
+  id: string;
+  actor_user_id?: string | null;
+  action: string;
+  target_type?: string | null;
+  target_id?: string | null;
+  metadata?: string | null;
+  created_at?: string;
 }
 
 export interface PollOption {
@@ -104,6 +148,7 @@ export interface FeedItem {
   
   // Meta
   author: Author;
+  authorId?: string;
   date: string; // e.g. '3 hours ago' / '٣ ساعات مضت'
   rawDate?: string; // ISO date for sorting
   likes: number;
@@ -175,6 +220,7 @@ export interface UserProfile {
   name: string;
   avatar: string;
   role: 'student' | 'graduate' | 'teacher' | 'staff' | 'institution';
+  profileVisibility?: ProfileVisibility;
   universityId: string;
   governorateId: string;
   bioEN: string;
@@ -298,4 +344,3 @@ export function hasAlternativeLanguages(item: any, currentLanguage: 'en' | 'ar' 
     return !!(hasAr || hasKu || hasOriginal);
   }
 }
-

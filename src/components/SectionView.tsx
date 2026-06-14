@@ -39,6 +39,11 @@ interface SectionViewProps {
   onAddComment: (id: string, commentText: string) => void;
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
   onDeleteFeedItem?: (id: string) => void;
+  onReportPost?: (item: FeedItem) => void | Promise<void>;
+  onReportUser?: (item: FeedItem) => void | Promise<void>;
+  onBlockUser?: (item: FeedItem) => void | Promise<void>;
+  currentUserId?: string;
+  currentUserName?: string;
   isAdminMode?: boolean;
 }
 
@@ -254,6 +259,11 @@ export default function SectionView({
   onAddComment,
   onEditFeedItem,
   onDeleteFeedItem,
+  onReportPost,
+  onReportUser,
+  onBlockUser,
+  currentUserId,
+  currentUserName,
   isAdminMode = false
 }: SectionViewProps) {
   const [items, setItems] = useState<FeedItem[]>([]);
@@ -538,6 +548,11 @@ export default function SectionView({
               onAddComment={onAddComment}
               onEditFeedItem={onEditFeedItem}
               onDeleteFeedItem={onDeleteFeedItem}
+              onReportPost={onReportPost}
+              onReportUser={onReportUser}
+              onBlockUser={onBlockUser}
+              currentUserId={currentUserId}
+              currentUserName={currentUserName}
               isAdminMode={isAdminMode}
             />
           ))}

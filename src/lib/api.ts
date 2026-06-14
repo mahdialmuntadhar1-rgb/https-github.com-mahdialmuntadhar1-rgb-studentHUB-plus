@@ -1,4 +1,4 @@
-import { Language } from '../types';
+import { ContentReport, Language, ReportReason, UserBlock } from '../types';
 
 export const BACKEND_URL = (import.meta as any).env.VITE_API_URL || 'https://rafid-api.mahdialmuntadhar1.workers.dev';
 const API_BASE = BACKEND_URL;
@@ -467,6 +467,166 @@ export async function getOpportunities(lang: Language = 'en'): Promise<BackendOp
 export async function getInstitutions(): Promise<any[]> {
   const response = await fetch(`${API_BASE}/api/institutions`);
   return handleHighlightResponse<any[]>(response);
+}
+
+const LOCAL_REPORTS_KEY = 'jamiaati_social_reports_v1';
+const LOCAL_BLOCKS_KEY = 'jamiaati_social_blocks_v1';
+
+function localId(prefix: string) {
+  const random = typeof crypto !== 'undefined' && 'randomUUID' in crypto ? crypto.randomUUID() : `${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return `${prefix}-${random}`;
+}
+
+function readLocalList<T>(key: string): T[] {
+  try {
+    const raw = localStorage.getItem(key);
+    const parsed = raw ? JSON.parse(raw) : [];
+    return Array.isArray(parsed) ? parsed : [];
+  } catch {
+    return [];
+  }
+}
+
+function writeLocalList<T>(key: string, rows: T[]) {
+  try {
+    localStorage.setItem(key, JSON.stringify(rows));
+  } catch {}
+}
+
+async function safeSocialRequest<T>(path: string, init: RequestInit, fallback: () => T | Promise<T>): Promise<T> {
+  try {
+    const response = await fetch(`${API_BASE}${path}`, {
+      ...init,
+      headers: { 'Content-Type': 'application/json', ...authHeaders(), ...(init.headers || {}) },
+    });
+    if (!response.ok) return fallback();
+    return handleHighlightResponse<T>(response);
+  } catch {
+    return fallback();
+  }
+}
+
+export async function reportPost(payload: {
+  reporter_user_id?: string;
+  reported_user_id?: string;
+  post_id: string;
+  reason: ReportReason;
+  details?: string;
+}): Promise<{ success: boolean; report: ContentReport; localFallback?: boolean }> {
+  return safeSocialRequest('/api/social/reports', {
+    method: 'POST',
+    body: JSON.stringify({
+      reporter_user_id: payload.reporter_user_id,
+      reported_user_id: payload.reported_user_id,
+      target_type: 'post',
+      target_id: payload.post_id,
+      reason: payload.reason,
+      details: payload.details,
+    }),
+  }, () => {
+    const reports = readLocalList<ContentReport>(LOCAL_REPORTS_KEY);
+    const report: ContentReport = {
+      id: localId('local-report'),
+      reporter_user_id: payload.reporter_user_id || null,
+      reported_user_id: payload.reported_user_id || null,
+      target_type: 'post',
+      target_id: payload.post_id,
+      reason: payload.reason,
+      details: payload.details || null,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    writeLocalList(LOCAL_REPORTS_KEY, [report, ...reports]);
+    return { success: true, report, localFallback: true };
+  });
+}
+
+export async function reportUser(payload: {
+  reporter_user_id?: string;
+  reported_user_id: string;
+  reason: ReportReason;
+  details?: string;
+}): Promise<{ success: boolean; report: ContentReport; localFallback?: boolean }> {
+  return safeSocialRequest('/api/social/reports', {
+    method: 'POST',
+    body: JSON.stringify({
+      reporter_user_id: payload.reporter_user_id,
+      reported_user_id: payload.reported_user_id,
+      target_type: 'user',
+      target_id: payload.reported_user_id,
+      reason: payload.reason,
+      details: payload.details,
+    }),
+  }, () => {
+    const reports = readLocalList<ContentReport>(LOCAL_REPORTS_KEY);
+    const report: ContentReport = {
+      id: localId('local-report'),
+      reporter_user_id: payload.reporter_user_id || null,
+      reported_user_id: payload.reported_user_id,
+      target_type: 'user',
+      target_id: payload.reported_user_id,
+      reason: payload.reason,
+      details: payload.details || null,
+      status: 'pending',
+      created_at: new Date().toISOString(),
+      updated_at: new Date().toISOString(),
+    };
+    writeLocalList(LOCAL_REPORTS_KEY, [report, ...reports]);
+    return { success: true, report, localFallback: true };
+  });
+}
+
+export async function blockUser(payload: {
+  blocker_user_id: string;
+  blocked_user_id: string;
+  reason?: string;
+}): Promise<{ success: boolean; block: UserBlock; localFallback?: boolean }> {
+  return safeSocialRequest('/api/social/blocks', {
+    method: 'POST',
+    body: JSON.stringify(payload),
+  }, () => {
+    const blocks = readLocalList<UserBlock>(LOCAL_BLOCKS_KEY).filter(block => block.blocked_user_id !== payload.blocked_user_id);
+    const block: UserBlock = {
+      id: localId('local-block'),
+      blocker_user_id: payload.blocker_user_id,
+      blocked_user_id: payload.blocked_user_id,
+      reason: payload.reason || null,
+      created_at: new Date().toISOString(),
+    };
+    writeLocalList(LOCAL_BLOCKS_KEY, [block, ...blocks]);
+    return { success: true, block, localFallback: true };
+  });
+}
+
+export async function unblockUser(blockedUserId: string): Promise<{ success: boolean; localFallback?: boolean }> {
+  return safeSocialRequest(`/api/social/blocks/${encodeURIComponent(blockedUserId)}`, {
+    method: 'DELETE',
+  }, () => {
+    const blocks = readLocalList<UserBlock>(LOCAL_BLOCKS_KEY).filter(block => block.blocked_user_id !== blockedUserId);
+    writeLocalList(LOCAL_BLOCKS_KEY, blocks);
+    return { success: true, localFallback: true };
+  });
+}
+
+export async function getBlockedUsers(): Promise<UserBlock[]> {
+  return safeSocialRequest('/api/social/blocks', { method: 'GET' }, () => readLocalList<UserBlock>(LOCAL_BLOCKS_KEY));
+}
+
+export async function getReportsForAdmin(): Promise<ContentReport[]> {
+  const response = await fetch(`${API_BASE}/api/admin/social/reports`, {
+    headers: { ...authHeaders() },
+  });
+  return handleHighlightResponse<ContentReport[]>(response);
+}
+
+export async function updateAdminReportStatus(id: string, payload: { status: ContentReport['status']; admin_notes?: string }) {
+  const response = await fetch(`${API_BASE}/api/admin/social/reports/${encodeURIComponent(id)}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json', ...authHeaders() },
+    body: JSON.stringify(payload),
+  });
+  return handleHighlightResponse<{ success: boolean; report: ContentReport }>(response);
 }
 
 export async function getAdminHighlights(filters?: {
