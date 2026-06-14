@@ -344,7 +344,7 @@ export default function App() {
                 companyLogo: item.institution_logo || 'ðŸ’¼',
                 location: locationText,
                 deadline: item.deadline || undefined,
-                imageUrl: item.imageUrl || item.image_url,
+                imageUrl: item.imageUrl || item.image_url || item.institution_logo,
                 opportunityCategory: (category === 'internship' ? 'Internship' :
                                       category === 'scholarship' ? 'Scholarship' :
                                       category === 'training' ? 'Training' :

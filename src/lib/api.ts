@@ -402,6 +402,8 @@ export interface BackendOpportunity {
   type: string;
   institution_name: string;
   institution_logo?: string | null;
+  image_url?: string | null;
+  imageUrl?: string | null;
   governorate?: string | null;
   city?: string | null;
   deadline?: string | null;

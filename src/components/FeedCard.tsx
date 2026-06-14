@@ -3,7 +3,7 @@ import { Language, FeedItem, Comment } from '../types';
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
-import { getImageWithFallback } from '../lib/fallbackImages';
+import { getFallbackImage, getSafeCardImage, handleCardImageError, looksLikeUrlText } from '../lib/fallbackImages';
 import { cleanLocalizedText, localizeCategoryLabel, localizeFeedDate, localizeLocation, localizeWorkplaceType, translateUi } from '../lib/localize';
 import { 
   Heart, 
@@ -75,10 +75,14 @@ export default function FeedCard({
   const content = language === 'ar' ? item.contentAR : language === 'ku' ? item.contentKU : item.contentEN;
   const isRTL = language === 'ar' || language === 'ku';
   const displayTitle = cleanLocalizedText(title || item.titleEN || item.titleAR || item.titleKU);
-  const displayContent = cleanLocalizedText(content || item.contentEN || item.contentAR || item.contentKU);
+  const cleanedContent = cleanLocalizedText(content || item.contentEN || item.contentAR || item.contentKU);
+  const displayContent = looksLikeUrlText(cleanedContent)
+    ? (language === 'ar' ? 'يرجى فتح المصدر الأصلي لمزيد من التفاصيل.' : language === 'ku' ? 'تکایە سەرچاوەی سەرەکی بکەرەوە بۆ زانیاری زیاتر.' : 'Open the original source for more details.')
+    : cleanedContent;
   const displayDate = localizeFeedDate(item.date, language);
   const uiCampusHighlight = translateUi('campusHighlight', language);
   const uiViewFullscreen = translateUi('viewFullscreen', language);
+  const displayCompanyLogo = item.companyLogo && !looksLikeUrlText(item.companyLogo) ? item.companyLogo : '💼';
 
   // Resolve Governorate & University labels
   const matchedUni = IraqiUniversities.find(u => u.id === item.universityId);
@@ -94,8 +98,8 @@ export default function FeedCard({
 
   // Helper to render high-contrast, youthful Instagram-like galleries and mosaics
   const renderImageGallery = () => {
-    // Use fallback image if imageUrl is missing
-    const displayImageUrl = getImageWithFallback(item.imageUrl, item.type);
+    const displayImageUrl = getSafeCardImage(item);
+    const fallbackImageUrl = getFallbackImage(item.type);
 
     // Create a list of complementary pictures for mosaic based on item ID
     let additionalImages: string[] = [];
@@ -118,7 +122,7 @@ export default function FeedCard({
     if (additionalImages.length === 0) {
       return (
         <div className="group relative rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] transition-all duration-300 shadow-md hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
-          <img src={displayImageUrl} alt={displayTitle} className="w-full h-auto max-h-[380px] object-cover" referrerPolicy="no-referrer" />
+          <img src={displayImageUrl} alt={displayTitle} className="aspect-[16/9] w-full object-cover" referrerPolicy="no-referrer" loading="lazy" onError={(event) => handleCardImageError(event, fallbackImageUrl)} />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between text-white text-[10px] font-black">
             <span>{uiCampusHighlight}</span>
             <span>{uiViewFullscreen}</span>
@@ -132,11 +136,11 @@ export default function FeedCard({
       return (
         <div className="grid grid-cols-5 gap-2 rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] h-48 select-none">
           <div className="col-span-3 h-full relative group cursor-pointer overflow-hidden">
-            <img src={displayImageUrl} alt={displayTitle} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
+            <img src={displayImageUrl} alt={displayTitle} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" loading="lazy" onError={(event) => handleCardImageError(event, fallbackImageUrl)} />
             <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors" />
           </div>
           <div className="col-span-2 h-full relative group cursor-pointer overflow-hidden">
-            <img src={additionalImages[0]} alt={displayTitle} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" />
+            <img src={additionalImages[0]} alt={displayTitle} className="w-full h-full object-cover hover:scale-105 transition-transform duration-500" referrerPolicy="no-referrer" loading="lazy" onError={(event) => handleCardImageError(event, fallbackImageUrl)} />
             <div className="absolute inset-0 bg-black/10 hover:bg-transparent transition-colors" />
           </div>
         </div>
@@ -147,15 +151,15 @@ export default function FeedCard({
     return (
       <div className="grid grid-cols-3 gap-2 rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] h-52 select-none">
         <div className="col-span-2 h-full relative group cursor-pointer overflow-hidden">
-          <img src={displayImageUrl} alt={displayTitle} className="w-full h-full object-cover hover:scale-105 transition-transform duration-550" referrerPolicy="no-referrer" />
+          <img src={displayImageUrl} alt={displayTitle} className="w-full h-full object-cover hover:scale-105 transition-transform duration-550" referrerPolicy="no-referrer" loading="lazy" onError={(event) => handleCardImageError(event, fallbackImageUrl)} />
           <div className="absolute inset-0 bg-black/5 hover:bg-transparent transition-colors" />
         </div>
         <div className="col-span-1 flex flex-col gap-2 h-full">
           <div className="h-1/2 overflow-hidden relative group cursor-pointer rounded-tr-lg">
-            <img src={additionalImages[0]} alt={displayTitle} className="w-full h-full object-cover hover:scale-108 transition-transform duration-500" referrerPolicy="no-referrer" />
+            <img src={additionalImages[0]} alt={displayTitle} className="w-full h-full object-cover hover:scale-108 transition-transform duration-500" referrerPolicy="no-referrer" loading="lazy" onError={(event) => handleCardImageError(event, fallbackImageUrl)} />
           </div>
           <div className="h-1/2 overflow-hidden relative group cursor-pointer rounded-br-lg">
-            <img src={additionalImages[1]} alt={displayTitle} className="w-full h-full object-cover hover:scale-108 transition-transform duration-500" referrerPolicy="no-referrer" />
+            <img src={additionalImages[1]} alt={displayTitle} className="w-full h-full object-cover hover:scale-108 transition-transform duration-500" referrerPolicy="no-referrer" loading="lazy" onError={(event) => handleCardImageError(event, fallbackImageUrl)} />
           </div>
         </div>
       </div>
@@ -512,7 +516,7 @@ export default function FeedCard({
         {/* Video simulation */}
         {item.type === 'video' && item.videoThumbnail && (
           <div className="rounded-xl overflow-hidden mb-3 border border-[#1F2E4D] h-48 bg-gray-950 relative flex items-center justify-center">
-            <img src={item.videoThumbnail} alt={displayTitle} className="w-full h-full object-cover opacity-70" referrerPolicy="no-referrer" />
+            <img src={item.videoThumbnail} alt={displayTitle} className="w-full h-full object-cover opacity-70" referrerPolicy="no-referrer" loading="lazy" onError={(event) => handleCardImageError(event, getFallbackImage(item.type))} />
             <div className="absolute inset-0 bg-black/20 flex items-center justify-center">
               <div className="w-12 h-12 rounded-full bg-white text-indigo-600 flex items-center justify-center shrink-0 shadow-lg cursor-pointer hover:scale-105 active:scale-95 transition-all">
                 <svg className="w-5 h-5 fill-current ml-1" viewBox="0 0 24 24">
@@ -588,7 +592,7 @@ export default function FeedCard({
             <div className="flex items-start justify-between gap-2.5 relative z-10">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-xl bg-white border-2 border-[#161A33]/80 text-[#6B25C9] shadow-sm font-black flex items-center justify-center text-lg select-none shrink-0 transform hover:scale-105 transition-transform">
-                  {item.companyLogo || '💼'}
+                  {displayCompanyLogo}
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5 flex-wrap">

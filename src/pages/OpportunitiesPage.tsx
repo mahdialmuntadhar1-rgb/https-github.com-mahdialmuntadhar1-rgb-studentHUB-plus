@@ -6,6 +6,7 @@ import { scholarshipSources } from '../data/scholarshipSources';
 import { BackendOpportunity, getBackendOpportunities, getHighlights, HighlightCategory, HighlightItem } from '../lib/api';
 import { IraqiGovernorates } from '../data/mockData';
 import { Language } from '../types';
+import { looksLikeUrlText } from '../lib/fallbackImages';
 
 const allSources = [...opportunitySources, ...scholarshipSources];
 
@@ -41,9 +42,12 @@ function parseOpportunitySummary(tags?: string): string {
   if (!tags) return 'Opportunity from the populated rafid-api backend.';
   try {
     const parsed = JSON.parse(tags);
-    return parsed.description || parsed.note || 'Opportunity from the populated rafid-api backend.';
+    const parsedSummary = parsed.description || parsed.note || '';
+    return parsedSummary && !looksLikeUrlText(parsedSummary)
+      ? parsedSummary
+      : 'Opportunity from the populated rafid-api backend.';
   } catch {
-    return tags;
+    return looksLikeUrlText(tags) ? 'Opportunity from the populated rafid-api backend.' : tags;
   }
 }
 
@@ -144,6 +148,7 @@ export default function OpportunitiesPage({ language = 'en' }: { language?: Lang
     city: item.city,
     deadline: item.deadline,
     summary: parseOpportunitySummary(item.tags),
+    image_url: item.image_url || item.imageUrl || item.institution_logo,
     source_name: 'rafid-api opportunities',
   }));
 
