@@ -19,10 +19,61 @@ app.use("/uploads", express.static(path.join(process.cwd(), "uploads")));
 // -------------------------------------------------------------
 const DB_FILE = path.join(process.cwd(), "database.json");
 
+const DEFAULT_PORTAL_SETTINGS = {
+  heroImage: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600",
+  heroTitle: {
+    en: "Master Your Campus Journey!",
+    ar: "تميّز وابنِ مستقبلك الأكاديمي!",
+    ku: "داهاتوویەکی پڕشنگدار بنيات بنێ!"
+  },
+  heroDescription: {
+    en: "The ultimate collegiate hub for premium opportunities & academic resources",
+    ar: "البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب",
+    ku: "یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق"
+  },
+  heroTag: {
+    en: "PORTAL ACCELERATION",
+    ar: "بوابة هويتنا الأكاديمية",
+    ku: "دەروازەی ئەکادیمی عێراق"
+  },
+  defaultStories: [
+    { id: "story-sara", name: "Sara Ahmed", avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200", text: "Morning lab session checking microscopic cells! 🔬" },
+    { id: "story-mustafa", name: "Mustafa Ali", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200", text: "Building our AI-powered student assistant with Gemini API! 🤖🚀" },
+    { id: "story-rawan", name: "Rawan Omer", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200", text: "Sunset over Mount Goizha from campus was stunning today! 🌄☕" },
+    { id: "story-ali", name: "Ali Jabbar", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200", text: "Long shift in clinical practice! Basra Heat is here but we keep smiling! 🩺🥤" },
+    { id: "story-zahid", name: "Noor Al-Huda", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200", text: "Setting up our chemical reaction samples. They look like glowing gems! 🧪💎" },
+    { id: "story-soran", name: "Soran Dler", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200", text: "Beautiful morning at Erbil Citadel before lectures start 🎒🏰" }
+  ]
+};
+
+function sanitizeLocalizedText(value: any, fallback: { en: string; ar: string; ku: string }) {
+  return {
+    en: String(value?.en || fallback.en).trim(),
+    ar: String(value?.ar || fallback.ar).trim(),
+    ku: String(value?.ku || fallback.ku).trim()
+  };
+}
+
+function normalizePortalSettings(raw: any = {}) {
+  const defaultStories = Array.isArray(raw.defaultStories) ? raw.defaultStories : DEFAULT_PORTAL_SETTINGS.defaultStories;
+  return {
+    heroImage: String(raw.heroImage || DEFAULT_PORTAL_SETTINGS.heroImage).trim(),
+    heroTitle: sanitizeLocalizedText(raw.heroTitle, DEFAULT_PORTAL_SETTINGS.heroTitle),
+    heroDescription: sanitizeLocalizedText(raw.heroDescription, DEFAULT_PORTAL_SETTINGS.heroDescription),
+    heroTag: sanitizeLocalizedText(raw.heroTag, DEFAULT_PORTAL_SETTINGS.heroTag),
+    defaultStories: defaultStories.map((story: any, index: number) => ({
+      id: String(story?.id || DEFAULT_PORTAL_SETTINGS.defaultStories[index]?.id || `story-${index + 1}`).trim(),
+      name: String(story?.name || DEFAULT_PORTAL_SETTINGS.defaultStories[index]?.name || "Student").trim(),
+      avatar: String(story?.avatar || DEFAULT_PORTAL_SETTINGS.defaultStories[index]?.avatar || "").trim(),
+      text: String(story?.text || DEFAULT_PORTAL_SETTINGS.defaultStories[index]?.text || "").trim()
+    }))
+  };
+}
+
 function readDB() {
   try {
     if (!fs.existsSync(DB_FILE)) {
-      return { sources: [], opportunities: [], raw_scraped_items: [], logs: [], users: [], passwordResets: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
+      return { sources: [], opportunities: [], raw_scraped_items: [], portal_settings: DEFAULT_PORTAL_SETTINGS, logs: [], users: [], passwordResets: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
     }
     const raw = fs.readFileSync(DB_FILE, "utf-8");
     const parsed = JSON.parse(raw);
@@ -30,6 +81,7 @@ function readDB() {
       sources: parsed.sources || [],
       opportunities: parsed.opportunities || [],
       raw_scraped_items: parsed.raw_scraped_items || [],
+      portal_settings: normalizePortalSettings(parsed.portal_settings),
       logs: parsed.logs || [],
       users: parsed.users || [],
       passwordResets: parsed.passwordResets || [],
@@ -42,7 +94,7 @@ function readDB() {
     };
   } catch (err) {
     console.error("Error reading database.json:", err);
-    return { sources: [], opportunities: [], raw_scraped_items: [], logs: [], users: [], passwordResets: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
+    return { sources: [], opportunities: [], raw_scraped_items: [], portal_settings: DEFAULT_PORTAL_SETTINGS, logs: [], users: [], passwordResets: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
   }
 }
 
@@ -1061,6 +1113,33 @@ app.get("/api/highlights", (req, res) => {
       hasMore: start + highlights.length < list.length
     }
   });
+});
+
+app.get("/api/admin/portal-settings", (req, res) => {
+  const db = readDB();
+  res.json({ settings: normalizePortalSettings(db.portal_settings) });
+});
+
+app.patch("/api/admin/portal-settings", requireAdmin, (req, res) => {
+  const db = readDB();
+  const current = normalizePortalSettings(db.portal_settings);
+  const incoming = req.body?.settings || req.body || {};
+  const merged = normalizePortalSettings({
+    ...current,
+    ...incoming,
+    heroTitle: { ...current.heroTitle, ...(incoming.heroTitle || {}) },
+    heroDescription: { ...current.heroDescription, ...(incoming.heroDescription || {}) },
+    heroTag: { ...current.heroTag, ...(incoming.heroTag || {}) },
+    defaultStories: Array.isArray(incoming.defaultStories) ? incoming.defaultStories : current.defaultStories
+  });
+
+  db.portal_settings = {
+    ...merged,
+    updatedAt: new Date().toISOString(),
+    updatedBy: (req as any).authUser?.id || null
+  } as any;
+  writeDB(db);
+  res.json({ success: true, settings: normalizePortalSettings(db.portal_settings) });
 });
 
 app.use("/api/admin", requireAdmin);

@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Language, FeedItem } from '../types';
-import { opportunityAutomation } from '../lib/api';
+import { PortalSettings, opportunityAutomation, portalSettingsApi } from '../lib/api';
 import { 
   Activity, 
   Settings, 
@@ -98,6 +98,60 @@ export default function AdminAutomation({
     ];
   });
 
+  const buildPortalSettings = (stories = storyList): PortalSettings => ({
+    heroImage: heroBgInput,
+    heroTitle: {
+      en: heroTitleENInput,
+      ar: heroTitleARInput,
+      ku: heroTitleKUInput
+    },
+    heroDescription: {
+      en: heroDescENInput,
+      ar: heroDescARInput,
+      ku: heroDescKUInput
+    },
+    heroTag: {
+      en: heroTagENInput,
+      ar: heroTagARInput,
+      ku: heroTagKUInput
+    },
+    defaultStories: stories.map(story => ({
+      id: story.id,
+      name: story.name,
+      avatar: story.avatar,
+      text: story.text
+    }))
+  });
+
+  const cachePortalSettings = (settings: PortalSettings) => {
+    localStorage.setItem('jamiaati_hero_bg', settings.heroImage);
+    localStorage.setItem('jamiaati_hero_title_en', settings.heroTitle.en);
+    localStorage.setItem('jamiaati_hero_title_ar', settings.heroTitle.ar);
+    localStorage.setItem('jamiaati_hero_title_ku', settings.heroTitle.ku);
+    localStorage.setItem('jamiaati_hero_desc_en', settings.heroDescription.en);
+    localStorage.setItem('jamiaati_hero_desc_ar', settings.heroDescription.ar);
+    localStorage.setItem('jamiaati_hero_desc_ku', settings.heroDescription.ku);
+    localStorage.setItem('jamiaati_hero_tag_en', settings.heroTag.en);
+    localStorage.setItem('jamiaati_hero_tag_ar', settings.heroTag.ar);
+    localStorage.setItem('jamiaati_hero_tag_ku', settings.heroTag.ku);
+    localStorage.setItem('jamiaati_edited_default_stories', JSON.stringify(settings.defaultStories || []));
+  };
+
+  const applyPortalSettingsToForm = (settings: PortalSettings) => {
+    setHeroBgInput(settings.heroImage);
+    setHeroTitleENInput(settings.heroTitle.en);
+    setHeroTitleARInput(settings.heroTitle.ar);
+    setHeroTitleKUInput(settings.heroTitle.ku);
+    setHeroDescENInput(settings.heroDescription.en);
+    setHeroDescARInput(settings.heroDescription.ar);
+    setHeroDescKUInput(settings.heroDescription.ku);
+    setHeroTagENInput(settings.heroTag.en);
+    setHeroTagARInput(settings.heroTag.ar);
+    setHeroTagKUInput(settings.heroTag.ku);
+    setStoryList(settings.defaultStories || []);
+    cachePortalSettings(settings);
+  };
+
   const [editingStoryId, setEditingStoryId] = useState<string | null>(null);
   const [editingStoryName, setEditingStoryName] = useState('');
   const [editingStoryAvatar, setEditingStoryAvatar] = useState('');
@@ -149,6 +203,28 @@ export default function AdminAutomation({
       fetchTabContent();
     }
   }, [activeTab, page, search, filterType, isAdmin]);
+
+  useEffect(() => {
+    if (!isAdmin) return;
+    portalSettingsApi.get(language)
+      .then((result) => {
+        if (result?.settings) {
+          applyPortalSettingsToForm(result.settings);
+          window.dispatchEvent(new Event('jamiaati_hero_updated'));
+          window.dispatchEvent(new Event('jamiaati_stories_updated'));
+        }
+      })
+      .catch((err) => {
+        showToast(
+          language === 'ar'
+            ? `تعذر تحميل إعدادات الواجهة من الخادم: ${err.message}`
+            : language === 'ku'
+            ? `بارکردنی ڕێکخستنەکانی ڕووکار لە سێرڤەر سەرکەوتوو نەبوو: ${err.message}`
+            : `Could not load portal settings from backend: ${err.message}`,
+          'error'
+        );
+      });
+  }, [isAdmin, language]);
 
   const fetchCoreStats = async () => {
     try {
@@ -933,20 +1009,19 @@ export default function AdminAutomation({
             </h3>
             
             {/* 1. Hero Configuration Form */}
-            <form onSubmit={(e) => {
+            <form onSubmit={async (e) => {
               e.preventDefault();
-              localStorage.setItem('jamiaati_hero_bg', heroBgInput);
-              localStorage.setItem('jamiaati_hero_title_en', heroTitleENInput);
-              localStorage.setItem('jamiaati_hero_title_ar', heroTitleARInput);
-              localStorage.setItem('jamiaati_hero_title_ku', heroTitleKUInput);
-              localStorage.setItem('jamiaati_hero_desc_en', heroDescENInput);
-              localStorage.setItem('jamiaati_hero_desc_ar', heroDescARInput);
-              localStorage.setItem('jamiaati_hero_desc_ku', heroDescKUInput);
-              localStorage.setItem('jamiaati_hero_tag_en', heroTagENInput);
-              localStorage.setItem('jamiaati_hero_tag_ar', heroTagARInput);
-              localStorage.setItem('jamiaati_hero_tag_ku', heroTagKUInput);
-              window.dispatchEvent(new Event('jamiaati_hero_updated'));
-              showToast(language === 'ar' ? 'تم حفظ تعديلات قسم الهيرو بنجاح!' : 'Hero Banner updated successfully in real-time!', 'success');
+              try {
+                const settings = buildPortalSettings();
+                const result = await portalSettingsApi.update(settings, language);
+                const savedSettings = result?.settings || settings;
+                cachePortalSettings(savedSettings);
+                window.dispatchEvent(new Event('jamiaati_hero_updated'));
+                window.dispatchEvent(new Event('jamiaati_stories_updated'));
+                showToast(language === 'ar' ? 'تم حفظ تعديلات الواجهة في الخادم بنجاح!' : language === 'ku' ? 'گۆڕانکارییەکانی ڕووکار لە سێرڤەر پاشەکەوت کران!' : 'Portal settings saved to backend successfully!', 'success');
+              } catch (err: any) {
+                showToast(language === 'ar' ? `فشل حفظ إعدادات الواجهة: ${err.message}` : language === 'ku' ? `پاشەکەوتکردنی ڕێکخستنەکانی ڕووکار سەرکەوتوو نەبوو: ${err.message}` : `Failed to save portal settings: ${err.message}`, 'error');
+              }
             }} className="flex flex-col gap-4 text-xs font-bold text-slate-700">
               
               <div className="bg-[#F3F7FF] rounded-2xl p-3 border border-[#D5E1FC]">
@@ -1124,7 +1199,7 @@ export default function AdminAutomation({
                       {language === 'ar' ? 'تعديل صورة وقصة الطالب' : 'Edit Student Story & Avatar'}
                     </h3>
 
-                    <form onSubmit={(e) => {
+                    <form onSubmit={async (e) => {
                       e.preventDefault();
                       const updated = storyList.map(s => {
                         if (s.id === editingStoryId) {
@@ -1137,11 +1212,19 @@ export default function AdminAutomation({
                         }
                         return s;
                       });
-                      setStoryList(updated);
-                      localStorage.setItem('jamiaati_edited_default_stories', JSON.stringify(updated));
-                      window.dispatchEvent(new Event('jamiaati_stories_updated'));
-                      setEditingStoryId(null);
-                      showToast(language === 'ar' ? 'تم تعديل ملامح وصور الطالب بنجاح!' : 'Student Avatar replaced successfully!', 'success');
+                      try {
+                        const settings = buildPortalSettings(updated);
+                        const result = await portalSettingsApi.update(settings, language);
+                        const savedSettings = result?.settings || settings;
+                        setStoryList(savedSettings.defaultStories);
+                        cachePortalSettings(savedSettings);
+                        window.dispatchEvent(new Event('jamiaati_hero_updated'));
+                        window.dispatchEvent(new Event('jamiaati_stories_updated'));
+                        setEditingStoryId(null);
+                        showToast(language === 'ar' ? 'تم تعديل ملامح وصور الطالب وحفظها في الخادم!' : language === 'ku' ? 'وێنە و چیرۆکی خوێندکار لە سێرڤەر پاشەکەوت کرا!' : 'Student story saved to backend successfully!', 'success');
+                      } catch (err: any) {
+                        showToast(language === 'ar' ? `فشل حفظ القصة: ${err.message}` : language === 'ku' ? `پاشەکەوتکردنی چیرۆک سەرکەوتوو نەبوو: ${err.message}` : `Failed to save story: ${err.message}`, 'error');
+                      }
                     }} className="flex flex-col gap-3 text-xs font-bold text-slate-700">
                       
                       <div className="flex flex-col gap-1">

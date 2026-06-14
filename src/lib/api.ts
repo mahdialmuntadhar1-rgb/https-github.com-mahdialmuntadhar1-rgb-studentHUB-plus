@@ -11,6 +11,14 @@ export type AuthUser = {
   role: string;
 };
 
+export type PortalSettings = {
+  heroImage: string;
+  heroTitle: { en: string; ar: string; ku: string };
+  heroDescription: { en: string; ar: string; ku: string };
+  heroTag: { en: string; ar: string; ku: string };
+  defaultStories: Array<{ id: string; name: string; avatar: string; text: string }>;
+};
+
 function getHeaders() {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -325,6 +333,22 @@ export const opportunityAutomation = {
       throw err;
     }
   }
+};
+
+export const portalSettingsApi = {
+  async get(lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/admin/portal-settings`);
+    return await handleResponse(res, lang);
+  },
+
+  async update(settings: PortalSettings, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/admin/portal-settings`, {
+      method: 'PATCH',
+      headers: getHeaders(),
+      body: JSON.stringify({ settings }),
+    });
+    return await handleResponse(res, lang);
+  },
 };
 
 export async function getOpportunities(lang: Language = 'ar') {

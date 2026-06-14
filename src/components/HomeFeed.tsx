@@ -6,6 +6,7 @@ import { Sparkles, MessageSquare, Briefcase, PlusCircle, CheckCircle, Info, Imag
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
 import StudentStories from './StudentStories';
+import { PortalSettings, portalSettingsApi } from '../lib/api';
 
 interface HomeFeedProps {
   feedItems: FeedItem[];
@@ -34,6 +35,33 @@ interface HomeFeedProps {
   onDeleteFeedItem?: (id: string) => void;
   isAdminMode?: boolean;
   onSelectSection?: (sectionId: string) => void;
+}
+
+const HERO_DEFAULTS = {
+  image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600',
+  titleEN: 'Master Your Campus Journey!',
+  titleAR: 'تميّز وابنِ مستقبلك الأكاديمي!',
+  titleKU: 'داهاتوویەکی پڕشنگدار بنيات بنێ!',
+  descEN: 'The ultimate collegiate hub for premium opportunities & academic resources',
+  descAR: 'البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب',
+  descKU: 'یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق',
+  tagEN: 'PORTAL ACCELERATION',
+  tagAR: 'بوابة هويتنا الأكاديمية',
+  tagKU: 'دەروازەی ئەکادیمی عێراق'
+};
+
+function cachePortalSettings(settings: PortalSettings) {
+  localStorage.setItem('jamiaati_hero_bg', settings.heroImage);
+  localStorage.setItem('jamiaati_hero_title_en', settings.heroTitle.en);
+  localStorage.setItem('jamiaati_hero_title_ar', settings.heroTitle.ar);
+  localStorage.setItem('jamiaati_hero_title_ku', settings.heroTitle.ku);
+  localStorage.setItem('jamiaati_hero_desc_en', settings.heroDescription.en);
+  localStorage.setItem('jamiaati_hero_desc_ar', settings.heroDescription.ar);
+  localStorage.setItem('jamiaati_hero_desc_ku', settings.heroDescription.ku);
+  localStorage.setItem('jamiaati_hero_tag_en', settings.heroTag.en);
+  localStorage.setItem('jamiaati_hero_tag_ar', settings.heroTag.ar);
+  localStorage.setItem('jamiaati_hero_tag_ku', settings.heroTag.ku);
+  localStorage.setItem('jamiaati_edited_default_stories', JSON.stringify(settings.defaultStories || []));
 }
 
 // Global reuseable beautiful pulse Skeleton Loader
@@ -103,36 +131,47 @@ export default function HomeFeed({
   const [activeStoryFilter, setActiveStoryFilter] = useState<string | null>(null);
 
   // Dynamic Hero Configuration with real-time updates support (localStorage + event listeners)
-  const [heroBg, setHeroBg] = useState(() => localStorage.getItem('jamiaati_hero_bg') || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600');
+  const [heroBg, setHeroBg] = useState(() => localStorage.getItem('jamiaati_hero_bg') || HERO_DEFAULTS.image);
   
-  const [heroTitleEN, setHeroTitleEN] = useState(() => localStorage.getItem('jamiaati_hero_title_en') || 'Master Your Campus Journey!');
-  const [heroTitleAR, setHeroTitleAR] = useState(() => localStorage.getItem('jamiaati_hero_title_ar') || 'تميّز وابنِ مستقبلك الأكاديمي!');
-  const [heroTitleKU, setHeroTitleKU] = useState(() => localStorage.getItem('jamiaati_hero_title_ku') || 'داهاتوویەکی پڕشنگدار بنيات بنێ!');
+  const [heroTitleEN, setHeroTitleEN] = useState(() => localStorage.getItem('jamiaati_hero_title_en') || HERO_DEFAULTS.titleEN);
+  const [heroTitleAR, setHeroTitleAR] = useState(() => localStorage.getItem('jamiaati_hero_title_ar') || HERO_DEFAULTS.titleAR);
+  const [heroTitleKU, setHeroTitleKU] = useState(() => localStorage.getItem('jamiaati_hero_title_ku') || HERO_DEFAULTS.titleKU);
   
-  const [heroDescEN, setHeroDescEN] = useState(() => localStorage.getItem('jamiaati_hero_desc_en') || 'The ultimate collegiate hub for premium opportunities & academic resources');
-  const [heroDescAR, setHeroDescAR] = useState(() => localStorage.getItem('jamiaati_hero_desc_ar') || 'البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب');
-  const [heroDescKU, setHeroDescKU] = useState(() => localStorage.getItem('jamiaati_hero_desc_ku') || 'یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق');
+  const [heroDescEN, setHeroDescEN] = useState(() => localStorage.getItem('jamiaati_hero_desc_en') || HERO_DEFAULTS.descEN);
+  const [heroDescAR, setHeroDescAR] = useState(() => localStorage.getItem('jamiaati_hero_desc_ar') || HERO_DEFAULTS.descAR);
+  const [heroDescKU, setHeroDescKU] = useState(() => localStorage.getItem('jamiaati_hero_desc_ku') || HERO_DEFAULTS.descKU);
 
-  const [heroTagEN, setHeroTagEN] = useState(() => localStorage.getItem('jamiaati_hero_tag_en') || 'PORTAL ACCELERATION');
-  const [heroTagAR, setHeroTagAR] = useState(() => localStorage.getItem('jamiaati_hero_tag_ar') || 'بوابة هويتنا الأكاديمية');
-  const [heroTagKU, setHeroTagKU] = useState(() => localStorage.getItem('jamiaati_hero_tag_ku') || 'دەروازەی ئەکادیمی عێراق');
+  const [heroTagEN, setHeroTagEN] = useState(() => localStorage.getItem('jamiaati_hero_tag_en') || HERO_DEFAULTS.tagEN);
+  const [heroTagAR, setHeroTagAR] = useState(() => localStorage.getItem('jamiaati_hero_tag_ar') || HERO_DEFAULTS.tagAR);
+  const [heroTagKU, setHeroTagKU] = useState(() => localStorage.getItem('jamiaati_hero_tag_ku') || HERO_DEFAULTS.tagKU);
 
   useEffect(() => {
     const handleHeroSync = () => {
-      setHeroBg(localStorage.getItem('jamiaati_hero_bg') || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600');
-      setHeroTitleEN(localStorage.getItem('jamiaati_hero_title_en') || 'Master Your Campus Journey!');
-      setHeroTitleAR(localStorage.getItem('jamiaati_hero_title_ar') || 'تميّز وابنِ مستقبلك الأكاديمي!');
-      setHeroTitleKU(localStorage.getItem('jamiaati_hero_title_ku') || 'داهاتوویەکی پڕشنگدار بنيات بنێ!');
-      setHeroDescEN(localStorage.getItem('jamiaati_hero_desc_en') || 'The ultimate collegiate hub for premium opportunities & academic resources');
-      setHeroDescAR(localStorage.getItem('jamiaati_hero_desc_ar') || 'البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب');
-      setHeroDescKU(localStorage.getItem('jamiaati_hero_desc_ku') || 'یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق');
-      setHeroTagEN(localStorage.getItem('jamiaati_hero_tag_en') || 'PORTAL ACCELERATION');
-      setHeroTagAR(localStorage.getItem('jamiaati_hero_tag_ar') || 'بوابة هويتنا الأكاديمية');
-      setHeroTagKU(localStorage.getItem('jamiaati_hero_tag_ku') || 'دەروازەی ئەکادیمی عێراق');
+      setHeroBg(localStorage.getItem('jamiaati_hero_bg') || HERO_DEFAULTS.image);
+      setHeroTitleEN(localStorage.getItem('jamiaati_hero_title_en') || HERO_DEFAULTS.titleEN);
+      setHeroTitleAR(localStorage.getItem('jamiaati_hero_title_ar') || HERO_DEFAULTS.titleAR);
+      setHeroTitleKU(localStorage.getItem('jamiaati_hero_title_ku') || HERO_DEFAULTS.titleKU);
+      setHeroDescEN(localStorage.getItem('jamiaati_hero_desc_en') || HERO_DEFAULTS.descEN);
+      setHeroDescAR(localStorage.getItem('jamiaati_hero_desc_ar') || HERO_DEFAULTS.descAR);
+      setHeroDescKU(localStorage.getItem('jamiaati_hero_desc_ku') || HERO_DEFAULTS.descKU);
+      setHeroTagEN(localStorage.getItem('jamiaati_hero_tag_en') || HERO_DEFAULTS.tagEN);
+      setHeroTagAR(localStorage.getItem('jamiaati_hero_tag_ar') || HERO_DEFAULTS.tagAR);
+      setHeroTagKU(localStorage.getItem('jamiaati_hero_tag_ku') || HERO_DEFAULTS.tagKU);
     };
+    portalSettingsApi.get(language)
+      .then((result) => {
+        if (result?.settings) {
+          cachePortalSettings(result.settings);
+          handleHeroSync();
+          window.dispatchEvent(new Event('jamiaati_stories_updated'));
+        }
+      })
+      .catch((err) => {
+        console.warn('Portal settings backend unavailable; using local cache/defaults.', err);
+      });
     window.addEventListener('jamiaati_hero_updated', handleHeroSync);
     return () => window.removeEventListener('jamiaati_hero_updated', handleHeroSync);
-  }, []);
+  }, [language]);
 
   // Admin Hero Custom editing states
   const [isEditingHero, setIsEditingHero] = useState(false);
@@ -161,23 +200,34 @@ export default function HomeFeed({
     setIsEditingHero(true);
   };
 
-  const handleSaveHeroCustomization = (e: React.FormEvent) => {
+  const handleSaveHeroCustomization = async (e: React.FormEvent) => {
     e.preventDefault();
-    localStorage.setItem('jamiaati_hero_bg', formHeroBg);
-    localStorage.setItem('jamiaati_hero_title_en', formTitleEN);
-    localStorage.setItem('jamiaati_hero_title_ar', formTitleAR);
-    localStorage.setItem('jamiaati_hero_title_ku', formTitleKU);
-    localStorage.setItem('jamiaati_hero_desc_en', formDescEN);
-    localStorage.setItem('jamiaati_hero_desc_ar', formDescAR);
-    localStorage.setItem('jamiaati_hero_desc_ku', formDescKU);
-    localStorage.setItem('jamiaati_hero_tag_en', formTagEN);
-    localStorage.setItem('jamiaati_hero_tag_ar', formTagAR);
-    localStorage.setItem('jamiaati_hero_tag_ku', formTagKU);
-    
-    window.dispatchEvent(new Event('jamiaati_hero_updated'));
-    setIsEditingHero(false);
-    if (showToast) {
-      showToast(language === 'ar' ? 'تم حفظ التغييرات على الغلاف والبطاقة بنجاح! 💫' : 'Hero settings saved successfully! 💫', 'success');
+    try {
+      const savedStories = localStorage.getItem('jamiaati_edited_default_stories');
+      let defaultStories = savedStories ? JSON.parse(savedStories) : [];
+      if (!Array.isArray(defaultStories) || defaultStories.length === 0) {
+        const current = await portalSettingsApi.get(language);
+        defaultStories = current?.settings?.defaultStories || [];
+      }
+      const settings: PortalSettings = {
+        heroImage: formHeroBg,
+        heroTitle: { en: formTitleEN, ar: formTitleAR, ku: formTitleKU },
+        heroDescription: { en: formDescEN, ar: formDescAR, ku: formDescKU },
+        heroTag: { en: formTagEN, ar: formTagAR, ku: formTagKU },
+        defaultStories
+      };
+      const result = await portalSettingsApi.update(settings, language);
+      cachePortalSettings(result?.settings || settings);
+      window.dispatchEvent(new Event('jamiaati_hero_updated'));
+      window.dispatchEvent(new Event('jamiaati_stories_updated'));
+      setIsEditingHero(false);
+      if (showToast) {
+        showToast(language === 'ar' ? 'تم حفظ التغييرات على الخادم بنجاح! 💫' : language === 'ku' ? 'گۆڕانکارییەکان لە سێرڤەر پاشەکەوت کران! 💫' : 'Hero settings saved to backend! 💫', 'success');
+      }
+    } catch (err: any) {
+      if (showToast) {
+        showToast(language === 'ar' ? `فشل حفظ إعدادات الواجهة: ${err.message}` : language === 'ku' ? `پاشەکەوتکردنی ڕووکار سەرکەوتوو نەبوو: ${err.message}` : `Failed to save hero settings: ${err.message}`, 'error');
+      }
     }
   };
 

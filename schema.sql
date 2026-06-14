@@ -68,7 +68,26 @@ CREATE TABLE IF NOT EXISTS raw_scraped_items (
 CREATE INDEX IF NOT EXISTS idx_raw_scraped_items_opportunity ON raw_scraped_items(opportunity_id);
 CREATE INDEX IF NOT EXISTS idx_raw_scraped_items_status ON raw_scraped_items(review_status);
 
--- 3. Scraper Logs Schema
+-- 3. Portal settings for public homepage customization.
+-- GET is public-readable for the homepage; writes must be protected by admin auth.
+CREATE TABLE IF NOT EXISTS portal_settings (
+  id TEXT PRIMARY KEY DEFAULT 'default',
+  hero_image TEXT NOT NULL,
+  hero_title_en TEXT NOT NULL,
+  hero_title_ar TEXT NOT NULL,
+  hero_title_ku TEXT NOT NULL,
+  hero_description_en TEXT NOT NULL,
+  hero_description_ar TEXT NOT NULL,
+  hero_description_ku TEXT NOT NULL,
+  hero_tag_en TEXT NOT NULL,
+  hero_tag_ar TEXT NOT NULL,
+  hero_tag_ku TEXT NOT NULL,
+  default_stories_json TEXT NOT NULL,
+  updated_at TEXT DEFAULT CURRENT_TIMESTAMP,
+  updated_by TEXT
+);
+
+-- 4. Scraper Logs Schema
 CREATE TABLE IF NOT EXISTS scraper_logs (
   id TEXT PRIMARY KEY,
   timestamp TEXT NOT NULL,
@@ -80,7 +99,7 @@ CREATE TABLE IF NOT EXISTS scraper_logs (
   errors TEXT
 );
 
--- 4. User-generated content and engagement persistence
+-- 5. User-generated content and engagement persistence
 CREATE TABLE IF NOT EXISTS posts (
   id TEXT PRIMARY KEY,
   userId TEXT NOT NULL,
