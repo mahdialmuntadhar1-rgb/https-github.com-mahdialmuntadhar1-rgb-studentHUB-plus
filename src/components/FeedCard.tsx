@@ -88,7 +88,94 @@ export default function FeedCard({
 
   // Helper to render high-contrast, youthful Instagram-like galleries and mosaics
   const renderImageGallery = () => {
-    if (!item.imageUrl) return null;
+    if (!item.imageUrl) {
+      // Determine fallback category
+      let category: 'career' | 'discussion' | 'collaboration' | 'QA' = 'discussion';
+      
+      const isCareer = ['job', 'internship', 'scholarship', 'training', 'part_time_job', 'full_time_job', 'graduation_project_support', 'fellowship', 'competition', 'exam'].includes(item.type);
+      const isQA = ['anonymous_question', 'help', 'ask'].includes(item.type) || item.type === 'anonymous_question';
+      const isCollab = ['study_group', 'collaboration', 'project', 'startup'].includes(item.type) || item.type === 'study_group';
+      
+      if (isCareer) {
+        category = 'career';
+      } else if (isQA) {
+        category = 'QA';
+      } else if (isCollab) {
+        category = 'collaboration';
+      }
+
+      // Configure styles, labels and icons based on category
+      let gradientClass = '';
+      let headerLabel = '';
+      let IconComponent: React.ComponentType<any> = FileText;
+      let accentColor = '';
+
+      if (category === 'career') {
+        gradientClass = 'from-[#171544] via-[#312E81] to-[#1D4ED8]';
+        headerLabel = language === 'ar' ? 'بوابة التطوير والفرص الدراسية' : language === 'ku' ? 'دەروازەی هەلی کار و خوێندن' : 'CAREER & OPPORTUNITY PORTAL';
+        IconComponent = item.type === 'scholarship' ? GraduationCap : item.type === 'competition' ? Award : Briefcase;
+        accentColor = 'text-amber-400 group-hover:scale-115';
+      } else if (category === 'QA') {
+        gradientClass = 'from-[#0C1B2A] via-[#0F2A4A] to-[#0284C7]';
+        headerLabel = language === 'ar' ? 'منبر الاستفسارات الأكاديمية' : language === 'ku' ? 'پەیجی پرسیار و دەنگدان' : 'CAMPUS Q&A & DEBATES';
+        IconComponent = HelpCircle;
+        accentColor = 'text-cyan-400 group-hover:scale-115';
+      } else if (category === 'collaboration') {
+        gradientClass = 'from-[#2B0E44] via-[#4C1D95] to-[#7C3AED]';
+        headerLabel = language === 'ar' ? 'فضاء التعاون والمشاريع المشتركة' : language === 'ku' ? 'ژووری گفتوگۆی کۆمەڵەکان' : 'CAMPUS COLLABORATION HUB';
+        IconComponent = Users;
+        accentColor = 'text-fuchsia-400 group-hover:scale-115';
+      } else {
+        gradientClass = 'from-[#2F0612] via-[#5F0724] to-[#BE123C]';
+        headerLabel = language === 'ar' ? 'أخبار الحرم وتنبيهات الطلاب' : language === 'ku' ? 'هەواڵ و چالاکییەکانی زانکۆ' : 'STUDENT HUB & CAMPUS LIFE';
+        IconComponent = item.type === 'event' ? Calendar : FileText;
+        accentColor = 'text-rose-400 group-hover:scale-115';
+      }
+
+      return (
+        <div className="group relative rounded-2xl overflow-hidden mb-4 border-2 border-[#161A33] bg-slate-950 h-48 sm:h-52 select-none transition-all duration-300 shadow-[3px_3px_0px_0px_#161A33] hover:shadow-[5px_5px_0px_0px_#161A33] hover:scale-[1.005] active:scale-[0.995]">
+          <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} transition-all duration-500`} />
+          <div className="absolute inset-0 opacity-[0.07] bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]" />
+          <div className="absolute -top-16 -right-16 w-36 h-36 bg-white/5 rounded-full blur-xl group-hover:bg-white/10 transition-colors" />
+          <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-black/25 rounded-full blur-xl" />
+
+          <div className="absolute inset-0 flex flex-col justify-between p-4 z-10 text-white font-sans">
+            <div className="flex items-center justify-between">
+              <span className="text-[9px] font-black uppercase tracking-wider bg-white/15 backdrop-blur-md border border-white/20 px-2.5 py-1 rounded-lg">
+                {headerLabel}
+              </span>
+              <div className="flex items-center gap-1">
+                <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
+                <span className="text-[8px] font-mono text-white/70 uppercase tracking-widest leading-none">Live Hub</span>
+              </div>
+            </div>
+
+            <div className="flex items-center gap-4 my-auto max-w-[95%]">
+              <div className="p-2.5 bg-white/10 backdrop-blur-lg rounded-xl border border-white/15 shadow-inner shrink-0 transition-transform duration-300">
+                <IconComponent className={`w-7 h-7 ${accentColor} transition-transform duration-250`} />
+              </div>
+              <div className="flex flex-col text-left">
+                <span className="text-[8px] font-black uppercase text-white/55 tracking-wider mb-0.5">
+                  {item.type.replace(/_/g, ' ')}
+                </span>
+                <h3 className="text-xs sm:text-sm font-black text-white leading-snug tracking-tight line-clamp-2 drop-shadow-sm font-sans">
+                  {title}
+                </h3>
+              </div>
+            </div>
+
+            <div className="flex items-center justify-between border-t border-white/10 pt-2 text-[9px] text-white/60 font-bold">
+              <span className="truncate max-w-[65%]">
+                {resolvedUniLabel ? `🏫 ${resolvedUniLabel}` : `💡 StudentHUB Platform`}
+              </span>
+              <span className="font-mono text-[8px] bg-black/10 border border-white/10 rounded px-1.5 py-0.5">
+                Ref: #{item.id}
+              </span>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     // Create a list of complementary pictures for mosaic based on item ID
     let additionalImages: string[] = [];

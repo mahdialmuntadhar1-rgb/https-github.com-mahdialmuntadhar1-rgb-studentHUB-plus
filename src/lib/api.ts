@@ -380,13 +380,17 @@ export const socialApi = {
   // Friend Requests
   async getFriendRequests(lang: Language = 'ar'): Promise<FriendRequestsResponse> {
     try {
+      const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+      if (!token || token.startsWith('mock_token_')) {
+        return { incoming: [], outgoing: [] };
+      }
       const res = await fetch(`${API_BASE}/friend-requests`, {
         headers: getHeaders(),
       });
       return await handleResponse(res, lang);
     } catch (err: any) {
-      console.error('Error in getFriendRequests:', err);
-      throw err;
+      console.warn('Friend requests endpoint fallback (offline):', err.message || err);
+      return { incoming: [], outgoing: [] };
     }
   },
 
@@ -446,13 +450,17 @@ export const socialApi = {
   // Message Requests
   async getMessageRequests(lang: Language = 'ar'): Promise<MessageRequestsResponse> {
     try {
+      const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+      if (!token || token.startsWith('mock_token_')) {
+        return { incoming: [], outgoing: [] };
+      }
       const res = await fetch(`${API_BASE}/message-requests`, {
         headers: getHeaders(),
       });
       return await handleResponse(res, lang);
     } catch (err: any) {
-      console.error('Error in getMessageRequests:', err);
-      throw err;
+      console.warn('Message requests endpoint fallback (offline):', err.message || err);
+      return { incoming: [], outgoing: [] };
     }
   },
 
@@ -499,13 +507,17 @@ export const socialApi = {
   // Direct Messages
   async getThreads(lang: Language = 'ar'): Promise<MessageThreadsResponse> {
     try {
+      const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+      if (!token || token.startsWith('mock_token_')) {
+        return { threads: [] };
+      }
       const res = await fetch(`${API_BASE}/messages/threads`, {
         headers: getHeaders(),
       });
       return await handleResponse(res, lang);
     } catch (err: any) {
-      console.error('Error in getThreads:', err);
-      throw err;
+      console.warn('Threads endpoint fallback (offline):', err.message || err);
+      return { threads: [] };
     }
   },
 
@@ -515,13 +527,17 @@ export const socialApi = {
 
   async getThreadMessages(threadId: string, lang: Language = 'ar'): Promise<ThreadMessagesResponse> {
     try {
+      const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+      if (!token || token.startsWith('mock_token_')) {
+        return { thread: {} as any, messages: [] };
+      }
       const res = await fetch(`${API_BASE}/messages/threads/${threadId}/messages`, {
         headers: getHeaders(),
       });
       return await handleResponse(res, lang);
     } catch (err: any) {
-      console.error('Error in getThreadMessages:', err);
-      throw err;
+      console.warn('Thread messages endpoint fallback (offline):', err.message || err);
+      return { thread: {} as any, messages: [] };
     }
   },
 

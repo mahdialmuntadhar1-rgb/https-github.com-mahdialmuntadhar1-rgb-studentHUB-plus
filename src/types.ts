@@ -184,6 +184,36 @@ export interface UserProfile {
   rsvpedEventIds: string[];
 }
 
+export function healMojibake(str: string): string {
+  if (!str || typeof str !== 'string') return str;
+  // If the string contains classic mojibake Latin-1 character sequences
+  if (/[ØÙÚÛÃùûüýþÿ]/.test(str)) {
+    try {
+      const bytes = new Uint8Array(str.length);
+      let isValidLatin1 = true;
+      for (let i = 0; i < str.length; i++) {
+        const code = str.charCodeAt(i);
+        if (code <= 255) {
+          bytes[i] = code;
+        } else {
+          isValidLatin1 = false;
+          break;
+        }
+      }
+      if (isValidLatin1) {
+        const decoded = new TextDecoder('utf-8').decode(bytes);
+        // If healed text contains Arabic/Kurdish characters, return it
+        if (/[\u0600-\u06FF\u0750-\u077F\uFB50-\uFDFF\uFE70-\uFEFF]/.test(decoded)) {
+          return decoded;
+        }
+      }
+    } catch (e) {
+      // Fallback
+    }
+  }
+  return str;
+}
+
 export function getLocalizedContent(
   item: any,
   field: string,
@@ -227,51 +257,55 @@ export function getLocalizedContent(
     return undefined;
   };
 
-  // If showOriginal is requested, prioritize original
-  if (showOriginal) {
-    // 1. Try original version of the field
+  const finalValue = (() => {
+    // If showOriginal is requested, prioritize original
+    if (showOriginal) {
+      // 1. Try original version of the field
+      const origVal = getValueForKeys(getOriginalKeys());
+      if (origVal !== undefined) return origVal;
+
+      // 2. Try the language specified in original_language
+      if (item.original_language && (item.original_language === 'ar' || item.original_language === 'ku' || item.original_language === 'en')) {
+        const origLangVal = getValueForKeys(getKeysForLang(item.original_language));
+        if (origLangVal !== undefined) return origLangVal;
+      }
+    }
+
+    // Fallback priority:
+    // 1. Selected language version
+    const selectedVal = getValueForKeys(getKeysForLang(selectedLanguage));
+    if (selectedVal !== undefined) return selectedVal;
+
+    // 2. Original version
     const origVal = getValueForKeys(getOriginalKeys());
     if (origVal !== undefined) return origVal;
 
-    // 2. Try the language specified in original_language
+    // 2b. If item has original_language, try that
     if (item.original_language && (item.original_language === 'ar' || item.original_language === 'ku' || item.original_language === 'en')) {
       const origLangVal = getValueForKeys(getKeysForLang(item.original_language));
       if (origLangVal !== undefined) return origLangVal;
     }
-  }
 
-  // Fallback priority:
-  // 1. Selected language version
-  const selectedVal = getValueForKeys(getKeysForLang(selectedLanguage));
-  if (selectedVal !== undefined) return selectedVal;
+    // 3. Arabic version
+    const arVal = getValueForKeys(getKeysForLang('ar'));
+    if (arVal !== undefined) return arVal;
 
-  // 2. Original version
-  const origVal = getValueForKeys(getOriginalKeys());
-  if (origVal !== undefined) return origVal;
+    // 4. Kurdish Sorani version
+    const kuVal = getValueForKeys(getKeysForLang('ku'));
+    if (kuVal !== undefined) return kuVal;
 
-  // 2b. If item has original_language, try that
-  if (item.original_language && (item.original_language === 'ar' || item.original_language === 'ku' || item.original_language === 'en')) {
-    const origLangVal = getValueForKeys(getKeysForLang(item.original_language));
-    if (origLangVal !== undefined) return origLangVal;
-  }
+    // 5. English version
+    const enVal = getValueForKeys(getKeysForLang('en'));
+    if (enVal !== undefined) return enVal;
 
-  // 3. Arabic version
-  const arVal = getValueForKeys(getKeysForLang('ar'));
-  if (arVal !== undefined) return arVal;
+    // 6. Existing raw field
+    const rawVal = getValueForKeys(getRawKeys());
+    if (rawVal !== undefined) return rawVal;
 
-  // 4. Kurdish Sorani version
-  const kuVal = getValueForKeys(getKeysForLang('ku'));
-  if (kuVal !== undefined) return kuVal;
+    return '';
+  })();
 
-  // 5. English version
-  const enVal = getValueForKeys(getKeysForLang('en'));
-  if (enVal !== undefined) return enVal;
-
-  // 6. Existing raw field
-  const rawVal = getValueForKeys(getRawKeys());
-  if (rawVal !== undefined) return rawVal;
-
-  return '';
+  return healMojibake(finalValue);
 }
 
 export function hasAlternativeLanguages(item: any, currentLanguage: 'en' | 'ar' | 'ku'): boolean {
