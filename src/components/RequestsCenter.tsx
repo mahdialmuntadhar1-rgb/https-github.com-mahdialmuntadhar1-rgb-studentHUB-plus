@@ -180,7 +180,6 @@ export default function RequestsCenter({
             emptyText={label(language, 'لا توجد طلبات صداقة واردة', 'هیچ داواکاری هاوڕێی هاتوو نییە', 'No incoming friend requests')}
             renderItem={(item) => (
               <RequestCard
-                key={item.id}
                 title={displayName(item, label(language, 'مستخدم', 'بەکارهێنەر', 'User'))}
                 subtitle={item.message || item.requester_email || ''}
                 loading={actionId === item.id}
@@ -199,7 +198,6 @@ export default function RequestsCenter({
             emptyText={label(language, 'لا توجد طلبات صداقة مرسلة', 'هیچ داواکاری هاوڕێی نێردراو نییە', 'No outgoing friend requests')}
             renderItem={(item) => (
               <RequestCard
-                key={item.id}
                 title={displayName(item, label(language, 'مستخدم', 'بەکارهێنەر', 'User'))}
                 subtitle={item.message || item.recipient_email || ''}
                 loading={actionId === item.id}
@@ -216,7 +214,6 @@ export default function RequestsCenter({
             emptyText={label(language, 'لا توجد طلبات مراسلة واردة', 'هیچ داواکاری نامەی هاتوو نییە', 'No incoming message requests')}
             renderItem={(item) => (
               <RequestCard
-                key={item.id}
                 title={displayName(item, label(language, 'مستخدم', 'بەکارهێنەر', 'User'))}
                 subtitle={item.requester_email || item.last_message_at || ''}
                 loading={actionId === item.id}
@@ -235,7 +232,6 @@ export default function RequestsCenter({
             emptyText={label(language, 'لا توجد طلبات مراسلة مرسلة', 'هیچ داواکاری نامەی نێردراو نییە', 'No outgoing message requests')}
             renderItem={(item) => (
               <RequestCard
-                key={item.id}
                 title={displayName(item, label(language, 'مستخدم', 'بەکارهێنەر', 'User'))}
                 subtitle={item.recipient_email || item.last_message_at || ''}
                 loading={false}
@@ -249,7 +245,7 @@ export default function RequestsCenter({
   );
 }
 
-function RequestSection<T>({
+function RequestSection({
   title,
   icon,
   items,
@@ -258,9 +254,9 @@ function RequestSection<T>({
 }: {
   title: string;
   icon: React.ReactNode;
-  items: T[];
+  items: any[];
   emptyText: string;
-  renderItem: (item: T) => React.ReactNode;
+  renderItem: (item: any) => React.ReactNode;
 }) {
   return (
     <section className="rounded-3xl border border-[#1F2E4D] bg-[#121B2E] p-4">
@@ -276,7 +272,11 @@ function RequestSection<T>({
         </p>
       ) : (
         <div className="flex flex-col gap-2">
-          {items.map(renderItem)}
+          {items.map((item, index) => (
+            <React.Fragment key={item?.id || index}>
+              {renderItem(item)}
+            </React.Fragment>
+          ))}
         </div>
       )}
     </section>
@@ -349,3 +349,4 @@ function RequestCard({
     </div>
   );
 }
+
