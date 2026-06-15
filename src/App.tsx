@@ -95,7 +95,13 @@ export default function App() {
   }, [selectedGov, selectedUni, activeTab]);
 
   // Auth States
-  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => localStorage.getItem('jamiaati_logged_in') !== 'false');
+  const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
+    const loggedIn = localStorage.getItem('jamiaati_logged_in') !== 'false';
+    if (loggedIn && !localStorage.getItem('jamiaati_token')) {
+      localStorage.setItem('jamiaati_token', 'mock_token_for_student_hub_' + Date.now());
+    }
+    return loggedIn;
+  });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
   // Social Badge Counts (Friend/Connection Requests & Messages)

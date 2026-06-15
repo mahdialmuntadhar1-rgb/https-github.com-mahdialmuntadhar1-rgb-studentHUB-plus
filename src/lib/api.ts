@@ -24,13 +24,25 @@ function getHeaders() {
 
 async function handleResponse(response: Response, language: Language = 'ar') {
   if (response.status === 401) {
-    alert(language === 'ar' ? 'قم بتسجيل الدخول كمسؤول أولاً.' : language === 'ku' ? 'تکایە بچۆ ژوورەوە وەک سەرپەرشتیار.' : 'Admin login required.');
-    window.location.href = '#/login';
-    throw new Error('Admin login required');
+    const url = response.url || '';
+    const isUrlAdmin = url.includes('/opportunity-automation') || url.includes('/outreach') || url.includes('/admin');
+    if (isUrlAdmin) {
+      alert(language === 'ar' ? 'قم بتسجيل الدخول كمسؤول أولاً.' : language === 'ku' ? 'تکایە بچۆ ژوورەوە وەک سەرپەرشتیار.' : 'Admin login required.');
+      window.location.href = '#/login';
+      throw new Error('Admin login required');
+    } else {
+      throw new Error(language === 'ar' ? 'جلسة غير صالحة، يرجى تسجيل الدخول.' : language === 'ku' ? 'سێشنی ناڕاست، تکایە بچۆ ژوورەوە.' : 'Unauthorized action');
+    }
   }
   if (response.status === 403) {
-    alert(language === 'ar' ? 'وصول للمسؤولين فقط!' : language === 'ku' ? 'تەنها بۆ بەڕێوەبەران ڕێگەپێدراوە!' : 'Admin access only');
-    throw new Error('Admin access only');
+    const url = response.url || '';
+    const isUrlAdmin = url.includes('/opportunity-automation') || url.includes('/outreach') || url.includes('/admin');
+    if (isUrlAdmin) {
+      alert(language === 'ar' ? 'وصول للمسؤولين فقط!' : language === 'ku' ? 'تەنها بۆ بەڕێوەبەران ڕێگەپێدراوە!' : 'Admin access only');
+      throw new Error('Admin access only');
+    } else {
+      throw new Error(language === 'ar' ? 'غير مصرح بالدخول' : language === 'ku' ? 'ڕێگەپێنەدراو' : 'Forbidden action');
+    }
   }
 
   const contentType = response.headers.get('content-type');
