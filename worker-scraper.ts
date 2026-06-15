@@ -1,4 +1,4 @@
-/**
+﻿/**
  * CLOUDFLARE WORKER: Student Opportunities Scraper & Automation Engine
  * 
  * This file is designed for deployment as a Cloudflare Worker.
@@ -21,6 +21,9 @@ export interface Env {
 }
 
 export default {
+  async queue(batch: any, env: Env, ctx: any) {
+    console.log(`Queue consumer invoked with ${batch?.messages?.length || 0} message(s). No queue processing is configured for rafid-api.`);
+  },
   /**
    * 1. CRON TRIGGER ENTRY POINT (Run by Cloudflare Scheduler)
    */
@@ -691,26 +694,26 @@ const DEFAULT_PORTAL_SETTINGS = {
   heroImage: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600",
   heroTitle: {
     en: "Master Your Campus Journey!",
-    ar: "تميّز وابنِ مستقبلك الأكاديمي!",
-    ku: "داهاتوویەکی پڕشنگدار بنيات بنێ!"
+    ar: "ØªÙ…ÙŠÙ‘Ø² ÙˆØ§Ø¨Ù†Ù Ù…Ø³ØªÙ‚Ø¨Ù„Ùƒ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠ!",
+    ku: "Ø¯Ø§Ù‡Ø§ØªÙˆÙˆÛŒÛ•Ú©ÛŒ Ù¾Ú•Ø´Ù†Ú¯Ø¯Ø§Ø± Ø¨Ù†ÙŠØ§Øª Ø¨Ù†ÛŽ!"
   },
   heroDescription: {
     en: "The ultimate collegiate hub for premium opportunities & academic resources",
-    ar: "البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب",
-    ku: "یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق"
+    ar: "Ø§Ù„Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø·Ù„Ø§Ø¨ÙŠØ© Ø§Ù„Ø£Ù‚ÙˆÙ‰ Ù„Ù„Ø¬Ø§Ù…Ø¹Ø§Øª ÙˆØ§Ù„ØªØ¯Ø±ÙŠØ¨ ÙÙŠ Ø¹ÙØ±Ø§Ù‚Ù†Ø§ Ø§Ù„Ø­Ø¨ÙŠØ¨",
+    ku: "ÛŒÛ•Ú©Û•Ù… Ø¯Û•Ø±ÙˆØ§Ø²Û•ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±Ø§Ù†ÛŒ Ø²Ø§Ù†Ú©Û† Ùˆ Ø¯Ø§Ø¨ÛŒÙ†Ú©Ø±Ø¯Ù†ÛŒ Ù‡Û•Ù„ÛŒ Ù…Û•Ø´Ù‚"
   },
   heroTag: {
     en: "PORTAL ACCELERATION",
-    ar: "بوابة هويتنا الأكاديمية",
-    ku: "دەروازەی ئەکادیمی عێراق"
+    ar: "Ø¨ÙˆØ§Ø¨Ø© Ù‡ÙˆÙŠØªÙ†Ø§ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ©",
+    ku: "Ø¯Û•Ø±ÙˆØ§Ø²Û•ÛŒ Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒ Ø¹ÛŽØ±Ø§Ù‚"
   },
   defaultStories: [
-    { id: "story-sara", name: "Sara Ahmed", avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200", text: "Morning lab session checking microscopic cells! 🔬" },
-    { id: "story-mustafa", name: "Mustafa Ali", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200", text: "Building our AI-powered student assistant with Gemini API! 🤖🚀" },
-    { id: "story-rawan", name: "Rawan Omer", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200", text: "Sunset over Mount Goizha from campus was stunning today! 🌄☕" },
-    { id: "story-ali", name: "Ali Jabbar", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200", text: "Long shift in clinical practice! Basra Heat is here but we keep smiling! 🩺🥤" },
-    { id: "story-zahid", name: "Noor Al-Huda", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200", text: "Setting up our chemical reaction samples. They look like glowing gems! 🧪💎" },
-    { id: "story-soran", name: "Soran Dler", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200", text: "Beautiful morning at Erbil Citadel before lectures start 🎒🏰" }
+    { id: "story-sara", name: "Sara Ahmed", avatar: "https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200", text: "Morning lab session checking microscopic cells! ðŸ”¬" },
+    { id: "story-mustafa", name: "Mustafa Ali", avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200", text: "Building our AI-powered student assistant with Gemini API! ðŸ¤–ðŸš€" },
+    { id: "story-rawan", name: "Rawan Omer", avatar: "https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200", text: "Sunset over Mount Goizha from campus was stunning today! ðŸŒ„â˜•" },
+    { id: "story-ali", name: "Ali Jabbar", avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200", text: "Long shift in clinical practice! Basra Heat is here but we keep smiling! ðŸ©ºðŸ¥¤" },
+    { id: "story-zahid", name: "Noor Al-Huda", avatar: "https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200", text: "Setting up our chemical reaction samples. They look like glowing gems! ðŸ§ªðŸ’Ž" },
+    { id: "story-soran", name: "Soran Dler", avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200", text: "Beautiful morning at Erbil Citadel before lectures start ðŸŽ’ðŸ°" }
   ]
 };
 
@@ -1263,15 +1266,15 @@ function cleanAndNormalizeOpportunity(item: any): any {
   // Normalize Governorate name: map diverse string keys to official tags
   let govKey = "all";
   const searchString = (titleCleaned + " " + descCleaned).toLowerCase();
-  if (searchString.includes("baghdad") || searchString.includes("بغداد")) {
+  if (searchString.includes("baghdad") || searchString.includes("Ø¨ØºØ¯Ø§Ø¯")) {
     govKey = "baghdad";
-  } else if (searchString.includes("sulaymaniyah") || searchString.includes("سليمانية") || searchString.includes("slemani")) {
+  } else if (searchString.includes("sulaymaniyah") || searchString.includes("Ø³Ù„ÙŠÙ…Ø§Ù†ÙŠØ©") || searchString.includes("slemani")) {
     govKey = "sulaymaniyah";
-  } else if (searchString.includes("erbil") || searchString.includes("اربيل") || searchString.includes("hawler")) {
+  } else if (searchString.includes("erbil") || searchString.includes("Ø§Ø±Ø¨ÙŠÙ„") || searchString.includes("hawler")) {
     govKey = "erbil";
-  } else if (searchString.includes("mosul") || searchString.includes("نينوى") || searchString.includes("nineveh")) {
+  } else if (searchString.includes("mosul") || searchString.includes("Ù†ÙŠÙ†ÙˆÙ‰") || searchString.includes("nineveh")) {
     govKey = "nineveh";
-  } else if (searchString.includes("basra") || searchString.includes("بصرة")) {
+  } else if (searchString.includes("basra") || searchString.includes("Ø¨ØµØ±Ø©")) {
     govKey = "basra";
   }
 
@@ -1285,11 +1288,11 @@ function cleanAndNormalizeOpportunity(item: any): any {
   return {
     ...item,
     titleEN: titleCleaned,
-    titleAR: `[مؤتمت] فرصة جديدة: ${titleCleaned}`,
-    titleKU: `[خۆکار] دەرفەتێکی نوێ: ${titleCleaned}`,
+    titleAR: `[Ù…Ø¤ØªÙ…Øª] ÙØ±ØµØ© Ø¬Ø¯ÙŠØ¯Ø©: ${titleCleaned}`,
+    titleKU: `[Ø®Û†Ú©Ø§Ø±] Ø¯Û•Ø±ÙÛ•ØªÛŽÚ©ÛŒ Ù†ÙˆÛŽ: ${titleCleaned}`,
     contentEN: descCleaned,
-    contentAR: `تفاصيل الفرصة من المصدر المعتمد: ${descCleaned}. يرجى زيارة الرابط الرسمي للتقديم ومطالعة كامل المتطلبات.`,
-    contentKU: `وردەکاری دەرفەت لە سەرچاوەی فەرمیەوە: ${descCleaned}. تکایە سەردانی بەستەری سەرەکی بکەن بۆ پێشکەشکردنی داواکاری و بینینی مەرجەکان.`,
+    contentAR: `ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙØ±ØµØ© Ù…Ù† Ø§Ù„Ù…ØµØ¯Ø± Ø§Ù„Ù…Ø¹ØªÙ…Ø¯: ${descCleaned}. ÙŠØ±Ø¬Ù‰ Ø²ÙŠØ§Ø±Ø© Ø§Ù„Ø±Ø§Ø¨Ø· Ø§Ù„Ø±Ø³Ù…ÙŠ Ù„Ù„ØªÙ‚Ø¯ÙŠÙ… ÙˆÙ…Ø·Ø§Ù„Ø¹Ø© ÙƒØ§Ù…Ù„ Ø§Ù„Ù…ØªØ·Ù„Ø¨Ø§Øª.`,
+    contentKU: `ÙˆØ±Ø¯Û•Ú©Ø§Ø±ÛŒ Ø¯Û•Ø±ÙÛ•Øª Ù„Û• Ø³Û•Ø±Ú†Ø§ÙˆÛ•ÛŒ ÙÛ•Ø±Ù…ÛŒÛ•ÙˆÛ•: ${descCleaned}. ØªÚ©Ø§ÛŒÛ• Ø³Û•Ø±Ø¯Ø§Ù†ÛŒ Ø¨Û•Ø³ØªÛ•Ø±ÛŒ Ø³Û•Ø±Û•Ú©ÛŒ Ø¨Ú©Û•Ù† Ø¨Û† Ù¾ÛŽØ´Ú©Û•Ø´Ú©Ø±Ø¯Ù†ÛŒ Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒ Ùˆ Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ù…Û•Ø±Ø¬Û•Ú©Ø§Ù†.`,
     governorateId: govKey,
     deadline: finalDeadline,
     status: "pending_review"
@@ -1302,28 +1305,28 @@ function cleanAndNormalizeOpportunity(item: any): any {
 function classifyOpportunityCategory(text: string, sourceType: string): string {
   const norm = text.toLowerCase();
   
-  if (norm.includes("intern") || norm.includes("تدريب عملي") || norm.includes("مەشق")) {
+  if (norm.includes("intern") || norm.includes("ØªØ¯Ø±ÙŠØ¨ Ø¹Ù…Ù„ÙŠ") || norm.includes("Ù…Û•Ø´Ù‚")) {
     return "internship";
   }
-  if (norm.includes("scholarship") || norm.includes("منحة") || norm.includes("سكولەرشیپ") || norm.includes("daad")) {
+  if (norm.includes("scholarship") || norm.includes("Ù…Ù†Ø­Ø©") || norm.includes("Ø³ÙƒÙˆÙ„Û•Ø±Ø´ÛŒÙ¾") || norm.includes("daad")) {
     return "scholarship";
   }
-  if (norm.includes("course") || norm.includes("training") || norm.includes("دورات") || norm.includes("ورشة") || norm.includes("ڕاهێنان")) {
+  if (norm.includes("course") || norm.includes("training") || norm.includes("Ø¯ÙˆØ±Ø§Øª") || norm.includes("ÙˆØ±Ø´Ø©") || norm.includes("Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†")) {
     return "training";
   }
-  if (norm.includes("volunteering") || norm.includes("تطوع") || norm.includes("خۆبەخش")) {
+  if (norm.includes("volunteering") || norm.includes("ØªØ·ÙˆØ¹") || norm.includes("Ø®Û†Ø¨Û•Ø®Ø´")) {
     return "volunteering";
   }
-  if (norm.includes("competition") || norm.includes("مسابقة") || norm.includes("کێبڕکێ") || norm.includes("hackathon") || norm.includes("🏆")) {
+  if (norm.includes("competition") || norm.includes("Ù…Ø³Ø§Ø¨Ù‚Ø©") || norm.includes("Ú©ÛŽØ¨Ú•Ú©ÛŽ") || norm.includes("hackathon") || norm.includes("ðŸ†")) {
     return "competition";
   }
-  if (norm.includes("event") || norm.includes("festival") || norm.includes("مهرجان") || norm.includes("فعالية")) {
+  if (norm.includes("event") || norm.includes("festival") || norm.includes("Ù…Ù‡Ø±Ø¬Ø§Ù†") || norm.includes("ÙØ¹Ø§Ù„ÙŠØ©")) {
     return "event";
   }
-  if (norm.includes("fellowship") || norm.includes("زمالة")) {
+  if (norm.includes("fellowship") || norm.includes("Ø²Ù…Ø§Ù„Ø©")) {
     return "fellowship";
   }
-  if (norm.includes("announcement") || norm.includes("إعلان") || norm.includes("ئاگاداری") || norm.includes("mohesr")) {
+  if (norm.includes("announcement") || norm.includes("Ø¥Ø¹Ù„Ø§Ù†") || norm.includes("Ø¦Ø§Ú¯Ø§Ø¯Ø§Ø±ÛŒ") || norm.includes("mohesr")) {
     return "announcement";
   }
   
@@ -1482,3 +1485,4 @@ async function logScrapingActivity(env: Env, log: any): Promise<void> {
     console.error("D1 logger action error:", err);
   }
 }
+
