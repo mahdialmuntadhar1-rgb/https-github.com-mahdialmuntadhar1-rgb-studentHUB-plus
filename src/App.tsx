@@ -17,7 +17,7 @@ import RequestsCenter from './components/RequestsCenter';
 import MessagesInbox from './components/MessagesInbox';
 import { AuthUser, BACKEND_URL, authApi, userContentApi, socialApi } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
-import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText, Inbox, MessageCircle } from 'lucide-react';
+import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText, Inbox, MessageCircle, Download } from 'lucide-react';
 
 export default function App() {
   const opportunityTypes = new Set(['job', 'internship', 'scholarship', 'training', 'competition', 'volunteering', 'fellowship', 'full_time_job', 'part_time_job']);
@@ -74,6 +74,96 @@ export default function App() {
 
   // Navigation tab state
   const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'requests' | 'messages' | 'admin'>('home');
+  const [deferredInstallPrompt, setDeferredInstallPrompt] = useState<any>(null);
+  const [canInstallPwa, setCanInstallPwa] = useState(false);
+  const [isPwaInstalled, setIsPwaInstalled] = useState<boolean>(() => {
+    if (typeof window === 'undefined') return false;
+    return window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true ||
+      localStorage.getItem('jamiaati_pwa_installed') === '1';
+  });
+
+
+
+  useEffect(() => {
+    const isStandalone = () =>
+      window.matchMedia('(display-mode: standalone)').matches ||
+      (window.navigator as any).standalone === true;
+
+    const syncInstalledState = () => {
+      const installed = isStandalone() || localStorage.getItem('jamiaati_pwa_installed') === '1';
+      setIsPwaInstalled(installed);
+      if (installed) {
+        setCanInstallPwa(false);
+        setDeferredInstallPrompt(null);
+      }
+    };
+
+    const handleBeforeInstallPrompt = (event: Event) => {
+      event.preventDefault();
+      if (!isStandalone()) {
+        setDeferredInstallPrompt(event);
+        setCanInstallPwa(true);
+      }
+    };
+
+    const handleAppInstalled = () => {
+      localStorage.setItem('jamiaati_pwa_installed', '1');
+      setIsPwaInstalled(true);
+      setCanInstallPwa(false);
+      setDeferredInstallPrompt(null);
+    };
+
+    const mediaQuery = window.matchMedia('(display-mode: standalone)');
+
+    window.addEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener);
+    window.addEventListener('appinstalled', handleAppInstalled);
+    mediaQuery.addEventListener?.('change', syncInstalledState);
+
+    syncInstalledState();
+
+    return () => {
+      window.removeEventListener('beforeinstallprompt', handleBeforeInstallPrompt as EventListener);
+      window.removeEventListener('appinstalled', handleAppInstalled);
+      mediaQuery.removeEventListener?.('change', syncInstalledState);
+    };
+  }, []);
+
+  const handleInstallPwa = async () => {
+    if (isPwaInstalled) return;
+
+    if (!deferredInstallPrompt) {
+      showToast(
+        language === 'ar'
+          ? 'إذا لم يعمل التثبيت، افتح هذا الرابط في Google Chrome ثم اختر إضافة إلى الشاشة الرئيسية.'
+          : language === 'ku'
+          ? 'ئەگەر دابەزاندن کار نەکرد، ئەم لینکە لە Google Chrome بکەرەوە، پاشان Add to Home Screen هەڵبژێرە.'
+          : 'If install does not work, open this link in Google Chrome, then choose Add to Home Screen.',
+        'info'
+      );
+      return;
+    }
+
+    try {
+      await deferredInstallPrompt.prompt();
+      const choice = await deferredInstallPrompt.userChoice;
+      if (choice?.outcome === 'accepted') {
+        localStorage.setItem('jamiaati_pwa_installed', '1');
+        setIsPwaInstalled(true);
+        setCanInstallPwa(false);
+        showToast(
+          language === 'ar' ? 'تم تثبيت التطبيق بنجاح.' : language === 'ku' ? 'ئەپەکە بە سەرکەوتوویی دامەزرا.' : 'App installed successfully.',
+          'success'
+        );
+      }
+      setDeferredInstallPrompt(null);
+    } catch {
+      showToast(
+        language === 'ar' ? 'تعذر فتح نافذة التثبيت الآن.' : language === 'ku' ? 'ئێستا پەنجەرەی دامەزراندن نەکرایەوە.' : 'Could not open install prompt now.',
+        'error'
+      );
+    }
+  };
 
   // Selected Section state for horizontal stories
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
@@ -1239,6 +1329,27 @@ export default function App() {
           )}
           {renderActiveView()}
         </main>
+
+
+        {!isPwaInstalled && (
+          <div
+            id="pwa-install-floating-button"
+            className="fixed bottom-24 left-1/2 z-50 w-full max-w-md -translate-x-1/2 px-4 pointer-events-none"
+          >
+            <button
+              type="button"
+              onClick={handleInstallPwa}
+              className="pointer-events-auto ml-auto flex items-center gap-2 rounded-full bg-gradient-to-r from-yellow-300 via-orange-400 to-pink-500 px-4 py-3 text-[12px] font-black text-slate-950 shadow-[0_0_34px_rgba(251,191,36,0.85)] ring-2 ring-yellow-200/90 transition-all duration-300 hover:scale-105 active:scale-95 animate-pulse"
+              aria-label="Install Jamiaati app"
+            >
+              <Download className="h-4 w-4" />
+              <span>
+                {language === 'ar' ? 'ثبّت التطبيق' : language === 'ku' ? 'دابەزاندن' : 'Install App'}
+              </span>
+              {canInstallPwa && <span className="h-2 w-2 rounded-full bg-emerald-400 shadow-[0_0_12px_rgba(52,211,153,1)]" />}
+            </button>
+          </div>
+        )}
 
         {/* Bottom Persistent Navigation Bar: Visible at all times */}
         <nav 
