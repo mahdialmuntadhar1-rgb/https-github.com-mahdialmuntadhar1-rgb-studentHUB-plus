@@ -20,7 +20,10 @@ import {
   Send,
   HelpCircle,
   Hash,
-  Flag
+  Flag,
+  X,
+  UserCircle,
+  ShieldAlert
 } from 'lucide-react';
 import { userContentApi } from '../lib/api';
 import UserActions from './UserActions';
@@ -60,6 +63,7 @@ export default function FeedCard({
   const [commentText, setCommentText] = useState('');
   const [copied, setCopied] = useState(false);
   const [reported, setReported] = useState(false);
+  const [showUserCard, setShowUserCard] = useState(false);
 
   // Administrative local edit states
   const [isEditingFeed, setIsEditingFeed] = useState(false);
@@ -238,6 +242,10 @@ export default function FeedCard({
     }
   })();
   const isOwner = Boolean(currentUserId && item.author.id === currentUserId);
+  const canOpenAuthorCard = item.type !== 'anonymous_question' && Boolean(item.author?.id);
+  const openAuthorCard = () => {
+    if (canOpenAuthorCard) setShowUserCard(true);
+  };
 
   const handleReportClick = async () => {
     if (reported) return;
@@ -379,11 +387,17 @@ export default function FeedCard({
           <div className="flex items-center justify-between mb-4.5" id={`card-header-${item.id}`}>
             <div className="flex items-center gap-3">
               {/* Avatar with role status ring */}
-              <div className="relative shrink-0">
+              <button
+                type="button"
+                onClick={openAuthorCard}
+                disabled={!canOpenAuthorCard}
+                className="relative shrink-0 cursor-pointer disabled:cursor-default"
+                title="Open profile"
+              >
                 <img 
                   src={item.author.avatar} 
                   alt={item.author.name}
-                  className={`w-11 h-11 rounded-xl object-cover border-2 shadow-md ${
+                  className={`w-11 h-11 rounded-xl object-cover border-2 shadow-md transition hover:scale-105 ${
                     item.author.role === 'institution' ? 'border-[#D9272E]' : item.author.role === 'teacher' ? 'border-[#6B25C9]' : 'border-[#2F7CCB]'
                   }`}
                   referrerPolicy="no-referrer"
@@ -393,12 +407,18 @@ export default function FeedCard({
                     <svg className="w-2.5 h-2.5 fill-current text-white" viewBox="0 0 20 20"><path d="M9.049 2.927c.3-.921 1.603-.921 1.902 0l1.07 3.292a1 1 0 00.95.69h3.462c.969 0 1.371 1.24.588 1.81l-2.8 2.034a1 1 0 00-.364 1.118l1.07 3.292c.3.921-.755 1.688-1.54 1.118l-2.8-2.034a1 1 0 00-1.175 0l-2.8 2.034c-.784.57-1.838-.197-1.539-1.118l1.07-3.292a1 1 0 00-.364-1.118L2.98 8.72c-.783-.57-.38-1.81.588-1.81h3.461a1 1 0 00.951-.69l1.07-3.292z"></path></svg>
                   </span>
                 )}
-              </div>
+              </button>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-xs font-black text-[#161A33] leading-tight">
+                  <button
+                    type="button"
+                    onClick={openAuthorCard}
+                    disabled={!canOpenAuthorCard}
+                    className="text-left text-xs font-black text-[#161A33] leading-tight hover:text-[#6B25C9] hover:underline disabled:hover:text-[#161A33] disabled:hover:no-underline disabled:cursor-default"
+                    title="Open profile"
+                  >
                     {item.type === 'anonymous_question' ? getTranslation('anonymousLabel', language) : item.author.name}
-                  </h3>
+                  </button>
                   {item.author.verified && (
                     <span className="text-[8px] font-black uppercase bg-[#FFD21F] text-[#161A33] px-1.5 py-0.5 rounded-md border border-[#161A33]/15 tracking-tight flex items-center gap-0.5 shadow-sm">
                       âœ¨ {getTranslation('verifiedPartner', language)}
@@ -480,6 +500,81 @@ export default function FeedCard({
               className="mb-3"
             />
           )}
+
+              {showUserCard && canOpenAuthorCard && (
+                <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
+                  <div className="w-full max-w-sm rounded-3xl border border-[#E6E1F5] bg-white p-4 shadow-2xl">
+                    <div className="flex items-start justify-between gap-3">
+                      <div className="flex items-center gap-3">
+                        <img
+                          src={item.author.avatar}
+                          alt={item.author.name}
+                          className="h-14 w-14 rounded-2xl border-2 border-[#2F7CCB] object-cover shadow-md"
+                          referrerPolicy="no-referrer"
+                        />
+                        <div>
+                          <h3 className="text-base font-black text-[#161A33]">
+                            {item.author.name}
+                          </h3>
+                          <p className="text-xs font-bold text-slate-500">
+                            {getRoleLabel(item.author.role)}
+                          </p>
+                          {resolvedUniLabel && (
+                            <p className="mt-1 max-w-[220px] truncate text-[11px] font-bold text-slate-500">
+                              {resolvedUniLabel}
+                            </p>
+                          )}
+                        </div>
+                      </div>
+
+                      <button
+                        type="button"
+                        onClick={() => setShowUserCard(false)}
+                        className="rounded-xl p-1.5 text-slate-500 hover:bg-slate-100"
+                        title="Close"
+                      >
+                        <X className="h-4 w-4" />
+                      </button>
+                    </div>
+
+                    <div className="mt-4 rounded-2xl border border-[#E6E1F5] bg-[#F8FAFF] p-3">
+                      <div className="mb-3 flex items-center gap-2 text-xs font-black text-[#161A33]">
+                        <UserCircle className="h-4 w-4 text-[#6B25C9]" />
+                        Student profile
+                      </div>
+
+                      {!isOwner && (
+                        <UserActions
+                          userId={item.author.id}
+                          userName={item.author.name}
+                          currentUserId={currentUserId}
+                          language={language}
+                          compact={false}
+                        />
+                      )}
+
+                      <div className="mt-3 grid grid-cols-2 gap-2">
+                        <button
+                          type="button"
+                          onClick={() => alert('Full profile page will be added in the next chunk.')}
+                          className="rounded-xl border border-[#E6E1F5] bg-white px-3 py-2 text-xs font-black text-[#6B25C9]"
+                        >
+                          View Profile
+                        </button>
+                        <button
+                          type="button"
+                          onClick={() => alert('Report user flow will connect to moderation in the next chunk.')}
+                          className="inline-flex items-center justify-center gap-1 rounded-xl border border-red-200 bg-red-50 px-3 py-2 text-xs font-black text-red-700"
+                        >
+                          <ShieldAlert className="h-3.5 w-3.5" />
+                          Report User
+                        </button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              )}
+
       {/* Main Body */}
       <div className="flex-1" id={`card-body-${item.id}`}>
         {/* Localized Title */}
