@@ -27,6 +27,7 @@ import {
 } from 'lucide-react';
 import { userContentApi } from '../lib/api';
 import { cleanText } from '../lib/textClean';
+import { toStringArray } from '../lib/feedSafety';
 import UserActions from './UserActions';
 
 interface FeedCardProps {
@@ -81,6 +82,7 @@ export default function FeedCard({
   const title = cleanText(getLocalizedContent(item, 'title', language, showOriginal));
   const content = cleanText(getLocalizedContent(item, 'content', language, showOriginal));
   const cleanAuthorName = cleanText(item.author?.name || 'Student');
+  const safeTags = toStringArray((item as any).tags);
 
   // Resolve Governorate & University labels
   const matchedUni = IraqiUniversities.find(u => u.id === item.universityId);
@@ -171,8 +173,8 @@ export default function FeedCard({
         <div className="group relative rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] transition-all duration-300 shadow-md hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
           <img src={item.imageUrl} alt={title} className="w-full h-auto max-h-[380px] object-cover" referrerPolicy="no-referrer" />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between text-white text-[10px] font-black">
-            <span>âœ¨ Campus Highlight</span>
-            <span>View Fullscreen ðŸ”Ž</span>
+            <span>✨ Campus Highlight</span>
+            <span>View Fullscreen 🔎</span>
           </div>
         </div>
       );
@@ -219,42 +221,42 @@ export default function FeedCard({
     
     switch (item.type) {
       case 'announcement':
-        return { text: language === 'ar' ? 'Ø¥Ø¹Ù„Ø§Ù† Ø±Ø³Ù…ÙŠ' : language === 'ku' ? 'Ú•Ø§Ú¯Û•ÛŒØ§Ù†Ø¯Ù†' : 'Official', color: 'bg-red-500/10 text-red-400 border-red-500/20' };
+        return { text: language === 'ar' ? 'إعلان رسمي' : language === 'ku' ? 'ڕاگەیاندن' : 'Official', color: 'bg-red-500/10 text-red-400 border-red-500/20' };
       case 'job':
       case 'full_time_job':
-        return { text: language === 'ar' ? 'Ø¯ÙˆØ§Ù… ÙƒØ§Ù…Ù„' : language === 'ku' ? 'Ø¯Û•ÙˆØ§Ù…ÛŒ ØªÛ•ÙˆØ§Ùˆ' : 'Full-Time Job', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' };
+        return { text: language === 'ar' ? 'دوام كامل' : language === 'ku' ? 'دەوامی تەواو' : 'Full-Time Job', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' };
       case 'part_time_job':
-        return { text: language === 'ar' ? 'Ø¯ÙˆØ§Ù… Ø¬Ø²Ø¦ÙŠ' : language === 'ku' ? 'Ø¯Û•ÙˆØ§Ù…ÛŒ Ú©Ø§ØªÛŒ' : 'Part-Time Job', color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' };
+        return { text: language === 'ar' ? 'دوام جزئي' : language === 'ku' ? 'دەوامی کاتی' : 'Part-Time Job', color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' };
       case 'internship':
-        return { text: language === 'ar' ? 'ØªØ¯Ø±ÙŠب Ø¹Ù…Ù„ÙŠ' : language === 'ku' ? 'Ù…Û•Ø´Ù‚' : 'Internship', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' };
+        return { text: language === 'ar' ? 'تدريب عملي' : language === 'ku' ? 'مەشق' : 'Internship', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' };
       case 'scholarship':
-        return { text: language === 'ar' ? 'Ù…Ù†حة Ø¯Ø±Ø§Ø³ÙŠة' : language === 'ku' ? 'Ø¨Ùˆرس' : 'Scholarship', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' };
+        return { text: language === 'ar' ? 'منحة دراسية' : language === 'ku' ? 'بورس' : 'Scholarship', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' };
       case 'training':
-        return { text: language === 'ar' ? 'Ø¯Ùˆرة ØªØ¯Ø±ÙŠØ¨ÙŠة' : language === 'ku' ? 'Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†' : 'Training Course', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' };
+        return { text: language === 'ar' ? 'دورة تدريبية' : language === 'ku' ? 'ڕاهێنان' : 'Training Course', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' };
       case 'volunteering':
-        return { text: language === 'ar' ? 'Ø¹Ù…Ù„ ØªØ·ÙˆØ¹ÙŠ' : language === 'ku' ? 'Ø®Û†Ø¨Û•Ø®Ø´ÛŒ' : 'Volunteering', color: 'bg-lime-500/10 text-lime-400 border-lime-500/20' };
+        return { text: language === 'ar' ? 'عمل تطوعي' : language === 'ku' ? 'خۆبەخشی' : 'Volunteering', color: 'bg-lime-500/10 text-lime-400 border-lime-500/20' };
       case 'competition':
-        return { text: language === 'ar' ? 'Ù…Ø³Ø§Ø¨Ù‚ة' : language === 'ku' ? 'Ú©ÛŽØ¨Ú•Ú©ÛŽ' : 'Competition', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' };
+        return { text: language === 'ar' ? 'مسابقة' : language === 'ku' ? 'کێبڕکێ' : 'Competition', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' };
       case 'graduation_project_support':
-        return { text: language === 'ar' ? 'Ø¯Ø¹Ù… Ù…Ø´Ø§Ø±ÙŠع' : language === 'ku' ? 'Ù¾Ø§ÚµÙ¾Ø´ØªÛŒ Ù¾Ú•Û†Ú˜Û•' : 'Project Grant', color: 'bg-pink-500/10 text-pink-400 border-pink-500/20' };
+        return { text: language === 'ar' ? 'دعم مشاريع' : language === 'ku' ? 'پاڵپشتی پڕۆژە' : 'Project Grant', color: 'bg-pink-500/10 text-pink-400 border-pink-500/20' };
       case 'event':
-        return { text: language === 'ar' ? 'ÙØ¹Ø§Ù„ÙŠة ØªÙˆØ§ØµÙ„' : language === 'ku' ? 'Ú†Ø§Ù„Ø§Ú©ÛŒ' : 'Campus Event', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' };
+        return { text: language === 'ar' ? 'فعالية تواصل' : language === 'ku' ? 'چالاکی' : 'Campus Event', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' };
       case 'study_group':
-        return { text: language === 'ar' ? 'ØºØ±Ùˆب Ù…راجعة' : language === 'ku' ? 'Ú¯Ø±ÙˆÙ¾ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù†' : 'Study Group', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' };
+        return { text: language === 'ar' ? 'غروب مراجعة' : language === 'ku' ? 'گروپی خوێندن' : 'Study Group', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' };
       case 'poll':
-        return { text: language === 'ar' ? 'Ø§Ø³ØªØ·Ù„اع Ø±Ø£ÙŠ' : language === 'ku' ? 'Ú•Ø§Ù¾Ø±Ø³ÛŒ' : 'Campus Poll', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' };
+        return { text: language === 'ar' ? 'استطلاع رأي' : language === 'ku' ? 'ڕاپرسی' : 'Campus Poll', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' };
       case 'anonymous_question':
-        return { text: language === 'ar' ? 'Ø³Ø¤Ø§Ù„ Ù…Ø¬Ù‡ÙˆÙ„' : language === 'ku' ? 'Ø¨Ù¾Ø±Ø³Û• Ø¨ÛŽÙ†Ø§Ùˆ' : 'Anon Question', color: 'bg-slate-800 text-slate-300 border-slate-700' };
+        return { text: language === 'ar' ? 'سؤال مجهول' : language === 'ku' ? 'بپرسە بێناو' : 'Anon Question', color: 'bg-slate-800 text-slate-300 border-slate-700' };
       case 'video':
-        return { text: language === 'ar' ? 'ÙÙŠØ¯ÙŠÙˆ ØªØ±ÙÙŠÙ‡ÙŠ' : language === 'ku' ? 'Ú¤ÛŒØ¯ÛŒÛ†' : 'Campus Video', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' };
+        return { text: language === 'ar' ? 'فيديو ترفيهي' : language === 'ku' ? 'ڤیدیۆ' : 'Campus Video', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' };
       case 'photo':
-        return { text: language === 'ar' ? 'ØµÙˆرة Ø§Ù„Ø­Ø±Ù…' : language === 'ku' ? 'ÙˆÛŽÙ†Û•' : 'Campus Photo', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' };
+        return { text: language === 'ar' ? 'صورة الحرم' : language === 'ku' ? 'وێنە' : 'Campus Photo', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' };
       default:
         // Check fallback by opportunity category
         if (defaultCategory) {
           return { text: defaultCategory, color: 'bg-indigo-500/10 text-indigo-450 border-indigo-550/20' };
         }
-        return { text: language === 'ar' ? 'Ù…Ù†Ø´Ùˆر Ø·Ù„Ø§Ø¨ÙŠ' : language === 'ku' ? 'Ø¨ÚµØ§ÙˆÚ©Ø±Ø§ÙˆÛ•' : 'Student Post', color: 'bg-slate-800 text-slate-350 border-slate-700' };
+        return { text: language === 'ar' ? 'منشور طلابي' : language === 'ku' ? 'بڵاوکراوە' : 'Student Post', color: 'bg-slate-800 text-slate-350 border-slate-700' };
     }
   };
 
@@ -343,7 +345,7 @@ export default function FeedCard({
           setIsEditingFeed(false);
         }} className="flex flex-col gap-3 font-bold text-xs text-slate-700 text-left p-1" id={`card-edit-form-${item.id}`}>
           <h3 className="text-xs font-black uppercase text-[#6B25C9] mb-1">
-            {language === 'ar' ? 'ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ù…Ù†Ø´Ùˆر ÙƒÙ…Ø³Ø¤ÙˆÙ„' : 'Administrative Post Editor'}
+            {language === 'ar' ? 'تعديل المنشور كمسؤول' : 'Administrative Post Editor'}
           </h3>
 
           <div className="flex flex-col gap-1">
@@ -430,7 +432,7 @@ export default function FeedCard({
               type="submit"
               className="px-4.5 py-2 bg-[#6B25C9] text-white rounded-xl text-[10px] font-black cursor-pointer uppercase shadow-md select-none"
             >
-              Save Post Edits âœ“
+              Save Post Edits ✓
             </button>
           </div>
         </form>
@@ -474,7 +476,7 @@ export default function FeedCard({
                   </button>
                   {item.author.verified && (
                     <span className="text-[8px] font-black uppercase bg-[#FFD21F] text-[#161A33] px-1.5 py-0.5 rounded-md border border-[#161A33]/15 tracking-tight flex items-center gap-0.5 shadow-sm">
-                      âœ¨ {getTranslation('verifiedPartner', language)}
+                      ✨ {getTranslation('verifiedPartner', language)}
                     </span>
                   )}
                 </div>
@@ -484,15 +486,15 @@ export default function FeedCard({
                   </span>
                   {resolvedUniLabel && (
                     <span className="font-black text-[#161A33] flex items-center gap-1 shrink-0 bg-[#F3F7FF] border border-[#E6E1F5] px-2 py-0.5 rounded-md max-w-[150px] truncate">
-                      ðŸ« {cleanText(resolvedUniLabel)}
+                      🏫 {cleanText(resolvedUniLabel)}
                     </span>
                   )}
                   {resolvedGovLabel && (
                     <span className="text-slate-600 font-bold flex items-center gap-0.5 shrink-0">
-                      ðŸ“ {cleanText(resolvedGovLabel)}
+                      📍 {cleanText(resolvedGovLabel)}
                     </span>
                   )}
-                  <span className="text-slate-300">â€¢</span>
+                  <span className="text-slate-300">•</span>
                   <span className="font-bold text-slate-500 text-[9px]">{cleanText(item.date)}</span>
                 </div>
               </div>
@@ -509,18 +511,18 @@ export default function FeedCard({
                     className="p-1 px-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[9px] font-black border border-indigo-200 cursor-pointer shadow-sm uppercase shrink-0"
                     title="Edit Post"
                   >
-                    âœï¸
+                    ✏️
                   </button>}
                   <button
                     onClick={() => {
-                      if (window.confirm(language === 'ar' ? 'Ù‡Ù„ Ø£Ù†ت Ù…ØªØ£Ùƒد Ù…Ù† حذف Ù‡ذا Ø§Ù„Ù…Ù†Ø´ÙˆØ±ØŸ' : 'Are you sure you want to delete this post?')) {
+                      if (window.confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذا المنشور؟' : 'Are you sure you want to delete this post?')) {
                         if (onDeleteFeedItem) onDeleteFeedItem(item.id);
                       }
                     }}
                     className="p-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-650 rounded-lg text-[9px] font-black border border-red-200 cursor-pointer shadow-sm uppercase shrink-0"
                     title="Delete Post"
                   >
-                    ðŸ—‘️
+                    🗑️
                   </button>
                 </div>
               )}
@@ -638,7 +640,7 @@ export default function FeedCard({
               <>
                 {(item.date?.includes('Recently') || item.isNew) && (
                   <span className="text-[8px] font-black uppercase text-emerald-600 bg-emerald-100 border border-emerald-300 px-1.5 py-0.5 rounded shadow-sm leading-none shrink-0 animate-pulse">
-                    {language === 'ar' ? 'Ø¬Ø¯ÙŠد âœ¨' : language === 'ku' ? 'Ù†ÙˆÛŽ âœ¨' : 'New âœ¨'}
+                    {language === 'ar' ? 'جديد ✨' : language === 'ku' ? 'نوێ ✨' : 'New ✨'}
                   </span>
                 )}
                 {item.deadline && (
@@ -649,7 +651,7 @@ export default function FeedCard({
                       if (diffDays >= 0 && diffDays <= 5) {
                         return (
                           <span className="text-[8px] font-black uppercase text-amber-700 bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded shadow-sm leading-none shrink-0">
-                            {language === 'ar' ? 'Ù‚Ø±ÙŠب Ø§Ù„Ø¥ØºÙ„Ø§Ù‚ ⏳' : language === 'ku' ? 'Ù†Ø²ÛŒک Ú©Û†ØªØ§ÛŒÛŒ ⏳' : 'Closing Soon ⏳'}
+                            {language === 'ar' ? 'قريب الإغلاق ⏳' : language === 'ku' ? 'نزیک کۆتایی ⏳' : 'Closing Soon ⏳'}
                           </span>
                         );
                       }
@@ -676,11 +678,11 @@ export default function FeedCard({
           >
             {showOriginal ? (
               <>
-                ðŸŒ {language === 'ar' ? 'عرض Ø§Ù„ØªØ±Ø¬Ù…ة' : language === 'ku' ? 'Ù¾ÛŒØ´Ø§Ù†Ø¯Ø§Ù†ÛŒ ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø§Ù†' : 'Show translated'}
+                🌐 {language === 'ar' ? 'عرض الترجمة' : language === 'ku' ? 'پیشاندانی وەرگێڕان' : 'Show translated'}
               </>
             ) : (
               <>
-                ðŸŒ {language === 'ar' ? 'عرض Ø§Ù„Ø£ØµÙ„' : language === 'ku' ? 'Ù¾ÛŒØ´Ø§Ù†Ø¯Ø§Ù†ÛŒ Ø¯Û•Ù‚ÛŒ Ø³Û•Ø±Û•Ú©ÛŒ' : 'Show original'}
+                🌐 {language === 'ar' ? 'عرض الأصل' : language === 'ku' ? 'پیشاندانی دەقی سەرەکی' : 'Show original'}
               </>
             )}
           </button>
@@ -768,7 +770,7 @@ export default function FeedCard({
             <div className="flex items-start justify-between gap-2.5 relative z-10">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-xl bg-white border-2 border-[#161A33]/80 text-[#6B25C9] shadow-sm font-black flex items-center justify-center text-lg select-none shrink-0 transform hover:scale-105 transition-transform">
-                  {item.companyLogo || 'ðŸ’¼'}
+                  {item.companyLogo || '💼'}
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -777,7 +779,7 @@ export default function FeedCard({
                     </h4>
                     {(item.companyVerified || item.author.verified) && (
                       <span className="text-[9px] font-extrabold bg-[#FFD21F]/20 text-[#161A33] px-1.5 py-0.2 rounded border border-[#161A33]/10 flex items-center gap-0.5 leading-none shrink-0">
-                        âœ“ Verified
+                        ✓ Verified
                       </span>
                     )}
                   </div>
@@ -786,7 +788,7 @@ export default function FeedCard({
                       <MapPin className="w-3 text-[#2F7CCB]" />
                       {item.location || 'All Iraq'}
                     </span>
-                    <span>â€¢</span>
+                    <span>•</span>
                     <span className="bg-[#6B25C9]/10 text-[#6B25C9] border border-[#6B25C9]/15 px-1.5 py-0.2 rounded text-[9px] font-black">
                       {item.workplaceType || 'On-site'}
                     </span>
@@ -808,7 +810,7 @@ export default function FeedCard({
             {/* Who Can Apply Eligibility Alert Section */}
             {item.whoCanApply && (
               <div className="bg-amber-50 p-2.5 rounded-lg border-2 border-[#161A33] text-[10px] text-slate-700 leading-relaxed relative z-10 font-bold flex items-start gap-1.5 shadow-[2px_2px_0px_0px_#161A33]">
-                <span className="text-sm shrink-0 leading-none">ðŸŽ¯</span>
+                <span className="text-sm shrink-0 leading-none">🎯</span>
                 <div>
                   <span className="text-amber-700 font-black text-[9px] uppercase tracking-wider block mb-0.5">Who can apply</span>
                   <span className="text-slate-800 font-extrabold">{getLocalizedContent(item, 'whoCanApply', language, showOriginal)}</span>
@@ -819,9 +821,9 @@ export default function FeedCard({
             {/* Campus Social Proof Block (Students who applied) */}
             <div className="flex items-center gap-2 mt-0.5 bg-emerald-50 p-2 rounded-lg border-2 border-[#161A33] relative z-10 shadow-[2px_2px_0px_0px_#161A33]">
               <div className="flex -space-x-1.5">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#6B25C9] to-[#2F7CCB] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">ðŸ™‹â€â™‚️</div>
-                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#FFD21F] to-[#D9272E] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">ðŸ™‹â€â™€️</div>
-                <div className="w-5 h-5 rounded-full bg-white border border-[#161A33] text-[8px] flex items-center justify-center font-bold shadow-sm">âœ¨</div>
+                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#6B25C9] to-[#2F7CCB] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">🙋‍♂️</div>
+                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#FFD21F] to-[#D9272E] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">🙋‍♀️</div>
+                <div className="w-5 h-5 rounded-full bg-white border border-[#161A33] text-[8px] flex items-center justify-center font-bold shadow-sm">✨</div>
               </div>
               <p className="text-[10px] text-emerald-800 font-extrabold leading-tight">
                 {item.universityAppliedCount || 0} students from your university applied
@@ -831,7 +833,7 @@ export default function FeedCard({
             {/* Saves and Badges Stats tracker */}
             <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold justify-between pt-1">
               <span className="flex items-center gap-1 bg-[#F3F7FF] text-[#161A33] border border-[#E6E1F5] px-2 py-0.5 rounded-md text-[9px] font-black uppercase">
-                ðŸ·ï¸ {item.opportunityCategory || 'Career'}
+                🏷️ {item.opportunityCategory || 'Career'}
               </span>
               <span className="text-[#6B25C9] flex items-center gap-0.5 bg-[#6B25C9]/10 px-2 py-0.5 rounded-lg text-[9px] font-black">
                 ⭐ {item.savedByUser ? (item.savedCount || 0) + 1 : (item.savedCount || 0)} saved by peers
@@ -871,7 +873,7 @@ export default function FeedCard({
             <div className="flex flex-col gap-1.5 text-[11px] font-bold text-slate-700">
               <div className="flex items-center gap-2">
                 <Calendar className="w-4 h-4 text-[#D9272E] shrink-0" />
-                <span>{item.eventDate} â€¢ {item.eventTime}</span>
+                <span>{item.eventDate} • {item.eventTime}</span>
               </div>
               <div className="flex items-center gap-2">
                 <MapPin className="w-4 h-4 text-[#2F7CCB] shrink-0" />
@@ -881,7 +883,7 @@ export default function FeedCard({
 
             <div className="flex items-center justify-between border-t border-[#E6E1F5] pt-2">
               <span className="text-[10px] text-[#D9272E] font-black bg-[#D9272E]/10 px-1.5 py-0.5 rounded border border-[#D9272E]/20">
-                ðŸŽ¯ {item.eventRsvpCount || 0} students listed
+                🎯 {item.eventRsvpCount || 0} students listed
               </span>
 
               <button
@@ -938,7 +940,7 @@ export default function FeedCard({
                 Nearest Campus Asset
               </span>
               <span className="text-yellow-500 font-extrabold">
-                â˜… {item.serviceRating || '5.0'}
+                ★ {item.serviceRating || '5.0'}
               </span>
             </div>
             <div className="text-[10px] font-semibold text-slate-600 flex items-center gap-1">
@@ -949,9 +951,9 @@ export default function FeedCard({
         )}
 
         {/* Tags renderer */}
-        {item.tags && item.tags.length > 0 && (
+        {safeTags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3 bg-[#F7F4FF]/70 p-1.5 rounded-xl border border-[#E6E1F5] shadow-inner">
-            {item.tags.map(tag => (
+            {safeTags.map(tag => (
               <span key={tag} className="text-[9px] font-bold bg-white text-[#6B25C9] border border-[#6B25C9]/25 px-2 py-0.5 rounded-md flex items-center gap-0.5 leading-none shadow-sm">
                 <Hash className="w-2.5 h-2.5 text-[#6B25C9]" />
                 {tag}
@@ -1042,7 +1044,7 @@ export default function FeedCard({
             className="overflow-hidden border-t border-[#E6E1F5] mt-2.5 pt-3"
           >
             <h4 className="text-[11px] font-black uppercase text-slate-500 tracking-wider mb-2 flex items-center gap-1">
-              {getTranslation('commentsTitle', language)} â€¢ {item.commentsList.length} replies
+              {getTranslation('commentsTitle', language)} • {item.commentsList.length} replies
             </h4>
 
             {/* List of comments */}
@@ -1123,10 +1125,10 @@ function CommentRow({
             onClick={() => setShowOriginal(!showOriginal)}
             className="text-[9px] font-black text-[#6B25C9] hover:underline cursor-pointer mt-1.5 inline-flex items-center gap-1 bg-[#6B25C9]/5 px-1.5 py-0.5 rounded"
           >
-            ðŸŒ {showOriginal ? (
-              language === 'ar' ? 'عرض Ø§Ù„ØªØ±Ø¬Ù…ة' : language === 'ku' ? 'Ù¾ÛŒØ´Ø§Ù†Ø¯Ø§Ù†ÛŒ ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø§Ù†' : 'Show translated'
+            🌐 {showOriginal ? (
+              language === 'ar' ? 'عرض الترجمة' : language === 'ku' ? 'پیشاندانی وەرگێڕان' : 'Show translated'
             ) : (
-              language === 'ar' ? 'عرض Ø§Ù„Ø£ØµÙ„' : language === 'ku' ? 'Ù¾ÛŒØ´Ø§Ù†Ø¯Ø§Ù†ÛŒ Ø¯Û•Ù‚ÛŒ Ø³Û•Ø±Û•Ú©ÛŒ' : 'Show original'
+              language === 'ar' ? 'عرض الأصل' : language === 'ku' ? 'پیشاندانی دەقی سەرەکی' : 'Show original'
             )}
           </button>
         )}
