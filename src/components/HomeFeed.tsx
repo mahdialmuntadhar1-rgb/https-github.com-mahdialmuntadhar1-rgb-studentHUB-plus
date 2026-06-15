@@ -303,9 +303,9 @@ export default function HomeFeed({
       }
       const settings: PortalSettings = {
         heroImage: formHeroBg,
-        heroTitle: { en: formTitleEN, ar: formTitleAR, ku: formTitleKU },
-        heroDescription: { en: formDescEN, ar: formDescAR, ku: formDescKU },
-        heroTag: { en: formTagEN, ar: formTagAR, ku: formTagKU },
+        heroTitle: { en: '', ar: '', ku: '' },
+        heroDescription: { en: '', ar: '', ku: '' },
+        heroTag: { en: '', ar: '', ku: '' },
         defaultStories
       };
       const result = await portalSettingsApi.update(settings, language);
@@ -522,47 +522,35 @@ export default function HomeFeed({
       
       {/* 2. Compact, Student-Friendly Modern Hero Section */}
       {isEditingHero ? (
-        <form onSubmit={handleSaveHeroCustomization} className="mb-5 bg-[#121B2E] rounded-3xl p-5 border-2 border-[#FFD21F] shadow-[3px_3px_0px_0px_#FFD21F] text-left text-white flex flex-col gap-3" id="admin-hero-editor-form">
-          <div className="flex items-center justify-between border-b border-[#1F2E4D] pb-2">
+        <form onSubmit={handleSaveHeroCustomization} className="mb-5 bg-[#121B2E] rounded-3xl p-5 border-2 border-[#FFD21F] shadow-[3px_3px_0px_0px_#FFD21F] text-left text-white flex flex-col gap-4" id="admin-hero-editor-form">
+          <div className="flex items-center justify-between border-b border-[#1F2E4D] pb-3">
             <h3 className="text-xs font-black text-[#FFD21F] uppercase flex items-center gap-1.5">
               <Palette className="w-4 h-4" />
-              <span>Customize Hero Banner</span>
+              <span>Hero Image</span>
             </h3>
             <button type="button" onClick={() => setIsEditingHero(false)} className="text-slate-400 hover:text-white font-bold text-[10px] uppercase cursor-pointer">
               Cancel
             </button>
           </div>
-          
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] uppercase font-black text-slate-400">Hero BG Image URL</label>
-            <input 
-              type="text" 
-              className="bg-[#0B1020] border border-[#1F2E4D] text-xs px-2.5 py-1.5 rounded-xl text-white focus:outline-none focus:border-[#FFD21F] w-full"
-              placeholder="https://images.unsplash.com/..."
-              value={formHeroBg}
-              onChange={(e) => setFormHeroBg(e.target.value)}
-            />
-          </div>
 
-          <div className="grid grid-cols-1 gap-2">
-            <label className="w-full bg-[#FFD21F]/15 hover:bg-[#FFD21F]/25 text-[#FFD21F] border border-[#FFD21F]/40 rounded-2xl px-3 py-3 text-xs font-black flex items-center justify-center gap-2 cursor-pointer transition-all select-none">
-              <Image className="w-4 h-4" />
-              <span>{isHeroImageProcessing ? 'Processing image...' : 'Upload Hero Image from Device'}</span>
-              <input
-                type="file"
-                accept="image/*"
-                className="hidden"
-                disabled={isHeroImageProcessing}
-                onChange={handleHeroFileUpload}
-              />
-            </label>
-            <p className="text-[10px] text-slate-400 leading-relaxed">
-              Choose an image from your laptop. It will be compressed automatically, then saved when you press Save Hero Image.
-            </p>
-          </div>
+          <label className="w-full bg-[#FFD21F] hover:bg-[#FFD21F]/90 text-slate-950 border border-slate-950 shadow-[2px_2px_0px_0px_#1B2E4D] rounded-2xl px-3 py-4 text-sm font-black flex items-center justify-center gap-2 cursor-pointer transition-all select-none">
+            <Image className="w-5 h-5" />
+            <span>{isHeroImageProcessing ? 'Processing image...' : 'Upload Hero Image from Device'}</span>
+            <input
+              type="file"
+              accept="image/*"
+              className="hidden"
+              disabled={isHeroImageProcessing}
+              onChange={handleHeroFileUpload}
+            />
+          </label>
+
+          <p className="text-[10px] text-slate-400 leading-relaxed text-center">
+            Choose an image from your laptop. No URL is needed. After preview appears, press Save Hero Image.
+          </p>
 
           {formHeroBg && (
-            <div className="relative h-28 rounded-2xl overflow-hidden border border-[#1F2E4D] bg-[#0B1020]">
+            <div className="relative h-44 rounded-3xl overflow-hidden border-2 border-[#1F2E4D] bg-[#0B1020]">
               <img
                 src={formHeroBg}
                 alt="Hero preview"
@@ -574,15 +562,12 @@ export default function HomeFeed({
             </div>
           )}
 
-          <div className="rounded-2xl border border-[#FFD21F]/30 bg-[#FFD21F]/10 p-3 text-[10px] font-bold text-slate-200 leading-relaxed">
-            Image-only hero mode: only the image URL is displayed on the homepage. Titles, tags, and subtitles are hidden from the public hero.
-          </div>
-
-          <button 
+          <button
             type="submit"
-            className="w-full bg-[#FFD21F] hover:bg-[#FFD21F]/90 text-slate-950 font-black text-xs py-2 rounded-xl border border-slate-950 shadow-[2px_2px_0px_0px_#1B2E4D] cursor-pointer select-none text-center"
+            disabled={isHeroImageProcessing || !formHeroBg}
+            className="w-full bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-black text-xs py-3 rounded-xl border border-slate-950 shadow-[2px_2px_0px_0px_#1B2E4D] cursor-pointer select-none text-center"
           >
-            Save Hero Image ✨
+            Save Hero Image
           </button>
         </form>
       ) : (
