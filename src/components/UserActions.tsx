@@ -13,7 +13,10 @@ type UserActionsProps = {
 };
 
 function label(language: Language, ar: string, ku: string, en: string) {
-  return language === 'ar' ? ar : language === 'ku' ? ku : en;
+  void language;
+  void ar;
+  void ku;
+  return en;
 }
 
 export default function UserActions({

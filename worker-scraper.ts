@@ -522,7 +522,7 @@ async function workerPublicProfile(env: Env, user: any, viewerId?: string) {
 
   return {
     id: user.id,
-    name: user.name || "Student",
+    name: user.full_name || user.name || user.email || "Student",
     email: user.email,
     role: user.role || "student",
     avatar: user.avatar || "",

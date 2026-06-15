@@ -15,7 +15,7 @@ import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
 import RequestsCenter from './components/RequestsCenter';
 import MessagesInbox from './components/MessagesInbox';
-import { AuthUser, BACKEND_URL, authApi, userContentApi } from './lib/api';
+import { AuthUser, BACKEND_URL, authApi, userContentApi, socialApi } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText, Inbox, MessageCircle } from 'lucide-react';
 
@@ -97,6 +97,7 @@ export default function App() {
   const [isAdminVerified, setIsAdminVerified] = useState<boolean>(false);
   const [authUserRole, setAuthUserRole] = useState<string>('');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+  const [socialBadges, setSocialBadges] = useState({ requests: 0, messages: 0 });
   const isAdminRole = (role?: string) => role === 'admin' || role === 'staff' || role === 'super_admin';
   const toProfileRole = (role?: string): UserProfile['role'] => {
     if (role === 'graduate' || role === 'teacher' || role === 'institution') return role;
@@ -182,6 +183,48 @@ export default function App() {
       cancelled = true;
     };
   }, []);
+
+  useEffect(() => {
+    if (!isLoggedIn) {
+      setSocialBadges({ requests: 0, messages: 0 });
+      return;
+    }
+
+    let cancelled = false;
+
+    const refreshBadges = async () => {
+      try {
+        const [friendData, messageData, threadData] = await Promise.all([
+          socialApi.getFriendRequests(language),
+          socialApi.getMessageRequests(language),
+          socialApi.getMessageThreads(language),
+        ]);
+
+        if (cancelled) return;
+
+        const requestCount =
+          (Array.isArray(friendData?.incoming) ? friendData.incoming.length : 0) +
+          (Array.isArray(messageData?.incoming) ? messageData.incoming.length : 0);
+
+        const messageCount = Array.isArray(threadData?.threads) ? threadData.threads.length : 0;
+
+        setSocialBadges({
+          requests: requestCount,
+          messages: messageCount,
+        });
+      } catch {
+        if (!cancelled) setSocialBadges({ requests: 0, messages: 0 });
+      }
+    };
+
+    void refreshBadges();
+    const timer = window.setInterval(refreshBadges, 30000);
+
+    return () => {
+      cancelled = true;
+      window.clearInterval(timer);
+    };
+  }, [isLoggedIn, activeTab, language]);
 
   // Sync to local states - save only user-created custom posts
   useEffect(() => {
@@ -1276,8 +1319,13 @@ export default function App() {
             }`}
           >
             <MessageCircle className="w-5 h-5 shrink-0" />
+            {socialBadges.messages > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white shadow-lg">
+                {socialBadges.messages > 9 ? '9+' : socialBadges.messages}
+              </span>
+            )}
             <span className="text-[10px] leading-none font-bold">
-              {language === 'ar' ? 'الرسائل' : language === 'ku' ? 'نامەکان' : 'Messages'}
+              Messages
             </span>
             {activeTab === 'messages' && (
               <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
@@ -1293,8 +1341,13 @@ export default function App() {
             }`}
           >
             <Inbox className="w-5 h-5 shrink-0" />
+            {socialBadges.requests > 0 && (
+              <span className="absolute -top-1 -right-1 flex h-4 min-w-4 items-center justify-center rounded-full bg-red-500 px-1 text-[9px] font-black text-white shadow-lg">
+                {socialBadges.requests > 9 ? '9+' : socialBadges.requests}
+              </span>
+            )}
             <span className="text-[10px] leading-none font-bold">
-              {language === 'ar' ? 'الطلبات' : language === 'ku' ? 'داواکاری' : 'Requests'}
+              Requests
             </span>
             {activeTab === 'requests' && (
               <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />

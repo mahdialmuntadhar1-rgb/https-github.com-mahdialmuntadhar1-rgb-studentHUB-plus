@@ -484,7 +484,7 @@ export default function FeedCard({
       <div className="flex-1" id={`card-body-${item.id}`}>
         {/* Localized Title */}
         {title && (
-          <h2 className="text-sm font-black text-[#161A33] tracking-tight leading-snug mb-1.5 flex flex-wrap items-center gap-1.5">
+          <h2 dir="auto" className="text-sm font-black text-[#161A33] tracking-tight leading-snug mb-1.5 flex flex-wrap items-center gap-1.5">
             <span>{title}</span>
             {['job', 'internship', 'scholarship', 'training', 'part_time_job', 'full_time_job', 'volunteering', 'competition', 'graduation_project_support', 'fellowship', 'event', 'announcement', 'exam'].includes(item.type) && (
               <>
@@ -515,7 +515,7 @@ export default function FeedCard({
         )}
 
         {/* Localized Content Text */}
-        <p className="text-xs font-semibold text-slate-700 leading-relaxed break-words whitespace-pre-line mb-3">
+        <p dir="auto" className="text-xs font-semibold text-slate-700 leading-relaxed break-words whitespace-pre-line mb-3">
           {content}
         </p>
 
