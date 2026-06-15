@@ -91,7 +91,7 @@ export default {
       return handleWorkerFollow(request, env, followMatch[1], false);
     }
 
-    if (url.pathname === "/api/feed" && request.method === "GET") {
+    if ((url.pathname === "/api/feed" || url.pathname === "/api/posts/feed") && request.method === "GET") {
       return handleWorkerFeed(request, env, url);
     }
 
@@ -400,14 +400,14 @@ async function getPublicFeed(env: Env, url: URL, kind: "opportunities" | "highli
     `SELECT COUNT(*) AS total FROM opportunities
      WHERE status = 'approved'
        AND (deadline IS NULL OR deadline = '' OR deadline >= ?)
-       AND category IN (${placeholders})`
+       AND type IN (${placeholders})`
   ).bind(today, ...categories).first();
 
   const rows = await env.DB.prepare(
     `SELECT * FROM opportunities
      WHERE status = 'approved'
        AND (deadline IS NULL OR deadline = '' OR deadline >= ?)
-       AND category IN (${placeholders})
+       AND type IN (${placeholders})
      ORDER BY published_date DESC, created_at DESC
      LIMIT ? OFFSET ?`
   ).bind(today, ...categories, limit, offset).all();
@@ -435,8 +435,8 @@ function sanitizeText(value: any, maxLength: number) {
 }
 
 async function workerPublicProfile(env: Env, user: any, viewerId?: string) {
-  const profile = await env.DB.prepare("SELECT * FROM user_profiles WHERE userId = ? LIMIT 1").bind(user.id).first();
-  const postsCount = await env.DB.prepare("SELECT COUNT(*) AS count FROM posts WHERE userId = ? AND deleted_at IS NULL").bind(user.id).first();
+  const profile = await env.DB.prepare("SELECT * FROM user_profiles WHERE author_id = ? LIMIT 1").bind(user.id).first();
+  const postsCount = await env.DB.prepare("SELECT COUNT(*) AS count FROM posts WHERE author_id = ? AND deleted_at IS NULL").bind(user.id).first();
   const followersCount = await env.DB.prepare("SELECT COUNT(*) AS count FROM follows WHERE followee_id = ?").bind(user.id).first();
   const followingCount = await env.DB.prepare("SELECT COUNT(*) AS count FROM follows WHERE follower_id = ?").bind(user.id).first();
   const isFollowing = viewerId
@@ -467,9 +467,9 @@ async function workerPublicProfile(env: Env, user: any, viewerId?: string) {
 }
 
 async function decorateWorkerPost(env: Env, post: any, viewerId: string) {
-  const comments = await env.DB.prepare("SELECT * FROM comments WHERE itemId = ? AND deleted_at IS NULL ORDER BY createdAt ASC LIMIT 50").bind(post.id).all();
-  const likeCount = await env.DB.prepare("SELECT COUNT(*) AS count FROM likes WHERE itemId = ?").bind(post.id).first();
-  const liked = await env.DB.prepare("SELECT 1 FROM likes WHERE itemId = ? AND userId = ? LIMIT 1").bind(post.id, viewerId).first();
+  const comments = await env.DB.prepare("SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC LIMIT 50").bind(post.id).all();
+  const likeCount = await env.DB.prepare("SELECT COUNT(*) AS count FROM post_likes WHERE post_id = ?").bind(post.id).first();
+  const liked = await env.DB.prepare("SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ? LIMIT 1").bind(post.id, viewerId).first();
   return {
     ...post,
     commentsList: comments.results || [],
@@ -527,7 +527,7 @@ async function handleWorkerUserSearch(request: Request, env: Env, url: URL) {
   if (q === "%%") return jsonResponse({ users: [] });
   const rows = await env.DB.prepare(
     `SELECT u.* FROM profiles u
-     LEFT JOIN user_profiles p ON p.userId = u.id
+     LEFT JOIN user_profiles p ON p.author_id = u.id
      WHERE u.id <> ?
        AND lower(u.name || ' ' || COALESCE(p.universityId, '') || ' ' || COALESCE(p.majorEN, '') || ' ' || COALESCE(p.majorAR, '') || ' ' || COALESCE(p.majorKU, '')) LIKE ?
      ORDER BY u.name LIMIT 20`
@@ -543,10 +543,10 @@ async function handleWorkerUserProfile(request: Request, env: Env, userId: strin
   if (!user) return jsonResponse({ error: "User not found." }, 404);
   const rows = await env.DB.prepare(
     `SELECT * FROM posts p
-     WHERE p.userId = ?
+     WHERE p.author_id = ?
        AND p.deleted_at IS NULL
-       AND (p.userId = ? OR p.visibility = 'public' OR p.userId IN (SELECT followee_id FROM follows WHERE follower_id = ?))
-     ORDER BY p.createdAt DESC LIMIT 50`
+       AND (p.author_id = ? OR p.visibility = 'public' OR p.author_id IN (SELECT followee_id FROM follows WHERE follower_id = ?))
+     ORDER BY p.created_at DESC LIMIT 50`
   ).bind(userId, viewer.id, viewer.id).all();
   const posts = await Promise.all((rows.results || []).map((post: any) => decorateWorkerPost(env, post, viewer.id)));
   return jsonResponse({ user: await workerPublicProfile(env, user, viewer.id), posts });
@@ -574,13 +574,13 @@ async function handleWorkerFeed(request: Request, env: Env, url: URL) {
   const count = await env.DB.prepare(
     `SELECT COUNT(*) AS total FROM posts p
      WHERE p.deleted_at IS NULL
-       AND (p.userId = ? OR p.userId IN (SELECT followee_id FROM follows WHERE follower_id = ?) OR p.visibility = 'public')`
+       AND (p.author_id = ? OR p.author_id IN (SELECT followee_id FROM follows WHERE follower_id = ?) OR p.visibility = 'public')`
   ).bind(viewer.id, viewer.id).first();
   const rows = await env.DB.prepare(
     `SELECT * FROM posts p
      WHERE p.deleted_at IS NULL
-       AND (p.userId = ? OR p.userId IN (SELECT followee_id FROM follows WHERE follower_id = ?) OR p.visibility = 'public')
-     ORDER BY p.createdAt DESC LIMIT ? OFFSET ?`
+       AND (p.author_id = ? OR p.author_id IN (SELECT followee_id FROM follows WHERE follower_id = ?) OR p.visibility = 'public')
+     ORDER BY p.created_at DESC LIMIT ? OFFSET ?`
   ).bind(viewer.id, viewer.id, limit, offset).all();
   const posts = await Promise.all((rows.results || []).map((post: any) => decorateWorkerPost(env, post, viewer.id)));
   const total = Number(count?.total || 0);
@@ -607,7 +607,7 @@ async function handleWorkerCreatePost(request: Request, env: Env) {
   await env.DB.prepare(
     `INSERT INTO posts (id, userId, type, title, content, titleEN, titleAR, titleKU, contentEN, contentAR, contentKU, anonymous, authorName, authorRole, imageUrl, visibility, status, governorateId, universityId, createdAt)
      VALUES (?, ?, 'post', ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, NULL, ?, 'approved', ?, ?, ?)`
-  ).bind(post.id, post.userId, post.title, post.content, post.title, post.title, post.title, post.content, post.content, post.content, user.name, user.role, post.visibility, sanitizeText(body.governorateId, 80) || "all", sanitizeText(body.universityId, 120) || "all", post.createdAt).run();
+  ).bind(post.id, post.author_id, post.title, post.content, post.title, post.title, post.title, post.content, post.content, post.content, user.name, user.role, post.visibility, sanitizeText(body.governorateId, 80) || "all", sanitizeText(body.universityId, 120) || "all", post.created_at).run();
   const row = await env.DB.prepare("SELECT * FROM posts WHERE id = ?").bind(post.id).first();
   return jsonResponse({ post: await decorateWorkerPost(env, row, user.id) }, 201);
 }
@@ -617,22 +617,22 @@ async function handleWorkerLike(request: Request, env: Env, postId: string, shou
   if (user instanceof Response) return user;
   const post = await env.DB.prepare("SELECT id FROM posts WHERE id = ? AND deleted_at IS NULL LIMIT 1").bind(postId).first();
   if (!post) return jsonResponse({ error: "Post not found." }, 404);
-  const existing = await env.DB.prepare("SELECT 1 FROM likes WHERE itemId = ? AND userId = ? LIMIT 1").bind(postId, user.id).first();
+  const existing = await env.DB.prepare("SELECT 1 FROM post_likes WHERE post_id = ? AND user_id = ? LIMIT 1").bind(postId, user.id).first();
   let liked = false;
   if (shouldToggle && !existing) {
-    await env.DB.prepare("INSERT INTO likes (itemId, userId, createdAt) VALUES (?, ?, ?)").bind(postId, user.id, new Date().toISOString()).run();
+    await env.DB.prepare("INSERT INTO post_likes (post_id, user_id, created_at) VALUES (?, ?, ?)").bind(postId, user.id, new Date().toISOString()).run();
     liked = true;
   } else if (existing) {
-    await env.DB.prepare("DELETE FROM likes WHERE itemId = ? AND userId = ?").bind(postId, user.id).run();
+    await env.DB.prepare("DELETE FROM post_likes WHERE post_id = ? AND user_id = ?").bind(postId, user.id).run();
   }
-  const count = await env.DB.prepare("SELECT COUNT(*) AS count FROM likes WHERE itemId = ?").bind(postId).first();
+  const count = await env.DB.prepare("SELECT COUNT(*) AS count FROM post_likes WHERE post_id = ?").bind(postId).first();
   return jsonResponse({ liked, is_liked: liked, count: Number(count?.count || 0), likes_count: Number(count?.count || 0) });
 }
 
 async function handleWorkerComments(request: Request, env: Env, postId: string) {
   const user = await requireWorkerAuth(request, env);
   if (user instanceof Response) return user;
-  const rows = await env.DB.prepare("SELECT * FROM comments WHERE itemId = ? AND deleted_at IS NULL ORDER BY createdAt ASC LIMIT 100").bind(postId).all();
+  const rows = await env.DB.prepare("SELECT * FROM comments WHERE post_id = ? ORDER BY created_at ASC LIMIT 100").bind(postId).all();
   return jsonResponse({ comments: rows.results || [] });
 }
 
@@ -648,19 +648,19 @@ async function handleWorkerAddComment(request: Request, env: Env, postId: string
   if (rawContent.trim().length > 800) return jsonResponse({ error: "Comment content must be 800 characters or fewer." }, 400);
   const comment = { id: crypto.randomUUID(), createdAt: new Date().toISOString() };
   await env.DB.prepare(
-    "INSERT INTO comments (id, itemId, userId, authorName, authorRole, authorAvatar, content, date, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
-  ).bind(comment.id, postId, user.id, user.name, user.role, sanitizeText(body.authorAvatar, 500), content, "Just now", comment.createdAt).run();
+    "INSERT INTO comments (id, post_id, author_id, content, created_at) VALUES (?, ?, ?, ?, ?)"
+  ).bind(comment.id, postId, user.id, content, comment.createdAt).run();
   const row = await env.DB.prepare("SELECT * FROM comments WHERE id = ?").bind(comment.id).first();
-  const count = await env.DB.prepare("SELECT COUNT(*) AS count FROM comments WHERE itemId = ? AND deleted_at IS NULL").bind(postId).first();
+  const count = await env.DB.prepare("SELECT COUNT(*) AS count FROM comments WHERE post_id = ?").bind(postId).first();
   return jsonResponse({ comment: row, comments_count: Number(count?.count || 0) }, 201);
 }
 
 async function handleWorkerDeleteComment(request: Request, env: Env, postId: string, commentId: string) {
   const user = await requireWorkerAuth(request, env);
   if (user instanceof Response) return user;
-  const comment = await env.DB.prepare("SELECT * FROM comments WHERE id = ? AND itemId = ? AND deleted_at IS NULL LIMIT 1").bind(commentId, postId).first();
+  const comment = await env.DB.prepare("SELECT * FROM comments WHERE id = ? AND post_id = ? LIMIT 1").bind(commentId, postId).first();
   if (!comment) return jsonResponse({ error: "Comment not found." }, 404);
-  if (comment.userId !== user.id && !["staff", "admin", "super_admin"].includes(user.role)) return jsonResponse({ error: "Only the comment owner can delete this comment." }, 403);
+  if (comment.author_id !== user.id && !["staff", "admin", "super_admin"].includes(user.role)) return jsonResponse({ error: "Only the comment owner can delete this comment." }, 403);
   await env.DB.prepare("UPDATE comments SET deleted_at = ? WHERE id = ?").bind(new Date().toISOString(), commentId).run();
   return jsonResponse({ success: true });
 }
@@ -670,7 +670,7 @@ async function handleWorkerDeletePost(request: Request, env: Env, postId: string
   if (user instanceof Response) return user;
   const post = await env.DB.prepare("SELECT * FROM posts WHERE id = ? AND deleted_at IS NULL LIMIT 1").bind(postId).first();
   if (!post) return jsonResponse({ error: "Post not found." }, 404);
-  if (post.userId !== user.id && !["staff", "admin", "super_admin"].includes(user.role)) return jsonResponse({ error: "Only the post owner can delete this post." }, 403);
+  if (post.author_id !== user.id && !["staff", "admin", "super_admin"].includes(user.role)) return jsonResponse({ error: "Only the post owner can delete this post." }, 403);
   await env.DB.prepare("UPDATE posts SET deleted_at = ? WHERE id = ?").bind(new Date().toISOString(), postId).run();
   return jsonResponse({ success: true });
 }
@@ -685,8 +685,8 @@ async function handleWorkerReportPost(request: Request, env: Env, postId: string
   if (!post) return jsonResponse({ error: "Post not found." }, 404);
   const report = { id: crypto.randomUUID(), created_at: new Date().toISOString() };
   await env.DB.prepare(
-    "INSERT INTO reports (id, reporter_id, post_id, reported_user_id, reason, details, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'open', ?)"
-  ).bind(report.id, user.id, postId, post.userId, reason, sanitizeText(body.details, 1000), report.created_at).run();
+    "INSERT INTO content_reports (id, reporter_user_id, reported_user_id, target_type, target_id, reason, details, status, created_at, updated_at) VALUES (?, ?, ?, 'post', ?, ?, ?, 'pending', ?, ?)"
+  ).bind(report.id, user.id, post.author_id, postId, reason, sanitizeText(body.details, 1000), report.created_at, report.created_at).run();
   return jsonResponse({ report }, 201);
 }
 
@@ -1485,4 +1485,6 @@ async function logScrapingActivity(env: Env, log: any): Promise<void> {
     console.error("D1 logger action error:", err);
   }
 }
+
+
 
