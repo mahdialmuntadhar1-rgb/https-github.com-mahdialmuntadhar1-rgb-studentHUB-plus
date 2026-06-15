@@ -19,8 +19,10 @@ import {
   UserCheck,
   Send,
   HelpCircle,
-  Hash
+  Hash,
+  Flag
 } from 'lucide-react';
+import { userContentApi } from '../lib/api';
 
 interface FeedCardProps {
   key?: string | number;
@@ -56,6 +58,7 @@ export default function FeedCard({
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [copied, setCopied] = useState(false);
+  const [reported, setReported] = useState(false);
 
   // Administrative local edit states
   const [isEditingFeed, setIsEditingFeed] = useState(false);
@@ -225,6 +228,24 @@ export default function FeedCard({
     setCopied(true);
     navigator.clipboard.writeText(`${window.location.origin}/item/${item.id}`);
     setTimeout(() => setCopied(false), 2000);
+  };
+  const currentUserId = (() => {
+    try {
+      return JSON.parse(localStorage.getItem('jamiaati_user') || '{}')?.id || '';
+    } catch {
+      return '';
+    }
+  })();
+  const isOwner = Boolean(currentUserId && item.author.id === currentUserId);
+
+  const handleReportClick = async () => {
+    if (reported) return;
+    try {
+      await userContentApi.reportPost(item.id, 'other', 'Reported from feed card', language);
+      setReported(true);
+    } catch (err) {
+      console.error('Report failed', err);
+    }
   };
 
   // Calculate percentages for poll
@@ -404,18 +425,18 @@ export default function FeedCard({
             </div>
 
             <div className="flex items-center gap-1.5 flex-wrap">
-              {isAdminMode && (
+              {(isAdminMode || isOwner) && (
                 <div className="flex items-center gap-1.5 border border-[#161A33]/10 bg-[#FAF9FF] p-1 rounded-xl shadow-xs" id={`card-admin-row-${item.id}`}>
-                  <span className="text-[8.5px] font-black bg-[#6B25C9] text-white px-2 py-0.5 rounded-md leading-none select-none">
+                  {isAdminMode && <span className="text-[8.5px] font-black bg-[#6B25C9] text-white px-2 py-0.5 rounded-md leading-none select-none">
                     ADMIN
-                  </span>
-                  <button
+                  </span>}
+                  {isAdminMode && <button
                     onClick={() => setIsEditingFeed(true)}
                     className="p-1 px-2.5 bg-indigo-50 hover:bg-indigo-100 text-indigo-700 rounded-lg text-[9px] font-black border border-indigo-200 cursor-pointer shadow-sm uppercase shrink-0"
                     title="Edit Post"
                   >
                     ✏️
-                  </button>
+                  </button>}
                   <button
                     onClick={() => {
                       if (window.confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذا المنشور؟' : 'Are you sure you want to delete this post?')) {
@@ -428,6 +449,17 @@ export default function FeedCard({
                     🗑️
                   </button>
                 </div>
+              )}
+              {!isOwner && (
+                <button
+                  onClick={handleReportClick}
+                  disabled={reported}
+                  className="p-1 px-2.5 bg-slate-50 hover:bg-amber-50 text-slate-500 hover:text-amber-700 rounded-lg text-[9px] font-black border border-slate-200 cursor-pointer disabled:opacity-60 disabled:cursor-default shadow-sm uppercase shrink-0 flex items-center gap-1"
+                  title="Report post"
+                >
+                  <Flag className="w-3 h-3" />
+                  <span>{reported ? 'Reported' : 'Report'}</span>
+                </button>
               )}
 
               {/* Content Type Badge */}
@@ -943,4 +975,3 @@ function CommentRow({
     </div>
   );
 }
-

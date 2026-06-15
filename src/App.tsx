@@ -468,7 +468,9 @@ export default function App() {
   useEffect(() => {
     const fetchUserPosts = async () => {
       try {
-        const result = await userContentApi.getPosts(language);
+        const result = isLoggedIn
+          ? await userContentApi.getFeed({ limit: 50 }, language)
+          : await userContentApi.getPosts(language);
         const posts = result?.posts || [];
         const mappedPosts: FeedItem[] = posts.map((post: any) => ({
           id: post.id,
@@ -480,6 +482,7 @@ export default function App() {
           contentAR: post.contentAR || post.content || '',
           contentKU: post.contentKU || post.content || '',
           author: {
+            id: post.userId,
             name: post.anonymous ? 'Anonymous Student' : (post.authorName || 'Student'),
             role: post.authorRole === 'admin' ? 'staff' : (post.authorRole || 'student'),
             avatar: post.anonymous ? 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100' : userProfile.avatar
@@ -576,6 +579,11 @@ export default function App() {
 
   const handleDeleteFeedItem = (id: string) => {
     setFeedItems(prev => prev.filter(item => item.id !== id));
+    if (isLoggedIn) {
+      void userContentApi.deletePost(id, language).catch((err) => {
+        showToast(err.message, 'error');
+      });
+    }
     showToast(
       language === 'ar' ? 'تم حذف المنشور بنجاح! 🗑️' : 'Post deleted successfully by admin! 🗑️', 
       'success'
@@ -864,10 +872,12 @@ export default function App() {
 
       imageUrl: imageUrl || undefined,
       author: anonymous ? {
+        id: userProfile.id,
         name: 'Anonymous Student',
         role: 'student',
         avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100'
       } : {
+        id: userProfile.id,
         name: userProfile.name,
         role: userProfile.role,
         avatar: userProfile.avatar,
@@ -900,7 +910,16 @@ export default function App() {
       }, language).then((result) => {
         const backendPost = result?.post;
         if (!backendPost) return;
-        setFeedItems(prev => prev.map(item => item.id === freshPost.id ? { ...item, id: backendPost.id } : item));
+        setFeedItems(prev => prev.map(item => item.id === freshPost.id ? {
+          ...item,
+          id: backendPost.id,
+          rawDate: backendPost.createdAt,
+          likes: Number(backendPost.likes || 0),
+          commentsCount: Number(backendPost.commentsCount || 0),
+          commentsList: backendPost.commentsList || [],
+          likedByUser: Boolean(backendPost.likedByUser),
+          imageUrl: undefined
+        } : item));
         if (backendPost.status === 'pending_review') {
           showToast(
             language === 'ar'
@@ -1179,7 +1198,7 @@ export default function App() {
           </button>
 
           {/* TAB 2: Life (Fun/Social) */}
-          <button
+          {false && <button
             onClick={() => setActiveTab('life')}
             className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'life' 
@@ -1192,7 +1211,7 @@ export default function App() {
             {activeTab === 'life' && (
               <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
             )}
-          </button>
+          </button>}
 
           {/* TAB 3: Ask (AI & Discussions) */}
           <button
@@ -1211,7 +1230,7 @@ export default function App() {
           </button>
 
           {/* TAB 4: Future (Careers & Board) */}
-          <button
+          {false && <button
             onClick={() => setActiveTab('future')}
             className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'future' 
@@ -1224,7 +1243,7 @@ export default function App() {
             {activeTab === 'future' && (
               <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
             )}
-          </button>
+          </button>}
 
           {/* TAB 5: Profile */}
           <button

@@ -44,16 +44,91 @@ export default {
     }
 
     if (url.pathname === "/api/auth/register" && request.method === "POST") {
+      const jwtReady = requireJwtSecret(env);
+      if (jwtReady instanceof Response) return jwtReady;
       return handleRegister(request, env);
     }
 
     if (url.pathname === "/api/auth/login" && request.method === "POST") {
+      const jwtReady = requireJwtSecret(env);
+      if (jwtReady instanceof Response) return jwtReady;
       return handleLogin(request, env);
     }
 
     if (url.pathname === "/api/auth/me" && request.method === "GET") {
+      const jwtReady = requireJwtSecret(env);
+      if (jwtReady instanceof Response) return jwtReady;
       const user = await requireWorkerAuth(request, env);
       return user instanceof Response ? user : jsonResponse({ user: publicUser(user) });
+    }
+
+    if (url.pathname === "/api/users/me" && request.method === "GET") {
+      const user = await requireWorkerAuth(request, env);
+      return user instanceof Response ? user : jsonResponse({ user: await workerPublicProfile(env, user, user.id) });
+    }
+
+    if (url.pathname === "/api/users/me" && request.method === "PATCH") {
+      return handleWorkerProfileUpdate(request, env);
+    }
+
+    if (url.pathname === "/api/users/search" && request.method === "GET") {
+      return handleWorkerUserSearch(request, env, url);
+    }
+
+    const userProfileMatch = url.pathname.match(/^\/api\/users\/([^/]+)$/);
+    if (userProfileMatch && request.method === "GET") {
+      return handleWorkerUserProfile(request, env, userProfileMatch[1]);
+    }
+
+    const followMatch = url.pathname.match(/^\/api\/users\/([^/]+)\/follow$/);
+    if (followMatch && request.method === "POST") {
+      return handleWorkerFollow(request, env, followMatch[1], true);
+    }
+    if (followMatch && request.method === "DELETE") {
+      return handleWorkerFollow(request, env, followMatch[1], false);
+    }
+
+    if (url.pathname === "/api/feed" && request.method === "GET") {
+      return handleWorkerFeed(request, env, url);
+    }
+
+    if (url.pathname === "/api/posts" && request.method === "GET") {
+      return handleWorkerFeed(request, env, url);
+    }
+
+    if (url.pathname === "/api/posts" && request.method === "POST") {
+      return handleWorkerCreatePost(request, env);
+    }
+
+    const postLikeMatch = url.pathname.match(/^\/api\/posts\/([^/]+)\/like$/);
+    if (postLikeMatch && request.method === "POST") {
+      return handleWorkerLike(request, env, postLikeMatch[1], true);
+    }
+    if (postLikeMatch && request.method === "DELETE") {
+      return handleWorkerLike(request, env, postLikeMatch[1], false);
+    }
+
+    const postCommentsMatch = url.pathname.match(/^\/api\/posts\/([^/]+)\/comments$/);
+    if (postCommentsMatch && request.method === "GET") {
+      return handleWorkerComments(request, env, postCommentsMatch[1]);
+    }
+    if (postCommentsMatch && request.method === "POST") {
+      return handleWorkerAddComment(request, env, postCommentsMatch[1]);
+    }
+
+    const deleteCommentMatch = url.pathname.match(/^\/api\/posts\/([^/]+)\/comments\/([^/]+)$/);
+    if (deleteCommentMatch && request.method === "DELETE") {
+      return handleWorkerDeleteComment(request, env, deleteCommentMatch[1], deleteCommentMatch[2]);
+    }
+
+    const postDeleteMatch = url.pathname.match(/^\/api\/posts\/([^/]+)$/);
+    if (postDeleteMatch && request.method === "DELETE") {
+      return handleWorkerDeletePost(request, env, postDeleteMatch[1]);
+    }
+
+    const reportPostMatch = url.pathname.match(/^\/api\/posts\/([^/]+)\/report$/);
+    if (reportPostMatch && request.method === "POST") {
+      return handleWorkerReportPost(request, env, reportPostMatch[1]);
     }
 
     if (url.pathname === "/api/auth/forgot-password" && request.method === "POST") {
@@ -99,6 +174,8 @@ export default {
 
     // Enforce POST security or manual triggers
     if (url.pathname === "/api/scrape/run" && request.method === "POST") {
+      const user = await requireWorkerAdmin(request, env);
+      if (user instanceof Response) return user;
       try {
         console.log("[HTTP Trigger] Starting manual scraping execution...");
         const stats = await runMainScraper(env, "manual_admin");
@@ -129,6 +206,12 @@ function jsonResponse(data: any, status = 200) {
       "Access-Control-Allow-Methods": "GET, POST, PATCH, DELETE, OPTIONS"
     }
   });
+}
+
+function requireJwtSecret(env: Env) {
+  return env.JWT_SECRET
+    ? true
+    : jsonResponse({ error: "JWT_SECRET is not configured for this Worker." }, 500);
 }
 
 async function readJson(request: Request) {
@@ -232,7 +315,7 @@ function normalizeEmail(value: any) {
 }
 
 async function findUserByEmail(env: Env, email: string) {
-  return env.DB.prepare("SELECT * FROM users WHERE lower(email) = lower(?) LIMIT 1").bind(email).first();
+  return env.DB.prepare("SELECT * FROM profiles WHERE lower(email) = lower(?) LIMIT 1").bind(email).first();
 }
 
 async function requireWorkerAuth(request: Request, env: Env) {
@@ -240,7 +323,7 @@ async function requireWorkerAuth(request: Request, env: Env) {
   if (!token) return jsonResponse({ error: "Authentication required." }, 401);
   const claims = await verifyToken(env, token);
   if (!claims?.sub) return jsonResponse({ error: "Authentication required." }, 401);
-  const user = await env.DB.prepare("SELECT * FROM users WHERE id = ? LIMIT 1").bind(claims.sub).first();
+  const user = await env.DB.prepare("SELECT * FROM profiles WHERE id = ? LIMIT 1").bind(claims.sub).first();
   return user || jsonResponse({ error: "Authentication required." }, 401);
 }
 
@@ -272,7 +355,7 @@ async function handleRegister(request: Request, env: Env) {
     createdAt: new Date().toISOString()
   };
   await env.DB.prepare(
-    "INSERT INTO users (id, name, email, role, passwordHash, createdAt) VALUES (?, ?, ?, ?, ?, ?)"
+    "INSERT INTO profiles (id, name, email, role, passwordHash, createdAt) VALUES (?, ?, ?, ?, ?, ?)"
   ).bind(user.id, user.name, user.email, user.role, user.passwordHash, user.createdAt).run();
   return jsonResponse({ token: await signToken(env, user), user: publicUser(user) }, 201);
 }
@@ -337,6 +420,271 @@ async function getPublicFeed(env: Env, url: URL, kind: "opportunities" | "highli
       hasMore: offset + items.length < total
     }
   };
+}
+
+function sanitizeText(value: any, maxLength: number) {
+  return String(value || "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/[<>]/g, "")
+    .trim()
+    .slice(0, maxLength);
+}
+
+async function workerPublicProfile(env: Env, user: any, viewerId?: string) {
+  const profile = await env.DB.prepare("SELECT * FROM user_profiles WHERE userId = ? LIMIT 1").bind(user.id).first();
+  const postsCount = await env.DB.prepare("SELECT COUNT(*) AS count FROM posts WHERE userId = ? AND deleted_at IS NULL").bind(user.id).first();
+  const followersCount = await env.DB.prepare("SELECT COUNT(*) AS count FROM follows WHERE followee_id = ?").bind(user.id).first();
+  const followingCount = await env.DB.prepare("SELECT COUNT(*) AS count FROM follows WHERE follower_id = ?").bind(user.id).first();
+  const isFollowing = viewerId
+    ? await env.DB.prepare("SELECT 1 FROM follows WHERE follower_id = ? AND followee_id = ? LIMIT 1").bind(viewerId, user.id).first()
+    : null;
+  return {
+    id: user.id,
+    name: user.name,
+    role: user.role,
+    avatar: profile?.avatar || "",
+    bio: profile?.bio || profile?.bioEN || "",
+    university: profile?.universityId || "",
+    universityId: profile?.universityId || "",
+    governorateId: profile?.governorateId || "all",
+    major: profile?.major || profile?.majorEN || "",
+    majorEN: profile?.majorEN || profile?.major || "",
+    majorAR: profile?.majorAR || profile?.major || "",
+    majorKU: profile?.majorKU || profile?.major || "",
+    bioEN: profile?.bioEN || profile?.bio || "",
+    bioAR: profile?.bioAR || profile?.bio || "",
+    bioKU: profile?.bioKU || profile?.bio || "",
+    createdAt: user.createdAt,
+    postsCount: Number(postsCount?.count || 0),
+    followersCount: Number(followersCount?.count || 0),
+    followingCount: Number(followingCount?.count || 0),
+    isFollowing: Boolean(isFollowing)
+  };
+}
+
+async function decorateWorkerPost(env: Env, post: any, viewerId: string) {
+  const comments = await env.DB.prepare("SELECT * FROM comments WHERE itemId = ? AND deleted_at IS NULL ORDER BY createdAt ASC LIMIT 50").bind(post.id).all();
+  const likeCount = await env.DB.prepare("SELECT COUNT(*) AS count FROM likes WHERE itemId = ?").bind(post.id).first();
+  const liked = await env.DB.prepare("SELECT 1 FROM likes WHERE itemId = ? AND userId = ? LIMIT 1").bind(post.id, viewerId).first();
+  return {
+    ...post,
+    commentsList: comments.results || [],
+    commentsCount: (comments.results || []).length,
+    likes: Number(likeCount?.count || 0),
+    likes_count: Number(likeCount?.count || 0),
+    likedByUser: Boolean(liked),
+    is_liked: Boolean(liked)
+  };
+}
+
+async function handleWorkerProfileUpdate(request: Request, env: Env) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+  const body: any = await readJson(request);
+  const name = sanitizeText(body.name, 80);
+  if (name) {
+    await env.DB.prepare("UPDATE profiles SET name = ? WHERE id = ?").bind(name, user.id).run();
+    user.name = name;
+  }
+  await env.DB.prepare(
+    `INSERT INTO user_profiles (userId, avatar, universityId, governorateId, bioEN, bioAR, bioKU, majorEN, majorAR, majorKU, updatedAt)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+     ON CONFLICT(userId) DO UPDATE SET
+       avatar = excluded.avatar,
+       universityId = excluded.universityId,
+       governorateId = excluded.governorateId,
+       bioEN = excluded.bioEN,
+       bioAR = excluded.bioAR,
+       bioKU = excluded.bioKU,
+       majorEN = excluded.majorEN,
+       majorAR = excluded.majorAR,
+       majorKU = excluded.majorKU,
+       updatedAt = excluded.updatedAt`
+  ).bind(
+    user.id,
+    sanitizeText(body.avatar, 500),
+    sanitizeText(body.universityId || body.university, 120),
+    sanitizeText(body.governorateId, 80) || "all",
+    sanitizeText(body.bioEN || body.bio, 500),
+    sanitizeText(body.bioAR || body.bio, 500),
+    sanitizeText(body.bioKU || body.bio, 500),
+    sanitizeText(body.majorEN || body.major, 120),
+    sanitizeText(body.majorAR || body.major, 120),
+    sanitizeText(body.majorKU || body.major, 120),
+    new Date().toISOString()
+  ).run();
+  return jsonResponse({ user: await workerPublicProfile(env, user, user.id) });
+}
+
+async function handleWorkerUserSearch(request: Request, env: Env, url: URL) {
+  const viewer = await requireWorkerAuth(request, env);
+  if (viewer instanceof Response) return viewer;
+  const q = `%${String(url.searchParams.get("q") || "").trim().toLowerCase()}%`;
+  if (q === "%%") return jsonResponse({ users: [] });
+  const rows = await env.DB.prepare(
+    `SELECT u.* FROM profiles u
+     LEFT JOIN user_profiles p ON p.userId = u.id
+     WHERE u.id <> ?
+       AND lower(u.name || ' ' || COALESCE(p.universityId, '') || ' ' || COALESCE(p.majorEN, '') || ' ' || COALESCE(p.majorAR, '') || ' ' || COALESCE(p.majorKU, '')) LIKE ?
+     ORDER BY u.name LIMIT 20`
+  ).bind(viewer.id, q).all();
+  const users = await Promise.all((rows.results || []).map((user: any) => workerPublicProfile(env, user, viewer.id)));
+  return jsonResponse({ users });
+}
+
+async function handleWorkerUserProfile(request: Request, env: Env, userId: string) {
+  const viewer = await requireWorkerAuth(request, env);
+  if (viewer instanceof Response) return viewer;
+  const user = await env.DB.prepare("SELECT * FROM profiles WHERE id = ? LIMIT 1").bind(userId).first();
+  if (!user) return jsonResponse({ error: "User not found." }, 404);
+  const rows = await env.DB.prepare(
+    `SELECT * FROM posts p
+     WHERE p.userId = ?
+       AND p.deleted_at IS NULL
+       AND (p.userId = ? OR p.visibility = 'public' OR p.userId IN (SELECT followee_id FROM follows WHERE follower_id = ?))
+     ORDER BY p.createdAt DESC LIMIT 50`
+  ).bind(userId, viewer.id, viewer.id).all();
+  const posts = await Promise.all((rows.results || []).map((post: any) => decorateWorkerPost(env, post, viewer.id)));
+  return jsonResponse({ user: await workerPublicProfile(env, user, viewer.id), posts });
+}
+
+async function handleWorkerFollow(request: Request, env: Env, targetId: string, shouldFollow: boolean) {
+  const viewer = await requireWorkerAuth(request, env);
+  if (viewer instanceof Response) return viewer;
+  if (targetId === viewer.id) return jsonResponse({ error: "You cannot follow yourself." }, 400);
+  const target = await env.DB.prepare("SELECT * FROM profiles WHERE id = ? LIMIT 1").bind(targetId).first();
+  if (!target) return jsonResponse({ error: "User not found." }, 404);
+  if (shouldFollow) {
+    await env.DB.prepare("INSERT OR IGNORE INTO follows (follower_id, followee_id, created_at) VALUES (?, ?, ?)").bind(viewer.id, targetId, new Date().toISOString()).run();
+  } else {
+    await env.DB.prepare("DELETE FROM follows WHERE follower_id = ? AND followee_id = ?").bind(viewer.id, targetId).run();
+  }
+  return jsonResponse({ following: shouldFollow, user: await workerPublicProfile(env, target, viewer.id) });
+}
+
+async function handleWorkerFeed(request: Request, env: Env, url: URL) {
+  const viewer = await requireWorkerAuth(request, env);
+  if (viewer instanceof Response) return viewer;
+  const limit = Math.min(50, Math.max(1, Number(url.searchParams.get("limit") || "20")));
+  const offset = Math.max(0, Number(url.searchParams.get("offset") || "0"));
+  const count = await env.DB.prepare(
+    `SELECT COUNT(*) AS total FROM posts p
+     WHERE p.deleted_at IS NULL
+       AND (p.userId = ? OR p.userId IN (SELECT followee_id FROM follows WHERE follower_id = ?) OR p.visibility = 'public')`
+  ).bind(viewer.id, viewer.id).first();
+  const rows = await env.DB.prepare(
+    `SELECT * FROM posts p
+     WHERE p.deleted_at IS NULL
+       AND (p.userId = ? OR p.userId IN (SELECT followee_id FROM follows WHERE follower_id = ?) OR p.visibility = 'public')
+     ORDER BY p.createdAt DESC LIMIT ? OFFSET ?`
+  ).bind(viewer.id, viewer.id, limit, offset).all();
+  const posts = await Promise.all((rows.results || []).map((post: any) => decorateWorkerPost(env, post, viewer.id)));
+  const total = Number(count?.total || 0);
+  return jsonResponse({ posts, feed: posts, pagination: { total, limit, offset, hasMore: offset + posts.length < total } });
+}
+
+async function handleWorkerCreatePost(request: Request, env: Env) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+  const body: any = await readJson(request);
+  const rawContent = String(body.content || body.body || "");
+  const content = sanitizeText(rawContent, 2000);
+  if (!content) return jsonResponse({ error: "Post content is required." }, 400);
+  if (rawContent.trim().length > 2000) return jsonResponse({ error: "Post content must be 2000 characters or fewer." }, 400);
+  const title = sanitizeText(body.title || content.slice(0, 80) || "Student post", 120);
+  const post = {
+    id: crypto.randomUUID(),
+    userId: user.id,
+    title,
+    content,
+    visibility: ["public", "followers", "private"].includes(body.visibility) ? body.visibility : "public",
+    createdAt: new Date().toISOString()
+  };
+  await env.DB.prepare(
+    `INSERT INTO posts (id, userId, type, title, content, titleEN, titleAR, titleKU, contentEN, contentAR, contentKU, anonymous, authorName, authorRole, imageUrl, visibility, status, governorateId, universityId, createdAt)
+     VALUES (?, ?, 'post', ?, ?, ?, ?, ?, ?, ?, ?, 0, ?, ?, NULL, ?, 'approved', ?, ?, ?)`
+  ).bind(post.id, post.userId, post.title, post.content, post.title, post.title, post.title, post.content, post.content, post.content, user.name, user.role, post.visibility, sanitizeText(body.governorateId, 80) || "all", sanitizeText(body.universityId, 120) || "all", post.createdAt).run();
+  const row = await env.DB.prepare("SELECT * FROM posts WHERE id = ?").bind(post.id).first();
+  return jsonResponse({ post: await decorateWorkerPost(env, row, user.id) }, 201);
+}
+
+async function handleWorkerLike(request: Request, env: Env, postId: string, shouldToggle: boolean) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+  const post = await env.DB.prepare("SELECT id FROM posts WHERE id = ? AND deleted_at IS NULL LIMIT 1").bind(postId).first();
+  if (!post) return jsonResponse({ error: "Post not found." }, 404);
+  const existing = await env.DB.prepare("SELECT 1 FROM likes WHERE itemId = ? AND userId = ? LIMIT 1").bind(postId, user.id).first();
+  let liked = false;
+  if (shouldToggle && !existing) {
+    await env.DB.prepare("INSERT INTO likes (itemId, userId, createdAt) VALUES (?, ?, ?)").bind(postId, user.id, new Date().toISOString()).run();
+    liked = true;
+  } else if (existing) {
+    await env.DB.prepare("DELETE FROM likes WHERE itemId = ? AND userId = ?").bind(postId, user.id).run();
+  }
+  const count = await env.DB.prepare("SELECT COUNT(*) AS count FROM likes WHERE itemId = ?").bind(postId).first();
+  return jsonResponse({ liked, is_liked: liked, count: Number(count?.count || 0), likes_count: Number(count?.count || 0) });
+}
+
+async function handleWorkerComments(request: Request, env: Env, postId: string) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+  const rows = await env.DB.prepare("SELECT * FROM comments WHERE itemId = ? AND deleted_at IS NULL ORDER BY createdAt ASC LIMIT 100").bind(postId).all();
+  return jsonResponse({ comments: rows.results || [] });
+}
+
+async function handleWorkerAddComment(request: Request, env: Env, postId: string) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+  const post = await env.DB.prepare("SELECT id FROM posts WHERE id = ? AND deleted_at IS NULL LIMIT 1").bind(postId).first();
+  if (!post) return jsonResponse({ error: "Post not found." }, 404);
+  const body: any = await readJson(request);
+  const rawContent = String(body.content || "");
+  const content = sanitizeText(rawContent, 800);
+  if (!content) return jsonResponse({ error: "Comment content is required." }, 400);
+  if (rawContent.trim().length > 800) return jsonResponse({ error: "Comment content must be 800 characters or fewer." }, 400);
+  const comment = { id: crypto.randomUUID(), createdAt: new Date().toISOString() };
+  await env.DB.prepare(
+    "INSERT INTO comments (id, itemId, userId, authorName, authorRole, authorAvatar, content, date, createdAt) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)"
+  ).bind(comment.id, postId, user.id, user.name, user.role, sanitizeText(body.authorAvatar, 500), content, "Just now", comment.createdAt).run();
+  const row = await env.DB.prepare("SELECT * FROM comments WHERE id = ?").bind(comment.id).first();
+  const count = await env.DB.prepare("SELECT COUNT(*) AS count FROM comments WHERE itemId = ? AND deleted_at IS NULL").bind(postId).first();
+  return jsonResponse({ comment: row, comments_count: Number(count?.count || 0) }, 201);
+}
+
+async function handleWorkerDeleteComment(request: Request, env: Env, postId: string, commentId: string) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+  const comment = await env.DB.prepare("SELECT * FROM comments WHERE id = ? AND itemId = ? AND deleted_at IS NULL LIMIT 1").bind(commentId, postId).first();
+  if (!comment) return jsonResponse({ error: "Comment not found." }, 404);
+  if (comment.userId !== user.id && !["staff", "admin", "super_admin"].includes(user.role)) return jsonResponse({ error: "Only the comment owner can delete this comment." }, 403);
+  await env.DB.prepare("UPDATE comments SET deleted_at = ? WHERE id = ?").bind(new Date().toISOString(), commentId).run();
+  return jsonResponse({ success: true });
+}
+
+async function handleWorkerDeletePost(request: Request, env: Env, postId: string) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+  const post = await env.DB.prepare("SELECT * FROM posts WHERE id = ? AND deleted_at IS NULL LIMIT 1").bind(postId).first();
+  if (!post) return jsonResponse({ error: "Post not found." }, 404);
+  if (post.userId !== user.id && !["staff", "admin", "super_admin"].includes(user.role)) return jsonResponse({ error: "Only the post owner can delete this post." }, 403);
+  await env.DB.prepare("UPDATE posts SET deleted_at = ? WHERE id = ?").bind(new Date().toISOString(), postId).run();
+  return jsonResponse({ success: true });
+}
+
+async function handleWorkerReportPost(request: Request, env: Env, postId: string) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+  const body: any = await readJson(request);
+  const reason = String(body.reason || "");
+  if (!["spam", "harassment", "inappropriate", "fake_account", "other"].includes(reason)) return jsonResponse({ error: "Valid report reason is required." }, 400);
+  const post = await env.DB.prepare("SELECT * FROM posts WHERE id = ? AND deleted_at IS NULL LIMIT 1").bind(postId).first();
+  if (!post) return jsonResponse({ error: "Post not found." }, 404);
+  const report = { id: crypto.randomUUID(), created_at: new Date().toISOString() };
+  await env.DB.prepare(
+    "INSERT INTO reports (id, reporter_id, post_id, reported_user_id, reason, details, status, created_at) VALUES (?, ?, ?, ?, ?, ?, 'open', ?)"
+  ).bind(report.id, user.id, postId, post.userId, reason, sanitizeText(body.details, 1000), report.created_at).run();
+  return jsonResponse({ report }, 201);
 }
 
 const DEFAULT_PORTAL_SETTINGS = {

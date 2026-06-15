@@ -17,3 +17,12 @@ audit/
 _deploy_prep_chunk6_*/
 _fix_backup_chunk6_*/
 CHUNK_1_PRODUCTION_AUDIT.md
+
+# Local database backups - never commit
+backup-*.sql
+*.sqlite
+*.db
+.wrangler/logs/
+backups/
+TASK_FOR_CODEX_*.txt
+migrations-disabled-production-unsafe/

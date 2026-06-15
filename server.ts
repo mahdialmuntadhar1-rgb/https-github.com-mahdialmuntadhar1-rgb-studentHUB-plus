@@ -71,9 +71,29 @@ function normalizePortalSettings(raw: any = {}) {
 }
 
 function readDB() {
+  const emptyDb = () => ({
+    sources: [],
+    opportunities: [],
+    raw_scraped_items: [],
+    portal_settings: DEFAULT_PORTAL_SETTINGS,
+    logs: [],
+    users: [],
+    passwordResets: [],
+    outreach_logs: [],
+    email_unsubscribes: [],
+    posts: [],
+    comments: [],
+    likes: [],
+    follows: [],
+    reports: [],
+    blocks: [],
+    saved_items: [],
+    applications: [],
+    user_profiles: []
+  });
   try {
     if (!fs.existsSync(DB_FILE)) {
-      return { sources: [], opportunities: [], raw_scraped_items: [], portal_settings: DEFAULT_PORTAL_SETTINGS, logs: [], users: [], passwordResets: [], outreach_logs: [], email_unsubscribes: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
+      return emptyDb();
     }
     const raw = fs.readFileSync(DB_FILE, "utf-8");
     const parsed = JSON.parse(raw);
@@ -90,13 +110,16 @@ function readDB() {
       posts: parsed.posts || [],
       comments: parsed.comments || [],
       likes: parsed.likes || [],
+      follows: parsed.follows || [],
+      reports: parsed.reports || [],
+      blocks: parsed.blocks || [],
       saved_items: parsed.saved_items || [],
       applications: parsed.applications || [],
       user_profiles: parsed.user_profiles || []
     };
   } catch (err) {
     console.error("Error reading database.json:", err);
-    return { sources: [], opportunities: [], raw_scraped_items: [], portal_settings: DEFAULT_PORTAL_SETTINGS, logs: [], users: [], passwordResets: [], outreach_logs: [], email_unsubscribes: [], posts: [], comments: [], likes: [], saved_items: [], applications: [], user_profiles: [] };
+    return emptyDb();
   }
 }
 
@@ -111,9 +134,9 @@ function writeDB(data: any) {
 // -------------------------------------------------------------
 // Real local authentication layer
 // -------------------------------------------------------------
-const TOKEN_SECRET = process.env.JWT_SECRET || process.env.AUTH_TOKEN_SECRET || (process.env.NODE_ENV === "production" ? "" : "jamiaati-local-dev-token-secret-change-me");
+const TOKEN_SECRET = process.env.JWT_SECRET || (process.env.NODE_ENV === "production" ? "" : (process.env.AUTH_TOKEN_SECRET || "jamiaati-local-dev-token-secret-change-me"));
 if (!TOKEN_SECRET) {
-  throw new Error("JWT_SECRET or AUTH_TOKEN_SECRET must be configured in production.");
+  throw new Error("JWT_SECRET must be configured in production.");
 }
 const TOKEN_TTL_SECONDS = 60 * 60 * 24 * 7;
 const ADMIN_ROLES = new Set(["admin", "staff", "super_admin"]);
@@ -177,6 +200,79 @@ function publicUser(user: AuthUser) {
     name: user.name,
     email: user.email,
     role: user.role
+  };
+}
+
+function publicUserProfile(db: any, user: AuthUser, viewerId?: string) {
+  const profile = db.user_profiles.find((p: any) => p.userId === user.id) || {};
+  const postsCount = db.posts.filter((p: any) => p.userId === user.id && !p.deleted_at && !p.deletedAt).length;
+  const followersCount = db.follows.filter((f: any) => f.followee_id === user.id || f.followeeId === user.id).length;
+  const followingCount = db.follows.filter((f: any) => f.follower_id === user.id || f.followerId === user.id).length;
+  return {
+    id: user.id,
+    name: user.name,
+    role: user.role,
+    avatar: profile.avatar || "",
+    bio: profile.bio || profile.bioEN || "",
+    university: profile.university || profile.universityId || "",
+    universityId: profile.universityId || profile.university || "",
+    governorateId: profile.governorateId || "all",
+    major: profile.major || profile.majorEN || "",
+    majorEN: profile.majorEN || profile.major || "",
+    majorAR: profile.majorAR || profile.major || "",
+    majorKU: profile.majorKU || profile.major || "",
+    bioEN: profile.bioEN || profile.bio || "",
+    bioAR: profile.bioAR || profile.bio || "",
+    bioKU: profile.bioKU || profile.bio || "",
+    createdAt: user.createdAt,
+    postsCount,
+    followersCount,
+    followingCount,
+    isFollowing: viewerId ? db.follows.some((f: any) =>
+      (f.follower_id === viewerId || f.followerId === viewerId) &&
+      (f.followee_id === user.id || f.followeeId === user.id)
+    ) : false
+  };
+}
+
+function sanitizeUserText(value: any, maxLength: number) {
+  return String(value || "")
+    .replace(/[\u0000-\u0008\u000B\u000C\u000E-\u001F]/g, "")
+    .replace(/<script\b[^<]*(?:(?!<\/script>)<[^<]*)*<\/script>/gi, "")
+    .replace(/[<>]/g, "")
+    .trim()
+    .slice(0, maxLength);
+}
+
+function isDeleted(record: any) {
+  return Boolean(record?.deleted_at || record?.deletedAt);
+}
+
+function canSeePost(post: any, viewerId?: string, db?: any) {
+  if (isDeleted(post)) return false;
+  if (post.status && post.status !== "approved" && post.userId !== viewerId) return false;
+  if (!viewerId) return (post.visibility || "public") === "public";
+  if (post.userId === viewerId) return true;
+  if ((post.visibility || "public") === "public") return true;
+  return Boolean(db?.follows?.some((f: any) =>
+    (f.follower_id === viewerId || f.followerId === viewerId) &&
+    (f.followee_id === post.userId || f.followeeId === post.userId)
+  ));
+}
+
+function decoratePost(db: any, post: any, viewerId?: string) {
+  const comments = db.comments.filter((c: any) => c.itemId === post.id && !isDeleted(c));
+  const likes = db.likes.filter((l: any) => l.itemId === post.id || l.post_id === post.id);
+  const saves = db.saved_items.filter((s: any) => s.itemId === post.id);
+  return {
+    ...post,
+    commentsList: comments,
+    commentsCount: comments.length,
+    likes: likes.length,
+    likes_count: likes.length,
+    is_liked: viewerId ? likes.some((l: any) => l.userId === viewerId || l.user_id === viewerId) : false,
+    likedByUser: viewerId ? likes.some((l: any) => l.userId === viewerId || l.user_id === viewerId) : false,
+    savedByUser: viewerId ? saves.some((s: any) => s.userId === viewerId) : false
   };
 }
 
@@ -783,6 +879,12 @@ app.get("/api/auth/me", requireAuth, (req, res) => {
   res.json({ user: publicUser((req as any).authUser) });
 });
 
+app.get("/api/users/me", requireAuth, (req, res) => {
+  const db = readDB();
+  const user = (req as any).authUser;
+  res.json({ user: publicUserProfile(db, user, user.id) });
+});
+
 app.post("/api/auth/forgot-password", (req, res) => {
   const { email } = req.body || {};
   const cleanEmail = String(email || "").trim().toLowerCase();
@@ -816,17 +918,32 @@ app.get("/api/user/profile", requireAuth, (req, res) => {
   const db = readDB();
   const user = (req as any).authUser;
   const profile = db.user_profiles.find((p: any) => p.userId === user.id) || {};
-  res.json({ profile: { ...publicUser(user), ...profile } });
+  res.json({ profile: { ...publicUserProfile(db, user, user.id), ...profile } });
 });
 
-app.put("/api/user/profile", requireAuth, (req, res) => {
+function updateCurrentUserProfile(req: express.Request, res: express.Response) {
   const db = readDB();
   const user = (req as any).authUser;
   const existing = db.user_profiles.find((p: any) => p.userId === user.id);
+  const body = req.body || {};
+  const cleanName = sanitizeUserText(body.name, 80);
+  if (cleanName) {
+    user.name = cleanName;
+  }
   const profile = {
     ...(existing || {}),
-    ...req.body,
     userId: user.id,
+    avatar: sanitizeUserText(body.avatar, 500) || existing?.avatar || "",
+    universityId: sanitizeUserText(body.universityId || body.university, 120) || existing?.universityId || "",
+    governorateId: sanitizeUserText(body.governorateId, 80) || existing?.governorateId || "all",
+    bio: sanitizeUserText(body.bio, 500) || existing?.bio || "",
+    bioEN: sanitizeUserText(body.bioEN || body.bio, 500) || existing?.bioEN || "",
+    bioAR: sanitizeUserText(body.bioAR || body.bio, 500) || existing?.bioAR || "",
+    bioKU: sanitizeUserText(body.bioKU || body.bio, 500) || existing?.bioKU || "",
+    major: sanitizeUserText(body.major, 120) || existing?.major || "",
+    majorEN: sanitizeUserText(body.majorEN || body.major, 120) || existing?.majorEN || "",
+    majorAR: sanitizeUserText(body.majorAR || body.major, 120) || existing?.majorAR || "",
+    majorKU: sanitizeUserText(body.majorKU || body.major, 120) || existing?.majorKU || "",
     updatedAt: new Date().toISOString()
   };
   if (existing) {
@@ -835,44 +952,130 @@ app.put("/api/user/profile", requireAuth, (req, res) => {
     db.user_profiles.push(profile);
   }
   writeDB(db);
-  res.json({ profile });
+  res.json({ profile: publicUserProfile(db, user, user.id) });
+}
+
+app.put("/api/user/profile", requireAuth, updateCurrentUserProfile);
+app.patch("/api/users/me", requireAuth, updateCurrentUserProfile);
+
+app.get("/api/users/search", requireAuth, (req, res) => {
+  const db = readDB();
+  const user = (req as any).authUser;
+  const query = String(req.query.q || "").trim().toLowerCase();
+  if (!query) {
+    res.json({ users: [] });
+    return;
+  }
+  const users = db.users
+    .filter((candidate: AuthUser) => candidate.id !== user.id)
+    .filter((candidate: AuthUser) => {
+      const profile = db.user_profiles.find((p: any) => p.userId === candidate.id) || {};
+      const haystack = [
+        candidate.name,
+        profile.university,
+        profile.universityId,
+        profile.major,
+        profile.majorEN,
+        profile.majorAR,
+        profile.majorKU
+      ].join(" ").toLowerCase();
+      return haystack.includes(query);
+    })
+    .slice(0, 20)
+    .map((candidate: AuthUser) => publicUserProfile(db, candidate, user.id));
+  res.json({ users });
+});
+
+app.get("/api/users/:id", requireAuth, (req, res) => {
+  const db = readDB();
+  const viewer = (req as any).authUser;
+  const profileUser = db.users.find((u: AuthUser) => u.id === req.params.id);
+  if (!profileUser) {
+    res.status(404).json({ error: "User not found." });
+    return;
+  }
+  const posts = db.posts
+    .filter((post: any) => post.userId === profileUser.id && canSeePost(post, viewer.id, db))
+    .sort((a: any, b: any) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
+    .map((post: any) => decoratePost(db, post, viewer.id));
+  res.json({ user: publicUserProfile(db, profileUser, viewer.id), posts });
+});
+
+app.post("/api/users/:id/follow", requireAuth, (req, res) => {
+  const db = readDB();
+  const user = (req as any).authUser;
+  const targetId = req.params.id;
+  if (targetId === user.id) {
+    res.status(400).json({ error: "You cannot follow yourself." });
+    return;
+  }
+  if (!db.users.some((u: AuthUser) => u.id === targetId)) {
+    res.status(404).json({ error: "User not found." });
+    return;
+  }
+  const exists = db.follows.some((f: any) => (f.follower_id === user.id || f.followerId === user.id) && (f.followee_id === targetId || f.followeeId === targetId));
+  if (!exists) {
+    db.follows.push({ follower_id: user.id, followee_id: targetId, created_at: new Date().toISOString() });
+    writeDB(db);
+  }
+  const target = db.users.find((u: AuthUser) => u.id === targetId);
+  res.json({ following: true, user: publicUserProfile(db, target, user.id) });
+});
+
+app.delete("/api/users/:id/follow", requireAuth, (req, res) => {
+  const db = readDB();
+  const user = (req as any).authUser;
+  const targetId = req.params.id;
+  db.follows = db.follows.filter((f: any) => !((f.follower_id === user.id || f.followerId === user.id) && (f.followee_id === targetId || f.followeeId === targetId)));
+  writeDB(db);
+  const target = db.users.find((u: AuthUser) => u.id === targetId);
+  res.json({ following: false, user: target ? publicUserProfile(db, target, user.id) : null });
+});
+
+app.get("/api/feed", requireAuth, (req, res) => {
+  const db = readDB();
+  const user = (req as any).authUser;
+  const limit = Math.min(50, Math.max(1, Number(req.query.limit || 20)));
+  const offset = Math.max(0, Number(req.query.offset || 0));
+  const visible = db.posts
+    .filter((post: any) => canSeePost(post, user.id, db))
+    .sort((a: any, b: any) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")));
+  const page = visible.slice(offset, offset + limit).map((post: any) => decoratePost(db, post, user.id));
+  res.json({
+    posts: page,
+    feed: page,
+    pagination: { total: visible.length, limit, offset, hasMore: offset + page.length < visible.length }
+  });
 });
 
 app.get("/api/posts", (req, res) => {
   const db = readDB();
   const user = findUserByToken(req);
   const posts = db.posts
-    .filter((p: any) => p.status === "approved" || (user && p.userId === user.id))
-    .map((post: any) => {
-      const comments = db.comments.filter((c: any) => c.itemId === post.id);
-      const likes = db.likes.filter((l: any) => l.itemId === post.id);
-      const saves = db.saved_items.filter((s: any) => s.itemId === post.id);
-      return {
-        ...post,
-        commentsList: comments,
-        commentsCount: comments.length,
-        likes: likes.length,
-        likedByUser: user ? likes.some((l: any) => l.userId === user.id) : false,
-        savedByUser: user ? saves.some((s: any) => s.userId === user.id) : false
-      };
-    });
+    .filter((post: any) => canSeePost(post, user?.id, db))
+    .sort((a: any, b: any) => String(b.createdAt || "").localeCompare(String(a.createdAt || "")))
+    .map((post: any) => decoratePost(db, post, user?.id));
   res.json({ posts });
 });
 
 app.post("/api/posts", requireAuth, (req, res) => {
   const db = readDB();
   const user = (req as any).authUser;
-  const title = String(req.body?.title || "").trim();
-  const content = String(req.body?.content || "").trim();
-  if (!title || !content) {
-    res.status(400).json({ error: "Post title and content are required." });
+  const content = sanitizeUserText(req.body?.content || req.body?.body || "", 2000);
+  const title = sanitizeUserText(req.body?.title || content.slice(0, 80) || "Student post", 120);
+  if (!content) {
+    res.status(400).json({ error: "Post content is required." });
+    return;
+  }
+  if (String(req.body?.content || req.body?.body || "").trim().length > 2000) {
+    res.status(400).json({ error: "Post content must be 2000 characters or fewer." });
     return;
   }
   const isAnonymous = Boolean(req.body?.anonymous);
   const post = {
-    id: `post-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`,
+    id: crypto.randomUUID(),
     userId: user.id,
-    type: req.body?.type || (isAnonymous ? "anonymous_question" : "post"),
+    type: "post",
     title,
     content,
     titleEN: title,
@@ -884,34 +1087,46 @@ app.post("/api/posts", requireAuth, (req, res) => {
     anonymous: isAnonymous,
     authorName: isAnonymous ? "Anonymous Student" : user.name,
     authorRole: isAnonymous ? "student" : user.role,
-    governorateId: req.body?.governorateId || "all",
-    universityId: req.body?.universityId || "all",
-    imageUrl: req.body?.imageUrl || null,
-    status: isAnonymous ? "pending_review" : "approved",
+    governorateId: sanitizeUserText(req.body?.governorateId, 80) || "all",
+    universityId: sanitizeUserText(req.body?.universityId, 120) || "all",
+    imageUrl: null,
+    visibility: ["public", "followers", "private"].includes(req.body?.visibility) ? req.body.visibility : "public",
+    status: "approved",
     createdAt: new Date().toISOString()
   };
   db.posts.unshift(post);
   writeDB(db);
-  res.status(201).json({ post });
+  res.status(201).json({ post: decoratePost(db, post, user.id) });
 });
 
 app.get("/api/items/:itemId/comments", (req, res) => {
   const db = readDB();
-  const comments = db.comments.filter((c: any) => c.itemId === req.params.itemId);
+  const comments = db.comments.filter((c: any) => c.itemId === req.params.itemId && !isDeleted(c));
   res.json({ comments });
 });
 
-app.post("/api/items/:itemId/comments", requireAuth, (req, res) => {
+function addComment(req: express.Request, res: express.Response) {
   const db = readDB();
   const user = (req as any).authUser;
-  const content = String(req.body?.content || "").trim();
+  const postId = req.params.itemId || req.params.id;
+  const post = db.posts.find((p: any) => p.id === postId && canSeePost(p, user.id, db));
+  if (!post) {
+    res.status(404).json({ error: "Post not found." });
+    return;
+  }
+  const rawContent = String(req.body?.content || "");
+  const content = sanitizeUserText(rawContent, 800);
   if (!content) {
     res.status(400).json({ error: "Comment content is required." });
     return;
   }
+  if (rawContent.trim().length > 800) {
+    res.status(400).json({ error: "Comment content must be 800 characters or fewer." });
+    return;
+  }
   const comment = {
-    id: `comment-${Date.now()}-${crypto.randomBytes(4).toString("hex")}`,
-    itemId: req.params.itemId,
+    id: crypto.randomUUID(),
+    itemId: postId,
     userId: user.id,
     authorName: user.name,
     authorRole: user.role,
@@ -922,22 +1137,122 @@ app.post("/api/items/:itemId/comments", requireAuth, (req, res) => {
   };
   db.comments.push(comment);
   writeDB(db);
-  res.status(201).json({ comment });
-});
+  res.status(201).json({ comment, comments_count: db.comments.filter((c: any) => c.itemId === postId && !isDeleted(c)).length });
+}
 
-app.post("/api/items/:itemId/like", requireAuth, (req, res) => {
+app.post("/api/items/:itemId/comments", requireAuth, addComment);
+app.post("/api/posts/:id/comments", requireAuth, addComment);
+
+app.get("/api/posts/:id/comments", requireAuth, (req, res) => {
   const db = readDB();
   const user = (req as any).authUser;
-  const existingIndex = db.likes.findIndex((l: any) => l.itemId === req.params.itemId && l.userId === user.id);
+  const post = db.posts.find((p: any) => p.id === req.params.id && canSeePost(p, user.id, db));
+  if (!post) {
+    res.status(404).json({ error: "Post not found." });
+    return;
+  }
+  res.json({ comments: db.comments.filter((c: any) => c.itemId === req.params.id && !isDeleted(c)) });
+});
+
+app.delete("/api/posts/:postId/comments/:commentId", requireAuth, (req, res) => {
+  const db = readDB();
+  const user = (req as any).authUser;
+  const comment = db.comments.find((c: any) => c.id === req.params.commentId && c.itemId === req.params.postId && !isDeleted(c));
+  if (!comment) {
+    res.status(404).json({ error: "Comment not found." });
+    return;
+  }
+  if (comment.userId !== user.id && !ADMIN_ROLES.has(user.role)) {
+    res.status(403).json({ error: "Only the comment owner can delete this comment." });
+    return;
+  }
+  comment.deleted_at = new Date().toISOString();
+  writeDB(db);
+  res.json({ success: true, comments_count: db.comments.filter((c: any) => c.itemId === req.params.postId && !isDeleted(c)).length });
+});
+
+function togglePostLike(req: express.Request, res: express.Response) {
+  const db = readDB();
+  const user = (req as any).authUser;
+  const postId = req.params.itemId || req.params.id;
+  const post = db.posts.find((p: any) => p.id === postId && canSeePost(p, user.id, db));
+  if (!post) {
+    res.status(404).json({ error: "Post not found." });
+    return;
+  }
+  const existingIndex = db.likes.findIndex((l: any) => (l.itemId === postId || l.post_id === postId) && (l.userId === user.id || l.user_id === user.id));
   let liked = true;
   if (existingIndex >= 0) {
     db.likes.splice(existingIndex, 1);
     liked = false;
   } else {
-    db.likes.push({ itemId: req.params.itemId, userId: user.id, createdAt: new Date().toISOString() });
+    db.likes.push({ itemId: postId, userId: user.id, createdAt: new Date().toISOString() });
   }
   writeDB(db);
-  res.json({ liked, count: db.likes.filter((l: any) => l.itemId === req.params.itemId).length });
+  const count = db.likes.filter((l: any) => l.itemId === postId || l.post_id === postId).length;
+  res.json({ liked, is_liked: liked, count, likes_count: count });
+}
+
+app.post("/api/items/:itemId/like", requireAuth, togglePostLike);
+app.post("/api/posts/:id/like", requireAuth, togglePostLike);
+app.delete("/api/posts/:id/like", requireAuth, (req, res) => {
+  const db = readDB();
+  const user = (req as any).authUser;
+  db.likes = db.likes.filter((l: any) => !((l.itemId === req.params.id || l.post_id === req.params.id) && (l.userId === user.id || l.user_id === user.id)));
+  writeDB(db);
+  const count = db.likes.filter((l: any) => l.itemId === req.params.id || l.post_id === req.params.id).length;
+  res.json({ liked: false, is_liked: false, count, likes_count: count });
+});
+
+app.delete("/api/posts/:id", requireAuth, (req, res) => {
+  const db = readDB();
+  const user = (req as any).authUser;
+  const post = db.posts.find((p: any) => p.id === req.params.id && !isDeleted(p));
+  if (!post) {
+    res.status(404).json({ error: "Post not found." });
+    return;
+  }
+  if (post.userId !== user.id && !ADMIN_ROLES.has(user.role)) {
+    res.status(403).json({ error: "Only the post owner can delete this post." });
+    return;
+  }
+  post.deleted_at = new Date().toISOString();
+  writeDB(db);
+  res.json({ success: true });
+});
+
+app.post("/api/posts/:id/report", requireAuth, (req, res) => {
+  const db = readDB();
+  const user = (req as any).authUser;
+  const post = db.posts.find((p: any) => p.id === req.params.id && !isDeleted(p));
+  if (!post) {
+    res.status(404).json({ error: "Post not found." });
+    return;
+  }
+  const reason = String(req.body?.reason || "").trim();
+  const validReasons = new Set(["spam", "harassment", "inappropriate", "fake_account", "other"]);
+  if (!validReasons.has(reason)) {
+    res.status(400).json({ error: "Valid report reason is required." });
+    return;
+  }
+  const existing = db.reports.find((r: any) => r.reporter_id === user.id && r.post_id === post.id);
+  if (existing) {
+    res.status(409).json({ error: "You have already reported this post." });
+    return;
+  }
+  const report = {
+    id: crypto.randomUUID(),
+    reporter_id: user.id,
+    post_id: post.id,
+    reported_user_id: post.userId,
+    reason,
+    details: sanitizeUserText(req.body?.details, 1000),
+    status: "open",
+    created_at: new Date().toISOString()
+  };
+  db.reports.push(report);
+  writeDB(db);
+  res.status(201).json({ report });
 });
 
 app.post("/api/items/:itemId/save", requireAuth, (req, res) => {
@@ -1528,13 +1843,13 @@ app.post("/api/opportunity-automation/import-csv", requireAdmin, (req, res) => {
 });
 
 // Admin list of all opportunities
-app.get("/api/admin/opportunities", (req, res) => {
+app.get("/api/admin/opportunities", requireAdmin, (req, res) => {
   const db = readDB();
   res.json(db.opportunities.map(normalizeOpportunity).filter(Boolean));
 });
 
 // Admin perform moderation action (approve, reject, expire)
-app.post("/api/admin/opportunities/action", (req, res) => {
+app.post("/api/admin/opportunities/action", requireAdmin, (req, res) => {
   const { id, action } = req.body;
   if (!id || !action) {
     res.status(400).json({ error: "Missing required parameters: id and action." });
@@ -1573,7 +1888,7 @@ app.post("/api/admin/opportunities/action", (req, res) => {
 });
 
 // Admin edit opportunity
-app.post("/api/admin/opportunities/edit", (req, res) => {
+app.post("/api/admin/opportunities/edit", requireAdmin, (req, res) => {
   const { id, titleEN, titleAR, titleKU, contentEN, contentAR, contentKU, category, deadline, application_link, original_language, title_original, content_original } = req.body;
   if (!id) {
     res.status(400).json({ error: "Opportunity ID is required." });
@@ -1609,13 +1924,13 @@ app.post("/api/admin/opportunities/edit", (req, res) => {
 });
 
 // Admin get sources
-app.get("/api/admin/sources", (req, res) => {
+app.get("/api/admin/sources", requireAdmin, (req, res) => {
   const db = readDB();
   res.json(db.sources);
 });
 
 // Admin save or create source
-app.post("/api/admin/sources", (req, res) => {
+app.post("/api/admin/sources", requireAdmin, (req, res) => {
   const { id, name, url, type, enabled } = req.body;
   if (!name || !url || !type) {
     res.status(400).json({ error: "Missing required fields: name, url, and type are required." });
@@ -1652,7 +1967,7 @@ app.post("/api/admin/sources", (req, res) => {
 });
 
 // Admin delete source
-app.delete("/api/admin/sources", (req, res) => {
+app.delete("/api/admin/sources", requireAdmin, (req, res) => {
   const { id } = req.body;
   if (!id) {
     res.status(400).json({ error: "Source ID is required." });
@@ -1673,7 +1988,7 @@ app.delete("/api/admin/sources", (req, res) => {
 });
 
 // Admin manual scraper trigger API
-app.post("/api/admin/scraper/run", async (req, res) => {
+app.post("/api/admin/scraper/run", requireAdmin, async (req, res) => {
   try {
     const stats = await runScraperInExpress();
     res.json({ success: true, stats });
@@ -1683,7 +1998,7 @@ app.post("/api/admin/scraper/run", async (req, res) => {
 });
 
 // Admin logs
-app.get("/api/admin/logs", (req, res) => {
+app.get("/api/admin/logs", requireAdmin, (req, res) => {
   const db = readDB();
   res.json(db.logs);
 });

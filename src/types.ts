@@ -18,6 +18,7 @@ export interface University {
 }
 
 export interface Author {
+  id?: string;
   name: string;
   role: 'student' | 'graduate' | 'teacher' | 'staff' | 'institution';
   avatar: string;

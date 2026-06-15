@@ -1,7 +1,7 @@
 import { Language } from '../types';
 
 export const BACKEND_URL =
-  (((import.meta as any).env?.VITE_API_URL as string | undefined) || 'https://rafid-api.mahdialmuntadhar1.workers.dev').trim().replace(/\/$/, '');
+  (((import.meta as any).env?.VITE_API_URL as string | undefined) || window.location.origin).trim().replace(/\/$/, '');
 const API_BASE = `${BACKEND_URL}/api`;
 
 export type AuthUser = {
@@ -95,7 +95,7 @@ export const authApi = {
   },
 
   async me(lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/auth/me`, {
+    const res = await fetch(`${API_BASE}/users/me`, {
       headers: getHeaders(),
     });
     return await handleResponse(res, lang, { suppressAuthAlert: true });
@@ -366,6 +366,16 @@ export async function getOpportunities(lang: Language = 'ar') {
 }
 
 export const userContentApi = {
+  async getFeed(params: { limit?: number; offset?: number } = {}, lang: Language = 'ar') {
+    const query = new URLSearchParams();
+    if (params.limit) query.set('limit', String(params.limit));
+    if (params.offset) query.set('offset', String(params.offset));
+    const res = await fetch(`${API_BASE}/feed?${query.toString()}`, {
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang, { suppressAuthAlert: true });
+  },
+
   async getPosts(lang: Language = 'ar') {
     const res = await fetch(`${API_BASE}/posts`, {
       headers: getHeaders(),
@@ -383,7 +393,7 @@ export const userContentApi = {
   },
 
   async addComment(itemId: string, content: string, authorAvatar: string, lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/items/${encodeURIComponent(itemId)}/comments`, {
+    const res = await fetch(`${API_BASE}/posts/${encodeURIComponent(itemId)}/comments`, {
       method: 'POST',
       headers: getHeaders(),
       body: JSON.stringify({ content, authorAvatar }),
@@ -392,7 +402,7 @@ export const userContentApi = {
   },
 
   async toggleLike(itemId: string, lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/items/${encodeURIComponent(itemId)}/like`, {
+    const res = await fetch(`${API_BASE}/posts/${encodeURIComponent(itemId)}/like`, {
       method: 'POST',
       headers: getHeaders(),
     });
@@ -416,10 +426,65 @@ export const userContentApi = {
   },
 
   async updateProfile(data: any, lang: Language = 'ar') {
-    const res = await fetch(`${API_BASE}/user/profile`, {
-      method: 'PUT',
+    const res = await fetch(`${API_BASE}/users/me`, {
+      method: 'PATCH',
       headers: getHeaders(),
       body: JSON.stringify(data),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async deletePost(postId: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/posts/${encodeURIComponent(postId)}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async deleteComment(postId: string, commentId: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/posts/${encodeURIComponent(postId)}/comments/${encodeURIComponent(commentId)}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async reportPost(postId: string, reason: string, details = '', lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/posts/${encodeURIComponent(postId)}/report`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ reason, details }),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async getProfile(userId: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/users/${encodeURIComponent(userId)}`, {
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async followUser(userId: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/users/${encodeURIComponent(userId)}/follow`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async unfollowUser(userId: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/users/${encodeURIComponent(userId)}/follow`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async searchUsers(query: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/users/search?q=${encodeURIComponent(query)}`, {
+      headers: getHeaders(),
     });
     return await handleResponse(res, lang);
   },
