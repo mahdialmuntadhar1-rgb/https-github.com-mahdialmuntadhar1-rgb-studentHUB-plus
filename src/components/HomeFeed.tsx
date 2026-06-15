@@ -63,6 +63,60 @@ function cachePortalSettings(settings: PortalSettings) {
   localStorage.setItem('jamiaati_hero_tag_ku', settings.heroTag.ku);
   localStorage.setItem('jamiaati_edited_default_stories', JSON.stringify(settings.defaultStories || []));
 }
+async function fileToOptimizedHeroDataUrl(file: File): Promise<string> {
+  if (!file.type.startsWith('image/')) {
+    throw new Error('Please choose an image file.');
+  }
+
+  if (file.size > 8 * 1024 * 1024) {
+    throw new Error('Image is too large. Please choose an image under 8 MB.');
+  }
+
+  const originalDataUrl = await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Could not read image file.'));
+    reader.readAsDataURL(file);
+  });
+
+  const image = await new Promise<HTMLImageElement>((resolve, reject) => {
+    const img = document.createElement('img');
+    img.onload = () => resolve(img);
+    img.onerror = () => reject(new Error('Could not load image preview.'));
+    img.src = originalDataUrl;
+  });
+
+  const maxWidth = 1400;
+  const scale = Math.min(1, maxWidth / Math.max(1, image.width));
+  const width = Math.max(1, Math.round(image.width * scale));
+  const height = Math.max(1, Math.round(image.height * scale));
+
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+
+  const ctx = canvas.getContext('2d');
+  if (!ctx) {
+    throw new Error('Could not prepare image.');
+  }
+
+  ctx.drawImage(image, 0, 0, width, height);
+
+  const blob = await new Promise<Blob>((resolve, reject) => {
+    canvas.toBlob((result) => {
+      if (result) resolve(result);
+      else reject(new Error('Could not compress image.'));
+    }, 'image/jpeg', 0.82);
+  });
+
+  return await new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
+    reader.onload = () => resolve(String(reader.result || ''));
+    reader.onerror = () => reject(new Error('Could not save compressed image.'));
+    reader.readAsDataURL(blob);
+  });
+}
+
 
 // Global reuseable beautiful pulse Skeleton Loader
 export function SkeletonLoader() {
@@ -185,6 +239,7 @@ export default function HomeFeed({
   const [formTagEN, setFormTagEN] = useState(heroTagEN);
   const [formTagAR, setFormTagAR] = useState(heroTagAR);
   const [formTagKU, setFormTagKU] = useState(heroTagKU);
+  const [isHeroImageProcessing, setIsHeroImageProcessing] = useState(false);
 
   const handleStartEditingHero = () => {
     setFormHeroBg(heroBg);
@@ -198,6 +253,43 @@ export default function HomeFeed({
     setFormTagAR(heroTagAR);
     setFormTagKU(heroTagKU);
     setIsEditingHero(true);
+  };
+
+
+  const handleHeroFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) return;
+
+    try {
+      setIsHeroImageProcessing(true);
+      const dataUrl = await fileToOptimizedHeroDataUrl(file);
+      setFormHeroBg(dataUrl);
+      if (showToast) {
+        showToast(
+          language === 'ar'
+            ? 'تم تجهيز الصورة. اضغط حفظ لتثبيتها.'
+            : language === 'ku'
+              ? 'وێنەکە ئامادە کرا. Save دابگرە بۆ پاشەکەوتکردن.'
+              : 'Image prepared. Press Save to apply it.',
+          'success'
+        );
+      }
+    } catch (err: any) {
+      if (showToast) {
+        showToast(
+          language === 'ar'
+            ? `فشل تجهيز الصورة: ${err.message}`
+            : language === 'ku'
+              ? `ئامادەکردنی وێنە سەرکەوتوو نەبوو: ${err.message}`
+              : `Image upload failed: ${err.message}`,
+          'error'
+        );
+      }
+    } finally {
+      setIsHeroImageProcessing(false);
+    }
   };
 
   const handleSaveHeroCustomization = async (e: React.FormEvent) => {
@@ -451,6 +543,36 @@ export default function HomeFeed({
               onChange={(e) => setFormHeroBg(e.target.value)}
             />
           </div>
+
+          <div className="grid grid-cols-1 gap-2">
+            <label className="w-full bg-[#FFD21F]/15 hover:bg-[#FFD21F]/25 text-[#FFD21F] border border-[#FFD21F]/40 rounded-2xl px-3 py-3 text-xs font-black flex items-center justify-center gap-2 cursor-pointer transition-all select-none">
+              <Image className="w-4 h-4" />
+              <span>{isHeroImageProcessing ? 'Processing image...' : 'Upload Hero Image from Device'}</span>
+              <input
+                type="file"
+                accept="image/*"
+                className="hidden"
+                disabled={isHeroImageProcessing}
+                onChange={handleHeroFileUpload}
+              />
+            </label>
+            <p className="text-[10px] text-slate-400 leading-relaxed">
+              Choose an image from your laptop. It will be compressed automatically, then saved when you press Save Hero Image.
+            </p>
+          </div>
+
+          {formHeroBg && (
+            <div className="relative h-28 rounded-2xl overflow-hidden border border-[#1F2E4D] bg-[#0B1020]">
+              <img
+                src={formHeroBg}
+                alt="Hero preview"
+                className="absolute inset-0 w-full h-full object-cover"
+                onError={(event) => {
+                  event.currentTarget.src = HERO_DEFAULTS.image;
+                }}
+              />
+            </div>
+          )}
 
           <div className="rounded-2xl border border-[#FFD21F]/30 bg-[#FFD21F]/10 p-3 text-[10px] font-bold text-slate-200 leading-relaxed">
             Image-only hero mode: only the image URL is displayed on the homepage. Titles, tags, and subtitles are hidden from the public hero.
