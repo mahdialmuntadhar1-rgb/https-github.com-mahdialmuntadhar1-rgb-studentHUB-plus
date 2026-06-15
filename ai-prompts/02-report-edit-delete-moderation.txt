@@ -1,0 +1,61 @@
+﻿MASTER PROMPT 2 — Chunk 6D: Real report, edit, delete moderation for feed
+
+Act as a senior social media safety engineer and full-stack developer.
+
+Goal:
+Finish the MVP safety controls for the feed: report, edit, delete, and admin moderation basics.
+
+Current known schema:
+- profiles, not users
+- posts.author_id, not posts.user_id
+- comments.author_id, not comments.user_id
+- post_likes, not likes
+- content_reports, not post_reports
+- posts has deleted_at, visibility, status
+- content_reports already exists
+
+Hard rules:
+- Do not recreate tables.
+- Do not overwrite existing tables.
+- Do not run migrations unless inspection proves a missing column/table.
+- If migration is needed, make it production-safe and additive only.
+- Do not deploy automatically.
+
+Required features:
+1. Post owner can edit their own post.
+2. Post owner can delete their own post.
+3. Admin/staff can delete or hide any post.
+4. Normal users can report a post.
+5. Normal users can report a user from the mini profile card.
+6. Report form should include:
+   - reason dropdown
+   - optional details
+   - submit/cancel
+7. Store reports in content_reports.
+8. Avoid duplicate spam reports if possible.
+9. Show friendly success message after reporting.
+10. Hide deleted posts from public feed.
+11. Comments:
+   - user can delete own comment
+   - admin/staff can delete any comment
+   - report comment can be added if backend supports it safely
+
+Admin basics:
+- Add simple admin moderation view only if there is already an admin route/component pattern.
+- Admin should see pending/open reports.
+- Admin should be able to mark report as reviewed/resolved if backend supports it.
+- Do not expose admin controls to normal users.
+
+Technical requirements:
+- Inspect worker-scraper.ts, FeedCard.tsx, UserActions.tsx, Admin components, and src/lib/api.ts.
+- Reuse existing routes if available.
+- Add missing routes only if necessary and schema-compatible.
+- Run:
+  npm run lint
+  npm run build
+
+Deliverables:
+- Tell me exactly what files changed.
+- Tell me whether any migration was needed.
+- Provide safe PowerShell commands.
+- Do not commit, push, migrate, or deploy unless I explicitly ask.

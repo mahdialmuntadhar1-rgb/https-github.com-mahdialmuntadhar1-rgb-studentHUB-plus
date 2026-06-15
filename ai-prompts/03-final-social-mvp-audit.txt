@@ -1,0 +1,78 @@
+﻿MASTER PROMPT 3 — Chunk 6E: Final social MVP audit before public beta
+
+Act as a senior application architect, QA tester, and security reviewer.
+
+Goal:
+Audit StudentHUB/Jamiaati social MVP before public beta. Do not redesign. Do not add large new features. Find what is broken, risky, or missing.
+
+Current completed social features:
+- Register/login
+- Feed posts
+- Like/comment basics
+- Friend request backend
+- Message request backend
+- Accepted private message threads
+- Demo users and casual posts
+- Clickable mini profile card
+- Add Friend / Message Request from feed/profile card
+
+Audit checklist:
+1. Authentication:
+   - register
+   - login
+   - logout
+   - token persistence
+   - bad password behavior
+2. Feed:
+   - create post
+   - list feed
+   - like/unlike
+   - comment
+   - delete own post
+   - edit own post if available
+   - report post
+3. Social:
+   - click user profile card
+   - send friend request
+   - accept/decline friend request
+   - send message request
+   - accept/decline message request
+   - open chat thread
+   - send message
+   - multiple chats with multiple users
+4. Safety:
+   - normal user cannot delete another user’s post
+   - normal user cannot access admin tools
+   - deleted posts are hidden
+   - reports are stored
+   - blocked/abusive-user gaps documented
+5. UI:
+   - mobile layout
+   - Arabic/Kurdish mojibake text
+   - button labels
+   - message badges
+   - empty states
+6. Cloudflare:
+   - frontend built with correct VITE_API_URL
+   - Worker API health check
+   - D1 remote schema compatibility
+   - R2/image upload status
+
+Hard rules:
+- Do not deploy.
+- Do not migrate.
+- Do not overwrite schema.
+- Do not make big design changes.
+- Only inspect and report unless a tiny safe fix is clearly needed.
+
+Output required:
+1. Percentage readiness:
+   - Backend social readiness
+   - Frontend social readiness
+   - Safety/moderation readiness
+   - Public beta readiness
+2. Critical blockers.
+3. Small fixes recommended before public beta.
+4. What can wait until after beta.
+5. Exact next chunk recommendation.
+6. PowerShell commands only for safe checks.

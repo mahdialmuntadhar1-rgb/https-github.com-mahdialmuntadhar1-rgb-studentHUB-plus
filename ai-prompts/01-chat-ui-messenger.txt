@@ -1,0 +1,54 @@
+﻿MASTER PROMPT 1 — Chunk 6C: Messenger-style chat UI
+
+Act as a senior full-stack social media developer working on the existing StudentHUB/Jamiaati app.
+
+Goal:
+Improve the existing Messages UI so it feels closer to Facebook Messenger, but keep it simple and safe for MVP.
+
+Current status:
+- Backend message request and accepted message threads already work.
+- Existing API client already has socialApi methods for:
+  - getMessageRequests
+  - getMessageThreads
+  - getThreadMessages
+  - sendThreadMessage
+  - acceptMessageRequest
+  - declineMessageRequest
+- Do not create a new database migration unless inspection proves it is absolutely necessary.
+- Do not change the homepage, hero, language bar, or app identity.
+- Do not deploy automatically.
+
+Required frontend behavior:
+1. Messages page should show a conversation list.
+2. User can select one conversation.
+3. Selected chat opens with message bubbles.
+4. Input box stays at the bottom of the chat area.
+5. Send button sends a message into the selected accepted thread.
+6. Show the other user’s name clearly.
+7. Show accepted/request status if available.
+8. Empty state: “Select a conversation” or “No messages yet.”
+9. Mobile-friendly layout:
+   - On mobile, conversation list first.
+   - When selecting a chat, show the chat view.
+   - Include a Back button to return to conversation list.
+10. Avoid fake messages. Use real backend API data only.
+
+Safety requirements:
+- Do not allow messaging if thread is not accepted.
+- Show a clear message if the thread is still pending.
+- Do not expose internal IDs in the UI.
+- Keep errors user-friendly.
+
+Technical requirements:
+- Inspect current src/components/MessagesInbox.tsx and src/lib/api.ts first.
+- Reuse existing socialApi instead of creating duplicate API code.
+- Use TypeScript-safe types.
+- Run:
+  npm run lint
+  npm run build
+
+Deliverables:
+- List files changed.
+- Explain what changed in one short summary.
+- Provide exact PowerShell commands for testing locally.
+- Do not commit, push, migrate, or deploy unless I explicitly ask.
