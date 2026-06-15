@@ -43,23 +43,23 @@ async function handleResponse(response: Response, language: Language = 'ar', opt
   if (response.status === 401) {
     const message = data?.message || data?.error;
     if (!options.suppressAuthAlert) {
-      alert(message || (language === 'ar' ? 'Ù‚Ù… Ø¨ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø£ÙˆÙ„Ø§Ù‹.' : language === 'ku' ? 'ØªÚ©Ø§ÛŒÛ• Ø³Û•Ø±Û•ØªØ§ Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ•.' : 'Login required.'));
+      alert(message || (language === 'ar' ? 'Ù‚Ù… Ø¨ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø£ÙˆÙ„Ø§Ù‹.' : language === 'ku' ? 'ØªÚ©Ø§ÛŒÛ• Ø³Û•Ø±Û•تا Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ•.' : 'Login required.'));
     }
-    throw new Error(message || (language === 'ar' ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù…Ø·Ù„ÙˆØ¨.' : language === 'ku' ? 'Ú†ÙˆÙˆÙ†Û•Ú˜ÙˆÙˆØ±Û•ÙˆÛ• Ù¾ÛŽÙˆÛŒØ³ØªÛ•.' : 'Login required.'));
+    throw new Error(message || (language === 'ar' ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù…Ø·Ù„Ùˆب.' : language === 'ku' ? 'Ú†ÙˆÙˆÙ†Û•Ú˜ÙˆÙˆØ±Û•ÙˆÛ• Ù¾ÛŽÙˆÛŒØ³ØªÛ•.' : 'Login required.'));
   }
   if (response.status === 403) {
-    alert(language === 'ar' ? 'ÙˆØµÙˆÙ„ Ù„Ù„Ù…Ø³Ø¤ÙˆÙ„ÙŠÙ† ÙÙ‚Ø·!' : language === 'ku' ? 'ØªÛ•Ù†Ù‡Ø§ Ø¨Û† Ø¨Û•Ú•ÛŽÙˆÛ•Ø¨Û•Ø±Ø§Ù† Ú•ÛŽÚ¯Û•Ù¾ÛŽØ¯Ø±Ø§ÙˆÛ•!' : 'Admin access only');
+    alert(language === 'ar' ? 'ÙˆØµÙˆÙ„ Ù„Ù„Ù…Ø³Ø¤ÙˆÙ„ÙŠÙ† ÙÙ‚ط!' : language === 'ku' ? 'ØªÛ•Ù†Ù‡ا Ø¨Û† Ø¨Û•Ú•ÛŽÙˆÛ•Ø¨Û•Ø±Ø§Ù† Ú•ÛŽÚ¯Û•Ù¾ÛŽØ¯Ø±Ø§ÙˆÛ•!' : 'Admin access only');
     throw new Error('Admin access only');
   }
 
   if (contentType && contentType.includes('application/json')) {
     if (!response.ok) {
-      throw new Error(data.message || data.error || (language === 'ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø®Ø§Ø¯Ù…' : language === 'ku' ? 'Ù‡Û•ÚµÛ•ÛŒÛ•Ú© Ù„Û• Ø³ÛŽØ±Ú¤Û•Ø± Ú•ÙˆÙˆÛŒØ¯Ø§' : 'Server error occurred'));
+      throw new Error(data.message || data.error || (language === 'ar' ? 'حدث خطأ ÙÙŠ Ø§Ù„Ø®Ø§Ø¯Ù…' : language === 'ku' ? 'Ù‡Û•ÚµÛ•ÛŒÛ•ک Ù„Û• Ø³ÛŽØ±Ú¤Û•ر Ú•ÙˆÙˆÛŒدا' : 'Server error occurred'));
     }
     return data;
   } else {
     if (!response.ok) {
-      throw new Error(text || (language === 'ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£ ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ' : language === 'ku' ? 'Ù‡Û•ÚµÛ•ÛŒÛ•Ú©ÛŒ Ù†Û•Ù†Ø§Ø³Ø±Ø§Ùˆ Ú•ÙˆÙˆÛŒØ¯Ø§' : 'Unknown error occurred'));
+      throw new Error(text || (language === 'ar' ? 'حدث خطأ ØºÙŠر Ù…Ø¹Ø±Ùˆف' : language === 'ku' ? 'Ù‡Û•ÚµÛ•ÛŒÛ•Ú©ÛŒ Ù†Û•Ù†Ø§Ø³Ø±Ø§Ùˆ Ú•ÙˆÙˆÛŒدا' : 'Unknown error occurred'));
     }
     return text;
   }

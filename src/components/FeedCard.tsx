@@ -26,6 +26,7 @@ import {
   ShieldAlert
 } from 'lucide-react';
 import { userContentApi } from '../lib/api';
+import { cleanText } from '../lib/textClean';
 import UserActions from './UserActions';
 
 interface FeedCardProps {
@@ -77,8 +78,9 @@ export default function FeedCard({
 
   // Select proper localized strings
   const [showOriginal, setShowOriginal] = useState(false);
-  const title = getLocalizedContent(item, 'title', language, showOriginal);
-  const content = getLocalizedContent(item, 'content', language, showOriginal);
+  const title = cleanText(getLocalizedContent(item, 'title', language, showOriginal));
+  const content = cleanText(getLocalizedContent(item, 'content', language, showOriginal));
+  const cleanAuthorName = cleanText(item.author?.name || 'Student');
 
   // Resolve Governorate & University labels
   const matchedUni = IraqiUniversities.find(u => u.id === item.universityId);
@@ -94,7 +96,57 @@ export default function FeedCard({
 
   // Helper to render high-contrast, youthful Instagram-like galleries and mosaics
   const renderImageGallery = () => {
-    if (!item.imageUrl) return null;
+    if (!item.imageUrl) {
+      const visualType = String(item.type || item.opportunityCategory || 'post').toLowerCase();
+      let VisualIcon = Users;
+      let label = 'Campus Post';
+
+      if (visualType.includes('job')) {
+        VisualIcon = Briefcase;
+        label = 'Career Opportunity';
+      } else if (visualType.includes('scholar')) {
+        VisualIcon = GraduationCap;
+        label = 'Scholarship';
+      } else if (visualType.includes('intern')) {
+        VisualIcon = UserCheck;
+        label = 'Internship';
+      } else if (visualType.includes('train')) {
+        VisualIcon = Award;
+        label = 'Training';
+      } else if (visualType.includes('event')) {
+        VisualIcon = Calendar;
+        label = 'Campus Event';
+      } else if (visualType.includes('exam')) {
+        VisualIcon = FileText;
+        label = 'Exam / Notice';
+      } else if (visualType.includes('question')) {
+        VisualIcon = HelpCircle;
+        label = 'Student Question';
+      }
+
+      return (
+        <div className="relative mb-3 overflow-hidden rounded-2xl border border-[#E6E1F5] bg-gradient-to-br from-[#F3F7FF] via-white to-[#FFF7D6] p-4 shadow-sm">
+          <div className="absolute -right-6 -top-8 h-28 w-28 rounded-full bg-[#6B25C9]/10" />
+          <div className="absolute -bottom-10 -left-8 h-32 w-32 rounded-full bg-[#2F7CCB]/10" />
+          <div className="relative flex items-center gap-3">
+            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-2 border-[#161A33] bg-white shadow-[3px_3px_0px_0px_#161A33]">
+              <VisualIcon className="h-8 w-8 text-[#6B25C9]" />
+            </div>
+            <div className="min-w-0">
+              <p className="text-[10px] font-black uppercase tracking-wider text-[#6B25C9]">
+                {label}
+              </p>
+              <p dir="auto" className="mt-1 line-clamp-2 text-sm font-black leading-snug text-[#161A33]">
+                {title}
+              </p>
+              <p className="mt-1 text-[10px] font-bold text-slate-500">
+                Jamiaati student community
+              </p>
+            </div>
+          </div>
+        </div>
+      );
+    }
 
     // Create a list of complementary pictures for mosaic based on item ID
     let additionalImages: string[] = [];
@@ -174,39 +226,40 @@ export default function FeedCard({
       case 'part_time_job':
         return { text: language === 'ar' ? 'Ø¯ÙˆØ§Ù… Ø¬Ø²Ø¦ÙŠ' : language === 'ku' ? 'Ø¯Û•ÙˆØ§Ù…ÛŒ Ú©Ø§ØªÛŒ' : 'Part-Time Job', color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' };
       case 'internship':
-        return { text: language === 'ar' ? 'ØªØ¯Ø±ÙŠØ¨ Ø¹Ù…Ù„ÙŠ' : language === 'ku' ? 'Ù…Û•Ø´Ù‚' : 'Internship', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' };
+        return { text: language === 'ar' ? 'ØªØ¯Ø±ÙŠب Ø¹Ù…Ù„ÙŠ' : language === 'ku' ? 'Ù…Û•Ø´Ù‚' : 'Internship', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' };
       case 'scholarship':
-        return { text: language === 'ar' ? 'Ù…Ù†Ø­Ø© Ø¯Ø±Ø§Ø³ÙŠØ©' : language === 'ku' ? 'Ø¨ÙˆØ±Ø³' : 'Scholarship', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' };
+        return { text: language === 'ar' ? 'Ù…Ù†حة Ø¯Ø±Ø§Ø³ÙŠة' : language === 'ku' ? 'Ø¨Ùˆرس' : 'Scholarship', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' };
       case 'training':
-        return { text: language === 'ar' ? 'Ø¯ÙˆØ±Ø© ØªØ¯Ø±ÙŠØ¨ÙŠØ©' : language === 'ku' ? 'Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†' : 'Training Course', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' };
+        return { text: language === 'ar' ? 'Ø¯Ùˆرة ØªØ¯Ø±ÙŠØ¨ÙŠة' : language === 'ku' ? 'Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†' : 'Training Course', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' };
       case 'volunteering':
         return { text: language === 'ar' ? 'Ø¹Ù…Ù„ ØªØ·ÙˆØ¹ÙŠ' : language === 'ku' ? 'Ø®Û†Ø¨Û•Ø®Ø´ÛŒ' : 'Volunteering', color: 'bg-lime-500/10 text-lime-400 border-lime-500/20' };
       case 'competition':
-        return { text: language === 'ar' ? 'Ù…Ø³Ø§Ø¨Ù‚Ø©' : language === 'ku' ? 'Ú©ÛŽØ¨Ú•Ú©ÛŽ' : 'Competition', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' };
+        return { text: language === 'ar' ? 'Ù…Ø³Ø§Ø¨Ù‚ة' : language === 'ku' ? 'Ú©ÛŽØ¨Ú•Ú©ÛŽ' : 'Competition', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' };
       case 'graduation_project_support':
-        return { text: language === 'ar' ? 'Ø¯Ø¹Ù… Ù…Ø´Ø§Ø±ÙŠØ¹' : language === 'ku' ? 'Ù¾Ø§ÚµÙ¾Ø´ØªÛŒ Ù¾Ú•Û†Ú˜Û•' : 'Project Grant', color: 'bg-pink-500/10 text-pink-400 border-pink-500/20' };
+        return { text: language === 'ar' ? 'Ø¯Ø¹Ù… Ù…Ø´Ø§Ø±ÙŠع' : language === 'ku' ? 'Ù¾Ø§ÚµÙ¾Ø´ØªÛŒ Ù¾Ú•Û†Ú˜Û•' : 'Project Grant', color: 'bg-pink-500/10 text-pink-400 border-pink-500/20' };
       case 'event':
-        return { text: language === 'ar' ? 'ÙØ¹Ø§Ù„ÙŠØ© ØªÙˆØ§ØµÙ„' : language === 'ku' ? 'Ú†Ø§Ù„Ø§Ú©ÛŒ' : 'Campus Event', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' };
+        return { text: language === 'ar' ? 'ÙØ¹Ø§Ù„ÙŠة ØªÙˆØ§ØµÙ„' : language === 'ku' ? 'Ú†Ø§Ù„Ø§Ú©ÛŒ' : 'Campus Event', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' };
       case 'study_group':
-        return { text: language === 'ar' ? 'ØºØ±ÙˆØ¨ Ù…Ø±Ø§Ø¬Ø¹Ø©' : language === 'ku' ? 'Ú¯Ø±ÙˆÙ¾ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù†' : 'Study Group', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' };
+        return { text: language === 'ar' ? 'ØºØ±Ùˆب Ù…راجعة' : language === 'ku' ? 'Ú¯Ø±ÙˆÙ¾ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù†' : 'Study Group', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' };
       case 'poll':
-        return { text: language === 'ar' ? 'Ø§Ø³ØªØ·Ù„Ø§Ø¹ Ø±Ø£ÙŠ' : language === 'ku' ? 'Ú•Ø§Ù¾Ø±Ø³ÛŒ' : 'Campus Poll', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' };
+        return { text: language === 'ar' ? 'Ø§Ø³ØªØ·Ù„اع Ø±Ø£ÙŠ' : language === 'ku' ? 'Ú•Ø§Ù¾Ø±Ø³ÛŒ' : 'Campus Poll', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' };
       case 'anonymous_question':
         return { text: language === 'ar' ? 'Ø³Ø¤Ø§Ù„ Ù…Ø¬Ù‡ÙˆÙ„' : language === 'ku' ? 'Ø¨Ù¾Ø±Ø³Û• Ø¨ÛŽÙ†Ø§Ùˆ' : 'Anon Question', color: 'bg-slate-800 text-slate-300 border-slate-700' };
       case 'video':
         return { text: language === 'ar' ? 'ÙÙŠØ¯ÙŠÙˆ ØªØ±ÙÙŠÙ‡ÙŠ' : language === 'ku' ? 'Ú¤ÛŒØ¯ÛŒÛ†' : 'Campus Video', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' };
       case 'photo':
-        return { text: language === 'ar' ? 'ØµÙˆØ±Ø© Ø§Ù„Ø­Ø±Ù…' : language === 'ku' ? 'ÙˆÛŽÙ†Û•' : 'Campus Photo', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' };
+        return { text: language === 'ar' ? 'ØµÙˆرة Ø§Ù„Ø­Ø±Ù…' : language === 'ku' ? 'ÙˆÛŽÙ†Û•' : 'Campus Photo', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' };
       default:
         // Check fallback by opportunity category
         if (defaultCategory) {
           return { text: defaultCategory, color: 'bg-indigo-500/10 text-indigo-450 border-indigo-550/20' };
         }
-        return { text: language === 'ar' ? 'Ù…Ù†Ø´ÙˆØ± Ø·Ù„Ø§Ø¨ÙŠ' : language === 'ku' ? 'Ø¨ÚµØ§ÙˆÚ©Ø±Ø§ÙˆÛ•' : 'Student Post', color: 'bg-slate-800 text-slate-350 border-slate-700' };
+        return { text: language === 'ar' ? 'Ù…Ù†Ø´Ùˆر Ø·Ù„Ø§Ø¨ÙŠ' : language === 'ku' ? 'Ø¨ÚµØ§ÙˆÚ©Ø±Ø§ÙˆÛ•' : 'Student Post', color: 'bg-slate-800 text-slate-350 border-slate-700' };
     }
   };
 
-  const badge = getTypeBadge();
+  const rawBadge = getTypeBadge();
+  const badge = { ...rawBadge, text: cleanText(rawBadge.text) };
 
   // Helper for role translation
   const getRoleLabel = (role: string) => {
@@ -290,7 +343,7 @@ export default function FeedCard({
           setIsEditingFeed(false);
         }} className="flex flex-col gap-3 font-bold text-xs text-slate-700 text-left p-1" id={`card-edit-form-${item.id}`}>
           <h3 className="text-xs font-black uppercase text-[#6B25C9] mb-1">
-            {language === 'ar' ? 'ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ù…Ù†Ø´ÙˆØ± ÙƒÙ…Ø³Ø¤ÙˆÙ„' : 'Administrative Post Editor'}
+            {language === 'ar' ? 'ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„Ù…Ù†Ø´Ùˆر ÙƒÙ…Ø³Ø¤ÙˆÙ„' : 'Administrative Post Editor'}
           </h3>
 
           <div className="flex flex-col gap-1">
@@ -396,7 +449,7 @@ export default function FeedCard({
               >
                 <img 
                   src={item.author.avatar} 
-                  alt={item.author.name}
+                  alt={cleanAuthorName}
                   className={`w-11 h-11 rounded-xl object-cover border-2 shadow-md transition hover:scale-105 ${
                     item.author.role === 'institution' ? 'border-[#D9272E]' : item.author.role === 'teacher' ? 'border-[#6B25C9]' : 'border-[#2F7CCB]'
                   }`}
@@ -431,16 +484,16 @@ export default function FeedCard({
                   </span>
                   {resolvedUniLabel && (
                     <span className="font-black text-[#161A33] flex items-center gap-1 shrink-0 bg-[#F3F7FF] border border-[#E6E1F5] px-2 py-0.5 rounded-md max-w-[150px] truncate">
-                      ðŸ« {resolvedUniLabel}
+                      ðŸ« {cleanText(resolvedUniLabel)}
                     </span>
                   )}
                   {resolvedGovLabel && (
                     <span className="text-slate-600 font-bold flex items-center gap-0.5 shrink-0">
-                      ðŸ“ {resolvedGovLabel}
+                      ðŸ“ {cleanText(resolvedGovLabel)}
                     </span>
                   )}
                   <span className="text-slate-300">â€¢</span>
-                  <span className="font-bold text-slate-500 text-[9px]">{item.date}</span>
+                  <span className="font-bold text-slate-500 text-[9px]">{cleanText(item.date)}</span>
                 </div>
               </div>
             </div>
@@ -460,14 +513,14 @@ export default function FeedCard({
                   </button>}
                   <button
                     onClick={() => {
-                      if (window.confirm(language === 'ar' ? 'Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø­Ø°Ù Ù‡Ø°Ø§ Ø§Ù„Ù…Ù†Ø´ÙˆØ±ØŸ' : 'Are you sure you want to delete this post?')) {
+                      if (window.confirm(language === 'ar' ? 'Ù‡Ù„ Ø£Ù†ت Ù…ØªØ£Ùƒد Ù…Ù† حذف Ù‡ذا Ø§Ù„Ù…Ù†Ø´ÙˆØ±ØŸ' : 'Are you sure you want to delete this post?')) {
                         if (onDeleteFeedItem) onDeleteFeedItem(item.id);
                       }
                     }}
                     className="p-1 px-2.5 bg-red-50 hover:bg-red-100 text-red-650 rounded-lg text-[9px] font-black border border-red-200 cursor-pointer shadow-sm uppercase shrink-0"
                     title="Delete Post"
                   >
-                    ðŸ—‘ï¸
+                    ðŸ—‘️
                   </button>
                 </div>
               )}
@@ -493,7 +546,7 @@ export default function FeedCard({
           {!isOwner && item.type !== 'anonymous_question' && item.author?.id && (
             <UserActions
               userId={item.author.id}
-              userName={item.author.name}
+              userName={cleanAuthorName}
               currentUserId={currentUserId}
               language={language}
               compact
@@ -508,20 +561,20 @@ export default function FeedCard({
                       <div className="flex items-center gap-3">
                         <img
                           src={item.author.avatar}
-                          alt={item.author.name}
+                          alt={cleanAuthorName}
                           className="h-14 w-14 rounded-2xl border-2 border-[#2F7CCB] object-cover shadow-md"
                           referrerPolicy="no-referrer"
                         />
                         <div>
                           <h3 className="text-base font-black text-[#161A33]">
-                            {item.author.name}
+                            {cleanAuthorName}
                           </h3>
                           <p className="text-xs font-bold text-slate-500">
                             {getRoleLabel(item.author.role)}
                           </p>
                           {resolvedUniLabel && (
                             <p className="mt-1 max-w-[220px] truncate text-[11px] font-bold text-slate-500">
-                              {resolvedUniLabel}
+                              {cleanText(resolvedUniLabel)}
                             </p>
                           )}
                         </div>
@@ -546,7 +599,7 @@ export default function FeedCard({
                       {!isOwner && (
                         <UserActions
                           userId={item.author.id}
-                          userName={item.author.name}
+                          userName={cleanAuthorName}
                           currentUserId={currentUserId}
                           language={language}
                           compact={false}
@@ -585,7 +638,7 @@ export default function FeedCard({
               <>
                 {(item.date?.includes('Recently') || item.isNew) && (
                   <span className="text-[8px] font-black uppercase text-emerald-600 bg-emerald-100 border border-emerald-300 px-1.5 py-0.5 rounded shadow-sm leading-none shrink-0 animate-pulse">
-                    {language === 'ar' ? 'Ø¬Ø¯ÙŠØ¯ âœ¨' : language === 'ku' ? 'Ù†ÙˆÛŽ âœ¨' : 'New âœ¨'}
+                    {language === 'ar' ? 'Ø¬Ø¯ÙŠد âœ¨' : language === 'ku' ? 'Ù†ÙˆÛŽ âœ¨' : 'New âœ¨'}
                   </span>
                 )}
                 {item.deadline && (
@@ -596,7 +649,7 @@ export default function FeedCard({
                       if (diffDays >= 0 && diffDays <= 5) {
                         return (
                           <span className="text-[8px] font-black uppercase text-amber-700 bg-amber-100 border border-amber-300 px-1.5 py-0.5 rounded shadow-sm leading-none shrink-0">
-                            {language === 'ar' ? 'Ù‚Ø±ÙŠØ¨ Ø§Ù„Ø¥ØºÙ„Ø§Ù‚ â³' : language === 'ku' ? 'Ù†Ø²ÛŒÚ© Ú©Û†ØªØ§ÛŒÛŒ â³' : 'Closing Soon â³'}
+                            {language === 'ar' ? 'Ù‚Ø±ÙŠب Ø§Ù„Ø¥ØºÙ„Ø§Ù‚ ⏳' : language === 'ku' ? 'Ù†Ø²ÛŒک Ú©Û†ØªØ§ÛŒÛŒ ⏳' : 'Closing Soon ⏳'}
                           </span>
                         );
                       }
@@ -623,11 +676,11 @@ export default function FeedCard({
           >
             {showOriginal ? (
               <>
-                ðŸŒ {language === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„ØªØ±Ø¬Ù…Ø©' : language === 'ku' ? 'Ù¾ÛŒØ´Ø§Ù†Ø¯Ø§Ù†ÛŒ ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø§Ù†' : 'Show translated'}
+                ðŸŒ {language === 'ar' ? 'عرض Ø§Ù„ØªØ±Ø¬Ù…ة' : language === 'ku' ? 'Ù¾ÛŒØ´Ø§Ù†Ø¯Ø§Ù†ÛŒ ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø§Ù†' : 'Show translated'}
               </>
             ) : (
               <>
-                ðŸŒ {language === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„Ø£ØµÙ„' : language === 'ku' ? 'Ù¾ÛŒØ´Ø§Ù†Ø¯Ø§Ù†ÛŒ Ø¯Û•Ù‚ÛŒ Ø³Û•Ø±Û•Ú©ÛŒ' : 'Show original'}
+                ðŸŒ {language === 'ar' ? 'عرض Ø§Ù„Ø£ØµÙ„' : language === 'ku' ? 'Ù¾ÛŒØ´Ø§Ù†Ø¯Ø§Ù†ÛŒ Ø¯Û•Ù‚ÛŒ Ø³Û•Ø±Û•Ú©ÛŒ' : 'Show original'}
               </>
             )}
           </button>
@@ -746,7 +799,7 @@ export default function FeedCard({
                 <div className="text-right shrink-0">
                   <span className="text-[8px] font-black uppercase tracking-wider text-[#D9272E] block">Deadline</span>
                   <span className="text-[10px] font-extrabold text-[#D9272E] bg-[#D9272E]/10 border border-[#D9272E]/20 px-2 py-0.5 rounded-lg flex items-center gap-0.5 mt-1 animate-pulse">
-                    â° {item.deadline}
+                    ⏰ {item.deadline}
                   </span>
                 </div>
               )}
@@ -766,8 +819,8 @@ export default function FeedCard({
             {/* Campus Social Proof Block (Students who applied) */}
             <div className="flex items-center gap-2 mt-0.5 bg-emerald-50 p-2 rounded-lg border-2 border-[#161A33] relative z-10 shadow-[2px_2px_0px_0px_#161A33]">
               <div className="flex -space-x-1.5">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#6B25C9] to-[#2F7CCB] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">ðŸ™‹â€â™‚ï¸</div>
-                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#FFD21F] to-[#D9272E] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">ðŸ™‹â€â™€ï¸</div>
+                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#6B25C9] to-[#2F7CCB] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">ðŸ™‹â€â™‚️</div>
+                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#FFD21F] to-[#D9272E] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">ðŸ™‹â€â™€️</div>
                 <div className="w-5 h-5 rounded-full bg-white border border-[#161A33] text-[8px] flex items-center justify-center font-bold shadow-sm">âœ¨</div>
               </div>
               <p className="text-[10px] text-emerald-800 font-extrabold leading-tight">
@@ -781,7 +834,7 @@ export default function FeedCard({
                 ðŸ·ï¸ {item.opportunityCategory || 'Career'}
               </span>
               <span className="text-[#6B25C9] flex items-center gap-0.5 bg-[#6B25C9]/10 px-2 py-0.5 rounded-lg text-[9px] font-black">
-                â­ {item.savedByUser ? (item.savedCount || 0) + 1 : (item.savedCount || 0)} saved by peers
+                ⭐ {item.savedByUser ? (item.savedCount || 0) + 1 : (item.savedCount || 0)} saved by peers
               </span>
             </div>
 
@@ -1071,9 +1124,9 @@ function CommentRow({
             className="text-[9px] font-black text-[#6B25C9] hover:underline cursor-pointer mt-1.5 inline-flex items-center gap-1 bg-[#6B25C9]/5 px-1.5 py-0.5 rounded"
           >
             ðŸŒ {showOriginal ? (
-              language === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„ØªØ±Ø¬Ù…Ø©' : language === 'ku' ? 'Ù¾ÛŒØ´Ø§Ù†Ø¯Ø§Ù†ÛŒ ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø§Ù†' : 'Show translated'
+              language === 'ar' ? 'عرض Ø§Ù„ØªØ±Ø¬Ù…ة' : language === 'ku' ? 'Ù¾ÛŒØ´Ø§Ù†Ø¯Ø§Ù†ÛŒ ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø§Ù†' : 'Show translated'
             ) : (
-              language === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„Ø£ØµÙ„' : language === 'ku' ? 'Ù¾ÛŒØ´Ø§Ù†Ø¯Ø§Ù†ÛŒ Ø¯Û•Ù‚ÛŒ Ø³Û•Ø±Û•Ú©ÛŒ' : 'Show original'
+              language === 'ar' ? 'عرض Ø§Ù„Ø£ØµÙ„' : language === 'ku' ? 'Ù¾ÛŒØ´Ø§Ù†Ø¯Ø§Ù†ÛŒ Ø¯Û•Ù‚ÛŒ Ø³Û•Ø±Û•Ú©ÛŒ' : 'Show original'
             )}
           </button>
         )}

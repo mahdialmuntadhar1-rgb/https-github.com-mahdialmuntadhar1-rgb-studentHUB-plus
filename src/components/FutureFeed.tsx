@@ -3,6 +3,7 @@ import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
 import { getOpportunities } from '../lib/api';
+import { cleanText } from '../lib/textClean';
 import { 
   Calendar, 
   ChevronRight, 
@@ -92,18 +93,18 @@ export default function FutureFeed({
       displayCategory = 'Graduation project support';
     }
 
-    const titleEN = item.titleEN || item.title || item.title_en || 'Public Opportunity';
-    const titleAR = item.titleAR || item.title_ar || item.title || titleEN;
-    const titleKU = item.titleKU || item.title_ku || item.title || titleEN;
+    const titleEN = cleanText(item.titleEN || item.title || item.title_en || 'Public Opportunity');
+    const titleAR = cleanText(item.titleAR || item.title_ar || item.title || titleEN);
+    const titleKU = cleanText(item.titleKU || item.title_ku || item.title || titleEN);
 
-    const contentEN = item.contentEN || item.description || item.summary || item.description_en || 'View details of this public opportunity.';
-    const contentAR = item.contentAR || item.description_ar || item.description || item.summary || contentEN;
-    const contentKU = item.contentKU || item.description_ku || item.description || item.summary || contentEN;
+    const contentEN = cleanText(item.contentEN || item.description || item.summary || item.description_en || 'View details of this public opportunity.');
+    const contentAR = cleanText(item.contentAR || item.description_ar || item.description || item.summary || contentEN);
+    const contentKU = cleanText(item.contentKU || item.description_ku || item.description || item.summary || contentEN);
 
-    const orgName = item.organization || item.institution_name || item.company || 'Recruiter/Provider';
-    const gov = item.governorateId || item.governorate || 'all';
-    const country = item.country || 'Iraq';
-    const city = item.city || '';
+    const orgName = cleanText(item.organization || item.institution_name || item.university || item.company || 'Recruiter/Provider');
+    const gov = cleanText(item.governorateId || item.governorate || 'all');
+    const country = cleanText(item.country || 'Iraq');
+    const city = cleanText(item.city || '');
     
     const locationParts = [city, gov !== 'all' ? gov : '', country].filter(Boolean);
     const locationStr = locationParts.length > 0 ? locationParts.join(', ') : 'Iraq';
@@ -152,7 +153,7 @@ export default function FutureFeed({
       commentsList: [],
       governorateId: gov,
       country: country,
-      universityId: 'all',
+      universityId: orgName,
       tags: [categoryRaw, displayCategory],
       company: orgName,
       companyLogo: imgUrl || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
@@ -260,6 +261,7 @@ export default function FutureFeed({
   // Custom filter dropdown states
   const [filterGov, setFilterGov] = useState<string>('all');
   const [filterCountry, setFilterCountry] = useState<string>('all');
+  const [filterInstitution, setFilterInstitution] = useState<string>('all');
   const [filterDeadline, setFilterDeadline] = useState<string>('all');
   
   // Pagination State
@@ -268,17 +270,17 @@ export default function FutureFeed({
   // Exact 11 core categories + All requested in PART 3
   const chips = [
     { id: 'all', labelEN: 'All Future ðŸš€', labelAR: 'ÙƒÙ„ Ø§Ù„Ù…Ø³ØªÙ‚Ø¨Ù„', labelKU: 'Ù‡Û•Ù…ÙˆÙˆ Ø¦Ø§Ù…Ø§Ù†Ø¬Û•Ú©Ø§Ù†' },
-    { id: 'job', labelEN: 'Jobs ðŸ’¼', labelAR: 'ÙˆØ¸Ø§Ø¦Ù Ø®Ø±ÙŠØ¬ÙŠÙ†', labelKU: 'Ù‡Û•Ù„ÛŒ Ú©Ø§Ø±' },
-    { id: 'scholarship', labelEN: 'Scholarships ðŸŽ“', labelAR: 'Ù…Ù†Ø­ Ø¯Ø±Ø§Ø³ÙŠØ©', labelKU: 'Ø¨Û†Ø±Ø³Û•Ú©Ø§Ù†' },
-    { id: 'internship', labelEN: 'Internships ðŸ‘”', labelAR: 'ØªØ¯Ø±ÙŠØ¨ Ø¹Ù…Ù„ÙŠ', labelKU: 'Ù…Û•Ø´Ù‚Û•Ú©Ø§Ù†' },
-    { id: 'training', labelEN: 'Trainings ðŸŒŸ', labelAR: 'Ø¯ÙˆØ±Ø§Øª ØªØ£Ù‡ÙŠÙ„ÙŠØ©', labelKU: 'Ú©Û†Ø±Ø³Û•Ú©Ø§Ù†' },
-    { id: 'event', labelEN: 'Events ðŸ“…', labelAR: 'ÙØ¹Ø§Ù„ÙŠØ§Øª ØªÙˆØ§ØµÙ„', labelKU: 'Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ•Ú©Ø§Ù†' },
+    { id: 'job', labelEN: 'Jobs ðŸ’¼', labelAR: 'Ùˆظائف Ø®Ø±ÙŠØ¬ÙŠÙ†', labelKU: 'Ù‡Û•Ù„ÛŒ کار' },
+    { id: 'scholarship', labelEN: 'Scholarships ðŸŽ“', labelAR: 'Ù…Ù†ح Ø¯Ø±Ø§Ø³ÙŠة', labelKU: 'Ø¨Û†Ø±Ø³Û•Ú©Ø§Ù†' },
+    { id: 'internship', labelEN: 'Internships ðŸ‘”', labelAR: 'ØªØ¯Ø±ÙŠب Ø¹Ù…Ù„ÙŠ', labelKU: 'Ù…Û•Ø´Ù‚Û•Ú©Ø§Ù†' },
+    { id: 'training', labelEN: 'Trainings ðŸŒŸ', labelAR: 'Ø¯Ùˆرات ØªØ£Ù‡ÙŠÙ„ÙŠة', labelKU: 'Ú©Û†Ø±Ø³Û•Ú©Ø§Ù†' },
+    { id: 'event', labelEN: 'Events ðŸ“…', labelAR: 'ÙØ¹Ø§Ù„ÙŠات ØªÙˆØ§ØµÙ„', labelKU: 'Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ•Ú©Ø§Ù†' },
     { id: 'volunteering', labelEN: 'Volunteering ðŸ¤', labelAR: 'Ø¹Ù…Ù„ ØªØ·ÙˆØ¹ÙŠ', labelKU: 'Ø®Û†Ø¨Û•Ø®Ø´ÛŒ' },
-    { id: 'fellowship', labelEN: 'Fellowships ðŸŽ–ï¸', labelAR: 'Ø²Ù…Ø§Ù„Ø§Øª Ø¯Ø±Ø§Ø³ÙŠØ©', labelKU: 'Ø²Û•Ù…Ø§Ù„Û•Ú©Ø§Ù†' },
-    { id: 'competition', labelEN: 'Competitions ðŸ†', labelAR: 'Ù…Ø³Ø§Ø¨Ù‚Ø§Øª ÙˆØ¨Ø·ÙˆÙ„Ø§Øª', labelKU: 'Ù¾ÛŽØ´Ø¨Ú•Ú©ÛŽÚ©Ø§Ù†' },
-    { id: 'announcement', labelEN: 'Announcements ðŸ“¢', labelAR: 'Ø¥Ø¹Ù„Ø§Ù†Ø§Øª Ø¬Ø§Ù…Ø¹ÙŠØ©', labelKU: 'Ú•Ø§Ú¯Û•ÛŒÛ•Ù†Ø¯Ø±Ø§ÙˆÛ•Ú©Ø§Ù†' },
-    { id: 'exam', labelEN: 'Exams ðŸ“', labelAR: 'Ø§Ù…ØªØ­Ø§Ù†Ø§Øª ÙˆØ§Ø®ØªØ¨Ø§Ø±Ø§Øª', labelKU: 'ØªØ§Ù‚ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•Ú©Ø§Ù†' },
-    { id: 'deadline_soon', labelEN: 'Closing Soon â³', labelAR: 'Ù‚Ø±ÙŠØ¨ Ø§Ù„Ø¥ØºÙ„Ø§Ù‚', labelKU: 'Ù†Ø²ÛŒÚ© Ù„Û• Ù…Û†ÚµÛ•Øª' },
+    { id: 'fellowship', labelEN: 'Fellowships ðŸŽ–️', labelAR: 'Ø²Ù…Ø§Ù„ات Ø¯Ø±Ø§Ø³ÙŠة', labelKU: 'Ø²Û•Ù…Ø§Ù„Û•Ú©Ø§Ù†' },
+    { id: 'competition', labelEN: 'Competitions ðŸ†', labelAR: 'Ù…Ø³Ø§Ø¨Ù‚ات ÙˆØ¨Ø·ÙˆÙ„ات', labelKU: 'Ù¾ÛŽØ´Ø¨Ú•Ú©ÛŽÚ©Ø§Ù†' },
+    { id: 'announcement', labelEN: 'Announcements ðŸ“¢', labelAR: 'Ø¥Ø¹Ù„Ø§Ù†ات Ø¬Ø§Ù…Ø¹ÙŠة', labelKU: 'Ú•Ø§Ú¯Û•ÛŒÛ•Ù†Ø¯Ø±Ø§ÙˆÛ•Ú©Ø§Ù†' },
+    { id: 'exam', labelEN: 'Exams ðŸ“', labelAR: 'Ø§Ù…ØªØ­Ø§Ù†ات Ùˆاختبارات', labelKU: 'ØªØ§Ù‚ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•Ú©Ø§Ù†' },
+    { id: 'deadline_soon', labelEN: 'Closing Soon ⏳', labelAR: 'Ù‚Ø±ÙŠب Ø§Ù„Ø¥ØºÙ„Ø§Ù‚', labelKU: 'Ù†Ø²ÛŒک Ù„Û• Ù…Û†ÚµÛ•ت' },
   ];
 
   // Helper selectors matching user's selections
@@ -286,7 +288,7 @@ export default function FutureFeed({
   const currentGovernorate = IraqiGovernorates.find(g => g.id === selectedGov);
 
   const getUniLabel = () => {
-    if (!currentUniversity) return language === 'ar' ? 'Ø¬Ø§Ù…Ø¹ØªÙƒ Ø§Ù„Ù…Ø­Ø¯Ø¯Ø©' : language === 'ku' ? 'Ø²Ø§Ù†Ú©Û†Ú©Û•Øª' : 'Your University';
+    if (!currentUniversity) return language === 'ar' ? 'Ø¬Ø§Ù…Ø¹ØªÙƒ Ø§Ù„Ù…حددة' : language === 'ku' ? 'Ø²Ø§Ù†Ú©Û†Ú©Û•ت' : 'Your University';
     return language === 'ar' ? currentUniversity.nameAR : language === 'ku' ? currentUniversity.nameKU : currentUniversity.nameEN;
   };
 
@@ -299,15 +301,15 @@ export default function FutureFeed({
   const timelineReminders = [
     {
       titleEN: "Iraq Cybersecurity CTF Application",
-      titleAR: "Ù…Ø³Ø§Ø¨Ù‚Ø© Ø§Ù„Ø£Ù…Ù† Ø§Ù„Ø³ÙŠØ¨Ø±Ø§Ù†ÙŠ Ø§Ù„ÙˆØ·Ù†ÙŠØ©",
-      titleKU: "Ú©Û†ØªØ§ Ù…Û†ÚµÛ•ØªÛŒ Ú©ÛŽØ¨Ú•Ú©ÛŽÛŒ Ø³ÛŒØ¨Ø±Ø§Ù†ÛŒ",
+      titleAR: "Ù…Ø³Ø§Ø¨Ù‚ة Ø§Ù„Ø£Ù…Ù† Ø§Ù„Ø³ÙŠØ¨Ø±Ø§Ù†ÙŠ Ø§Ù„ÙˆØ·Ù†ÙŠة",
+      titleKU: "Ú©Û†تا Ù…Û†ÚµÛ•ØªÛŒ Ú©ÛŽØ¨Ú•Ú©ÛŽÛŒ Ø³ÛŒØ¨Ø±Ø§Ù†ÛŒ",
       date: "July 5, 2026",
       urgent: true
     },
     {
       titleEN: "Hunar Tech Frontend Internship",
-      titleAR: "ØªØ¯Ø±ÙŠØ¨ Ù‡ÙÙ†Ø± Ø§Ù„ØªÙƒÙ†ÙˆÙ„ÙˆØ¬ÙŠ Ù„Ù„Ø¨Ø±Ù…Ø¬Ø©",
-      titleKU: "Ù…Û•Ø´Ù‚ÛŒ ÙØ±Û†Ù†ØªÛŽÙ†Ø¯ Ù„Û• Ú©Û†Ù…Ù¾Ø§Ù†ÛŒØ§ÛŒ Ù‡Û†Ù†Û•Ø±",
+      titleAR: "ØªØ¯Ø±ÙŠب Ù‡ÙÙ†ر Ø§Ù„ØªÙƒÙ†ÙˆÙ„ÙˆØ¬ÙŠ Ù„Ù„Ø¨Ø±Ù…جة",
+      titleKU: "Ù…Û•Ø´Ù‚ÛŒ ÙØ±Û†Ù†ØªÛŽÙ†د Ù„Û• Ú©Û†Ù…Ù¾Ø§Ù†ÛŒØ§ÛŒ Ù‡Û†Ù†Û•ر",
       date: "June 30, 2026",
       urgent: false
     }
@@ -323,7 +325,15 @@ export default function FutureFeed({
     ].includes(item.type) || !!item.opportunityCategory;
   };
 
-  // Filter logic across Search + Governorate + Country + Deadline
+  const institutionFilterOptions = Array.from(
+    new Set(
+      opportunities
+        .map(item => cleanText(item.company || item.author?.name || item.universityId || ''))
+        .filter((value): value is string => Boolean(value) && value.toLowerCase() !== 'all' && value.toLowerCase() !== 'unknown')
+    )
+  ).sort((a: string, b: string) => a.localeCompare(b));
+
+  // Filter logic across Search + Governorate + Institution + Country + Deadline
   const filteredBaseOpportunities = opportunities.filter(item => {
     const isOpp = getIsOpportunity(item) || item.type === 'study_group';
     if (!isOpp) return false;
@@ -342,6 +352,12 @@ export default function FutureFeed({
       if (item.governorateId !== filterGov && item.governorateId !== 'all') {
         return false;
       }
+    }
+
+    // Institution / university filter
+    if (filterInstitution !== 'all') {
+      const institutionValue = cleanText(item.company || item.author?.name || item.universityId || '').toLowerCase();
+      if (institutionValue !== filterInstitution.toLowerCase()) return false;
     }
 
     // Country filter
@@ -421,7 +437,7 @@ export default function FutureFeed({
   const finalFilteredOpportunityItems = resolveChipFilteredItems();
 
   // Extracting data specifically for the boards (Featured when search is simple and no custom drop filters active)
-  const isCustomFiltersActive = filterGov !== 'all' || filterCountry !== 'all' || filterDeadline !== 'all' || searchQuery;
+  const isCustomFiltersActive = filterGov !== 'all' || filterCountry !== 'all' || filterInstitution !== 'all' || filterDeadline !== 'all' || searchQuery;
 
   // Board layout queries (only fallback to default if all dropdowns/search are 'all')
   const featuredUniItems = filteredBaseOpportunities.filter(item => 
@@ -450,12 +466,12 @@ export default function FutureFeed({
   );
 
   // Language titles lookups
-  const section1Title = language === 'ar' ? `Ø§Ù„Ù…Ù…ÙŠØ²Ø© ÙÙŠ ${getUniLabel()}` : language === 'ku' ? `ØªØ§ÛŒØ¨Û•Øª Ø¨Û• ${getUniLabel()}` : `Featured for ${getUniLabel()}`;
-  const section2Title = language === 'ar' ? `Ø§Ù„Ø£ÙƒØ«Ø± Ø´Ø¹Ø¨ÙŠØ© ÙÙŠ ${getGovLabel()}` : language === 'ku' ? `Ø¨Û•Ù†Ø§ÙˆØ¨Ø§Ù†Ú¯ Ù„Û• ${getGovLabel()}` : `Popular in ${getGovLabel()}`;
-  const section3Title = language === 'ar' ? 'Ù…ØªØ§Ø­Ø© Ù„Ø¹Ù…ÙˆÙ… Ø§Ù„Ø¹Ø±Ø§Ù‚' : language === 'ku' ? 'Ú©Ø±Ø§ÙˆÛ• Ø¨Û† Ù‡Û•Ù…ÙˆÙˆ Ø¹ÛŽØ±Ø§Ù‚' : 'Open for All Iraq';
-  const section4Title = language === 'ar' ? 'Ø¬Ø¯ÙŠØ¯ Ø§Ù„ØªØ¯Ø±ÙŠØ¨ Ø§Ù„ØµÙŠÙÙŠ' : language === 'ku' ? 'Ù…Û•Ø´Ù‚Û• Ù†ÙˆÛŽÛŒÛ•Ú©Ø§Ù†' : 'New Internships';
-  const section5Title = language === 'ar' ? 'Ø§Ù„Ù…Ù†Ø­ ÙˆØ§Ù„Ø¯ÙˆØ±Ø§Øª Ø§Ù„ØªØ¯Ø±ÙŠØ¨ÙŠØ©' : language === 'ku' ? 'Ø¨Û†Ø±Ø³Û• Ùˆ Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†Û•Ú©Ø§Ù†' : 'Scholarships & Training';
-  const section6Title = language === 'ar' ? 'Ø­ÙØ¸Ù‡Ø§ Ø²Ù…Ù„Ø§Ø¤Ùƒ ÙÙŠ Ø§Ù„ØµÙ' : language === 'ku' ? 'Ù¾Ø§Ø´Û•Ú©Û•ÙˆØªÚ©Ø±Ø§Ùˆ Ù„Û•Ù„Ø§ÛŒÛ•Ù† Ù‡Ø§ÙˆÙ¾Û†Ù„Û•Ú©Ø§Ù†Øª' : 'Saved by Your Classmates';
+  const section1Title = language === 'ar' ? `Ø§Ù„Ù…Ù…ÙŠزة ÙÙŠ ${getUniLabel()}` : language === 'ku' ? `ØªØ§ÛŒØ¨Û•ت Ø¨Û• ${getUniLabel()}` : `Featured for ${getUniLabel()}`;
+  const section2Title = language === 'ar' ? `Ø§Ù„Ø£Ùƒثر Ø´Ø¹Ø¨ÙŠة ÙÙŠ ${getGovLabel()}` : language === 'ku' ? `Ø¨Û•Ù†Ø§ÙˆØ¨Ø§Ù†گ Ù„Û• ${getGovLabel()}` : `Popular in ${getGovLabel()}`;
+  const section3Title = language === 'ar' ? 'Ù…تاحة Ù„Ø¹Ù…ÙˆÙ… Ø§Ù„Ø¹Ø±Ø§Ù‚' : language === 'ku' ? 'Ú©Ø±Ø§ÙˆÛ• Ø¨Û† Ù‡Û•Ù…ÙˆÙˆ Ø¹ÛŽØ±Ø§Ù‚' : 'Open for All Iraq';
+  const section4Title = language === 'ar' ? 'Ø¬Ø¯ÙŠد Ø§Ù„ØªØ¯Ø±ÙŠب Ø§Ù„ØµÙŠÙÙŠ' : language === 'ku' ? 'Ù…Û•Ø´Ù‚Û• Ù†ÙˆÛŽÛŒÛ•Ú©Ø§Ù†' : 'New Internships';
+  const section5Title = language === 'ar' ? 'Ø§Ù„Ù…Ù†ح ÙˆØ§Ù„Ø¯Ùˆرات Ø§Ù„ØªØ¯Ø±ÙŠØ¨ÙŠة' : language === 'ku' ? 'Ø¨Û†Ø±Ø³Û• Ùˆ Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†Û•Ú©Ø§Ù†' : 'Scholarships & Training';
+  const section6Title = language === 'ar' ? 'Ø­ÙØ¸Ù‡ا Ø²Ù…Ù„Ø§Ø¤Ùƒ ÙÙŠ Ø§Ù„صف' : language === 'ku' ? 'Ù¾Ø§Ø´Û•Ú©Û•ÙˆØªÚ©Ø±Ø§Ùˆ Ù„Û•Ù„Ø§ÛŒÛ•Ù† Ù‡Ø§ÙˆÙ¾Û†Ù„Û•Ú©Ø§Ù†ت' : 'Saved by Your Classmates';
 
   // Slice paginated items
   const paginatedItems = finalFilteredOpportunityItems.slice(0, visibleCount);
@@ -502,7 +518,7 @@ export default function FutureFeed({
           type="text" 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={language === 'ar' ? 'Ø§Ø¨Ø­Ø« Ø¹Ù† ÙØ±Øµ Ø¹Ù…Ù„ ÙˆØªØ¯Ø±ÙŠØ¨...' : language === 'ku' ? 'Ø¨Ú¯Û•Ú•ÛŽ Ø¨Û† Ú©Ø§Ø± Ùˆ Ù…Û•Ø´Ù‚...' : 'Search jobs, internships, training...'}
+          placeholder={language === 'ar' ? 'ابحث Ø¹Ù† فرص Ø¹Ù…Ù„ ÙˆØªØ¯Ø±ÙŠب...' : language === 'ku' ? 'Ø¨Ú¯Û•Ú•ÛŽ Ø¨Û† کار Ùˆ Ù…Û•Ø´Ù‚...' : 'Search jobs, internships, training...'}
           className="w-full bg-white text-xs border-2 border-[#161A33] rounded-2xl py-3 pl-10 pr-4 text-[#161A33] font-black focus:outline-none focus:bg-[#FFFBEB]/40 shadow-inner placeholder-slate-400"
         />
         {searchQuery && (
@@ -511,7 +527,7 @@ export default function FutureFeed({
             onClick={() => setSearchQuery('')}
             className="absolute inset-y-0 right-3.5 flex items-center text-xs font-black text-[#6B25C9] active:scale-95 px-1 bg-transparent border-0 cursor-pointer"
           >
-            {language === 'ar' ? 'Ù…Ø³Ø­' : language === 'ku' ? 'Ø³Ú•ÛŒÙ†Û•ÙˆÛ•' : 'Clear'}
+            {language === 'ar' ? 'Ù…سح' : language === 'ku' ? 'Ø³Ú•ÛŒÙ†Û•ÙˆÛ•' : 'Clear'}
           </button>
         )}
       </div>
@@ -520,14 +536,14 @@ export default function FutureFeed({
       <div className="bg-white border-2 border-[#161A33] rounded-2xl p-3.5 mb-4 shadow-[2px_2px_0px_0px_#161A33]" id="advanced-filters-panel">
         <div className="flex items-center gap-1.5 text-[10px] font-black text-[#161A33] uppercase tracking-wider mb-2.5">
           <Filter className="w-3.5 h-3.5 text-[#6B25C9]" />
-          <span>{language === 'ar' ? 'ØªØµÙÙŠØ© Ø°ÙƒÙŠØ© Ù„Ù„Ù…Ø³ØªÙ‚Ø¨Ù„' : language === 'ku' ? 'Ù¾Ø§ÚµØ§ÙˆØªÙ†ÛŒ Ù¾ÛŽØ´Ú©Û•ÙˆØªÙˆÙˆ' : 'Advanced Filters'}</span>
+          <span>{language === 'ar' ? 'ØªØµÙÙŠة Ø°ÙƒÙŠة Ù„Ù„Ù…Ø³ØªÙ‚Ø¨Ù„' : language === 'ku' ? 'Ù¾Ø§ÚµØ§ÙˆØªÙ†ÛŒ Ù¾ÛŽØ´Ú©Û•ÙˆØªÙˆÙˆ' : 'Advanced Filters'}</span>
         </div>
         
-        <div className="grid grid-cols-3 gap-2">
+        <div className="grid grid-cols-2 gap-2 sm:grid-cols-4">
           {/* Governorate select */}
           <div className="flex flex-col gap-1">
             <span className="text-[8px] font-black uppercase text-slate-400">
-              {language === 'ar' ? 'Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©' : language === 'ku' ? 'Ù¾Ø§Ø±ÛŽØ²Ú¯Ø§' : 'Governorate'}
+              {language === 'ar' ? 'Ø§Ù„Ù…حافظة' : language === 'ku' ? 'Ù¾Ø§Ø±ÛŽزگا' : 'Governorate'}
             </span>
             <select
               value={filterGov}
@@ -539,6 +555,23 @@ export default function FutureFeed({
                 <option key={g.id} value={g.id}>
                   {language === 'ar' ? g.nameAR : language === 'ku' ? g.nameKU : g.nameEN}
                 </option>
+              ))}
+            </select>
+          </div>
+
+          {/* Institution / university select */}
+          <div className="flex flex-col gap-1">
+            <span className="text-[8px] font-black uppercase text-slate-400">
+              {language === 'ar' ? 'الجامعة / المؤسسة' : language === 'ku' ? 'زانکۆ / دامەزراوە' : 'University'}
+            </span>
+            <select
+              value={filterInstitution}
+              onChange={e => { setFilterInstitution(e.target.value); setVisibleCount(12); }}
+              className="text-[10px] font-bold text-[#161A33] bg-[#F3F7FF] border border-[#161A33]/20 rounded-lg p-1.5 focus:outline-none focus:border-[#6B25C9]"
+            >
+              <option value="all">{language === 'ar' ? 'كل الجامعات' : language === 'ku' ? 'هەموو زانکۆکان' : 'All Universities'}</option>
+              {institutionFilterOptions.map(name => (
+                <option key={name} value={name}>{name}</option>
               ))}
             </select>
           </div>
@@ -562,16 +595,16 @@ export default function FutureFeed({
           {/* Deadline select */}
           <div className="flex flex-col gap-1">
             <span className="text-[8px] font-black uppercase text-slate-400">
-              {language === 'ar' ? 'Ù…Ø¤Ù‚Øª Ø§Ù„ØªÙ‚Ø¯ÙŠÙ…' : language === 'ku' ? 'Ù…Û†ÚµÛ•Øª' : 'Deadline'}
+              {language === 'ar' ? 'Ù…Ø¤Ù‚ت Ø§Ù„ØªÙ‚Ø¯ÙŠÙ…' : language === 'ku' ? 'Ù…Û†ÚµÛ•ت' : 'Deadline'}
             </span>
             <select
               value={filterDeadline}
               onChange={e => { setFilterDeadline(e.target.value); setVisibleCount(12); }}
               className="text-[10px] font-bold text-[#161A33] bg-[#F3F7FF] border border-[#161A33]/20 rounded-lg p-1.5 focus:outline-none focus:border-[#6B25C9]"
             >
-              <option value="all">{language === 'ar' ? 'Ù…ÙØªÙˆØ­ ðŸ“…' : language === 'ku' ? 'Ú©Ø±Ø§ÙˆÛ• ðŸ“…' : 'Open ðŸ“…'}</option>
-              <option value="week">{language === 'ar' ? 'Ø®Ù„Ø§Ù„ Ø£Ø³Ø¨ÙˆØ¹' : language === 'ku' ? 'Ù„Û•Ù… Ù‡Û•ÙØªÛ•ÛŒÛ•Ø¯Ø§' : 'Within Week'}</option>
-              <option value="month">{language === 'ar' ? 'Ø®Ù„Ø§Ù„ Ø´Ù‡Ø±' : language === 'ku' ? 'Ù„Û•Ù… Ù…Ø§Ù†Ú¯Û•Ø¯Ø§' : 'Within Month'}</option>
+              <option value="all">{language === 'ar' ? 'Ù…ÙØªÙˆح ðŸ“…' : language === 'ku' ? 'Ú©Ø±Ø§ÙˆÛ• ðŸ“…' : 'Open ðŸ“…'}</option>
+              <option value="week">{language === 'ar' ? 'Ø®Ù„Ø§Ù„ Ø£Ø³Ø¨Ùˆع' : language === 'ku' ? 'Ù„Û•Ù… Ù‡Û•ÙØªÛ•ÛŒÛ•دا' : 'Within Week'}</option>
+              <option value="month">{language === 'ar' ? 'Ø®Ù„Ø§Ù„ Ø´Ù‡ر' : language === 'ku' ? 'Ù„Û•Ù… Ù…Ø§Ù†Ú¯Û•دا' : 'Within Month'}</option>
             </select>
           </div>
         </div>
@@ -639,7 +672,7 @@ export default function FutureFeed({
         <div className="text-[#D9272E] bg-white border-2 border-[#D9272E] rounded-3xl p-8 text-center shadow-[3px_3px_0px_0px_#D9272E] mb-5">
           <div className="text-4xl mb-3">âš ï¸</div>
           <h3 className="font-extrabold text-sm uppercase tracking-wide">
-            {language === 'ar' ? 'ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„ÙØ±Øµ Ø§Ù„Ø¹Ø§Ù…Ø©' : language === 'ku' ? 'Ø¨Ø§Ø±Ú©Ø±Ø¯Ù†ÛŒ Ø¯Û•Ø±ÙÛ•ØªÛ•Ú©Ø§Ù† Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ù†Û•Ø¨ÙˆÙˆ' : 'Failed to load opportunities'}
+            {language === 'ar' ? 'ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„فرص Ø§Ù„Ø¹Ø§Ù…ة' : language === 'ku' ? 'Ø¨Ø§Ø±Ú©Ø±Ø¯Ù†ÛŒ Ø¯Û•Ø±ÙÛ•ØªÛ•Ú©Ø§Ù† Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ù†Û•Ø¨ÙˆÙˆ' : 'Failed to load opportunities'}
           </h3>
           <p className="text-[11px] text-slate-500 max-w-xs mt-2 mx-auto leading-relaxed">
             {error}
@@ -663,7 +696,7 @@ export default function FutureFeed({
             }}
             className="mt-4 bg-[#D9272E] text-white border-2 border-[#161A33] font-black text-xs px-4 py-2 rounded-xl transition-all active:scale-95 cursor-pointer shadow-[2px_2px_0px_0px_#161A33]"
           >
-            {language === 'ar' ? 'Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© ðŸ”„' : language === 'ku' ? 'Ø¯ÙˆÙˆØ¨Ø§Ø±Û• Ù‡Û•ÙˆÚµØ¨Ø¯Û•Ø±Û•ÙˆÛ• ðŸ”„' : 'Retry Loading ðŸ”„'}
+            {language === 'ar' ? 'إعادة Ø§Ù„Ù…Ø­Ø§ÙˆÙ„ة ðŸ”„' : language === 'ku' ? 'Ø¯ÙˆÙˆØ¨Ø§Ø±Û• Ù‡Û•ÙˆÚµØ¨Ø¯Û•Ø±Û•ÙˆÛ• ðŸ”„' : 'Retry Loading ðŸ”„'}
           </button>
         </div>
       ) : (isFeedLoading || isLoading) ? (
@@ -672,10 +705,10 @@ export default function FutureFeed({
         <div className="text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-8 text-center shadow-[3px_3px_0px_0px_#161A33] mb-5">
           <div className="text-4xl mb-3">ðŸ”­</div>
           <h3 className="font-extrabold text-[#161A33] text-sm uppercase tracking-wide">
-            {language === 'ar' ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ ÙØ±Øµ Ù…Ø¹ØªÙ…Ø¯Ø© Ø¨Ø¹Ø¯' : language === 'ku' ? 'Ù‡ÛŒÚ† Ø¯Û•Ø±ÙÛ•ØªÛŽÚ©ÛŒ Ù¾Û•Ø³Û•Ù†Ø¯Ú©Ø±Ø§Ùˆ Ù†ÛŒÛŒÛ• Ù„Û• Ø¦ÛŽØ³ØªØ§Ø¯Ø§' : 'No approved opportunities yet'}
+            {language === 'ar' ? 'Ù„ا ØªÙˆجد فرص Ù…Ø¹ØªÙ…دة بعد' : language === 'ku' ? 'Ù‡ÛŒÚ† Ø¯Û•Ø±ÙÛ•ØªÛŽÚ©ÛŒ Ù¾Û•Ø³Û•Ù†Ø¯Ú©Ø±Ø§Ùˆ Ù†ÛŒÛŒÛ• Ù„Û• Ø¦ÛŽستادا' : 'No approved opportunities yet'}
           </h3>
           <p className="text-[11px] text-slate-500 max-w-xs mt-2 mx-auto leading-relaxed">
-            {language === 'ar' ? 'Ø§Ù„ÙØ±Øµ Ø§Ù„Ù…Ø¹ØªÙ…Ø¯Ø© Ù…Ù† Ù‚Ø¨Ù„ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ÙŠÙ† ÙˆÙ…Ø­Ø±Ùƒ Ø§Ù„Ø¨Ø­Ø« Ø§Ù„Ø°ÙƒÙŠ Ø³ØªØ¸Ù‡Ø± Ù‡Ù†Ø§ ÙÙˆØ± Ù†Ø´Ø±Ù‡Ø§.' : 'Opportunities moderated by administrators and our auto-crawlers will appear here once approved.'}
+            {language === 'ar' ? 'Ø§Ù„فرص Ø§Ù„Ù…Ø¹ØªÙ…دة Ù…Ù† Ù‚Ø¨Ù„ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ÙŠÙ† ÙˆÙ…Ø­Ø±Ùƒ Ø§Ù„بحث Ø§Ù„Ø°ÙƒÙŠ Ø³ØªØ¸Ù‡ر Ù‡Ù†ا ÙÙˆر Ù†Ø´Ø±Ù‡ا.' : 'Opportunities moderated by administrators and our auto-crawlers will appear here once approved.'}
           </p>
         </div>
       ) : (activeChip === 'all' && !isCustomFiltersActive) ? (
@@ -694,16 +727,16 @@ export default function FutureFeed({
                 <span className="text-3xl mb-1.5 select-none animate-bounce">ðŸŽ“</span>
                 <p className="text-[11px] font-black text-slate-700 uppercase tracking-wide">
                   {language === 'ar' 
-                    ? `Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ù†Ø´ÙˆØ±Ø§Øª Ù„Ø¬Ø§Ù…Ø¹ØªÙƒ Ø­Ø§Ù„ÙŠØ§Ù‹. ØªØµÙØ­ Ø§Ù„ÙØ±Øµ Ø§Ù„Ø¹Ø§Ù…Ø© Ù„Ø¹Ù…ÙˆÙ… Ø§Ù„Ø¹Ø±Ø§Ù‚!` 
+                    ? `Ù„ا ØªÙˆجد Ù…Ù†Ø´Ùˆرات Ù„Ø¬Ø§Ù…Ø¹ØªÙƒ Ø­Ø§Ù„ÙŠØ§Ù‹. تصفح Ø§Ù„فرص Ø§Ù„Ø¹Ø§Ù…ة Ù„Ø¹Ù…ÙˆÙ… Ø§Ù„Ø¹Ø±Ø§Ù‚!` 
                     : language === 'ku' 
-                    ? `Ù‡ÛŒÚ† Ø¯Û•Ø±ÙÛ•ØªÛŽÚ© Ø¨Û† Ø²Ø§Ù†Ú©Û†Ú©Û•Øª Ù†ÛŒÛŒÛ• Ù„Û• Ø¦ÛŽØ³ØªØ§Ø¯Ø§. Ø¯Û•Ø±ÙÛ•ØªÛ• Ú¯Ø´ØªÛŒÛŒÛ•Ú©Ø§Ù†ÛŒ Ø¹ÛŽØ±Ø§Ù‚ ØªØ§Ù‚ÛŒØ¨Ú©Û• Ø¨Ú©Û•!` 
+                    ? `Ù‡ÛŒÚ† Ø¯Û•Ø±ÙÛ•ØªÛŽک Ø¨Û† Ø²Ø§Ù†Ú©Û†Ú©Û•ت Ù†ÛŒÛŒÛ• Ù„Û• Ø¦ÛŽستادا. Ø¯Û•Ø±ÙÛ•ØªÛ• Ú¯Ø´ØªÛŒÛŒÛ•Ú©Ø§Ù†ÛŒ Ø¹ÛŽØ±Ø§Ù‚ ØªØ§Ù‚ÛŒØ¨Ú©Û• Ø¨Ú©Û•!` 
                     : `No jobs yet for your university â€” explore All Iraq opportunities.`}
                 </p>
                 <div 
                   onClick={() => setActiveChip('internship')}
                   className="mt-3 bg-[#FFD21F] text-[#161A33] border-2 border-[#161A33] font-black text-[10px] px-3 py-1.5 rounded-xl transition-all hover:scale-102 cursor-pointer shadow-[2px_2px_0px_0px_#161A33]"
                 >
-                  {language === 'ar' ? 'Ø§Ø³ØªÙƒØ´Ù Ø§Ù„ÙØ±Øµ Ø§Ù„Ø¹Ø§Ù…Ø© Ù„Ù„Ø¹Ø±Ø§Ù‚' : language === 'ku' ? 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ù‡Û•Ù„ÛŒ Ú©Ø§Ø±Û• Ú¯Ø´ØªÛŒÛŒÛ•Ú©Ø§Ù†' : 'Explore General Opportunities'}
+                  {language === 'ar' ? 'Ø§Ø³ØªÙƒشف Ø§Ù„فرص Ø§Ù„Ø¹Ø§Ù…ة Ù„Ù„Ø¹Ø±Ø§Ù‚' : language === 'ku' ? 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ù‡Û•Ù„ÛŒ Ú©Ø§Ø±Û• Ú¯Ø´ØªÛŒÛŒÛ•Ú©Ø§Ù†' : 'Explore General Opportunities'}
                 </div>
               </div>
             ) : (
@@ -738,9 +771,9 @@ export default function FutureFeed({
             {popularLocalItems.length === 0 ? (
               <p className="text-[10px] font-bold text-slate-600 bg-white rounded-2xl p-4 border-2 border-[#E6E1F5] text-center leading-relaxed">
                 {language === 'ar' 
-                  ? `Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ù†Ø´ÙˆØ±Ø§Øª Ù…Ù…ÙŠØ²Ø© Ø­Ø§Ù„ÙŠØ§Ù‹ ÙÙŠ ${getGovLabel()}. Ù…Ø¹Ø±ÙˆØ¶ Ù„Ùƒ Ø§Ù„ÙØ±Øµ Ø§Ù„Ø¹Ø§Ù…Ø© ÙÙŠ Ø§Ù„Ø¹Ø±Ø§Ù‚!` 
+                  ? `Ù„ا ØªÙˆجد Ù…Ù†Ø´Ùˆرات Ù…Ù…ÙŠزة Ø­Ø§Ù„ÙŠØ§Ù‹ ÙÙŠ ${getGovLabel()}. Ù…Ø¹Ø±Ùˆض Ù„Ùƒ Ø§Ù„فرص Ø§Ù„Ø¹Ø§Ù…ة ÙÙŠ Ø§Ù„Ø¹Ø±Ø§Ù‚!` 
                   : language === 'ku' 
-                  ? `Ù‡ÛŒÚ† Ù¾Û†Ø³ØªÛŽÚ©ÛŒ Ø³Û•Ø±Ù†Ø¬Ú•Ø§Ú©ÛŽØ´ Ù„Û• ${getGovLabel()} Ù†ÛŒÛŒÛ•. Ø¨Û•Ù‡Ø§ÛŒ Ú¯Ø´ØªÛŒ Ø¹ÛŽØ±Ø§Ù‚Øª Ù¾ÛŒØ´Ø§Ù† Ø¯Û•Ø¯Û•ÛŒÙ†!` 
+                  ? `Ù‡ÛŒÚ† Ù¾Û†Ø³ØªÛŽÚ©ÛŒ Ø³Û•Ø±Ù†Ø¬Ú•Ø§Ú©ÛŽش Ù„Û• ${getGovLabel()} Ù†ÛŒÛŒÛ•. Ø¨Û•Ù‡Ø§ÛŒ Ú¯Ø´ØªÛŒ Ø¹ÛŽØ±Ø§Ù‚ت Ù¾ÛŒØ´Ø§Ù† Ø¯Û•Ø¯Û•ÛŒÙ†!` 
                   : `No active highlights in ${getGovLabel()} yet. Showing Iraqi national highlights instead!`}
               </p>
             ) : (
@@ -882,10 +915,10 @@ export default function FutureFeed({
             <div className="text-center py-12 text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-6 shadow-sm">
               <div className="text-3xl mb-2">ðŸ”­</div>
               <h3 className="font-extrabold text-[#161A33] text-xs">
-                {language === 'ar' ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ ÙØ±Øµ Ù…Ø·Ø§Ø¨Ù‚Ø© Ù„Ù„ØªØµÙÙŠØ© Ø§Ù„Ù…Ø­Ø³Ù†Ø©' : language === 'ku' ? 'Ù‡ÛŒÚ† Ø¯Û•Ø±ÙÛ•ØªÛŽÚ© Ù†Û•Ø¯Û†Ø²Ø±Ø§ÛŒÛ•ÙˆÛ• Ø¨Û•Ù… Ù…Û•Ø±Ø¬Ø§Ù†Û•' : 'No opportunities matches this filter'}
+                {language === 'ar' ? 'Ù„ا ØªÙˆجد فرص Ù…Ø·Ø§Ø¨Ù‚ة Ù„Ù„ØªØµÙÙŠة Ø§Ù„Ù…Ø­Ø³Ù†ة' : language === 'ku' ? 'Ù‡ÛŒÚ† Ø¯Û•Ø±ÙÛ•ØªÛŽک Ù†Û•Ø¯Û†Ø²Ø±Ø§ÛŒÛ•ÙˆÛ• Ø¨Û•Ù… Ù…Û•Ø±Ø¬Ø§Ù†Û•' : 'No opportunities matches this filter'}
               </h3>
               <p className="text-[10px] text-slate-500 max-w-xs mt-1.5 mx-auto leading-relaxed">
-                {language === 'ar' ? 'Ø¬Ø±Ù‘Ø¨ ÙƒØªØ§Ø¨Ø© ÙƒÙ„Ù…Ø§Øª Ø£Ø¨Ø³Ø· Ø£Ùˆ ØªØºÙŠÙŠØ± Ø§Ù„ÙÙ„ØªØ± Ø§Ù„Ø°ÙƒÙŠ Ø£Ùˆ Ù‚Ù… Ø¨Ù…Ø­Ùˆ Ù…Ø¹ÙŠØ§Ø± Ø§Ù„Ø¨Ø­Ø«.' : 'Try broadening your governorate or scope selection or clearing the search bar.'}
+                {language === 'ar' ? 'Ø¬Ø±Ù‘ب Ùƒتابة ÙƒÙ„Ù…ات أبسط Ø£Ùˆ ØªØºÙŠÙŠر Ø§Ù„ÙÙ„تر Ø§Ù„Ø°ÙƒÙŠ Ø£Ùˆ Ù‚Ù… Ø¨Ù…Ø­Ùˆ Ù…Ø¹ÙŠار Ø§Ù„بحث.' : 'Try broadening your governorate or scope selection or clearing the search bar.'}
               </p>
             </div>
           ) : (
@@ -915,7 +948,7 @@ export default function FutureFeed({
                   className="w-full mt-2 py-3 bg-white text-[#161A33] font-black border-2 border-[#161A33] hover:bg-slate-55 hover:text-[#6B25C9] rounded-2xl cursor-pointer transition-all active:scale-[0.98] shadow-[2px_2px_0px_0px_#161A33] flex items-center justify-center gap-1.5 text-xs select-none"
                   id="opportunities-load-more-btn"
                 >
-                  <span>{language === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„Ù…Ø²ÙŠØ¯ Ù…Ù† Ø§Ù„ÙØ±Øµ ðŸ”„' : language === 'ku' ? 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ø¯Û•Ø±ÙÛ•ØªÛŒ Ø²ÛŒØ§ØªØ± ðŸ”„' : 'Load More Opportunities ðŸ”„'}</span>
+                  <span>{language === 'ar' ? 'عرض Ø§Ù„Ù…Ø²ÙŠد Ù…Ù† Ø§Ù„فرص ðŸ”„' : language === 'ku' ? 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ø¯Û•Ø±ÙÛ•ØªÛŒ Ø²ÛŒاتر ðŸ”„' : 'Load More Opportunities ðŸ”„'}</span>
                 </button>
               )}
             </>
