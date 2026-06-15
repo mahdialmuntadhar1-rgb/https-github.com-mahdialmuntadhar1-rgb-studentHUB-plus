@@ -503,11 +503,11 @@ async function workerPublicProfile(env: Env, user: any, viewerId?: string) {
 
 async function decorateWorkerPost(env: Env, post: any, viewerId?: string) {
   const author = post.author_id
-    ? await env.DB.prepare("SELECT id, name, email, role FROM profiles WHERE id = ? LIMIT 1").bind(post.author_id).first()
+    ? await env.DB.prepare("SELECT id, full_name AS name, full_name, email, role FROM profiles WHERE id = ? LIMIT 1").bind(post.author_id).first()
     : null;
 
   const comments = await env.DB.prepare(
-    `SELECT c.*, p.name AS author_name, p.role AS author_role
+    `SELECT c.*, p.full_name AS author_name, p.role AS author_role
      FROM comments c
      LEFT JOIN profiles p ON p.id = c.author_id
      WHERE c.post_id = ?
@@ -552,7 +552,7 @@ async function handleWorkerProfileUpdate(request: Request, env: Env) {
   const name = sanitizeText(body.name, 80);
 
   if (name) {
-    await env.DB.prepare("UPDATE profiles SET name = ? WHERE id = ?").bind(name, user.id).run();
+    await env.DB.prepare("UPDATE profiles SET full_name = ?, updated_at = ? WHERE id = ?").bind(name, new Date().toISOString(), user.id).run();
     user.name = name;
   }
 
@@ -569,8 +569,8 @@ async function handleWorkerUserSearch(request: Request, env: Env, url: URL) {
   const rows = await env.DB.prepare(
     `SELECT * FROM profiles
      WHERE id <> ?
-       AND lower(COALESCE(name, '') || ' ' || COALESCE(email, '')) LIKE ?
-     ORDER BY name
+       AND lower(COALESCE(full_name, '') || ' ' || COALESCE(email, '')) LIKE ?
+     ORDER BY full_name
      LIMIT 20`
   ).bind(viewer.id, q).all();
 
@@ -749,7 +749,7 @@ async function handleWorkerLike(request: Request, env: Env, postId: string, shou
 
 async function handleWorkerComments(request: Request, env: Env, postId: string) {
   const rows = await env.DB.prepare(
-    `SELECT c.*, p.name AS author_name, p.role AS author_role
+    `SELECT c.*, p.full_name AS author_name, p.role AS author_role
      FROM comments c
      LEFT JOIN profiles p ON p.id = c.author_id
      WHERE c.post_id = ?
@@ -1123,7 +1123,7 @@ async function handleAutomationRequest(request: Request, env: Env, url: URL, use
   if (path === "/sources" && request.method === "GET") {
     const search = `%${String(url.searchParams.get("search") || "").toLowerCase()}%`;
     const rows = await env.DB.prepare(
-      "SELECT * FROM sources WHERE lower(name || ' ' || url) LIKE ? ORDER BY name"
+      "SELECT * FROM sources WHERE lower(name || ' ' || url) LIKE ? ORDER BY full_name"
     ).bind(search).all();
     return jsonResponse({ data: rows.results || [], total: rows.results?.length || 0 });
   }
@@ -1642,6 +1642,7 @@ async function logScrapingActivity(env: Env, log: any): Promise<void> {
     console.error("D1 logger action error:", err);
   }
 }
+
 
 
 
