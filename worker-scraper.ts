@@ -258,7 +258,7 @@ async function signToken(env: Env, user: any) {
     sub: user.id,
     email: user.email,
     role: user.role,
-    name: user.name,
+    name: user.name || user.full_name || "Student",
     iat: now,
     exp: now + 60 * 60 * 24 * 7
   }));
@@ -306,7 +306,14 @@ async function verifyPassword(password: string, storedHash: string) {
 }
 
 function publicUser(user: any) {
-  return { id: user.id, name: user.name, email: user.email, role: user.role };
+  return {
+    id: user.id,
+    name: user.name || user.full_name || "Student",
+    full_name: user.full_name || user.name || "Student",
+    email: user.email,
+    role: user.role || "student",
+    is_verified: Number(user.is_verified || 0)
+  };
 }
 
 function emailsDryRunEnabled(env: Env) {
@@ -340,26 +347,43 @@ async function requireWorkerAdmin(request: Request, env: Env) {
 
 async function handleRegister(request: Request, env: Env) {
   const body: any = await readJson(request);
-  const name = String(body.name || "").trim();
+  const name = String(body.name || body.full_name || "").trim();
   const email = String(body.email || "").trim().toLowerCase();
   const password = String(body.password || "");
+
   if (!name || !email.includes("@") || password.length < 6) {
     return jsonResponse({ error: "Name, valid email, and password with at least 6 characters are required." }, 400);
   }
+
   if (await findUserByEmail(env, email)) {
     return jsonResponse({ error: "Email already exists." }, 409);
   }
+
+  const now = new Date().toISOString();
   const user = {
     id: `user-${Date.now()}-${crypto.randomUUID().slice(0, 8)}`,
+    full_name: name,
     name,
     email,
     role: "student",
-    passwordHash: await hashPassword(password),
-    createdAt: new Date().toISOString()
+    password_hash: await hashPassword(password),
+    is_verified: 1,
+    updated_at: now
   };
+
   await env.DB.prepare(
-    "INSERT INTO profiles (id, name, email, role, passwordHash, createdAt) VALUES (?, ?, ?, ?, ?, ?)"
-  ).bind(user.id, user.name, user.email, user.role, user.passwordHash, user.createdAt).run();
+    `INSERT INTO profiles (id, email, password_hash, full_name, role, is_verified, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  ).bind(
+    user.id,
+    user.email,
+    user.password_hash,
+    user.full_name,
+    user.role,
+    user.is_verified,
+    user.updated_at
+  ).run();
+
   return jsonResponse({ token: await signToken(env, user), user: publicUser(user) }, 201);
 }
 
@@ -368,7 +392,7 @@ async function handleLogin(request: Request, env: Env) {
   const email = String(body.email || "").trim().toLowerCase();
   const password = String(body.password || "");
   const user = await findUserByEmail(env, email);
-  if (!user || !(await verifyPassword(password, user.passwordHash))) {
+  if (!user || !(await verifyPassword(password, user.password_hash || user.passwordHash))) {
     return jsonResponse({ error: "Invalid email or password." }, 401);
   }
   return jsonResponse({ token: await signToken(env, user), user: publicUser(user) });
@@ -1611,6 +1635,7 @@ async function logScrapingActivity(env: Env, log: any): Promise<void> {
     console.error("D1 logger action error:", err);
   }
 }
+
 
 
 
