@@ -247,30 +247,37 @@ export function getLocalizedContent(
   const selectedVal = getValueForKeys(getKeysForLang(selectedLanguage));
   if (selectedVal !== undefined) return selectedVal;
 
-  // 2. Original version
+  const enVal = getValueForKeys(getKeysForLang('en'));
+  const arVal = getValueForKeys(getKeysForLang('ar'));
+  const kuVal = getValueForKeys(getKeysForLang('ku'));
   const origVal = getValueForKeys(getOriginalKeys());
-  if (origVal !== undefined) return origVal;
+  const rawVal = getValueForKeys(getRawKeys());
 
-  // 2b. If item has original_language, try that
-  if (item.original_language && (item.original_language === 'ar' || item.original_language === 'ku' || item.original_language === 'en')) {
-    const origLangVal = getValueForKeys(getKeysForLang(item.original_language));
-    if (origLangVal !== undefined) return origLangVal;
+  // Kurdish should never fall back to Arabic before English/original-safe choices.
+  if (selectedLanguage === 'ku') {
+    if (enVal !== undefined) return enVal;
+    if (origVal !== undefined) return origVal;
+    if (kuVal !== undefined) return kuVal;
+    if (arVal !== undefined) return arVal;
+    if (rawVal !== undefined) return rawVal;
+    return '';
   }
 
-  // 3. Arabic version
-  const arVal = getValueForKeys(getKeysForLang('ar'));
-  if (arVal !== undefined) return arVal;
+  // Arabic should prefer Arabic, then English/original, then Kurdish only as last resort.
+  if (selectedLanguage === 'ar') {
+    if (enVal !== undefined) return enVal;
+    if (origVal !== undefined) return origVal;
+    if (arVal !== undefined) return arVal;
+    if (kuVal !== undefined) return kuVal;
+    if (rawVal !== undefined) return rawVal;
+    return '';
+  }
 
-  // 4. Kurdish Sorani version
-  const kuVal = getValueForKeys(getKeysForLang('ku'));
-  if (kuVal !== undefined) return kuVal;
-
-  // 5. English version
-  const enVal = getValueForKeys(getKeysForLang('en'));
+  // English prefers English, then original, then Arabic/Kurdish as last resort.
   if (enVal !== undefined) return enVal;
-
-  // 6. Existing raw field
-  const rawVal = getValueForKeys(getRawKeys());
+  if (origVal !== undefined) return origVal;
+  if (arVal !== undefined) return arVal;
+  if (kuVal !== undefined) return kuVal;
   if (rawVal !== undefined) return rawVal;
 
   return '';

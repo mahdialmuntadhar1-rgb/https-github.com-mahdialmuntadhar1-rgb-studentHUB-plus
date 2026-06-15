@@ -138,11 +138,11 @@ export default function FeedCard({
               <p className="text-[10px] font-black uppercase tracking-wider text-[#6B25C9]">
                 {label}
               </p>
-              <p dir="auto" className="mt-1 line-clamp-2 text-sm font-black leading-snug text-[#161A33]">
-                {title}
+              <p className="mt-1 text-sm font-black leading-snug text-[#161A33]">
+                Jamiaati Moment
               </p>
               <p className="mt-1 text-[10px] font-bold text-slate-500">
-                Jamiaati student community
+                {language === 'ar' ? 'منشور طلابي خفيف' : language === 'ku' ? 'ساتێکی خوێندکاری' : 'Light student post'}
               </p>
             </div>
           </div>
@@ -664,12 +664,15 @@ export default function FeedCard({
           </h2>
         )}
 
+        {/* Social-style media first, then short caption */}
+        {renderImageGallery()}
+
         {/* Localized Content Text */}
-        <p dir="auto" className="text-xs font-semibold text-slate-700 leading-relaxed break-words whitespace-pre-line mb-3">
+        <p dir="auto" className="text-xs font-semibold text-slate-700 leading-relaxed break-words whitespace-pre-line mb-2 line-clamp-4">
           {content}
         </p>
 
-        {/* Translation toggler (Facebook style) */}
+        {/* Translation toggler (compact social style) */}
         {hasAlternativeLanguages(item, language) && (
           <button
             type="button"
@@ -687,9 +690,6 @@ export default function FeedCard({
             )}
           </button>
         )}
-
-        {/* Media Attachments */}
-        {renderImageGallery()}
 
         {/* Video simulation */}
         {item.type === 'video' && item.videoThumbnail && (

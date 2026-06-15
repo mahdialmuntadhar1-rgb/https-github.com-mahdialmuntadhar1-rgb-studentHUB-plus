@@ -119,6 +119,92 @@ export const defaultUserProfile: UserProfile = {
 };
 
 export const initialFeedItems: FeedItem[] = [
+  // LIGHT SOCIAL STUDENT POSTS — added to make Campus Life feel social first
+  {
+    id: 'social-campus-coffee-1',
+    type: 'photo',
+    original_language: 'ku',
+    titleEN: 'Morning coffee before class ☕',
+    titleAR: 'قهوة الصباح قبل المحاضرة ☕',
+    titleKU: 'قاوەی بەیانی پێش وانە ☕',
+    contentEN: 'Small coffee, big lecture day. Who else starts campus like this?',
+    contentAR: 'قهوة صغيرة ويوم محاضرات طويل. من يبدأ يومه في الجامعة هكذا؟',
+    contentKU: 'قاوەیەکی بچووک و ڕۆژێکی درێژی وانە. کێی تر ئاوا دەست بە ڕۆژی زانکۆ دەکات؟',
+    title_original: 'قاوەی بەیانی پێش وانە ☕',
+    body_original: 'قاوەیەکی بچووک و ڕۆژێکی درێژی وانە. کێی تر ئاوا دەست بە ڕۆژی زانکۆ دەکات؟',
+    author: {
+      name: 'Rojin Ahmed',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=150',
+      verified: false,
+      university: 'University of Sulaymaniyah'
+    },
+    date: '12 mins ago',
+    likes: 42,
+    commentsCount: 5,
+    commentsList: [],
+    governorateId: 'sulaymaniyah',
+    universityId: 'u_sulaymaniyah',
+    imageUrl: 'https://images.unsplash.com/photo-1495474472287-4d71bcdd2085?auto=format&fit=crop&q=80&w=900',
+    tags: ['campus', 'coffee', 'morning']
+  },
+  {
+    id: 'social-library-night-1',
+    type: 'photo',
+    original_language: 'ar',
+    titleEN: 'Library night mode 📚',
+    titleAR: 'وضع الليل في المكتبة 📚',
+    titleKU: 'شەوی کتێبخانە 📚',
+    contentEN: 'Exam week mood. One chapter, one tea, one more chance.',
+    contentAR: 'أجواء أسبوع الامتحانات. فصل واحد، شاي واحد، وفرصة أخرى.',
+    contentKU: 'هەستی هەفتەی تاقیکردنەوە. بەشێک، چایەک، هەلێکی تر.',
+    title_original: 'وضع الليل في المكتبة 📚',
+    body_original: 'أجواء أسبوع الامتحانات. فصل واحد، شاي واحد، وفرصة أخرى.',
+    author: {
+      name: 'Ali Kareem',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150',
+      verified: false,
+      university: 'University of Baghdad'
+    },
+    date: '35 mins ago',
+    likes: 88,
+    commentsCount: 11,
+    commentsList: [],
+    governorateId: 'baghdad',
+    universityId: 'u_baghdad',
+    imageUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&q=80&w=900',
+    tags: ['study', 'library', 'exams']
+  },
+  {
+    id: 'social-campus-friends-1',
+    type: 'photo',
+    original_language: 'en',
+    titleEN: 'Between lectures ✨',
+    titleAR: 'بين المحاضرات ✨',
+    titleKU: 'لە نێوان وانەکاندا ✨',
+    contentEN: 'The best part of campus is the people you meet between classes.',
+    contentAR: 'أجمل شيء في الجامعة هو الأشخاص الذين تلتقي بهم بين المحاضرات.',
+    contentKU: 'باشترین بەشی زانکۆ ئەو کەسانەن کە لە نێوان وانەکاندا دەیانناسی.',
+    title_original: 'Between lectures ✨',
+    body_original: 'The best part of campus is the people you meet between classes.',
+    author: {
+      name: 'Sara Hassan',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1531123897727-8f129e1688ce?auto=format&fit=crop&q=80&w=150',
+      verified: false,
+      university: 'Salahaddin University'
+    },
+    date: '1 hour ago',
+    likes: 134,
+    commentsCount: 18,
+    commentsList: [],
+    governorateId: 'erbil',
+    universityId: 'u_salahaddin',
+    imageUrl: 'https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?auto=format&fit=crop&q=80&w=900',
+    tags: ['friends', 'campus', 'life']
+  },
+
   // 1. REAL OPPORTUNITY - Asiacell Elite Graduate Accelerator Program (Internship / Part-time / Job)
   {
     id: 'real-opp-asiacell',

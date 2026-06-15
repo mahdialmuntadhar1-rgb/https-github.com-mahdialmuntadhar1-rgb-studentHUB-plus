@@ -94,13 +94,20 @@ export default function FutureFeed({
       displayCategory = 'Graduation project support';
     }
 
-    const titleEN = cleanText(item.titleEN || item.title || item.title_en || 'Public Opportunity');
-    const titleAR = cleanText(item.titleAR || item.title_ar || item.title || titleEN);
-    const titleKU = cleanText(item.titleKU || item.title_ku || item.title || titleEN);
+    const hasRtlScript = (value: string) => /[\u0600-\u06ff]/.test(value);
+    const rawTitle = cleanText(item.title || item.title_original || '');
+    const rawContent = cleanText(item.description || item.summary || item.content || '');
 
-    const contentEN = cleanText(item.contentEN || item.description || item.summary || item.description_en || 'View details of this public opportunity.');
-    const contentAR = cleanText(item.contentAR || item.description_ar || item.description || item.summary || contentEN);
-    const contentKU = cleanText(item.contentKU || item.description_ku || item.description || item.summary || contentEN);
+    const genericTitleEN = cleanText(displayCategory ? `${displayCategory} opportunity` : 'Public Opportunity');
+    const genericContentEN = 'View details of this public opportunity.';
+
+    const titleEN = cleanText(item.titleEN || item.title_en || (!hasRtlScript(rawTitle) ? rawTitle : genericTitleEN) || genericTitleEN);
+    const titleAR = cleanText(item.titleAR || item.title_ar || (hasRtlScript(rawTitle) ? rawTitle : titleEN));
+    const titleKU = cleanText(item.titleKU || item.title_ku || titleEN);
+
+    const contentEN = cleanText(item.contentEN || item.description_en || item.summary_en || (!hasRtlScript(rawContent) ? rawContent : genericContentEN) || genericContentEN);
+    const contentAR = cleanText(item.contentAR || item.description_ar || item.summary_ar || (hasRtlScript(rawContent) ? rawContent : contentEN));
+    const contentKU = cleanText(item.contentKU || item.description_ku || item.summary_ku || contentEN);
 
     const orgName = cleanText(item.organization || item.institution_name || item.university || item.company || 'Recruiter/Provider');
     const gov = cleanText(item.governorateId || item.governorate || 'all');
@@ -337,13 +344,32 @@ export default function FutureFeed({
     ].includes(item.type) || !!item.opportunityCategory;
   };
 
-  const institutionFilterOptions = Array.from(
-    new Set(
-      opportunities
-        .map(item => cleanText(item.company || item.author?.name || item.universityId || ''))
-        .filter((value): value is string => Boolean(value) && value.toLowerCase() !== 'all' && value.toLowerCase() !== 'unknown')
-    )
-  ).sort((a: string, b: string) => a.localeCompare(b));
+  const fallbackInstitutionFilterOptions = [
+    'University of Baghdad',
+    'University of Basrah',
+    'University of Duhok',
+    'University of Mosul',
+    'University of Koya',
+    'University of Karbala',
+    'University of Kufa',
+    'Mustansiriyah University'
+  ];
+
+  const institutionFilterOptions = (() => {
+    const liveOptions = Array.from(
+      new Set(
+        opportunities
+          .map(item => cleanText(item.company || item.author?.name || item.universityId || ''))
+          .filter((value): value is string => Boolean(value) && value.toLowerCase() !== 'all' && value.toLowerCase() !== 'unknown')
+      )
+    ).sort((a: string, b: string) => a.localeCompare(b));
+
+    if (liveOptions.length === 0 && ((import.meta as any).env?.DEV)) {
+      console.warn('No live institutions found from opportunities API. Using fallback institution list.');
+    }
+
+    return liveOptions.length > 0 ? liveOptions : fallbackInstitutionFilterOptions;
+  })();
 
   // Filter logic across Search + Governorate + Institution + Country + Deadline
   const filteredBaseOpportunities = opportunities.filter(item => {
@@ -996,4 +1022,5 @@ export default function FutureFeed({
     </div>
   );
 }
+
 
