@@ -91,6 +91,44 @@ export default {
       return handleWorkerFollow(request, env, followMatch[1], false);
     }
 
+    if (url.pathname === "/api/friend-requests" && request.method === "GET") {
+      return handleFriendRequests(request, env);
+    }
+
+    if (url.pathname === "/api/friend-requests" && request.method === "POST") {
+      return handleCreateFriendRequest(request, env);
+    }
+
+    const friendRequestActionMatch = url.pathname.match(/^\/api\/friend-requests\/([^/]+)\/(accept|decline|cancel)$/);
+    if (friendRequestActionMatch && request.method === "POST") {
+      return handleFriendRequestAction(request, env, friendRequestActionMatch[1], friendRequestActionMatch[2]);
+    }
+
+    if (url.pathname === "/api/message-requests" && request.method === "GET") {
+      return handleMessageRequests(request, env);
+    }
+
+    if (url.pathname === "/api/message-requests" && request.method === "POST") {
+      return handleCreateMessageRequest(request, env);
+    }
+
+    const messageRequestActionMatch = url.pathname.match(/^\/api\/message-requests\/([^/]+)\/(accept|decline)$/);
+    if (messageRequestActionMatch && request.method === "POST") {
+      return handleMessageRequestAction(request, env, messageRequestActionMatch[1], messageRequestActionMatch[2]);
+    }
+
+    if (url.pathname === "/api/messages/threads" && request.method === "GET") {
+      return handleMessageThreads(request, env);
+    }
+
+    const threadMessagesMatch = url.pathname.match(/^\/api\/messages\/threads\/([^/]+)\/messages$/);
+    if (threadMessagesMatch && request.method === "GET") {
+      return handleThreadMessages(request, env, threadMessagesMatch[1]);
+    }
+
+    if (threadMessagesMatch && request.method === "POST") {
+      return handleSendThreadMessage(request, env, threadMessagesMatch[1]);
+    }
     if ((url.pathname === "/api/feed" || url.pathname === "/api/posts" || url.pathname === "/api/posts/feed") && request.method === "GET") {
       return handleWorkerFeed(request, env, url);
     }
@@ -847,6 +885,328 @@ async function handleWorkerReportPost(request: Request, env: Env, postId: string
   return jsonResponse({ report }, 201);
 }
 
+async function profileSummary(env: Env, userId: string) {
+  if (!userId) return null;
+  return env.DB.prepare(
+    "SELECT id, full_name AS name, full_name, email, role, avatar_url FROM profiles WHERE id = ? LIMIT 1"
+  ).bind(userId).first();
+}
+
+async function handleFriendRequests(request: Request, env: Env) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+
+  const incoming = await env.DB.prepare(
+    `SELECT r.*, p.full_name AS requester_name, p.email AS requester_email, p.role AS requester_role
+     FROM connection_requests r
+     LEFT JOIN profiles p ON p.id = r.requester_id
+     WHERE r.recipient_id = ? AND r.status = 'pending'
+     ORDER BY r.created_at DESC`
+  ).bind(user.id).all();
+
+  const outgoing = await env.DB.prepare(
+    `SELECT r.*, p.full_name AS recipient_name, p.email AS recipient_email, p.role AS recipient_role
+     FROM connection_requests r
+     LEFT JOIN profiles p ON p.id = r.recipient_id
+     WHERE r.requester_id = ? AND r.status = 'pending'
+     ORDER BY r.created_at DESC`
+  ).bind(user.id).all();
+
+  return jsonResponse({ incoming: incoming.results || [], outgoing: outgoing.results || [] });
+}
+
+async function handleCreateFriendRequest(request: Request, env: Env) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+
+  const body: any = await readJson(request);
+  const targetUserId = sanitizeText(body.targetUserId || body.recipientId || body.userId, 160);
+  const message = sanitizeText(body.message, 500);
+
+  if (!targetUserId) return jsonResponse({ error: "Target user is required." }, 400);
+  if (targetUserId === user.id) return jsonResponse({ error: "You cannot send a friend request to yourself." }, 400);
+
+  const target = await profileSummary(env, targetUserId);
+  if (!target) return jsonResponse({ error: "User not found." }, 404);
+
+  const existing = await env.DB.prepare(
+    `SELECT * FROM connection_requests
+     WHERE ((requester_id = ? AND recipient_id = ?) OR (requester_id = ? AND recipient_id = ?))
+       AND status = 'pending'
+     LIMIT 1`
+  ).bind(user.id, targetUserId, targetUserId, user.id).first();
+
+  if (existing) return jsonResponse({ error: "A pending request already exists.", request: existing }, 409);
+
+  const now = new Date().toISOString();
+  const requestRow = {
+    id: crypto.randomUUID(),
+    requester_id: user.id,
+    recipient_id: targetUserId,
+    status: "pending",
+    message,
+    created_at: now,
+    updated_at: now
+  };
+
+  await env.DB.prepare(
+    `INSERT INTO connection_requests (id, requester_id, recipient_id, status, message, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?)`
+  ).bind(
+    requestRow.id,
+    requestRow.requester_id,
+    requestRow.recipient_id,
+    requestRow.status,
+    requestRow.message,
+    requestRow.created_at,
+    requestRow.updated_at
+  ).run();
+
+  return jsonResponse({ request: requestRow, recipient: target }, 201);
+}
+
+async function handleFriendRequestAction(request: Request, env: Env, requestId: string, action: string) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+
+  const row: any = await env.DB.prepare(
+    "SELECT * FROM connection_requests WHERE id = ? LIMIT 1"
+  ).bind(requestId).first();
+
+  if (!row) return jsonResponse({ error: "Friend request not found." }, 404);
+
+  const now = new Date().toISOString();
+
+  if (action === "accept") {
+    if (row.recipient_id !== user.id) return jsonResponse({ error: "Only the recipient can accept this request." }, 403);
+
+    await env.DB.prepare("UPDATE connection_requests SET status = 'accepted', updated_at = ? WHERE id = ?")
+      .bind(now, requestId).run();
+
+    await env.DB.prepare("INSERT OR IGNORE INTO follows (id, follower_id, followee_id, created_at) VALUES (?, ?, ?, ?)")
+      .bind(crypto.randomUUID(), row.requester_id, row.recipient_id, now).run();
+
+    await env.DB.prepare("INSERT OR IGNORE INTO follows (id, follower_id, followee_id, created_at) VALUES (?, ?, ?, ?)")
+      .bind(crypto.randomUUID(), row.recipient_id, row.requester_id, now).run();
+
+    return jsonResponse({ success: true, status: "accepted" });
+  }
+
+  if (action === "decline") {
+    if (row.recipient_id !== user.id) return jsonResponse({ error: "Only the recipient can decline this request." }, 403);
+
+    await env.DB.prepare("UPDATE connection_requests SET status = 'declined', updated_at = ? WHERE id = ?")
+      .bind(now, requestId).run();
+
+    return jsonResponse({ success: true, status: "declined" });
+  }
+
+  if (action === "cancel") {
+    if (row.requester_id !== user.id) return jsonResponse({ error: "Only the requester can cancel this request." }, 403);
+
+    await env.DB.prepare("UPDATE connection_requests SET status = 'cancelled', updated_at = ? WHERE id = ?")
+      .bind(now, requestId).run();
+
+    return jsonResponse({ success: true, status: "cancelled" });
+  }
+
+  return jsonResponse({ error: "Unsupported friend request action." }, 400);
+}
+
+async function handleMessageRequests(request: Request, env: Env) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+
+  const incoming = await env.DB.prepare(
+    `SELECT t.*, p.full_name AS requester_name, p.email AS requester_email
+     FROM message_threads t
+     LEFT JOIN profiles p ON p.id = t.requester_id
+     WHERE t.recipient_id = ? AND t.status = 'requested'
+     ORDER BY COALESCE(t.last_message_at, t.created_at) DESC`
+  ).bind(user.id).all();
+
+  const outgoing = await env.DB.prepare(
+    `SELECT t.*, p.full_name AS recipient_name, p.email AS recipient_email
+     FROM message_threads t
+     LEFT JOIN profiles p ON p.id = t.recipient_id
+     WHERE t.requester_id = ? AND t.status = 'requested'
+     ORDER BY COALESCE(t.last_message_at, t.created_at) DESC`
+  ).bind(user.id).all();
+
+  return jsonResponse({ incoming: incoming.results || [], outgoing: outgoing.results || [] });
+}
+
+async function handleCreateMessageRequest(request: Request, env: Env) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+
+  const body: any = await readJson(request);
+  const recipientId = sanitizeText(body.recipientId || body.targetUserId || body.userId, 160);
+  const text = sanitizeText(body.body || body.message || body.content, 2000);
+
+  if (!recipientId) return jsonResponse({ error: "Recipient is required." }, 400);
+  if (!text) return jsonResponse({ error: "Message body is required." }, 400);
+  if (recipientId === user.id) return jsonResponse({ error: "You cannot message yourself." }, 400);
+
+  const recipient = await profileSummary(env, recipientId);
+  if (!recipient) return jsonResponse({ error: "Recipient not found." }, 404);
+
+  const existing: any = await env.DB.prepare(
+    `SELECT * FROM message_threads
+     WHERE type = 'direct'
+       AND status <> 'declined'
+       AND ((requester_id = ? AND recipient_id = ?) OR (requester_id = ? AND recipient_id = ?))
+     LIMIT 1`
+  ).bind(user.id, recipientId, recipientId, user.id).first();
+
+  const now = new Date().toISOString();
+  let threadId = existing?.id;
+
+  if (!threadId) {
+    threadId = crypto.randomUUID();
+
+    await env.DB.prepare(
+      `INSERT INTO message_threads (id, type, status, requester_id, recipient_id, last_message_at, created_at, updated_at)
+       VALUES (?, 'direct', 'requested', ?, ?, ?, ?, ?)`
+    ).bind(threadId, user.id, recipientId, now, now, now).run();
+
+    await env.DB.prepare(
+      "INSERT OR IGNORE INTO message_thread_members (thread_id, user_id, role, status, created_at) VALUES (?, ?, 'member', 'active', ?)"
+    ).bind(threadId, user.id, now).run();
+
+    await env.DB.prepare(
+      "INSERT OR IGNORE INTO message_thread_members (thread_id, user_id, role, status, created_at) VALUES (?, ?, 'member', 'active', ?)"
+    ).bind(threadId, recipientId, now).run();
+  }
+
+  const message = {
+    id: crypto.randomUUID(),
+    thread_id: threadId,
+    sender_id: user.id,
+    body: text,
+    status: "sent",
+    created_at: now
+  };
+
+  await env.DB.prepare(
+    "INSERT INTO messages (id, thread_id, sender_id, body, status, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+  ).bind(message.id, message.thread_id, message.sender_id, message.body, message.status, message.created_at).run();
+
+  await env.DB.prepare("UPDATE message_threads SET last_message_at = ?, updated_at = ? WHERE id = ?")
+    .bind(now, now, threadId).run();
+
+  return jsonResponse({ threadId, message, recipient, status: existing?.status || "requested" }, 201);
+}
+
+async function handleMessageRequestAction(request: Request, env: Env, threadId: string, action: string) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+
+  const thread: any = await env.DB.prepare("SELECT * FROM message_threads WHERE id = ? LIMIT 1").bind(threadId).first();
+  if (!thread) return jsonResponse({ error: "Message request not found." }, 404);
+
+  if (thread.recipient_id !== user.id) {
+    return jsonResponse({ error: "Only the recipient can respond to this message request." }, 403);
+  }
+
+  if (!["accept", "decline"].includes(action)) {
+    return jsonResponse({ error: "Unsupported message request action." }, 400);
+  }
+
+  const status = action === "accept" ? "accepted" : "declined";
+  const now = new Date().toISOString();
+
+  await env.DB.prepare("UPDATE message_threads SET status = ?, updated_at = ? WHERE id = ?")
+    .bind(status, now, threadId).run();
+
+  return jsonResponse({ success: true, status });
+}
+
+async function handleMessageThreads(request: Request, env: Env) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+
+  const rows = await env.DB.prepare(
+    `SELECT t.*,
+            other.id AS other_user_id,
+            other.full_name AS other_name,
+            other.email AS other_email,
+            (SELECT body FROM messages m WHERE m.thread_id = t.id AND m.deleted_at IS NULL ORDER BY m.created_at DESC LIMIT 1) AS last_message
+     FROM message_threads t
+     JOIN message_thread_members me ON me.thread_id = t.id AND me.user_id = ?
+     LEFT JOIN profiles other ON other.id = CASE WHEN t.requester_id = ? THEN t.recipient_id ELSE t.requester_id END
+     WHERE t.status = 'accepted'
+     ORDER BY COALESCE(t.last_message_at, t.created_at) DESC`
+  ).bind(user.id, user.id).all();
+
+  return jsonResponse({ threads: rows.results || [] });
+}
+
+async function requireThreadMember(env: Env, threadId: string, userId: string) {
+  const thread = await env.DB.prepare(
+    `SELECT t.*
+     FROM message_threads t
+     JOIN message_thread_members m ON m.thread_id = t.id
+     WHERE t.id = ? AND m.user_id = ?
+     LIMIT 1`
+  ).bind(threadId, userId).first();
+
+  return thread;
+}
+
+async function handleThreadMessages(request: Request, env: Env, threadId: string) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+
+  const thread: any = await requireThreadMember(env, threadId, user.id);
+  if (!thread) return jsonResponse({ error: "Thread not found." }, 404);
+
+  const rows = await env.DB.prepare(
+    `SELECT m.*, p.full_name AS sender_name, p.role AS sender_role
+     FROM messages m
+     LEFT JOIN profiles p ON p.id = m.sender_id
+     WHERE m.thread_id = ? AND m.deleted_at IS NULL
+     ORDER BY m.created_at ASC
+     LIMIT 200`
+  ).bind(threadId).all();
+
+  await env.DB.prepare("UPDATE message_thread_members SET last_read_at = ? WHERE thread_id = ? AND user_id = ?")
+    .bind(new Date().toISOString(), threadId, user.id).run();
+
+  return jsonResponse({ thread, messages: rows.results || [] });
+}
+
+async function handleSendThreadMessage(request: Request, env: Env, threadId: string) {
+  const user = await requireWorkerAuth(request, env);
+  if (user instanceof Response) return user;
+
+  const thread: any = await requireThreadMember(env, threadId, user.id);
+  if (!thread) return jsonResponse({ error: "Thread not found." }, 404);
+  if (thread.status !== "accepted") return jsonResponse({ error: "Message request must be accepted before sending more messages." }, 403);
+
+  const body: any = await readJson(request);
+  const text = sanitizeText(body.body || body.message || body.content, 2000);
+  if (!text) return jsonResponse({ error: "Message body is required." }, 400);
+
+  const now = new Date().toISOString();
+  const message = {
+    id: crypto.randomUUID(),
+    thread_id: threadId,
+    sender_id: user.id,
+    body: text,
+    status: "sent",
+    created_at: now
+  };
+
+  await env.DB.prepare(
+    "INSERT INTO messages (id, thread_id, sender_id, body, status, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+  ).bind(message.id, message.thread_id, message.sender_id, message.body, message.status, message.created_at).run();
+
+  await env.DB.prepare("UPDATE message_threads SET last_message_at = ?, updated_at = ? WHERE id = ?")
+    .bind(now, now, threadId).run();
+
+  return jsonResponse({ message }, 201);
+}
 const DEFAULT_PORTAL_SETTINGS = {
   heroImage: "https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600",
   heroTitle: {
@@ -1123,7 +1483,7 @@ async function handleAutomationRequest(request: Request, env: Env, url: URL, use
   if (path === "/sources" && request.method === "GET") {
     const search = `%${String(url.searchParams.get("search") || "").toLowerCase()}%`;
     const rows = await env.DB.prepare(
-      "SELECT * FROM sources WHERE lower(name || ' ' || url) LIKE ? ORDER BY full_name"
+      "SELECT * FROM sources WHERE lower(name || ' ' || url) LIKE ? ORDER BY name"
     ).bind(search).all();
     return jsonResponse({ data: rows.results || [], total: rows.results?.length || 0 });
   }
@@ -1642,6 +2002,7 @@ async function logScrapingActivity(env: Env, log: any): Promise<void> {
     console.error("D1 logger action error:", err);
   }
 }
+
 
 
 
