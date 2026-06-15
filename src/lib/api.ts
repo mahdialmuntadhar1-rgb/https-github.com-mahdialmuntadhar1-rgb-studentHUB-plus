@@ -1,4 +1,4 @@
-import { Language } from '../types';
+﻿import { Language } from '../types';
 
 export const BACKEND_URL =
   (((import.meta as any).env?.VITE_API_URL as string | undefined) || window.location.origin).trim().replace(/\/$/, '');
@@ -43,23 +43,23 @@ async function handleResponse(response: Response, language: Language = 'ar', opt
   if (response.status === 401) {
     const message = data?.message || data?.error;
     if (!options.suppressAuthAlert) {
-      alert(message || (language === 'ar' ? 'قم بتسجيل الدخول أولاً.' : language === 'ku' ? 'تکایە سەرەتا بچۆ ژوورەوە.' : 'Login required.'));
+      alert(message || (language === 'ar' ? 'Ù‚Ù… Ø¨ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø£ÙˆÙ„Ø§Ù‹.' : language === 'ku' ? 'ØªÚ©Ø§ÛŒÛ• Ø³Û•Ø±Û•ØªØ§ Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ•.' : 'Login required.'));
     }
-    throw new Error(message || (language === 'ar' ? 'تسجيل الدخول مطلوب.' : language === 'ku' ? 'چوونەژوورەوە پێویستە.' : 'Login required.'));
+    throw new Error(message || (language === 'ar' ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ù…Ø·Ù„ÙˆØ¨.' : language === 'ku' ? 'Ú†ÙˆÙˆÙ†Û•Ú˜ÙˆÙˆØ±Û•ÙˆÛ• Ù¾ÛŽÙˆÛŒØ³ØªÛ•.' : 'Login required.'));
   }
   if (response.status === 403) {
-    alert(language === 'ar' ? 'وصول للمسؤولين فقط!' : language === 'ku' ? 'تەنها بۆ بەڕێوەبەران ڕێگەپێدراوە!' : 'Admin access only');
+    alert(language === 'ar' ? 'ÙˆØµÙˆÙ„ Ù„Ù„Ù…Ø³Ø¤ÙˆÙ„ÙŠÙ† ÙÙ‚Ø·!' : language === 'ku' ? 'ØªÛ•Ù†Ù‡Ø§ Ø¨Û† Ø¨Û•Ú•ÛŽÙˆÛ•Ø¨Û•Ø±Ø§Ù† Ú•ÛŽÚ¯Û•Ù¾ÛŽØ¯Ø±Ø§ÙˆÛ•!' : 'Admin access only');
     throw new Error('Admin access only');
   }
 
   if (contentType && contentType.includes('application/json')) {
     if (!response.ok) {
-      throw new Error(data.message || data.error || (language === 'ar' ? 'حدث خطأ في الخادم' : language === 'ku' ? 'هەڵەیەک لە سێرڤەر ڕوویدا' : 'Server error occurred'));
+      throw new Error(data.message || data.error || (language === 'ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø®Ø§Ø¯Ù…' : language === 'ku' ? 'Ù‡Û•ÚµÛ•ÛŒÛ•Ú© Ù„Û• Ø³ÛŽØ±Ú¤Û•Ø± Ú•ÙˆÙˆÛŒØ¯Ø§' : 'Server error occurred'));
     }
     return data;
   } else {
     if (!response.ok) {
-      throw new Error(text || (language === 'ar' ? 'حدث خطأ غير معروف' : language === 'ku' ? 'هەڵەیەکی نەناسراو ڕوویدا' : 'Unknown error occurred'));
+      throw new Error(text || (language === 'ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£ ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ' : language === 'ku' ? 'Ù‡Û•ÚµÛ•ÛŒÛ•Ú©ÛŒ Ù†Û•Ù†Ø§Ø³Ø±Ø§Ùˆ Ú•ÙˆÙˆÛŒØ¯Ø§' : 'Unknown error occurred'));
     }
     return text;
   }
@@ -499,6 +499,179 @@ export const userContentApi = {
   }
 };
 
+
+export type SocialProfile = {
+  id: string;
+  name?: string;
+  full_name?: string;
+  email?: string;
+  role?: string;
+  avatar_url?: string | null;
+};
+
+export type FriendRequest = {
+  id: string;
+  requester_id: string;
+  recipient_id: string;
+  status: 'pending' | 'accepted' | 'declined' | 'cancelled' | string;
+  message?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  requester_name?: string;
+  requester_email?: string;
+  requester_role?: string;
+  recipient_name?: string;
+  recipient_email?: string;
+  recipient_role?: string;
+};
+
+export type FriendRequestsResponse = {
+  incoming: FriendRequest[];
+  outgoing: FriendRequest[];
+};
+
+export type MessageThread = {
+  id: string;
+  type?: string;
+  status: 'requested' | 'accepted' | 'declined' | string;
+  requester_id: string;
+  recipient_id: string;
+  last_message_at?: string | null;
+  created_at?: string;
+  updated_at?: string;
+  requester_name?: string;
+  requester_email?: string;
+  recipient_name?: string;
+  recipient_email?: string;
+  other_user_id?: string;
+  other_name?: string;
+  other_email?: string;
+  last_message?: string | null;
+};
+
+export type DirectMessage = {
+  id: string;
+  thread_id: string;
+  sender_id: string;
+  body: string;
+  status?: string;
+  created_at?: string;
+  deleted_at?: string | null;
+  sender_name?: string;
+  sender_role?: string;
+};
+
+export type MessageRequestsResponse = {
+  incoming: MessageThread[];
+  outgoing: MessageThread[];
+};
+
+export type MessageThreadsResponse = {
+  threads: MessageThread[];
+};
+
+export type ThreadMessagesResponse = {
+  thread: MessageThread;
+  messages: DirectMessage[];
+};
+
+export const socialApi = {
+  async getFriendRequests(lang: Language = 'ar'): Promise<FriendRequestsResponse> {
+    const res = await fetch(`${API_BASE}/friend-requests`, {
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async sendFriendRequest(targetUserId: string, message = '', lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/friend-requests`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ targetUserId, message }),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async acceptFriendRequest(requestId: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/friend-requests/${encodeURIComponent(requestId)}/accept`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async declineFriendRequest(requestId: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/friend-requests/${encodeURIComponent(requestId)}/decline`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async cancelFriendRequest(requestId: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/friend-requests/${encodeURIComponent(requestId)}/cancel`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async getMessageRequests(lang: Language = 'ar'): Promise<MessageRequestsResponse> {
+    const res = await fetch(`${API_BASE}/message-requests`, {
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async sendMessageRequest(recipientId: string, body: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/message-requests`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ recipientId, body }),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async acceptMessageRequest(threadId: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/message-requests/${encodeURIComponent(threadId)}/accept`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async declineMessageRequest(threadId: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/message-requests/${encodeURIComponent(threadId)}/decline`, {
+      method: 'POST',
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async getMessageThreads(lang: Language = 'ar'): Promise<MessageThreadsResponse> {
+    const res = await fetch(`${API_BASE}/messages/threads`, {
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async getThreadMessages(threadId: string, lang: Language = 'ar'): Promise<ThreadMessagesResponse> {
+    const res = await fetch(`${API_BASE}/messages/threads/${encodeURIComponent(threadId)}/messages`, {
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async sendThreadMessage(threadId: string, body: string, lang: Language = 'ar') {
+    const res = await fetch(`${API_BASE}/messages/threads/${encodeURIComponent(threadId)}/messages`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ body }),
+    });
+    return await handleResponse(res, lang);
+  },
+};
+
 export const outreachApi = {
   async getContacts(params: { page?: number; limit?: number; search?: string; status?: string } = {}, lang: Language = 'ar') {
     try {
@@ -564,3 +737,4 @@ export const outreachApi = {
     }
   }
 };
+
