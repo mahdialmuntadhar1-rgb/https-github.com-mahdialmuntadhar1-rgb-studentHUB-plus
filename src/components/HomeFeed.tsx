@@ -452,153 +452,42 @@ export default function HomeFeed({
             />
           </div>
 
-          <div className="grid grid-cols-3 gap-2">
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400">Tag (EN)</label>
-              <input 
-                type="text" 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2 py-1 rounded-lg text-white font-bold focus:outline-none focus:border-[#FFD21F]"
-                value={formTagEN} 
-                onChange={e => setFormTagEN(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Tag (AR)</label>
-              <input 
-                type="text" 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2 py-1 rounded-lg text-white font-bold text-right font-sans focus:outline-none focus:border-[#FFD21F]"
-                value={formTagAR} 
-                onChange={e => setFormTagAR(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Tag (KU)</label>
-              <input 
-                type="text" 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2 py-1 rounded-lg text-white font-bold text-right font-sans focus:outline-none focus:border-[#FFD21F]"
-                value={formTagKU} 
-                onChange={e => setFormTagKU(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2 border-t border-[#1F2E4D]/60 pt-2 pb-1">
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400">Title (EN)</label>
-              <input 
-                type="text" 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-xs px-2.5 py-1 rounded-lg text-white font-black focus:outline-none focus:border-[#FFD21F]"
-                value={formTitleEN} 
-                onChange={e => setFormTitleEN(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Title (AR)</label>
-              <input 
-                type="text" 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-xs px-2.5 py-1 rounded-lg text-white font-black text-right font-sans focus:outline-none focus:border-[#FFD21F]"
-                value={formTitleAR} 
-                onChange={e => setFormTitleAR(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Title (KU)</label>
-              <input 
-                type="text" 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-xs px-2.5 py-1 rounded-lg text-white font-black text-right font-sans focus:outline-none focus:border-[#FFD21F]"
-                value={formTitleKU} 
-                onChange={e => setFormTitleKU(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2 border-t border-[#1F2E4D]/60 pt-2">
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400">Subtitle (EN)</label>
-              <textarea 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2.5 py-1 rounded-lg text-white h-11 resize-none font-medium focus:outline-none focus:border-[#FFD21F]"
-                value={formDescEN} 
-                onChange={e => setFormDescEN(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Subtitle (AR)</label>
-              <textarea 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2.5 py-1 rounded-lg text-white h-11 resize-none text-right font-medium font-sans focus:outline-none focus:border-[#FFD21F]"
-                value={formDescAR} 
-                onChange={e => setFormDescAR(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Subtitle (KU)</label>
-              <textarea 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2.5 py-1 rounded-lg text-white h-11 resize-none text-right font-medium font-sans focus:outline-none focus:border-[#FFD21F]"
-                value={formDescKU} 
-                onChange={e => setFormDescKU(e.target.value)}
-              />
-            </div>
+          <div className="rounded-2xl border border-[#FFD21F]/30 bg-[#FFD21F]/10 p-3 text-[10px] font-bold text-slate-200 leading-relaxed">
+            Image-only hero mode: only the image URL is displayed on the homepage. Titles, tags, and subtitles are hidden from the public hero.
           </div>
 
           <button 
             type="submit"
             className="w-full bg-[#FFD21F] hover:bg-[#FFD21F]/90 text-slate-950 font-black text-xs py-2 rounded-xl border border-slate-950 shadow-[2px_2px_0px_0px_#1B2E4D] cursor-pointer select-none text-center"
           >
-            Save Customized Hero Settings ✨
+            Save Hero Image ✨
           </button>
         </form>
       ) : (
-        <div 
-          className="mb-5 relative rounded-3xl overflow-hidden border-2 border-[#161A33] shadow-[4px_4px_0px_0px_#161A33] min-h-[148px] flex flex-col justify-end p-4 text-white" 
+        <div
+          className="mb-5 relative rounded-3xl overflow-hidden border-2 border-[#161A33] shadow-[4px_4px_0px_0px_#161A33] h-[220px] bg-[#0B1020]"
           id="homepage-academic-banner-hero"
         >
-          <img 
-            src={heroBg} 
-            alt="Iraqi Academic Campus" 
+          <img
+            src={heroBg}
+            alt="Jamiaati hero"
             className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
             referrerPolicy="no-referrer"
+            onError={(event) => {
+              event.currentTarget.src = HERO_DEFAULTS.image;
+            }}
           />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-0" />
-          
+
           {isAdminMode && (
-            <button 
+            <button
               type="button"
               onClick={handleStartEditingHero}
-              className="absolute top-3.5 right-3.5 z-20 bg-slate-950/80 hover:bg-slate-950 text-[#FFD21F] hover:scale-105 p-2 rounded-xl border border-white/20 cursor-pointer shadow-md transition-all flex items-center gap-1 text-[10px] font-black pointer-events-auto select-none"
+              className="absolute top-3.5 right-3.5 z-20 bg-slate-950/85 hover:bg-slate-950 text-[#FFD21F] hover:scale-105 px-3 py-2 rounded-xl border border-white/20 cursor-pointer shadow-md transition-all flex items-center gap-1.5 text-[10px] font-black pointer-events-auto select-none"
             >
               <Palette className="w-3.5 h-3.5" />
               <span>EDIT HERO</span>
             </button>
           )}
-
-          <div className="relative z-10 select-none">
-            <div className="inline-flex items-center gap-1.5 bg-[#FFD21F] text-[#161A33] text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full mb-1.5 border border-[#161A33]/15">
-              <span>✨ {language === 'ar' ? heroTagAR : language === 'ku' ? heroTagKU : heroTagEN}</span>
-            </div>
-            
-            <h2 className="text-sm md:text-base font-black tracking-tight leading-tight uppercase text-white drop-shadow-md">
-              {language === 'ar' ? (
-                <>{heroTitleAR} 🚀</>
-              ) : language === 'ku' ? (
-                <>{heroTitleKU} 🚀</>
-              ) : (
-                <>{heroTitleEN} 🚀</>
-              )}
-            </h2>
-            
-            <p className="text-[10px] text-slate-200 mt-1 font-medium leading-tight max-w-[300px] drop-shadow-sm">
-              {language === 'ar' ? heroDescAR : language === 'ku' ? heroDescKU : heroDescEN}
-            </p>
-
-            <div className="mt-2.5 flex items-center justify-between">
-              <span className="text-[9px] font-black bg-white text-[#161A33] px-3 py-1 rounded-lg shadow-sm border border-[#161A33]/20 flex items-center gap-1">
-                <span>{language === 'ar' ? 'عِراقنا بلمحة 🇮🇶' : language === 'ku' ? 'عێراقی ئەکادیمی 🇮🇶' : 'Iraq Academia 🇮🇶'}</span>
-              </span>
-              <span className="text-[8px] font-mono font-bold text-[#FFD21F] bg-black/40 px-1.5 py-0.5 rounded border border-white/10 flex items-center gap-1 select-none">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                ● {language === 'ar' ? 'رسمي ومباشر' : language === 'ku' ? 'ڕاستەوخۆ' : 'OFFICIAL LIVE'}
-              </span>
-            </div>
-          </div>
         </div>
       )}
 
