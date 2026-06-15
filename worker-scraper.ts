@@ -898,7 +898,7 @@ async function handleFriendRequests(request: Request, env: Env) {
 
   const incoming = await env.DB.prepare(
     `SELECT r.*, p.full_name AS requester_name, p.email AS requester_email, p.role AS requester_role
-     FROM connection_requests r
+     FROM social_social_connection_requests r
      LEFT JOIN profiles p ON p.id = r.requester_id
      WHERE r.recipient_id = ? AND r.status = 'pending'
      ORDER BY r.created_at DESC`
@@ -906,7 +906,7 @@ async function handleFriendRequests(request: Request, env: Env) {
 
   const outgoing = await env.DB.prepare(
     `SELECT r.*, p.full_name AS recipient_name, p.email AS recipient_email, p.role AS recipient_role
-     FROM connection_requests r
+     FROM social_social_connection_requests r
      LEFT JOIN profiles p ON p.id = r.recipient_id
      WHERE r.requester_id = ? AND r.status = 'pending'
      ORDER BY r.created_at DESC`
@@ -930,7 +930,7 @@ async function handleCreateFriendRequest(request: Request, env: Env) {
   if (!target) return jsonResponse({ error: "User not found." }, 404);
 
   const existing = await env.DB.prepare(
-    `SELECT * FROM connection_requests
+    `SELECT * FROM social_social_connection_requests
      WHERE ((requester_id = ? AND recipient_id = ?) OR (requester_id = ? AND recipient_id = ?))
        AND status = 'pending'
      LIMIT 1`
@@ -950,7 +950,7 @@ async function handleCreateFriendRequest(request: Request, env: Env) {
   };
 
   await env.DB.prepare(
-    `INSERT INTO connection_requests (id, requester_id, recipient_id, status, message, created_at, updated_at)
+    `INSERT INTO social_social_connection_requests (id, requester_id, recipient_id, status, message, created_at, updated_at)
      VALUES (?, ?, ?, ?, ?, ?, ?)`
   ).bind(
     requestRow.id,
@@ -970,7 +970,7 @@ async function handleFriendRequestAction(request: Request, env: Env, requestId: 
   if (user instanceof Response) return user;
 
   const row: any = await env.DB.prepare(
-    "SELECT * FROM connection_requests WHERE id = ? LIMIT 1"
+    "SELECT * FROM social_social_connection_requests WHERE id = ? LIMIT 1"
   ).bind(requestId).first();
 
   if (!row) return jsonResponse({ error: "Friend request not found." }, 404);
@@ -980,7 +980,7 @@ async function handleFriendRequestAction(request: Request, env: Env, requestId: 
   if (action === "accept") {
     if (row.recipient_id !== user.id) return jsonResponse({ error: "Only the recipient can accept this request." }, 403);
 
-    await env.DB.prepare("UPDATE connection_requests SET status = 'accepted', updated_at = ? WHERE id = ?")
+    await env.DB.prepare("UPDATE social_social_connection_requests SET status = 'accepted', updated_at = ? WHERE id = ?")
       .bind(now, requestId).run();
 
     await env.DB.prepare("INSERT OR IGNORE INTO follows (id, follower_id, followee_id, created_at) VALUES (?, ?, ?, ?)")
@@ -995,7 +995,7 @@ async function handleFriendRequestAction(request: Request, env: Env, requestId: 
   if (action === "decline") {
     if (row.recipient_id !== user.id) return jsonResponse({ error: "Only the recipient can decline this request." }, 403);
 
-    await env.DB.prepare("UPDATE connection_requests SET status = 'declined', updated_at = ? WHERE id = ?")
+    await env.DB.prepare("UPDATE social_social_connection_requests SET status = 'declined', updated_at = ? WHERE id = ?")
       .bind(now, requestId).run();
 
     return jsonResponse({ success: true, status: "declined" });
@@ -1004,7 +1004,7 @@ async function handleFriendRequestAction(request: Request, env: Env, requestId: 
   if (action === "cancel") {
     if (row.requester_id !== user.id) return jsonResponse({ error: "Only the requester can cancel this request." }, 403);
 
-    await env.DB.prepare("UPDATE connection_requests SET status = 'cancelled', updated_at = ? WHERE id = ?")
+    await env.DB.prepare("UPDATE social_social_connection_requests SET status = 'cancelled', updated_at = ? WHERE id = ?")
       .bind(now, requestId).run();
 
     return jsonResponse({ success: true, status: "cancelled" });
@@ -1019,7 +1019,7 @@ async function handleMessageRequests(request: Request, env: Env) {
 
   const incoming = await env.DB.prepare(
     `SELECT t.*, p.full_name AS requester_name, p.email AS requester_email
-     FROM message_threads t
+     FROM social_social_message_threads t
      LEFT JOIN profiles p ON p.id = t.requester_id
      WHERE t.recipient_id = ? AND t.status = 'requested'
      ORDER BY COALESCE(t.last_message_at, t.created_at) DESC`
@@ -1027,7 +1027,7 @@ async function handleMessageRequests(request: Request, env: Env) {
 
   const outgoing = await env.DB.prepare(
     `SELECT t.*, p.full_name AS recipient_name, p.email AS recipient_email
-     FROM message_threads t
+     FROM social_social_message_threads t
      LEFT JOIN profiles p ON p.id = t.recipient_id
      WHERE t.requester_id = ? AND t.status = 'requested'
      ORDER BY COALESCE(t.last_message_at, t.created_at) DESC`
@@ -1052,7 +1052,7 @@ async function handleCreateMessageRequest(request: Request, env: Env) {
   if (!recipient) return jsonResponse({ error: "Recipient not found." }, 404);
 
   const existing: any = await env.DB.prepare(
-    `SELECT * FROM message_threads
+    `SELECT * FROM social_social_message_threads
      WHERE type = 'direct'
        AND status <> 'declined'
        AND ((requester_id = ? AND recipient_id = ?) OR (requester_id = ? AND recipient_id = ?))
@@ -1066,16 +1066,16 @@ async function handleCreateMessageRequest(request: Request, env: Env) {
     threadId = crypto.randomUUID();
 
     await env.DB.prepare(
-      `INSERT INTO message_threads (id, type, status, requester_id, recipient_id, last_message_at, created_at, updated_at)
+      `INSERT INTO social_social_message_threads (id, type, status, requester_id, recipient_id, last_message_at, created_at, updated_at)
        VALUES (?, 'direct', 'requested', ?, ?, ?, ?, ?)`
     ).bind(threadId, user.id, recipientId, now, now, now).run();
 
     await env.DB.prepare(
-      "INSERT OR IGNORE INTO message_thread_members (thread_id, user_id, role, status, created_at) VALUES (?, ?, 'member', 'active', ?)"
+      "INSERT OR IGNORE INTO social_social_message_thread_members (thread_id, user_id, role, status, created_at) VALUES (?, ?, 'member', 'active', ?)"
     ).bind(threadId, user.id, now).run();
 
     await env.DB.prepare(
-      "INSERT OR IGNORE INTO message_thread_members (thread_id, user_id, role, status, created_at) VALUES (?, ?, 'member', 'active', ?)"
+      "INSERT OR IGNORE INTO social_social_message_thread_members (thread_id, user_id, role, status, created_at) VALUES (?, ?, 'member', 'active', ?)"
     ).bind(threadId, recipientId, now).run();
   }
 
@@ -1089,10 +1089,10 @@ async function handleCreateMessageRequest(request: Request, env: Env) {
   };
 
   await env.DB.prepare(
-    "INSERT INTO messages (id, thread_id, sender_id, body, status, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+    "INSERT INTO social_messages (id, thread_id, sender_id, body, status, created_at) VALUES (?, ?, ?, ?, ?, ?)"
   ).bind(message.id, message.thread_id, message.sender_id, message.body, message.status, message.created_at).run();
 
-  await env.DB.prepare("UPDATE message_threads SET last_message_at = ?, updated_at = ? WHERE id = ?")
+  await env.DB.prepare("UPDATE social_social_message_threads SET last_message_at = ?, updated_at = ? WHERE id = ?")
     .bind(now, now, threadId).run();
 
   return jsonResponse({ threadId, message, recipient, status: existing?.status || "requested" }, 201);
@@ -1102,7 +1102,7 @@ async function handleMessageRequestAction(request: Request, env: Env, threadId: 
   const user = await requireWorkerAuth(request, env);
   if (user instanceof Response) return user;
 
-  const thread: any = await env.DB.prepare("SELECT * FROM message_threads WHERE id = ? LIMIT 1").bind(threadId).first();
+  const thread: any = await env.DB.prepare("SELECT * FROM social_social_message_threads WHERE id = ? LIMIT 1").bind(threadId).first();
   if (!thread) return jsonResponse({ error: "Message request not found." }, 404);
 
   if (thread.recipient_id !== user.id) {
@@ -1116,7 +1116,7 @@ async function handleMessageRequestAction(request: Request, env: Env, threadId: 
   const status = action === "accept" ? "accepted" : "declined";
   const now = new Date().toISOString();
 
-  await env.DB.prepare("UPDATE message_threads SET status = ?, updated_at = ? WHERE id = ?")
+  await env.DB.prepare("UPDATE social_social_message_threads SET status = ?, updated_at = ? WHERE id = ?")
     .bind(status, now, threadId).run();
 
   return jsonResponse({ success: true, status });
@@ -1131,9 +1131,9 @@ async function handleMessageThreads(request: Request, env: Env) {
             other.id AS other_user_id,
             other.full_name AS other_name,
             other.email AS other_email,
-            (SELECT body FROM messages m WHERE m.thread_id = t.id AND m.deleted_at IS NULL ORDER BY m.created_at DESC LIMIT 1) AS last_message
-     FROM message_threads t
-     JOIN message_thread_members me ON me.thread_id = t.id AND me.user_id = ?
+            (SELECT body FROM social_messages m WHERE m.thread_id = t.id AND m.deleted_at IS NULL ORDER BY m.created_at DESC LIMIT 1) AS last_message
+     FROM social_social_message_threads t
+     JOIN social_social_message_thread_members me ON me.thread_id = t.id AND me.user_id = ?
      LEFT JOIN profiles other ON other.id = CASE WHEN t.requester_id = ? THEN t.recipient_id ELSE t.requester_id END
      WHERE t.status = 'accepted'
      ORDER BY COALESCE(t.last_message_at, t.created_at) DESC`
@@ -1145,8 +1145,8 @@ async function handleMessageThreads(request: Request, env: Env) {
 async function requireThreadMember(env: Env, threadId: string, userId: string) {
   const thread = await env.DB.prepare(
     `SELECT t.*
-     FROM message_threads t
-     JOIN message_thread_members m ON m.thread_id = t.id
+     FROM social_social_message_threads t
+     JOIN social_social_message_thread_members m ON m.thread_id = t.id
      WHERE t.id = ? AND m.user_id = ?
      LIMIT 1`
   ).bind(threadId, userId).first();
@@ -1163,14 +1163,14 @@ async function handleThreadMessages(request: Request, env: Env, threadId: string
 
   const rows = await env.DB.prepare(
     `SELECT m.*, p.full_name AS sender_name, p.role AS sender_role
-     FROM messages m
+     FROM social_messages m
      LEFT JOIN profiles p ON p.id = m.sender_id
      WHERE m.thread_id = ? AND m.deleted_at IS NULL
      ORDER BY m.created_at ASC
      LIMIT 200`
   ).bind(threadId).all();
 
-  await env.DB.prepare("UPDATE message_thread_members SET last_read_at = ? WHERE thread_id = ? AND user_id = ?")
+  await env.DB.prepare("UPDATE social_social_message_thread_members SET last_read_at = ? WHERE thread_id = ? AND user_id = ?")
     .bind(new Date().toISOString(), threadId, user.id).run();
 
   return jsonResponse({ thread, messages: rows.results || [] });
@@ -1199,10 +1199,10 @@ async function handleSendThreadMessage(request: Request, env: Env, threadId: str
   };
 
   await env.DB.prepare(
-    "INSERT INTO messages (id, thread_id, sender_id, body, status, created_at) VALUES (?, ?, ?, ?, ?, ?)"
+    "INSERT INTO social_messages (id, thread_id, sender_id, body, status, created_at) VALUES (?, ?, ?, ?, ?, ?)"
   ).bind(message.id, message.thread_id, message.sender_id, message.body, message.status, message.created_at).run();
 
-  await env.DB.prepare("UPDATE message_threads SET last_message_at = ?, updated_at = ? WHERE id = ?")
+  await env.DB.prepare("UPDATE social_social_message_threads SET last_message_at = ?, updated_at = ? WHERE id = ?")
     .bind(now, now, threadId).run();
 
   return jsonResponse({ message }, 201);
@@ -2002,6 +2002,8 @@ async function logScrapingActivity(env: Env, log: any): Promise<void> {
     console.error("D1 logger action error:", err);
   }
 }
+
+
 
 
 
