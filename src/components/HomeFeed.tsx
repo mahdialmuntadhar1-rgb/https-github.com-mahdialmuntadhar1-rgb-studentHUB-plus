@@ -86,7 +86,7 @@ async function fileToOptimizedHeroDataUrl(file: File): Promise<string> {
     img.src = originalDataUrl;
   });
 
-  const maxWidth = 1400;
+  const maxWidth = 1000;
   const scale = Math.min(1, maxWidth / Math.max(1, image.width));
   const width = Math.max(1, Math.round(image.width * scale));
   const height = Math.max(1, Math.round(image.height * scale));
@@ -106,7 +106,7 @@ async function fileToOptimizedHeroDataUrl(file: File): Promise<string> {
     canvas.toBlob((result) => {
       if (result) resolve(result);
       else reject(new Error('Could not compress image.'));
-    }, 'image/jpeg', 0.82);
+    }, 'image/jpeg', 0.72);
   });
 
   return await new Promise<string>((resolve, reject) => {
@@ -115,6 +115,31 @@ async function fileToOptimizedHeroDataUrl(file: File): Promise<string> {
     reader.onerror = () => reject(new Error('Could not save compressed image.'));
     reader.readAsDataURL(blob);
   });
+}
+
+const HERO_CAROUSEL_PREFIX = 'carousel-json:';
+
+function parseHeroImages(value?: string): string[] {
+  const raw = String(value || '').trim();
+  if (!raw) return [HERO_DEFAULTS.image];
+
+  if (raw.startsWith(HERO_CAROUSEL_PREFIX)) {
+    try {
+      const parsed = JSON.parse(decodeURIComponent(raw.slice(HERO_CAROUSEL_PREFIX.length)));
+      const images = Array.isArray(parsed) ? parsed.map(String).filter(Boolean) : [];
+      return images.length ? images : [HERO_DEFAULTS.image];
+    } catch {
+      return [HERO_DEFAULTS.image];
+    }
+  }
+
+  return [raw];
+}
+
+function serializeHeroImages(images: string[]): string {
+  const clean = images.map(String).map(v => v.trim()).filter(Boolean).slice(0, 5);
+  if (clean.length <= 1) return clean[0] || HERO_DEFAULTS.image;
+  return HERO_CAROUSEL_PREFIX + encodeURIComponent(JSON.stringify(clean));
 }
 
 
@@ -186,6 +211,8 @@ export default function HomeFeed({
 
   // Dynamic Hero Configuration with real-time updates support (localStorage + event listeners)
   const [heroBg, setHeroBg] = useState(() => localStorage.getItem('jamiaati_hero_bg') || HERO_DEFAULTS.image);
+  const heroImages = useMemo(() => parseHeroImages(heroBg), [heroBg]);
+  const [heroCarouselIndex, setHeroCarouselIndex] = useState(0);
   
   const [heroTitleEN, setHeroTitleEN] = useState(() => localStorage.getItem('jamiaati_hero_title_en') || HERO_DEFAULTS.titleEN);
   const [heroTitleAR, setHeroTitleAR] = useState(() => localStorage.getItem('jamiaati_hero_title_ar') || HERO_DEFAULTS.titleAR);
@@ -198,6 +225,19 @@ export default function HomeFeed({
   const [heroTagEN, setHeroTagEN] = useState(() => localStorage.getItem('jamiaati_hero_tag_en') || HERO_DEFAULTS.tagEN);
   const [heroTagAR, setHeroTagAR] = useState(() => localStorage.getItem('jamiaati_hero_tag_ar') || HERO_DEFAULTS.tagAR);
   const [heroTagKU, setHeroTagKU] = useState(() => localStorage.getItem('jamiaati_hero_tag_ku') || HERO_DEFAULTS.tagKU);
+
+  useEffect(() => {
+    if (heroImages.length <= 1) {
+      setHeroCarouselIndex(0);
+      return;
+    }
+
+    const timer = window.setInterval(() => {
+      setHeroCarouselIndex((current) => (current + 1) % heroImages.length);
+    }, 3500);
+
+    return () => window.clearInterval(timer);
+  }, [heroImages.length]);
 
   useEffect(() => {
     const handleHeroSync = () => {
@@ -230,6 +270,7 @@ export default function HomeFeed({
   // Admin Hero Custom editing states
   const [isEditingHero, setIsEditingHero] = useState(false);
   const [formHeroBg, setFormHeroBg] = useState(heroBg);
+  const [formHeroImages, setFormHeroImages] = useState<string[]>(() => parseHeroImages(heroBg));
   const [formTitleEN, setFormTitleEN] = useState(heroTitleEN);
   const [formTitleAR, setFormTitleAR] = useState(heroTitleAR);
   const [formTitleKU, setFormTitleKU] = useState(heroTitleKU);
@@ -243,6 +284,7 @@ export default function HomeFeed({
 
   const handleStartEditingHero = () => {
     setFormHeroBg(heroBg);
+    setFormHeroImages(parseHeroImages(heroBg));
     setFormTitleEN(heroTitleEN);
     setFormTitleAR(heroTitleAR);
     setFormTitleKU(heroTitleKU);
@@ -257,39 +299,41 @@ export default function HomeFeed({
 
 
   const handleHeroFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const file = event.target.files?.[0];
+    const files = Array.from(event.target.files || []);
     event.target.value = '';
 
-    if (!file) return;
+    if (!files.length) return;
 
     try {
       setIsHeroImageProcessing(true);
-      const dataUrl = await fileToOptimizedHeroDataUrl(file);
-      setFormHeroBg(dataUrl);
+
+      const selectedFiles = files.slice(0, 5);
+      const dataUrls = await Promise.all(selectedFiles.map((file) => fileToOptimizedHeroDataUrl(file)));
+
+      setFormHeroImages((current) => {
+        const next = [...current, ...dataUrls].filter(Boolean).slice(0, 5);
+        setFormHeroBg(serializeHeroImages(next));
+        return next;
+      });
+
       if (showToast) {
-        showToast(
-          language === 'ar'
-            ? 'تم تجهيز الصورة. اضغط حفظ لتثبيتها.'
-            : language === 'ku'
-              ? 'وێنەکە ئامادە کرا. Save دابگرە بۆ پاشەکەوتکردن.'
-              : 'Image prepared. Press Save to apply it.',
-          'success'
-        );
+        showToast('Images ready. Press Save Hero Image.', 'success');
       }
     } catch (err: any) {
       if (showToast) {
-        showToast(
-          language === 'ar'
-            ? `فشل تجهيز الصورة: ${err.message}`
-            : language === 'ku'
-              ? `ئامادەکردنی وێنە سەرکەوتوو نەبوو: ${err.message}`
-              : `Image upload failed: ${err.message}`,
-          'error'
-        );
+        showToast(`Image upload failed: ${err.message}`, 'error');
       }
     } finally {
       setIsHeroImageProcessing(false);
     }
+  };
+
+  const handleRemoveHeroImage = (index: number) => {
+    setFormHeroImages((current) => {
+      const next = current.filter((_, itemIndex) => itemIndex !== index);
+      setFormHeroBg(serializeHeroImages(next));
+      return next;
+    });
   };
 
   const handleSaveHeroCustomization = async (e: React.FormEvent) => {
@@ -302,7 +346,7 @@ export default function HomeFeed({
         defaultStories = current?.settings?.defaultStories || [];
       }
       const settings: PortalSettings = {
-        heroImage: formHeroBg,
+        heroImage: serializeHeroImages(formHeroImages.length ? formHeroImages : parseHeroImages(formHeroBg)),
         heroTitle: { en: '', ar: '', ku: '' },
         heroDescription: { en: '', ar: '', ku: '' },
         heroTag: { en: '', ar: '', ku: '' },
@@ -526,7 +570,7 @@ export default function HomeFeed({
           <div className="flex items-center justify-between border-b border-[#1F2E4D] pb-3">
             <h3 className="text-xs font-black text-[#FFD21F] uppercase flex items-center gap-1.5">
               <Palette className="w-4 h-4" />
-              <span>Hero Image</span>
+              <span>Hero Images Slider</span>
             </h3>
             <button type="button" onClick={() => setIsEditingHero(false)} className="text-slate-400 hover:text-white font-bold text-[10px] uppercase cursor-pointer">
               Cancel
@@ -535,10 +579,11 @@ export default function HomeFeed({
 
           <label className="w-full bg-[#FFD21F] hover:bg-[#FFD21F]/90 text-slate-950 border border-slate-950 shadow-[2px_2px_0px_0px_#1B2E4D] rounded-2xl px-3 py-4 text-sm font-black flex items-center justify-center gap-2 cursor-pointer transition-all select-none">
             <Image className="w-5 h-5" />
-            <span>{isHeroImageProcessing ? 'Processing image...' : 'Upload Hero Image from Device'}</span>
+            <span>{isHeroImageProcessing ? 'Processing images...' : 'Upload Several Hero Images'}</span>
             <input
               type="file"
               accept="image/*"
+              multiple
               className="hidden"
               disabled={isHeroImageProcessing}
               onChange={handleHeroFileUpload}
@@ -546,28 +591,39 @@ export default function HomeFeed({
           </label>
 
           <p className="text-[10px] text-slate-400 leading-relaxed text-center">
-            Choose an image from your laptop. No URL is needed. After preview appears, press Save Hero Image.
+            Choose up to 5 images from your laptop. The hero will slide between them automatically.
           </p>
 
-          {formHeroBg && (
-            <div className="relative h-44 rounded-3xl overflow-hidden border-2 border-[#1F2E4D] bg-[#0B1020]">
-              <img
-                src={formHeroBg}
-                alt="Hero preview"
-                className="absolute inset-0 w-full h-full object-cover"
-                onError={(event) => {
-                  event.currentTarget.src = HERO_DEFAULTS.image;
-                }}
-              />
+          {formHeroImages.length > 0 && (
+            <div className="grid grid-cols-2 gap-2">
+              {formHeroImages.map((imageUrl, index) => (
+                <div key={index} className="relative h-28 rounded-2xl overflow-hidden border border-[#1F2E4D] bg-[#0B1020]">
+                  <img
+                    src={imageUrl}
+                    alt={`Hero preview ${index + 1}`}
+                    className="absolute inset-0 w-full h-full object-cover"
+                    onError={(event) => {
+                      event.currentTarget.src = HERO_DEFAULTS.image;
+                    }}
+                  />
+                  <button
+                    type="button"
+                    onClick={() => handleRemoveHeroImage(index)}
+                    className="absolute top-1.5 right-1.5 bg-red-500 text-white rounded-full px-2 py-1 text-[9px] font-black shadow-md"
+                  >
+                    Remove
+                  </button>
+                </div>
+              ))}
             </div>
           )}
 
           <button
             type="submit"
-            disabled={isHeroImageProcessing || !formHeroBg}
+            disabled={isHeroImageProcessing || formHeroImages.length === 0}
             className="w-full bg-emerald-400 hover:bg-emerald-300 disabled:opacity-50 disabled:cursor-not-allowed text-slate-950 font-black text-xs py-3 rounded-xl border border-slate-950 shadow-[2px_2px_0px_0px_#1B2E4D] cursor-pointer select-none text-center"
           >
-            Save Hero Image
+            Save Hero Images Slider
           </button>
         </form>
       ) : (
@@ -575,15 +631,29 @@ export default function HomeFeed({
           className="mb-5 relative rounded-3xl overflow-hidden border-2 border-[#161A33] shadow-[4px_4px_0px_0px_#161A33] h-[220px] bg-[#0B1020]"
           id="homepage-academic-banner-hero"
         >
-          <img
-            src={heroBg}
-            alt="Jamiaati hero"
-            className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
-            referrerPolicy="no-referrer"
-            onError={(event) => {
-              event.currentTarget.src = HERO_DEFAULTS.image;
-            }}
-          />
+          {heroImages.map((imageUrl, index) => (
+            <img
+              key={index}
+              src={imageUrl}
+              alt={`Jamiaati hero ${index + 1}`}
+              className={`absolute inset-0 w-full h-full object-cover select-none pointer-events-none transition-opacity duration-700 ${index === heroCarouselIndex ? 'opacity-100' : 'opacity-0'}`}
+              referrerPolicy="no-referrer"
+              onError={(event) => {
+                event.currentTarget.src = HERO_DEFAULTS.image;
+              }}
+            />
+          ))}
+
+          {heroImages.length > 1 && (
+            <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-10 flex items-center gap-1.5 bg-slate-950/45 px-2.5 py-1.5 rounded-full backdrop-blur-sm">
+              {heroImages.map((_, index) => (
+                <span
+                  key={index}
+                  className={`h-1.5 rounded-full transition-all ${index === heroCarouselIndex ? 'w-5 bg-[#FFD21F]' : 'w-1.5 bg-white/70'}`}
+                />
+              ))}
+            </div>
+          )}
 
           {isAdminMode && (
             <button
