@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Language } from '../types';
 import { 
   ArrowLeft, 
@@ -126,7 +126,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
   // Trigger Scraper
   const handleRunScraper = async () => {
     setIsScraping(true);
-    const toastMsg = language === 'ar' ? 'جاري تشغيل زاحف البيانات... 🕵️‍♀️' : language === 'ku' ? 'زانیاریەکان کۆدەکرێنەوە... 🕵️‍♀️' : 'Starting scraping worker... 🕵️‍♀️';
+    const toastMsg = language === 'ar' ? 'Ø¬Ø§Ø±ÙŠ ØªØ´ØºÙŠÙ„ Ø²Ø§Ø­Ù Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª... ðŸ•µï¸â€â™€ï¸' : language === 'ku' ? 'Ø²Ø§Ù†ÛŒØ§Ø±ÛŒÛ•Ú©Ø§Ù† Ú©Û†Ø¯Û•Ú©Ø±ÛŽÙ†Û•ÙˆÛ•... ðŸ•µï¸â€â™€ï¸' : 'Starting scraping worker... ðŸ•µï¸â€â™€ï¸';
     showToast(toastMsg, 'info');
 
     try {
@@ -135,9 +135,9 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
         const data = await res.json();
         const stats = data.stats;
         const completeMsg = language === 'ar' 
-          ? `اكتمل الزحف: تم تصفح ${stats.sourcesChecked} مواقع، العثور على ${stats.itemsFound} فرر، وإضافة ${stats.itemsNew} جديدة!` 
+          ? `Ø§ÙƒØªÙ…Ù„ Ø§Ù„Ø²Ø­Ù: ØªÙ… ØªØµÙØ­ ${stats.sourcesChecked} Ù…ÙˆØ§Ù‚Ø¹ØŒ Ø§Ù„Ø¹Ø«ÙˆØ± Ø¹Ù„Ù‰ ${stats.itemsFound} ÙØ±Ø±ØŒ ÙˆØ¥Ø¶Ø§ÙØ© ${stats.itemsNew} Ø¬Ø¯ÙŠØ¯Ø©!` 
           : language === 'ku'
-          ? `کۆتایی هات: ${stats.sourcesChecked} سەرچاوە بینرا، ${stats.itemsFound} دەرفەت دۆزرایەوە، ${stats.itemsNew} نوێ زیادکرا!`
+          ? `Ú©Û†ØªØ§ÛŒÛŒ Ù‡Ø§Øª: ${stats.sourcesChecked} Ø³Û•Ø±Ú†Ø§ÙˆÛ• Ø¨ÛŒÙ†Ø±Ø§ØŒ ${stats.itemsFound} Ø¯Û•Ø±ÙÛ•Øª Ø¯Û†Ø²Ø±Ø§ÛŒÛ•ÙˆÛ•ØŒ ${stats.itemsNew} Ù†ÙˆÛŽ Ø²ÛŒØ§Ø¯Ú©Ø±Ø§!`
           : `Crawl Complete: Checked ${stats.sourcesChecked} sources, found ${stats.itemsFound} items, added ${stats.itemsNew} new ones.`;
         showToast(completeMsg, 'success');
         loadAdminData();
@@ -163,10 +163,10 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
       if (res.ok) {
         setOpportunities(prev => prev.map(o => o.id === id ? { ...o, status: action as any } : o));
         const actionLabel = action === 'approve' 
-          ? (language === 'ar' ? 'تمت الموافقة والنشر بنجاح! 🎉' : language === 'ku' ? 'پەسەندکرا بنجاح! 🎉' : 'Opportunity approved & published!') 
+          ? (language === 'ar' ? 'ØªÙ…Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© ÙˆØ§Ù„Ù†Ø´Ø± Ø¨Ù†Ø¬Ø§Ø­! ðŸŽ‰' : language === 'ku' ? 'Ù¾Û•Ø³Û•Ù†Ø¯Ú©Ø±Ø§ Ø¨Ù†Ø¬Ø§Ø­! ðŸŽ‰' : 'Opportunity approved & published!') 
           : action === 'reject' 
-          ? (language === 'ar' ? 'تم رفض وإخفاء الفرصة' : 'Opportunity rejected') 
-          : (language === 'ar' ? 'تم تحديد الفرصة كمنتهية' : 'Opportunity marked expired');
+          ? (language === 'ar' ? 'ØªÙ… Ø±ÙØ¶ ÙˆØ¥Ø®ÙØ§Ø¡ Ø§Ù„ÙØ±ØµØ©' : 'Opportunity rejected') 
+          : (language === 'ar' ? 'ØªÙ… ØªØ­Ø¯ÙŠØ¯ Ø§Ù„ÙØ±ØµØ© ÙƒÙ…Ù†ØªÙ‡ÙŠØ©' : 'Opportunity marked expired');
         showToast(actionLabel, 'success');
       } else {
         showToast('Failed to perform moderation action.', 'error');
@@ -189,7 +189,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
       });
 
       if (res.ok) {
-        showToast(language === 'ar' ? 'تم تعديل تفاصيل الفرصة بنجاح!' : 'Opportunity updated successfully!', 'success');
+        showToast(language === 'ar' ? 'ØªÙ… ØªØ¹Ø¯ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙØ±ØµØ© Ø¨Ù†Ø¬Ø§Ø­!' : 'Opportunity updated successfully!', 'success');
         setEditingOpp(null);
         loadAdminData();
       } else {
@@ -267,15 +267,15 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
   // Text Helper based on Language
   const getTranslatedLabel = (key: string) => {
     const translations: Record<string, Record<Language, string>> = {
-      backBtn: { en: 'Back', ar: 'رجوع', ku: 'گەڕانەوە' },
-      panelTitle: { en: 'Admin Scraper Control', ar: 'لوحة التحكم والأتمتة', ku: 'کۆنترۆڵی ئۆتۆماتیکی' },
-      moderation: { en: 'Moderation Queue', ar: 'طابور المراجعة والقبول', ku: 'پەسەندکردنی فرسەتەکان' },
-      sources: { en: 'Source Websites', ar: 'إدارة المواقع المصادر', ku: 'سەرچاوەی ماڵپەڕەکان' },
-      logs: { en: 'Logs Engine', ar: 'سجلات الزحف التاريخية', ku: 'سجلی کارەکان' },
-      runScraper: { en: 'Run Scraper Now', ar: 'تشغيل زاحف الفرص الآن', ku: 'ئێستا زانیاری کۆبکەرەوە' },
-      running: { en: 'Acquiring Opportunity Data...', ar: 'جاري جلب وترجمة الفرص...', ku: 'کۆکردنەوەی زانیاری دیارکراو...' },
-      pendingTitle: { en: 'Verification Needed', ar: 'الفرص المكتشفة بانتظار الترخيص', ku: 'دەرفەتە دۆزراوەکانی چاوەڕوانکراو' },
-      noPending: { en: 'Excellent! No pending opportunities.', ar: 'ممتاز! طابور المراجعة فارغ ومكتمل.', ku: 'نایاب! هیچ فرسەتێکی چاوەڕوانکراو نەماوە.' }
+      backBtn: { en: 'Back', ar: 'Ø±Ø¬ÙˆØ¹', ku: 'Ú¯Û•Ú•Ø§Ù†Û•ÙˆÛ•' },
+      panelTitle: { en: 'Admin Scraper Control', ar: 'Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ… ÙˆØ§Ù„Ø£ØªÙ…ØªØ©', ku: 'Ú©Û†Ù†ØªØ±Û†ÚµÛŒ Ø¦Û†ØªÛ†Ù…Ø§ØªÛŒÚ©ÛŒ' },
+      moderation: { en: 'Moderation Queue', ar: 'Ø·Ø§Ø¨ÙˆØ± Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© ÙˆØ§Ù„Ù‚Ø¨ÙˆÙ„', ku: 'Ù¾Û•Ø³Û•Ù†Ø¯Ú©Ø±Ø¯Ù†ÛŒ ÙØ±Ø³Û•ØªÛ•Ú©Ø§Ù†' },
+      sources: { en: 'Source Websites', ar: 'Ø¥Ø¯Ø§Ø±Ø© Ø§Ù„Ù…ÙˆØ§Ù‚Ø¹ Ø§Ù„Ù…ØµØ§Ø¯Ø±', ku: 'Ø³Û•Ø±Ú†Ø§ÙˆÛ•ÛŒ Ù…Ø§ÚµÙ¾Û•Ú•Û•Ú©Ø§Ù†' },
+      logs: { en: 'Logs Engine', ar: 'Ø³Ø¬Ù„Ø§Øª Ø§Ù„Ø²Ø­Ù Ø§Ù„ØªØ§Ø±ÙŠØ®ÙŠØ©', ku: 'Ø³Ø¬Ù„ÛŒ Ú©Ø§Ø±Û•Ú©Ø§Ù†' },
+      runScraper: { en: 'Run Scraper Now', ar: 'ØªØ´ØºÙŠÙ„ Ø²Ø§Ø­Ù Ø§Ù„ÙØ±Øµ Ø§Ù„Ø¢Ù†', ku: 'Ø¦ÛŽØ³ØªØ§ Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ Ú©Û†Ø¨Ú©Û•Ø±Û•ÙˆÛ•' },
+      running: { en: 'Acquiring Opportunity Data...', ar: 'Ø¬Ø§Ø±ÙŠ Ø¬Ù„Ø¨ ÙˆØªØ±Ø¬Ù…Ø© Ø§Ù„ÙØ±Øµ...', ku: 'Ú©Û†Ú©Ø±Ø¯Ù†Û•ÙˆÛ•ÛŒ Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ Ø¯ÛŒØ§Ø±Ú©Ø±Ø§Ùˆ...' },
+      pendingTitle: { en: 'Verification Needed', ar: 'Ø§Ù„ÙØ±Øµ Ø§Ù„Ù…ÙƒØªØ´ÙØ© Ø¨Ø§Ù†ØªØ¸Ø§Ø± Ø§Ù„ØªØ±Ø®ÙŠØµ', ku: 'Ø¯Û•Ø±ÙÛ•ØªÛ• Ø¯Û†Ø²Ø±Ø§ÙˆÛ•Ú©Ø§Ù†ÛŒ Ú†Ø§ÙˆÛ•Ú•ÙˆØ§Ù†Ú©Ø±Ø§Ùˆ' },
+      noPending: { en: 'Excellent! No pending opportunities.', ar: 'Ù…Ù…ØªØ§Ø²! Ø·Ø§Ø¨ÙˆØ± Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø© ÙØ§Ø±Øº ÙˆÙ…ÙƒØªÙ…Ù„.', ku: 'Ù†Ø§ÛŒØ§Ø¨! Ù‡ÛŒÚ† ÙØ±Ø³Û•ØªÛŽÚ©ÛŒ Ú†Ø§ÙˆÛ•Ú•ÙˆØ§Ù†Ú©Ø±Ø§Ùˆ Ù†Û•Ù…Ø§ÙˆÛ•.' }
     };
     return translations[key]?.[language] || translations[key]?.['en'] || '';
   };
@@ -311,15 +311,15 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
         className="relative bg-gradient-to-r from-emerald-950/40 to-blue-950/45 border-2 border-[#1F2E4D] rounded-3xl p-5 mb-5 shadow-[4px_4px_0px_0px_#1F2E4D] relative overflow-hidden flex flex-col items-center justify-center text-center"
       >
         <div className="absolute top-0 right-0 w-24 h-24 bg-cyan-500/5 rounded-full blur-2xl pointer-events-none" />
-        <span className="text-2xl select-none mb-1 text-cyan-400">🕵️‍♀️🤖</span>
+        <span className="text-2xl select-none mb-1 text-cyan-400">ðŸ•µï¸â€â™€ï¸ðŸ¤–</span>
         <h3 className="text-[11px] font-black uppercase text-white tracking-wide">
-          {language === 'ar' ? 'البوابة الذكية لجمع الفرص الأكاديمي' : language === 'ku' ? 'سیستەمی کۆکردنەوەی ئۆتۆماتیکی دەرفەتەکان' : 'Iraqi Youth Opportunity Harvester'}
+          {language === 'ar' ? 'Ø§Ù„Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø°ÙƒÙŠØ© Ù„Ø¬Ù…Ø¹ Ø§Ù„ÙØ±Øµ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠ' : language === 'ku' ? 'Ø³ÛŒØ³ØªÛ•Ù…ÛŒ Ú©Û†Ú©Ø±Ø¯Ù†Û•ÙˆÛ•ÛŒ Ø¦Û†ØªÛ†Ù…Ø§ØªÛŒÚ©ÛŒ Ø¯Û•Ø±ÙÛ•ØªÛ•Ú©Ø§Ù†' : 'Iraqi Youth Opportunity Harvester'}
         </h3>
         <p className="text-[9px] text-slate-300 font-bold max-w-xs mt-1.5 leading-relaxed leading-snug">
           {language === 'ar' 
-            ? 'يقوم النظام بمسح الشركات الكبرى، المنظمات، والجامعات، وتنظيف البيانات، وترجمتها بثلاث لغات، وتصنيفها باستخدام Gemini AI.'
+            ? 'ÙŠÙ‚ÙˆÙ… Ø§Ù„Ù†Ø¸Ø§Ù… Ø¨Ù…Ø³Ø­ Ø§Ù„Ø´Ø±ÙƒØ§Øª Ø§Ù„ÙƒØ¨Ø±Ù‰ØŒ Ø§Ù„Ù…Ù†Ø¸Ù…Ø§ØªØŒ ÙˆØ§Ù„Ø¬Ø§Ù…Ø¹Ø§ØªØŒ ÙˆØªÙ†Ø¸ÙŠÙ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§ØªØŒ ÙˆØªØ±Ø¬Ù…ØªÙ‡Ø§ Ø¨Ø«Ù„Ø§Ø« Ù„ØºØ§ØªØŒ ÙˆØªØµÙ†ÙŠÙÙ‡Ø§ Ø¨Ø§Ø³ØªØ®Ø¯Ø§Ù… Gemini AI.'
             : language === 'ku'
-            ? 'سیستەمەکە سەردانی ماڵپەڕە گەورەکان دەکات بۆ دۆزینەوەی مەشق، تواناسازی و پۆلێنکردنیان بە زمانی پێشکەوتووی کار.'
+            ? 'Ø³ÛŒØ³ØªÛ•Ù…Û•Ú©Û• Ø³Û•Ø±Ø¯Ø§Ù†ÛŒ Ù…Ø§ÚµÙ¾Û•Ú•Û• Ú¯Û•ÙˆØ±Û•Ú©Ø§Ù† Ø¯Û•Ú©Ø§Øª Ø¨Û† Ø¯Û†Ø²ÛŒÙ†Û•ÙˆÛ•ÛŒ Ù…Û•Ø´Ù‚ØŒ ØªÙˆØ§Ù†Ø§Ø³Ø§Ø²ÛŒ Ùˆ Ù¾Û†Ù„ÛŽÙ†Ú©Ø±Ø¯Ù†ÛŒØ§Ù† Ø¨Û• Ø²Ù…Ø§Ù†ÛŒ Ù¾ÛŽØ´Ú©Û•ÙˆØªÙˆÙˆÛŒ Ú©Ø§Ø±.'
             : 'Aggregates listings from top companies, ministries, and NGOs in Iraq, normalizes governors, and drafts multi-lingual translations via Gemini.'}
         </p>
 
@@ -396,19 +396,19 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
                     onClick={() => setEditingOpp(null)}
                     className="absolute top-4 right-4 text-slate-400 hover:text-white p-1 bg-transparent border-0 cursor-pointer"
                   >
-                    ✕
+                    âœ•
                   </button>
 
                   <h3 className="text-xs font-black text-white uppercase tracking-tight flex items-center gap-1.5 mb-4">
                     <Edit2 className="w-4 h-4 text-cyan-450 text-cyan-400" />
-                    <span>{language === 'ar' ? 'تعديل تفاصيل الفرصة المكتشفة' : 'Edit Scraped Details'}</span>
+                    <span>{language === 'ar' ? 'ØªØ¹Ø¯ÙŠÙ„ ØªÙØ§ØµÙŠÙ„ Ø§Ù„ÙØ±ØµØ© Ø§Ù„Ù…ÙƒØªØ´ÙØ©' : 'Edit Scraped Details'}</span>
                   </h3>
 
                   <form onSubmit={handleEditSubmit} className="flex flex-col gap-3">
                     
                     {/* Multilingual Details & Original Version Control */}
                     <div className="bg-[#101726]/80 border border-cyan-500/20 rounded-2xl p-3.5 mb-1 flex flex-col gap-3">
-                      <h4 className="text-[10px] font-black text-cyan-400 uppercase tracking-widest leading-none">🌐 Platform Translations</h4>
+                      <h4 className="text-[10px] font-black text-cyan-400 uppercase tracking-widest leading-none">ðŸŒ Platform Translations</h4>
                       
                       {/* Original Language Selector */}
                       <div className="flex flex-col gap-1">
@@ -418,9 +418,9 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
                           onChange={e => setEditingOpp({ ...editingOpp, original_language: e.target.value })}
                           className="bg-[#0B1020] border border-[#1F2E4D] rounded-xl p-2.5 text-xs text-white focus:outline-none focus:border-cyan-500"
                         >
-                          <option value="en">English (🇬🇧)</option>
-                          <option value="ar">Arabic (🇮🇶)</option>
-                          <option value="ku">Kurdish (☀️)</option>
+                          <option value="en">English (ðŸ‡¬ðŸ‡§)</option>
+                          <option value="ar">Arabic (ðŸ‡®ðŸ‡¶)</option>
+                          <option value="ku">Kurdish (â˜€ï¸)</option>
                         </select>
                       </div>
 
@@ -463,7 +463,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
 
                     {/* AR Title */}
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black text-slate-350 uppercase">العنوان بالعربية (AR - الأولية)</label>
+                      <label className="text-[10px] font-black text-slate-350 uppercase">Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø¨Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© (AR - Ø§Ù„Ø£ÙˆÙ„ÙŠØ©)</label>
                       <input 
                         type="text"
                         value={editingOpp.titleAR}
@@ -475,7 +475,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
 
                     {/* KU Title */}
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black text-slate-350 uppercase">العنوان بالكردية (KU)</label>
+                      <label className="text-[10px] font-black text-slate-350 uppercase">Ø§Ù„Ø¹Ù†ÙˆØ§Ù† Ø¨Ø§Ù„ÙƒØ±Ø¯ÙŠØ© (KU)</label>
                       <input 
                         type="text"
                         value={editingOpp.titleKU}
@@ -531,7 +531,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
 
                     {/* Arabic Description */}
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black text-slate-350 uppercase">الوصف بالعربية (AR)</label>
+                      <label className="text-[10px] font-black text-slate-350 uppercase">Ø§Ù„ÙˆØµÙ Ø¨Ø§Ù„Ø¹Ø±Ø¨ÙŠØ© (AR)</label>
                       <textarea
                         value={editingOpp.contentAR}
                         rows={3}
@@ -543,7 +543,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
 
                     {/* Kurdish Description */}
                     <div className="flex flex-col gap-1">
-                      <label className="text-[10px] font-black text-slate-350 uppercase">الوصف بالكردية (KU)</label>
+                      <label className="text-[10px] font-black text-slate-350 uppercase">Ø§Ù„ÙˆØµÙ Ø¨Ø§Ù„ÙƒØ±Ø¯ÙŠØ© (KU)</label>
                       <textarea
                         value={editingOpp.contentKU}
                         rows={3}
@@ -599,7 +599,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
 
             {pendingOpps.length === 0 ? (
               <div className="text-center py-12 bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-6">
-                <span className="text-3xl mb-1.5 select-none animate-pulse">🎉</span>
+                <span className="text-3xl mb-1.5 select-none animate-pulse">ðŸŽ‰</span>
                 <p className="text-[11px] font-black text-white uppercase tracking-wide">
                   {getTranslatedLabel('noPending')}
                 </p>
@@ -633,13 +633,13 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
                     {/* Titles review panel */}
                     <div className="border border-[#1F2E4D]/60 rounded-2xl bg-[#0B1020]/20 p-2.5 mb-2.5">
                       <p className="text-[11px] font-black text-white leading-tight uppercase">
-                        🇬🇧 {o.titleEN}
+                        ðŸ‡¬ðŸ‡§ {o.titleEN}
                       </p>
                       <p className="text-[10px] font-extrabold text-[#FFD21F] leading-tight mt-1" dir="rtl">
-                        🇮🇶 {o.titleAR}
+                        ðŸ‡®ðŸ‡¶ {o.titleAR}
                       </p>
                       <p className="text-[10px] font-extrabold text-cyan-400 leading-tight mt-1" dir="rtl">
-                        ☀️ {o.titleKU}
+                        â˜€ï¸ {o.titleKU}
                       </p>
                     </div>
 
@@ -710,7 +710,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
                   >
                     <div className="flex flex-col gap-0.5 max-w-[220px]">
                       <span className="text-[10px] font-black text-white truncate">{o.titleEN}</span>
-                      <span className="text-[8px] text-slate-400 font-bold">{o.organization} • {o.category}</span>
+                      <span className="text-[8px] text-slate-400 font-bold">{o.organization} â€¢ {o.category}</span>
                     </div>
 
                     <div className="flex items-center gap-2">
@@ -975,3 +975,4 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
     </div>
   );
 }
+

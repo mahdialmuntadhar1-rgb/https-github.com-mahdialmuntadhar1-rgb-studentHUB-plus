@@ -1,4 +1,4 @@
-export type Language = 'en' | 'ar' | 'ku';
+﻿export type Language = 'en' | 'ar' | 'ku';
 
 export interface Governorate {
   id: string;
@@ -102,7 +102,7 @@ export interface FeedItem {
   
   // Meta
   author: Author;
-  date: string; // e.g. '3 hours ago' / '٣ ساعات مضت'
+  date: string; // e.g. '3 hours ago' / 'Ù£ Ø³Ø§Ø¹Ø§Øª Ù…Ø¶Øª'
   rawDate?: string; // ISO date for sorting
   likes: number;
   commentsCount: number;
@@ -293,3 +293,4 @@ export function hasAlternativeLanguages(item: any, currentLanguage: 'en' | 'ar' 
     return !!(hasAr || hasKu || hasOriginal);
   }
 }
+

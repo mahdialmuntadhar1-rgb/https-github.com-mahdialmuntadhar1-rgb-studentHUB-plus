@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Governorate, University, Language } from '../types';
 import { IraqiGovernorates, IraqiUniversities } from '../data/mockData';
 import { MapPin, School, Bell, Languages, Check, BookOpen, Palette } from 'lucide-react';
@@ -35,8 +35,8 @@ export default function Header({
 
   const getLanguageLabel = (lang: Language) => {
     if (lang === 'en') return 'EN';
-    if (lang === 'ar') return 'عربي';
-    return 'کوردی';
+    if (lang === 'ar') return 'Ø¹Ø±Ø¨ÙŠ';
+    return 'Ú©ÙˆØ±Ø¯ÛŒ';
   };
 
   return (
@@ -52,7 +52,7 @@ export default function Header({
           <div className="flex flex-col">
             <div className="flex items-center gap-1">
               <h1 className="text-sm font-black tracking-tight leading-none bg-gradient-to-r from-[var(--primary)] via-[var(--secondary)] to-[var(--accent)] bg-clip-text text-transparent" id="header-app-name-ar">
-                جامعتي
+                Ø¬Ø§Ù…Ø¹ØªÙŠ
               </h1>
               <span className="text-[10px] text-slate-400 font-bold leading-none">|</span>
               <span className="text-[10px] text-[var(--secondary)] font-black uppercase tracking-tight leading-none">Jamiaati</span>
@@ -143,3 +143,4 @@ export default function Header({
     </header>
   );
 }
+

@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Language, FeedItem } from '../types';
 import { PortalSettings, opportunityAutomation, portalSettingsApi } from '../lib/api';
 import { 
@@ -73,28 +73,28 @@ export default function AdminAutomation({
   const [heroBgInput, setHeroBgInput] = useState(() => localStorage.getItem('jamiaati_hero_bg') || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600');
   
   const [heroTitleENInput, setHeroTitleENInput] = useState(() => localStorage.getItem('jamiaati_hero_title_en') || 'Master Your Campus Journey!');
-  const [heroTitleARInput, setHeroTitleARInput] = useState(() => localStorage.getItem('jamiaati_hero_title_ar') || 'تميّز وابنِ مستقبلك الأكاديمي!');
-  const [heroTitleKUInput, setHeroTitleKUInput] = useState(() => localStorage.getItem('jamiaati_hero_title_ku') || 'داهاتوویەکی پڕشنگدار بنيات بنێ!');
+  const [heroTitleARInput, setHeroTitleARInput] = useState(() => localStorage.getItem('jamiaati_hero_title_ar') || 'ØªÙ…ÙŠÙ‘Ø² ÙˆØ§Ø¨Ù†Ù Ù…Ø³ØªÙ‚Ø¨Ù„Ùƒ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠ!');
+  const [heroTitleKUInput, setHeroTitleKUInput] = useState(() => localStorage.getItem('jamiaati_hero_title_ku') || 'Ø¯Ø§Ù‡Ø§ØªÙˆÙˆÛŒÛ•Ú©ÛŒ Ù¾Ú•Ø´Ù†Ú¯Ø¯Ø§Ø± Ø¨Ù†ÙŠØ§Øª Ø¨Ù†ÛŽ!');
   
   const [heroDescENInput, setHeroDescENInput] = useState(() => localStorage.getItem('jamiaati_hero_desc_en') || 'The ultimate collegiate hub for premium opportunities & academic resources');
-  const [heroDescARInput, setHeroDescARInput] = useState(() => localStorage.getItem('jamiaati_hero_desc_ar') || 'البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب');
-  const [heroDescKUInput, setHeroDescKUInput] = useState(() => localStorage.getItem('jamiaati_hero_desc_ku') || 'یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق');
+  const [heroDescARInput, setHeroDescARInput] = useState(() => localStorage.getItem('jamiaati_hero_desc_ar') || 'Ø§Ù„Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø·Ù„Ø§Ø¨ÙŠØ© Ø§Ù„Ø£Ù‚ÙˆÙ‰ Ù„Ù„Ø¬Ø§Ù…Ø¹Ø§Øª ÙˆØ§Ù„ØªØ¯Ø±ÙŠØ¨ ÙÙŠ Ø¹ÙØ±Ø§Ù‚Ù†Ø§ Ø§Ù„Ø­Ø¨ÙŠØ¨');
+  const [heroDescKUInput, setHeroDescKUInput] = useState(() => localStorage.getItem('jamiaati_hero_desc_ku') || 'ÛŒÛ•Ú©Û•Ù… Ø¯Û•Ø±ÙˆØ§Ø²Û•ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±Ø§Ù†ÛŒ Ø²Ø§Ù†Ú©Û† Ùˆ Ø¯Ø§Ø¨ÛŒÙ†Ú©Ø±Ø¯Ù†ÛŒ Ù‡Û•Ù„ÛŒ Ù…Û•Ø´Ù‚');
 
   const [heroTagENInput, setHeroTagENInput] = useState(() => localStorage.getItem('jamiaati_hero_tag_en') || 'PORTAL ACCELERATION');
-  const [heroTagARInput, setHeroTagARInput] = useState(() => localStorage.getItem('jamiaati_hero_tag_ar') || 'بوابة هويتنا الأكاديمية');
-  const [heroTagKUInput, setHeroTagKUInput] = useState(() => localStorage.getItem('jamiaati_hero_tag_ku') || 'دەروازەی ئەکادیمی عێراق');
+  const [heroTagARInput, setHeroTagARInput] = useState(() => localStorage.getItem('jamiaati_hero_tag_ar') || 'Ø¨ÙˆØ§Ø¨Ø© Ù‡ÙˆÙŠØªÙ†Ø§ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ©');
+  const [heroTagKUInput, setHeroTagKUInput] = useState(() => localStorage.getItem('jamiaati_hero_tag_ku') || 'Ø¯Û•Ø±ÙˆØ§Ø²Û•ÛŒ Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒ Ø¹ÛŽØ±Ø§Ù‚');
 
   // Load and modify standard student stories
   const [storyList, setStoryList] = useState<any[]>(() => {
     const saved = localStorage.getItem('jamiaati_edited_default_stories');
     if (saved) return JSON.parse(saved);
     return [
-      { id: 'story-sara', name: 'Sara Ahmed', avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200', text: 'Morning lab session checking microscopic cells! 🔬' },
-      { id: 'story-mustafa', name: 'Mustafa Ali', avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200', text: 'Building our AI-powered student assistant with Gemini API! 🤖🚀' },
-      { id: 'story-rawan', name: 'Rawan Omer', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200', text: 'Sunset over Mount Goizha from campus was stunning today! 🌄☕' },
-      { id: 'story-ali', name: 'Ali Jabbar', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200', text: 'Long shift in clinical practice! Basra Heat is here but we keep smiling! 🩺🥤' },
-      { id: 'story-zahid', name: 'Noor Al-Huda', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200', text: 'Setting up our chemical reaction samples. They look like glowing gems! 🧪💎' },
-      { id: 'story-soran', name: 'Soran Dler', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200', text: 'Beautiful morning at Erbil Citadel before lectures start 🎒🏰' }
+      { id: 'story-sara', name: 'Sara Ahmed', avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200', text: 'Morning lab session checking microscopic cells! ðŸ”¬' },
+      { id: 'story-mustafa', name: 'Mustafa Ali', avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200', text: 'Building our AI-powered student assistant with Gemini API! ðŸ¤–ðŸš€' },
+      { id: 'story-rawan', name: 'Rawan Omer', avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200', text: 'Sunset over Mount Goizha from campus was stunning today! ðŸŒ„â˜•' },
+      { id: 'story-ali', name: 'Ali Jabbar', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200', text: 'Long shift in clinical practice! Basra Heat is here but we keep smiling! ðŸ©ºðŸ¥¤' },
+      { id: 'story-zahid', name: 'Noor Al-Huda', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200', text: 'Setting up our chemical reaction samples. They look like glowing gems! ðŸ§ªðŸ’Ž' },
+      { id: 'story-soran', name: 'Soran Dler', avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200', text: 'Beautiful morning at Erbil Citadel before lectures start ðŸŽ’ðŸ°' }
     ];
   });
 
@@ -179,20 +179,20 @@ export default function AdminAutomation({
   const isAdmin = userRole === 'staff' || userRole === 'admin' || userRole === 'super_admin';
 
   const t = {
-    title: { en: 'Opportunity Automation Center', ar: 'مركز أتمتة الفرص المتقدم', ku: 'ناوەندی خۆکارکردنی دەرفەتەکان' },
-    dashboard: { en: 'Dashboard', ar: 'لوحة التحكم', ku: 'داشبۆرد' },
-    sources: { en: 'Crawl Sources', ar: 'مصادر الزحف', ku: 'سەرچاوەکانی زانیاری' },
-    import: { en: 'Import CSV', ar: 'استيراد CSV', ku: 'هێنانی فایلی CSV' },
-    pending: { en: 'Pending Review', ar: 'قيد المراجعة', ku: 'چاوەڕوانی چاوپێداخشان' },
-    approved: { en: 'Approved', ar: 'المقبولة والموافقة', ku: 'پەسەندکراو' },
-    rejected: { en: 'Rejected', ar: 'المرفوضة', ku: 'ڕەتکراوە' },
-    duplicates: { en: 'Duplicates', ar: 'المكررة', ku: 'دووبارەبووەوە' },
-    expired: { en: 'Expired', ar: 'منتهية الصلاحية', ku: 'بەسەرچوو' },
-    logs: { en: 'Run Logs', ar: 'سجلات التشغيل', ku: 'لۆگی کارکردن' },
-    portal: { en: 'Portal Design', ar: 'تعديل الواجهة والقصص', ku: 'ڕووكارى داستانەكان' },
-    settings: { en: 'Settings', ar: 'الإعدادات', ku: 'ڕێکخستنەکان' },
-    back: { en: 'Back', ar: 'رجوع', ku: 'گەڕانەوە' },
-    noPermission: { en: 'Admin Access Only. Please authenticate with staff role.', ar: 'وصول للمسؤولين فقط. يرجى تسجيل الدخول بحساب مشرف.', ku: 'تەنها بۆ سەرپەرشتیارەکان ڕێگەپێدراوە.' }
+    title: { en: 'Opportunity Automation Center', ar: 'Ù…Ø±ÙƒØ² Ø£ØªÙ…ØªØ© Ø§Ù„ÙØ±Øµ Ø§Ù„Ù…ØªÙ‚Ø¯Ù…', ku: 'Ù†Ø§ÙˆÛ•Ù†Ø¯ÛŒ Ø®Û†Ú©Ø§Ø±Ú©Ø±Ø¯Ù†ÛŒ Ø¯Û•Ø±ÙÛ•ØªÛ•Ú©Ø§Ù†' },
+    dashboard: { en: 'Dashboard', ar: 'Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…', ku: 'Ø¯Ø§Ø´Ø¨Û†Ø±Ø¯' },
+    sources: { en: 'Crawl Sources', ar: 'Ù…ØµØ§Ø¯Ø± Ø§Ù„Ø²Ø­Ù', ku: 'Ø³Û•Ø±Ú†Ø§ÙˆÛ•Ú©Ø§Ù†ÛŒ Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ' },
+    import: { en: 'Import CSV', ar: 'Ø§Ø³ØªÙŠØ±Ø§Ø¯ CSV', ku: 'Ù‡ÛŽÙ†Ø§Ù†ÛŒ ÙØ§ÛŒÙ„ÛŒ CSV' },
+    pending: { en: 'Pending Review', ar: 'Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©', ku: 'Ú†Ø§ÙˆÛ•Ú•ÙˆØ§Ù†ÛŒ Ú†Ø§ÙˆÙ¾ÛŽØ¯Ø§Ø®Ø´Ø§Ù†' },
+    approved: { en: 'Approved', ar: 'Ø§Ù„Ù…Ù‚Ø¨ÙˆÙ„Ø© ÙˆØ§Ù„Ù…ÙˆØ§ÙÙ‚Ø©', ku: 'Ù¾Û•Ø³Û•Ù†Ø¯Ú©Ø±Ø§Ùˆ' },
+    rejected: { en: 'Rejected', ar: 'Ø§Ù„Ù…Ø±ÙÙˆØ¶Ø©', ku: 'Ú•Û•ØªÚ©Ø±Ø§ÙˆÛ•' },
+    duplicates: { en: 'Duplicates', ar: 'Ø§Ù„Ù…ÙƒØ±Ø±Ø©', ku: 'Ø¯ÙˆÙˆØ¨Ø§Ø±Û•Ø¨ÙˆÙˆÛ•ÙˆÛ•' },
+    expired: { en: 'Expired', ar: 'Ù…Ù†ØªÙ‡ÙŠØ© Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ©', ku: 'Ø¨Û•Ø³Û•Ø±Ú†ÙˆÙˆ' },
+    logs: { en: 'Run Logs', ar: 'Ø³Ø¬Ù„Ø§Øª Ø§Ù„ØªØ´ØºÙŠÙ„', ku: 'Ù„Û†Ú¯ÛŒ Ú©Ø§Ø±Ú©Ø±Ø¯Ù†' },
+    portal: { en: 'Portal Design', ar: 'ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© ÙˆØ§Ù„Ù‚ØµØµ', ku: 'Ú•ÙˆÙˆÙƒØ§Ø±Ù‰ Ø¯Ø§Ø³ØªØ§Ù†Û•ÙƒØ§Ù†' },
+    settings: { en: 'Settings', ar: 'Ø§Ù„Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª', ku: 'Ú•ÛŽÚ©Ø®Ø³ØªÙ†Û•Ú©Ø§Ù†' },
+    back: { en: 'Back', ar: 'Ø±Ø¬ÙˆØ¹', ku: 'Ú¯Û•Ú•Ø§Ù†Û•ÙˆÛ•' },
+    noPermission: { en: 'Admin Access Only. Please authenticate with staff role.', ar: 'ÙˆØµÙˆÙ„ Ù„Ù„Ù…Ø³Ø¤ÙˆÙ„ÙŠÙ† ÙÙ‚Ø·. ÙŠØ±Ø¬Ù‰ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ø­Ø³Ø§Ø¨ Ù…Ø´Ø±Ù.', ku: 'ØªÛ•Ù†Ù‡Ø§ Ø¨Û† Ø³Û•Ø±Ù¾Û•Ø±Ø´ØªÛŒØ§Ø±Û•Ú©Ø§Ù† Ú•ÛŽÚ¯Û•Ù¾ÛŽØ¯Ø±Ø§ÙˆÛ•.' }
   };
 
   const getL = (key: keyof typeof t) => t[key][language] || t[key]['en'];
@@ -217,9 +217,9 @@ export default function AdminAutomation({
       .catch((err) => {
         showToast(
           language === 'ar'
-            ? `تعذر تحميل إعدادات الواجهة من الخادم: ${err.message}`
+            ? `ØªØ¹Ø°Ø± ØªØ­Ù…ÙŠÙ„ Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© Ù…Ù† Ø§Ù„Ø®Ø§Ø¯Ù…: ${err.message}`
             : language === 'ku'
-            ? `بارکردنی ڕێکخستنەکانی ڕووکار لە سێرڤەر سەرکەوتوو نەبوو: ${err.message}`
+            ? `Ø¨Ø§Ø±Ú©Ø±Ø¯Ù†ÛŒ Ú•ÛŽÚ©Ø®Ø³ØªÙ†Û•Ú©Ø§Ù†ÛŒ Ú•ÙˆÙˆÚ©Ø§Ø± Ù„Û• Ø³ÛŽØ±Ú¤Û•Ø± Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ù†Û•Ø¨ÙˆÙˆ: ${err.message}`
             : `Could not load portal settings from backend: ${err.message}`,
           'error'
         );
@@ -279,10 +279,10 @@ export default function AdminAutomation({
   // Run Scraper Engine
   const handleRunAllScrapers = async () => {
     setRunningScraper(true);
-    showToast(language === 'ar' ? 'جاري تشغيل محرك الأتمتة وجلب الفرص...' : 'Running crawlers...', 'info');
+    showToast(language === 'ar' ? 'Ø¬Ø§Ø±ÙŠ ØªØ´ØºÙŠÙ„ Ù…Ø­Ø±Ùƒ Ø§Ù„Ø£ØªÙ…ØªØ© ÙˆØ¬Ù„Ø¨ Ø§Ù„ÙØ±Øµ...' : 'Running crawlers...', 'info');
     try {
       const res = await opportunityAutomation.runNow(language);
-      showToast(language === 'ar' ? 'اكتمل الزحف بنجاح!' : 'Crawler run complete!', 'success');
+      showToast(language === 'ar' ? 'Ø§ÙƒØªÙ…Ù„ Ø§Ù„Ø²Ø­Ù Ø¨Ù†Ø¬Ø§Ø­!' : 'Crawler run complete!', 'success');
       fetchCoreStats();
       fetchTabContent();
     } catch (e: any) {
@@ -296,7 +296,7 @@ export default function AdminAutomation({
   const handleRunSingleSource = async (id: string) => {
     try {
       const res = await opportunityAutomation.runSource(id, language);
-      showToast(language === 'ar' ? 'اكتمل زحف المصدر المحدد!' : 'Source crawl complete!', 'success');
+      showToast(language === 'ar' ? 'Ø§ÙƒØªÙ…Ù„ Ø²Ø­Ù Ø§Ù„Ù…ØµØ¯Ø± Ø§Ù„Ù…Ø­Ø¯Ø¯!' : 'Source crawl complete!', 'success');
       fetchCoreStats();
       fetchTabContent();
     } catch (e: any) {
@@ -309,7 +309,7 @@ export default function AdminAutomation({
     e.preventDefault();
     try {
       await opportunityAutomation.createSource(newSource, language);
-      showToast(language === 'ar' ? 'تم إضافة مصدر الزحف الجديد!' : 'Crawling source created!', 'success');
+      showToast(language === 'ar' ? 'ØªÙ… Ø¥Ø¶Ø§ÙØ© Ù…ØµØ¯Ø± Ø§Ù„Ø²Ø­Ù Ø§Ù„Ø¬Ø¯ÙŠØ¯!' : 'Crawling source created!', 'success');
       setShowAddSource(false);
       setNewSource({ name: '', url: '', type: 'job', active: true });
       fetchTabContent();
@@ -322,7 +322,7 @@ export default function AdminAutomation({
   const handleToggleSource = async (source: any) => {
     try {
       await opportunityAutomation.updateSource(source.id, { active: !source.active }, language);
-      showToast(language === 'ar' ? 'تم تحديث حالة المصدر!' : 'Source updated!', 'success');
+      showToast(language === 'ar' ? 'ØªÙ… ØªØ­Ø¯ÙŠØ« Ø­Ø§Ù„Ø© Ø§Ù„Ù…ØµØ¯Ø±!' : 'Source updated!', 'success');
       fetchTabContent();
     } catch (e: any) {
       showToast(e.message, 'error');
@@ -331,10 +331,10 @@ export default function AdminAutomation({
 
   // Delete Source Action
   const handleDeleteSource = async (id: string) => {
-    if (!confirm(language === 'ar' ? 'هل أنت متأكد من حذف هذا المصدر؟' : 'Delete this crawler source?')) return;
+    if (!confirm(language === 'ar' ? 'Ù‡Ù„ Ø£Ù†Øª Ù…ØªØ£ÙƒØ¯ Ù…Ù† Ø­Ø°Ù Ù‡Ø°Ø§ Ø§Ù„Ù…ØµØ¯Ø±ØŸ' : 'Delete this crawler source?')) return;
     try {
       await opportunityAutomation.deleteSource(id, language);
-      showToast(language === 'ar' ? 'تم حذف المصدر بنجاح' : 'Source deleted successfully', 'success');
+      showToast(language === 'ar' ? 'ØªÙ… Ø­Ø°Ù Ø§Ù„Ù…ØµØ¯Ø± Ø¨Ù†Ø¬Ø§Ø­' : 'Source deleted successfully', 'success');
       fetchTabContent();
     } catch (e: any) {
       showToast(e.message, 'error');
@@ -345,7 +345,7 @@ export default function AdminAutomation({
   const handleApprove = async (id: string) => {
     try {
       await opportunityAutomation.approveCandidate(id, language);
-      showToast(language === 'ar' ? 'تمت الموافقة والمزامنة للبوابة العامة!' : 'Candidate approved!', 'success');
+      showToast(language === 'ar' ? 'ØªÙ…Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© ÙˆØ§Ù„Ù…Ø²Ø§Ù…Ù†Ø© Ù„Ù„Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø¹Ø§Ù…Ø©!' : 'Candidate approved!', 'success');
       fetchTabContent();
       fetchCoreStats();
     } catch (e: any) {
@@ -355,12 +355,12 @@ export default function AdminAutomation({
 
   const handleBulkApprove = async () => {
     if (selectedCandidates.length === 0) return;
-    showToast(language === 'ar' ? 'جاري الموافقة على الدفعة المحددة...' : 'Approving batch...', 'info');
+    showToast(language === 'ar' ? 'Ø¬Ø§Ø±ÙŠ Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø¯ÙØ¹Ø© Ø§Ù„Ù…Ø­Ø¯Ø¯Ø©...' : 'Approving batch...', 'info');
     try {
       for (const id of selectedCandidates) {
         await opportunityAutomation.approveCandidate(id, language);
       }
-      showToast(language === 'ar' ? 'تمت الموافقة على الدفعة بنجاح!' : 'Batch approved successfully!', 'success');
+      showToast(language === 'ar' ? 'ØªÙ…Øª Ø§Ù„Ù…ÙˆØ§ÙÙ‚Ø© Ø¹Ù„Ù‰ Ø§Ù„Ø¯ÙØ¹Ø© Ø¨Ù†Ø¬Ø§Ø­!' : 'Batch approved successfully!', 'success');
       setSelectedCandidates([]);
       fetchTabContent();
       fetchCoreStats();
@@ -378,7 +378,7 @@ export default function AdminAutomation({
     if (!rejectId) return;
     try {
       await opportunityAutomation.rejectCandidate(rejectId, rejectReason, language);
-      showToast(language === 'ar' ? 'تم رفض المرشح وحفظ السبب.' : 'Candidate rejected.', 'success');
+      showToast(language === 'ar' ? 'ØªÙ… Ø±ÙØ¶ Ø§Ù„Ù…Ø±Ø´Ø­ ÙˆØ­ÙØ¸ Ø§Ù„Ø³Ø¨Ø¨.' : 'Candidate rejected.', 'success');
       setRejectId(null);
       fetchTabContent();
       fetchCoreStats();
@@ -390,7 +390,7 @@ export default function AdminAutomation({
   const handleDuplicate = async (id: string) => {
     try {
       await opportunityAutomation.markDuplicate(id, language);
-      showToast(language === 'ar' ? 'تم وسم البطاقة كمكررة.' : 'Marked as duplicate.', 'info');
+      showToast(language === 'ar' ? 'ØªÙ… ÙˆØ³Ù… Ø§Ù„Ø¨Ø·Ø§Ù‚Ø© ÙƒÙ…ÙƒØ±Ø±Ø©.' : 'Marked as duplicate.', 'info');
       fetchTabContent();
       fetchCoreStats();
     } catch (e: any) {
@@ -401,7 +401,7 @@ export default function AdminAutomation({
   const handleExpired = async (id: string) => {
     try {
       await opportunityAutomation.markExpired(id, language);
-      showToast(language === 'ar' ? 'تم أرشفة الفرصة في منتهية الصلاحية.' : 'Marked as expired.', 'info');
+      showToast(language === 'ar' ? 'ØªÙ… Ø£Ø±Ø´ÙØ© Ø§Ù„ÙØ±ØµØ© ÙÙŠ Ù…Ù†ØªÙ‡ÙŠØ© Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ©.' : 'Marked as expired.', 'info');
       fetchTabContent();
       fetchCoreStats();
     } catch (e: any) {
@@ -415,7 +415,7 @@ export default function AdminAutomation({
     if (!editingCandidate) return;
     try {
       await opportunityAutomation.updateCandidate(editingCandidate.id, editingCandidate, language);
-      showToast(language === 'ar' ? 'تم حفظ التعديلات على الفرصة بنجاح!' : 'Opportunity content saved!', 'success');
+      showToast(language === 'ar' ? 'ØªÙ… Ø­ÙØ¸ Ø§Ù„ØªØ¹Ø¯ÙŠÙ„Ø§Øª Ø¹Ù„Ù‰ Ø§Ù„ÙØ±ØµØ© Ø¨Ù†Ø¬Ø§Ø­!' : 'Opportunity content saved!', 'success');
       setEditingCandidate(null);
       fetchTabContent();
     } catch (e: any) {
@@ -427,11 +427,11 @@ export default function AdminAutomation({
   const handleUploadCsv = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
-    showToast(language === 'ar' ? 'جاري رفع وتحليل ملف CSV...' : 'Uploading CSV...', 'info');
+    showToast(language === 'ar' ? 'Ø¬Ø§Ø±ÙŠ Ø±ÙØ¹ ÙˆØªØ­Ù„ÙŠÙ„ Ù…Ù„Ù CSV...' : 'Uploading CSV...', 'info');
     try {
       const res = await opportunityAutomation.importCsv(file, language);
       setUploadStats(res);
-      showToast(language === 'ar' ? 'تم استيراد الملف وإرساله للمراجعة!' : 'CSV import complete!', 'success');
+      showToast(language === 'ar' ? 'ØªÙ… Ø§Ø³ØªÙŠØ±Ø§Ø¯ Ø§Ù„Ù…Ù„Ù ÙˆØ¥Ø±Ø³Ø§Ù„Ù‡ Ù„Ù„Ù…Ø±Ø§Ø¬Ø¹Ø©!' : 'CSV import complete!', 'success');
       fetchCoreStats();
     } catch (e: any) {
       showToast(e.message, 'error');
@@ -460,7 +460,7 @@ export default function AdminAutomation({
       <div className="flex items-center justify-between mb-5 bg-white border-2 border-[#161A33] rounded-3xl p-3.5 shadow-[3px_3px_0px_0px_#161A33]" id="automation-header">
         <div className="flex items-center gap-3">
           <div className="w-10 h-10 rounded-2xl bg-gradient-to-tr from-[#6B25C9] to-[#2F7CCB] border-2 border-[#161A33] text-white flex items-center justify-center font-bold text-xl select-none shrink-0 shadow-sm animate-pulse">
-            🤖
+            ðŸ¤–
           </div>
           <div>
             <h1 className="text-xs font-black tracking-tight uppercase leading-none">{getL('title')}</h1>
@@ -508,7 +508,7 @@ export default function AdminAutomation({
             type="text" 
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-            placeholder={language === 'ar' ? 'بحث وتصفية ذكية سريعة...' : 'Core list indexing search...'}
+            placeholder={language === 'ar' ? 'Ø¨Ø­Ø« ÙˆØªØµÙÙŠØ© Ø°ÙƒÙŠØ© Ø³Ø±ÙŠØ¹Ø©...' : 'Core list indexing search...'}
             className="w-full bg-white text-[11px] border-2 border-[#161A33] rounded-xl py-2.5 pl-9 pr-4 text-[#161A33] font-black focus:outline-none placeholder-slate-400 shadow-inner"
           />
         </div>
@@ -529,7 +529,7 @@ export default function AdminAutomation({
                   <div className="flex items-center gap-2 mt-1">
                     <span className={`w-3 h-3 rounded-full animate-ping ${status.is_active ? 'bg-green-500' : 'bg-rose-500'}`} />
                     <span className="text-sm font-black uppercase tracking-tight text-[#161A33]">
-                      {status.status === 'scraping' ? 'Active Scraping 🔄' : 'System Guard (Online) 🛡️'}
+                      {status.status === 'scraping' ? 'Active Scraping ðŸ”„' : 'System Guard (Online) ðŸ›¡ï¸'}
                     </span>
                   </div>
                   <p className="text-[10px] text-slate-500 font-extrabold mt-3.5">
@@ -545,7 +545,7 @@ export default function AdminAutomation({
                   className={`px-4 py-3 bg-[#FFD21F] text-[#161A33] font-black border-2 border-[#161A33] rounded-2xl flex items-center gap-1.5 hover:bg-[#FFE052] transition-transform active:scale-95 shadow-[2px_2px_0px_0px_#161A33] cursor-pointer text-xs ${runningScraper ? 'opacity-60 pointer-events-none' : ''}`}
                 >
                   <Play className="w-3.5 fill-current" />
-                  <span>{language === 'ar' ? 'تشغيل يدوي الآن' : 'Run Scrapers'}</span>
+                  <span>{language === 'ar' ? 'ØªØ´ØºÙŠÙ„ ÙŠØ¯ÙˆÙŠ Ø§Ù„Ø¢Ù†' : 'Run Scrapers'}</span>
                 </button>
               </div>
             </div>
@@ -553,10 +553,10 @@ export default function AdminAutomation({
             {/* Core Counter Grid */}
             <div className="grid grid-cols-2 gap-3.5">
               {[
-                { label: 'Scraped Count', count: stats.total_scraped || stats.itemsFound || 148, desc: 'Incoming total indexed', emoji: '📥' },
-                { label: 'Duplicates Prevented', count: stats.duplicates_blocked || stats.itemsDuplicate || 0, desc: 'Identical urls filtered', emoji: '🛡️' },
-                { label: 'Pending Moderation', count: stats.pending_review || stats.itemsNew || 0, desc: 'Awaiting administrator action', emoji: '⏳' },
-                { label: 'Deployed live', count: stats.approved || 0, desc: 'Published to the feed', emoji: '✨' }
+                { label: 'Scraped Count', count: stats.total_scraped || stats.itemsFound || 148, desc: 'Incoming total indexed', emoji: 'ðŸ“¥' },
+                { label: 'Duplicates Prevented', count: stats.duplicates_blocked || stats.itemsDuplicate || 0, desc: 'Identical urls filtered', emoji: 'ðŸ›¡ï¸' },
+                { label: 'Pending Moderation', count: stats.pending_review || stats.itemsNew || 0, desc: 'Awaiting administrator action', emoji: 'â³' },
+                { label: 'Deployed live', count: stats.approved || 0, desc: 'Published to the feed', emoji: 'âœ¨' }
               ].map((c, idx) => (
                 <div key={idx} className="bg-white border-2 border-[#161A33] rounded-2xl p-4 shadow-[2px_2px_0px_0px_#161A33] flex flex-col justify-between">
                   <div className="flex justify-between items-start">
@@ -594,7 +594,7 @@ export default function AdminAutomation({
                 className="bg-[#161A33] text-white border-2 border-[#161A33] hover:bg-slate-800 font-black text-[9px] rounded-xl px-3 py-1.8 flex items-center gap-1 cursor-pointer transition-all shadow-[2px_2px_0px_0px_#FFD21F]"
               >
                 <Plus className="w-3" />
-                <span>{language === 'ar' ? 'إضافة مصدر جديد' : 'New Source'}</span>
+                <span>{language === 'ar' ? 'Ø¥Ø¶Ø§ÙØ© Ù…ØµØ¯Ø± Ø¬Ø¯ÙŠØ¯' : 'New Source'}</span>
               </button>
             </div>
 
@@ -626,10 +626,10 @@ export default function AdminAutomation({
                     onChange={e => setNewSource({...newSource, type: e.target.value})}
                     className="text-[10px] border border-[#E6E1F5] rounded-lg p-1.5 font-bold"
                   >
-                    <option value="job">Jobs 💼</option>
-                    <option value="internship">Internship 💼</option>
-                    <option value="scholarship">Scholarship 🎓</option>
-                    <option value="training">Training 🌟</option>
+                    <option value="job">Jobs ðŸ’¼</option>
+                    <option value="internship">Internship ðŸ’¼</option>
+                    <option value="scholarship">Scholarship ðŸŽ“</option>
+                    <option value="training">Training ðŸŒŸ</option>
                   </select>
                   <div className="flex gap-1.5">
                     <button 
@@ -637,13 +637,13 @@ export default function AdminAutomation({
                       onClick={() => setShowAddSource(false)}
                       className="px-3 py-1.5 bg-slate-100 hover:bg-slate-200 rounded-lg text-[9px] font-black cursor-pointer"
                     >
-                      {language === 'ar' ? 'إلغاء' : 'Cancel'}
+                      {language === 'ar' ? 'Ø¥Ù„ØºØ§Ø¡' : 'Cancel'}
                     </button>
                     <button 
                       type="submit"
                       className="px-3.5 py-1.5 bg-[#6B25C9] text-white rounded-lg text-[9px] font-black cursor-pointer"
                     >
-                      {language === 'ar' ? 'حفظ المصدر' : 'Save Source'}
+                      {language === 'ar' ? 'Ø­ÙØ¸ Ø§Ù„Ù…ØµØ¯Ø±' : 'Save Source'}
                     </button>
                   </div>
                 </div>
@@ -706,7 +706,7 @@ export default function AdminAutomation({
                 className="mt-6 px-6 py-3 bg-[#FFD21F] text-[#161A33] border-2 border-[#161A33] font-black text-xs rounded-2xl cursor-pointer hover:bg-[#FFE052] transition-transform active:scale-95 shadow-[3px_3px_0px_0px_#161A33] flex items-center gap-1.5"
               >
                 <FileSpreadsheet className="w-4 h-4" />
-                <span>{language === 'ar' ? 'اختر ملف CSV للرفع' : 'Choose CSV File'}</span>
+                <span>{language === 'ar' ? 'Ø§Ø®ØªØ± Ù…Ù„Ù CSV Ù„Ù„Ø±ÙØ¹' : 'Choose CSV File'}</span>
               </label>
               <input 
                 id="csv-upload" 
@@ -759,7 +759,7 @@ export default function AdminAutomation({
 
             {candidates.length === 0 ? (
               <div className="text-center py-12 text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-6 shadow-sm">
-                <span className="text-4xl select-none">🏖️</span>
+                <span className="text-4xl select-none">ðŸ–ï¸</span>
                 <h4 className="font-black text-xs text-[#161A33] mt-2">Zero pending reviews left!</h4>
                 <p className="text-[9px] text-slate-500 mt-1 max-w-xs mx-auto">Great job. All scraped information has been indexed, resolved, and approved/rejected.</p>
               </div>
@@ -789,7 +789,7 @@ export default function AdminAutomation({
                         </span>
                         {opp.governorateId && (
                           <span className="text-[8px] bg-slate-100 text-slate-800 font-extrabold px-1.5 py-0.5 rounded uppercase leading-none">
-                            📍 {opp.governorateId.toUpperCase()}
+                            ðŸ“ {opp.governorateId.toUpperCase()}
                           </span>
                         )}
                       </div>
@@ -804,7 +804,7 @@ export default function AdminAutomation({
                       </p>
                       {opp.deadline && (
                         <span className="inline-block mt-2.5 text-[9px] font-black text-[#D9272E] bg-red-50 border border-red-200/40 px-2 py-0.5 rounded-lg">
-                          ⏳ Deadline: {opp.deadline}
+                          â³ Deadline: {opp.deadline}
                         </span>
                       )}
                     </div>
@@ -817,7 +817,7 @@ export default function AdminAutomation({
                         rel="noreferrer" 
                         className="text-[9px] font-mono font-black text-[#6B25C9] hover:underline"
                       >
-                        🔗 Feed Target Link: {opp.application_link || opp.original_source_url}
+                        ðŸ”— Feed Target Link: {opp.application_link || opp.original_source_url}
                       </a>
                     )}
 
@@ -829,7 +829,7 @@ export default function AdminAutomation({
                         onClick={() => handleApprove(opp.id)}
                         className="flex-1 py-2 bg-emerald-100 text-emerald-950 border-2 border-[#161A33] font-black rounded-xl hover:bg-emerald-250 transition-colors cursor-pointer"
                       >
-                        Approve ✓
+                        Approve âœ“
                       </button>
 
                       {/* Reject */}
@@ -837,7 +837,7 @@ export default function AdminAutomation({
                         onClick={() => triggerRejectFlow(opp.id)}
                         className="py-2 px-3.5 bg-rose-100 text-rose-950 border-2 border-[#161A33] font-black rounded-xl hover:bg-rose-250 transition-colors cursor-pointer"
                       >
-                        Reject ✗
+                        Reject âœ—
                       </button>
 
                       {/* Mark Duplicate */}
@@ -845,7 +845,7 @@ export default function AdminAutomation({
                         onClick={() => handleDuplicate(opp.id)}
                         className="py-2 px-3.5 bg-slate-100 text-slate-950 border-2 border-[#161A33] font-black rounded-xl hover:bg-slate-200 transition-colors cursor-pointer"
                       >
-                        Duplicate 🛡️
+                        Duplicate ðŸ›¡ï¸
                       </button>
 
                       {/* Edit Content */}
@@ -869,7 +869,7 @@ export default function AdminAutomation({
             <span className="text-[10px] font-black uppercase text-slate-400 text-left">{totalItems} opportunities indexed under status "{activeTab}"</span>
             {candidates.length === 0 ? (
               <div className="text-center py-12 text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-6 shadow-sm">
-                <span className="text-3xl select-none">📭</span>
+                <span className="text-3xl select-none">ðŸ“­</span>
                 <h4 className="font-black text-xs text-[#161A33] mt-2">No entries matched!</h4>
               </div>
             ) : (
@@ -894,7 +894,7 @@ export default function AdminAutomation({
                           onClick={() => handleApprove(opp.id)}
                           className="px-3 py-1.5 bg-emerald-50 text-emerald-800 border-2 border-emerald-800/10 hover:border-emerald-800 rounded-lg text-[9px] font-black cursor-pointer"
                         >
-                          Approve ✓
+                          Approve âœ“
                         </button>
                       )}
                       {activeTab !== 'expired' && activeTab === 'approved' && (
@@ -902,7 +902,7 @@ export default function AdminAutomation({
                           onClick={() => handleExpired(opp.id)}
                           className="px-3 py-1.5 bg-amber-50 text-amber-800 border border-amber-800/10 hover:border-amber-800 rounded-lg text-[9px] font-black cursor-pointer"
                         >
-                          Expire ⏳
+                          Expire â³
                         </button>
                       )}
                     </div>
@@ -988,12 +988,12 @@ export default function AdminAutomation({
                 onClick={() => setStatus({ ...status, is_active: !status.is_active })}
                 className={`px-4 py-2 text-xs font-black border-2 border-[#161A33] rounded-xl cursor-pointer ${status.is_active ? 'bg-green-100 text-green-950 shadow-[2px_2px_0px_0px_#161A33]' : 'bg-slate-100 text-slate-400'}`}
               >
-                {status.is_active ? 'ENABLED ✓' : 'DISABLED ✗'}
+                {status.is_active ? 'ENABLED âœ“' : 'DISABLED âœ—'}
               </button>
             </div>
 
             <button
-              onClick={() => showToast(language === 'ar' ? 'تم حفظ التكوين بنجاح!' : 'Settings successfully saved!', 'success')}
+              onClick={() => showToast(language === 'ar' ? 'ØªÙ… Ø­ÙØ¸ Ø§Ù„ØªÙƒÙˆÙŠÙ† Ø¨Ù†Ø¬Ø§Ø­!' : 'Settings successfully saved!', 'success')}
               className="mt-2.5 py-3.5 bg-[#161A33] text-white border-2 border-[#161A33] hover:bg-slate-800 rounded-2xl w-full text-xs font-black cursor-pointer shadow-[3px_3px_0px_0px_#FFD21F] text-center"
             >
               Save Configuration Settings
@@ -1005,7 +1005,7 @@ export default function AdminAutomation({
         {activeTab === 'portal' && (
           <div className="flex flex-col gap-5 text-left bg-white border-2 border-[#161A33] rounded-3xl p-5 shadow-[3px_3px_0px_0px_#161A33]">
             <h3 className="text-xs font-black uppercase tracking-wide border-b-2 border-slate-100 pb-2">
-              {language === 'ar' ? 'تصميم قسم ترحيب الهيرو والصور الطلابية' : 'Portal Design & Stories Assets'}
+              {language === 'ar' ? 'ØªØµÙ…ÙŠÙ… Ù‚Ø³Ù… ØªØ±Ø­ÙŠØ¨ Ø§Ù„Ù‡ÙŠØ±Ùˆ ÙˆØ§Ù„ØµÙˆØ± Ø§Ù„Ø·Ù„Ø§Ø¨ÙŠØ©' : 'Portal Design & Stories Assets'}
             </h3>
             
             {/* 1. Hero Configuration Form */}
@@ -1018,9 +1018,9 @@ export default function AdminAutomation({
                 cachePortalSettings(savedSettings);
                 window.dispatchEvent(new Event('jamiaati_hero_updated'));
                 window.dispatchEvent(new Event('jamiaati_stories_updated'));
-                showToast(language === 'ar' ? 'تم حفظ تعديلات الواجهة في الخادم بنجاح!' : language === 'ku' ? 'گۆڕانکارییەکانی ڕووکار لە سێرڤەر پاشەکەوت کران!' : 'Portal settings saved to backend successfully!', 'success');
+                showToast(language === 'ar' ? 'ØªÙ… Ø­ÙØ¸ ØªØ¹Ø¯ÙŠÙ„Ø§Øª Ø§Ù„ÙˆØ§Ø¬Ù‡Ø© ÙÙŠ Ø§Ù„Ø®Ø§Ø¯Ù… Ø¨Ù†Ø¬Ø§Ø­!' : language === 'ku' ? 'Ú¯Û†Ú•Ø§Ù†Ú©Ø§Ø±ÛŒÛŒÛ•Ú©Ø§Ù†ÛŒ Ú•ÙˆÙˆÚ©Ø§Ø± Ù„Û• Ø³ÛŽØ±Ú¤Û•Ø± Ù¾Ø§Ø´Û•Ú©Û•ÙˆØª Ú©Ø±Ø§Ù†!' : 'Portal settings saved to backend successfully!', 'success');
               } catch (err: any) {
-                showToast(language === 'ar' ? `فشل حفظ إعدادات الواجهة: ${err.message}` : language === 'ku' ? `پاشەکەوتکردنی ڕێکخستنەکانی ڕووکار سەرکەوتوو نەبوو: ${err.message}` : `Failed to save portal settings: ${err.message}`, 'error');
+                showToast(language === 'ar' ? `ÙØ´Ù„ Ø­ÙØ¸ Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„ÙˆØ§Ø¬Ù‡Ø©: ${err.message}` : language === 'ku' ? `Ù¾Ø§Ø´Û•Ú©Û•ÙˆØªÚ©Ø±Ø¯Ù†ÛŒ Ú•ÛŽÚ©Ø®Ø³ØªÙ†Û•Ú©Ø§Ù†ÛŒ Ú•ÙˆÙˆÚ©Ø§Ø± Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ù†Û•Ø¨ÙˆÙˆ: ${err.message}` : `Failed to save portal settings: ${err.message}`, 'error');
               }
             }} className="flex flex-col gap-4 text-xs font-bold text-slate-700">
               
@@ -1134,18 +1134,18 @@ export default function AdminAutomation({
                 type="submit"
                 className="py-3 bg-[#6B25C9] hover:bg-[#5E1FB5] text-white border-2 border-[#161A33] rounded-xl text-[10.5px] font-black uppercase transition-all shadow-[2px_2px_0px_0px_#161A33] cursor-pointer text-center"
               >
-                {language === 'ar' ? 'حفظ تعديلات واجهة الهيرو ✓' : 'Apply Hero Changes ✓'}
+                {language === 'ar' ? 'Ø­ÙØ¸ ØªØ¹Ø¯ÙŠÙ„Ø§Øª ÙˆØ§Ø¬Ù‡Ø© Ø§Ù„Ù‡ÙŠØ±Ùˆ âœ“' : 'Apply Hero Changes âœ“'}
               </button>
             </form>
 
             {/* 2. Real Student Stories Photos replacement block */}
             <div className="border-t border-slate-100 pt-5 mt-2">
               <span className="text-[10px] font-black uppercase text-[#161A33] block mb-2">
-                {language === 'ar' ? '٤. تخصيص صور وقصص واقع الطلاب' : '4. Student Stories Photos & Avatars'}
+                {language === 'ar' ? 'Ù¤. ØªØ®ØµÙŠØµ ØµÙˆØ± ÙˆÙ‚ØµØµ ÙˆØ§Ù‚Ø¹ Ø§Ù„Ø·Ù„Ø§Ø¨' : '4. Student Stories Photos & Avatars'}
               </span>
               <p className="text-[9.5px] text-slate-500 font-bold mb-4 leading-relaxed">
                 {language === 'ar' 
-                  ? 'قم بتحديث صور الملفات الشخصية والحكايا للطلاب لتظهر كشخصيات عراقية حقيقية وجميلة.' 
+                  ? 'Ù‚Ù… Ø¨ØªØ­Ø¯ÙŠØ« ØµÙˆØ± Ø§Ù„Ù…Ù„ÙØ§Øª Ø§Ù„Ø´Ø®ØµÙŠØ© ÙˆØ§Ù„Ø­ÙƒØ§ÙŠØ§ Ù„Ù„Ø·Ù„Ø§Ø¨ Ù„ØªØ¸Ù‡Ø± ÙƒØ´Ø®ØµÙŠØ§Øª Ø¹Ø±Ø§Ù‚ÙŠØ© Ø­Ù‚ÙŠÙ‚ÙŠØ© ÙˆØ¬Ù…ÙŠÙ„Ø©.' 
                   : 'Update profiles, names, and avatars of students to represent authentic people on the storyboard.'}
               </p>
 
@@ -1178,7 +1178,7 @@ export default function AdminAutomation({
                       }}
                       className="px-3 py-1.5 bg-white border border-[#161A33] hover:bg-slate-100 rounded-lg text-[9px] font-black cursor-pointer shadow-sm"
                     >
-                      {language === 'ar' ? 'تعديل الصورة 📷' : 'Swap Photo 📷'}
+                      {language === 'ar' ? 'ØªØ¹Ø¯ÙŠÙ„ Ø§Ù„ØµÙˆØ±Ø© ðŸ“·' : 'Swap Photo ðŸ“·'}
                     </button>
                   </div>
                 ))}
@@ -1196,7 +1196,7 @@ export default function AdminAutomation({
                     className="bg-white border-2 border-[#161A33] p-5.5 rounded-3xl w-full max-w-sm flex flex-col gap-3 text-left shadow-2xl relative"
                   >
                     <h3 className="text-xs font-black uppercase text-[#6B25C9]">
-                      {language === 'ar' ? 'تعديل صورة وقصة الطالب' : 'Edit Student Story & Avatar'}
+                      {language === 'ar' ? 'ØªØ¹Ø¯ÙŠÙ„ ØµÙˆØ±Ø© ÙˆÙ‚ØµØ© Ø§Ù„Ø·Ø§Ù„Ø¨' : 'Edit Student Story & Avatar'}
                     </h3>
 
                     <form onSubmit={async (e) => {
@@ -1221,9 +1221,9 @@ export default function AdminAutomation({
                         window.dispatchEvent(new Event('jamiaati_hero_updated'));
                         window.dispatchEvent(new Event('jamiaati_stories_updated'));
                         setEditingStoryId(null);
-                        showToast(language === 'ar' ? 'تم تعديل ملامح وصور الطالب وحفظها في الخادم!' : language === 'ku' ? 'وێنە و چیرۆکی خوێندکار لە سێرڤەر پاشەکەوت کرا!' : 'Student story saved to backend successfully!', 'success');
+                        showToast(language === 'ar' ? 'ØªÙ… ØªØ¹Ø¯ÙŠÙ„ Ù…Ù„Ø§Ù…Ø­ ÙˆØµÙˆØ± Ø§Ù„Ø·Ø§Ù„Ø¨ ÙˆØ­ÙØ¸Ù‡Ø§ ÙÙŠ Ø§Ù„Ø®Ø§Ø¯Ù…!' : language === 'ku' ? 'ÙˆÛŽÙ†Û• Ùˆ Ú†ÛŒØ±Û†Ú©ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø± Ù„Û• Ø³ÛŽØ±Ú¤Û•Ø± Ù¾Ø§Ø´Û•Ú©Û•ÙˆØª Ú©Ø±Ø§!' : 'Student story saved to backend successfully!', 'success');
                       } catch (err: any) {
-                        showToast(language === 'ar' ? `فشل حفظ القصة: ${err.message}` : language === 'ku' ? `پاشەکەوتکردنی چیرۆک سەرکەوتوو نەبوو: ${err.message}` : `Failed to save story: ${err.message}`, 'error');
+                        showToast(language === 'ar' ? `ÙØ´Ù„ Ø­ÙØ¸ Ø§Ù„Ù‚ØµØ©: ${err.message}` : language === 'ku' ? `Ù¾Ø§Ø´Û•Ú©Û•ÙˆØªÚ©Ø±Ø¯Ù†ÛŒ Ú†ÛŒØ±Û†Ú© Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ù†Û•Ø¨ÙˆÙˆ: ${err.message}` : `Failed to save story: ${err.message}`, 'error');
                       }
                     }} className="flex flex-col gap-3 text-xs font-bold text-slate-700">
                       
@@ -1273,7 +1273,7 @@ export default function AdminAutomation({
                           type="submit"
                           className="px-5 py-2 bg-[#6B25C9] text-white rounded-xl text-[10px] font-black cursor-pointer shadow-md"
                         >
-                          Save Changes ✓
+                          Save Changes âœ“
                         </button>
                       </div>
 
@@ -1439,7 +1439,7 @@ export default function AdminAutomation({
                   onClick={handleRejectSubmit}
                   className="px-5 py-2 bg-red-600 text-white rounded-xl text-[10px] font-black cursor-pointer"
                 >
-                  Reject Item ✗
+                  Reject Item âœ—
                 </button>
               </div>
             </motion.div>
@@ -1450,3 +1450,4 @@ export default function AdminAutomation({
     </div>
   );
 }
+

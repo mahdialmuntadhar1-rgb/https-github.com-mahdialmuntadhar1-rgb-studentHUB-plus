@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { BACKEND_URL } from '../lib/api';
@@ -83,7 +83,7 @@ export default function AskFeed({
       setAiResponse(data.text);
     } catch (err: any) {
       console.error(err);
-      setAiResponse("⚠️ [MOCK_NETWORK_NOTICE]: I am unable to connect to the active backend. Please review your server processes. Here is local guidance: Absences over 10% invoke an 'أول إنذار' (First warning). Present a valid emergency medical note to the student registry immediately.");
+      setAiResponse("âš ï¸ [MOCK_NETWORK_NOTICE]: I am unable to connect to the active backend. Please review your server processes. Here is local guidance: Absences over 10% invoke an 'Ø£ÙˆÙ„ Ø¥Ù†Ø°Ø§Ø±' (First warning). Present a valid emergency medical note to the student registry immediately.");
     } finally {
       setIsAiLoading(false);
     }
@@ -94,10 +94,10 @@ export default function AskFeed({
     e.preventDefault();
     if (!communityQuery.trim()) return;
 
-    onAddNewPost('Student Question 🙋‍♀️', communityQuery, anonymousCommunity, 'anonymous_question');
+    onAddNewPost('Student Question ðŸ™‹â€â™€ï¸', communityQuery, anonymousCommunity, 'anonymous_question');
     
     setCommunityQuery('');
-    setNotiMessage(language === 'ar' ? 'تم نشر سؤالك في تبويب المناقشات!' : language === 'ku' ? 'پرسیارەکەت بڵاوکرایەوە لە گفتوگۆکاندا!' : 'Question published to student discussions!');
+    setNotiMessage(language === 'ar' ? 'ØªÙ… Ù†Ø´Ø± Ø³Ø¤Ø§Ù„Ùƒ ÙÙŠ ØªØ¨ÙˆÙŠØ¨ Ø§Ù„Ù…Ù†Ø§Ù‚Ø´Ø§Øª!' : language === 'ku' ? 'Ù¾Ø±Ø³ÛŒØ§Ø±Û•Ú©Û•Øª Ø¨ÚµØ§ÙˆÚ©Ø±Ø§ÛŒÛ•ÙˆÛ• Ù„Û• Ú¯ÙØªÙˆÚ¯Û†Ú©Ø§Ù†Ø¯Ø§!' : 'Question published to student discussions!');
     setTimeout(() => setNotiMessage(''), 3500);
   };
 
@@ -118,11 +118,11 @@ export default function AskFeed({
 
         <div className="flex items-center gap-2.5 mb-2.5 relative z-10">
           <div className="w-8 h-8 rounded-xl bg-[#FFD21F] border border-[#161A33] flex items-center justify-center text-[#161A33] text-sm shrink-0 shadow animate-pulse">
-            ✨
+            âœ¨
           </div>
           <div>
             <h2 className="text-[10px] font-black text-[#6B25C9] uppercase tracking-wider flex items-center gap-1 leading-none">
-              {language === 'ar' ? 'مستشار الذكاء الاصطناعي' : language === 'ku' ? 'ڕاوێژکاری زیرەکی دەستکرد' : 'Al-Murshed AI Advisor'} <span className="bg-[#FFD21F] text-[#161A33] text-[8px] font-black px-1.5 py-0.2 rounded border border-[#161A33]/20">LIVE v3.5</span>
+              {language === 'ar' ? 'Ù…Ø³ØªØ´Ø§Ø± Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ' : language === 'ku' ? 'Ú•Ø§ÙˆÛŽÚ˜Ú©Ø§Ø±ÛŒ Ø²ÛŒØ±Û•Ú©ÛŒ Ø¯Û•Ø³ØªÚ©Ø±Ø¯' : 'Al-Murshed AI Advisor'} <span className="bg-[#FFD21F] text-[#161A33] text-[8px] font-black px-1.5 py-0.2 rounded border border-[#161A33]/20">LIVE v3.5</span>
             </h2>
             <h3 className="text-sm font-black text-[#161A33] leading-tight mt-1">
               {getTranslation('askAiTitle', language)}
@@ -166,7 +166,7 @@ export default function AskFeed({
               {isAiLoading ? (
                 <>
                   <Loader2 className="w-3.5 h-3.5 animate-spin text-[#161A33]" />
-                  <span>{language === 'ar' ? 'تحليل...' : language === 'ku' ? 'شیکردنەوە...' : 'Analyzing...'}</span>
+                  <span>{language === 'ar' ? 'ØªØ­Ù„ÙŠÙ„...' : language === 'ku' ? 'Ø´ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•...' : 'Analyzing...'}</span>
                 </>
               ) : (
                 <>
@@ -234,7 +234,7 @@ export default function AskFeed({
             onChange={e => setCommunityQuery(e.target.value)}
             rows={2}
             required
-            placeholder={language === 'ar' ? 'اكتب سؤالك هنا لزملائك الطلاب...' : language === 'ku' ? 'پرسیارەکەت بنووسە لێرە بۆ هاوڕێکانت...' : 'Ask your classmate peers: Can anyone share Networking syllabus notes? Or are there team members available?'}
+            placeholder={language === 'ar' ? 'Ø§ÙƒØªØ¨ Ø³Ø¤Ø§Ù„Ùƒ Ù‡Ù†Ø§ Ù„Ø²Ù…Ù„Ø§Ø¦Ùƒ Ø§Ù„Ø·Ù„Ø§Ø¨...' : language === 'ku' ? 'Ù¾Ø±Ø³ÛŒØ§Ø±Û•Ú©Û•Øª Ø¨Ù†ÙˆÙˆØ³Û• Ù„ÛŽØ±Û• Ø¨Û† Ù‡Ø§ÙˆÚ•ÛŽÚ©Ø§Ù†Øª...' : 'Ask your classmate peers: Can anyone share Networking syllabus notes? Or are there team members available?'}
             className="w-full text-xs font-semibold text-[#161A33] bg-[#F3F7FF] border-2 border-[#E6E1F5] rounded-2xl p-3.5 focus:bg-white focus:outline-none focus:border-[#6B25C9] resize-none"
           />
 
@@ -267,7 +267,7 @@ export default function AskFeed({
       {/* 3. ACTIVE QUESTIONS LIST FOR GENERAL BENEFIT */}
       <div id="student-discussions-header" className="mb-3">
         <h3 className="text-[10px] font-black uppercase text-[#6B25C9] tracking-wider flex items-center gap-1">
-          💬 {getTranslation('activeDiscussionsTitle', language)} ({questionItems.length})
+          ðŸ’¬ {getTranslation('activeDiscussionsTitle', language)} ({questionItems.length})
         </h3>
       </div>
 
@@ -276,10 +276,10 @@ export default function AskFeed({
           <SkeletonLoader />
         ) : questionItems.length === 0 ? (
           <div className="text-center py-12 text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-6 shadow-sm">
-            <div className="text-3xl mb-2">🔭</div>
+            <div className="text-3xl mb-2">ðŸ”­</div>
             <h3 className="font-extrabold text-[#161A33] text-xs text-center">{getTranslation('noDiscussions', language)}</h3>
             <p className="text-[10px] text-slate-500 max-w-xs mt-1.5 mx-auto leading-relaxed text-center">
-              {language === 'ar' ? 'غير عوامل التصفية واستعرض من جديد.' : language === 'ku' ? 'فلتەرەکە بگۆڕە و دووبارە بگەڕێ.' : 'Change selectors and search again.'}
+              {language === 'ar' ? 'ØºÙŠØ± Ø¹ÙˆØ§Ù…Ù„ Ø§Ù„ØªØµÙÙŠØ© ÙˆØ§Ø³ØªØ¹Ø±Ø¶ Ù…Ù† Ø¬Ø¯ÙŠØ¯.' : language === 'ku' ? 'ÙÙ„ØªÛ•Ø±Û•Ú©Û• Ø¨Ú¯Û†Ú•Û• Ùˆ Ø¯ÙˆÙˆØ¨Ø§Ø±Û• Ø¨Ú¯Û•Ú•ÛŽ.' : 'Change selectors and search again.'}
             </p>
           </div>
         ) : (
@@ -306,3 +306,4 @@ export default function AskFeed({
     </div>
   );
 }
+

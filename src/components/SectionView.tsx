@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Language, FeedItem, Comment } from '../types';
 import { IraqiGovernorates, IraqiUniversities } from '../data/mockData';
 import { 
@@ -54,169 +54,169 @@ const categoryConfigs: Record<string, {
   isOpportunity: boolean;
 }> = {
   scholarship: {
-    emoji: '🎓',
+    emoji: 'ðŸŽ“',
     titleEN: 'Scholarships',
-    titleAR: 'المنح الدراسية',
-    titleKU: 'منحەی خوێندن',
+    titleAR: 'Ø§Ù„Ù…Ù†Ø­ Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ©',
+    titleKU: 'Ù…Ù†Ø­Û•ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù†',
     descEN: 'Explore fully or partially funded scholarship opportunities for Iraqi students.',
-    descAR: 'اكتشف المنح الدراسية والتمويلات الأكاديمية الكاملة والجزئية للطلاب العراقيين.',
-    descKU: 'گەڕان بەدوای منحەی خوێندنی تەواو و بەشەکەی بۆ قوتابیانی عێراق.',
+    descAR: 'Ø§ÙƒØªØ´Ù Ø§Ù„Ù…Ù†Ø­ Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ© ÙˆØ§Ù„ØªÙ…ÙˆÙŠÙ„Ø§Øª Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ© Ø§Ù„ÙƒØ§Ù…Ù„Ø© ÙˆØ§Ù„Ø¬Ø²Ø¦ÙŠØ© Ù„Ù„Ø·Ù„Ø§Ø¨ Ø§Ù„Ø¹Ø±Ø§Ù‚ÙŠÙŠÙ†.',
+    descKU: 'Ú¯Û•Ú•Ø§Ù† Ø¨Û•Ø¯ÙˆØ§ÛŒ Ù…Ù†Ø­Û•ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù†ÛŒ ØªÛ•ÙˆØ§Ùˆ Ùˆ Ø¨Û•Ø´Û•Ú©Û•ÛŒ Ø¨Û† Ù‚ÙˆØªØ§Ø¨ÛŒØ§Ù†ÛŒ Ø¹ÛŽØ±Ø§Ù‚.',
     endpoint: 'opportunities',
     categoryValue: 'scholarship',
     isOpportunity: true
   },
   job: {
-    emoji: '💼',
+    emoji: 'ðŸ’¼',
     titleEN: 'Job Opportunities',
-    titleAR: 'فرص العمل والتوظيف',
-    titleKU: 'هەلی کار',
+    titleAR: 'ÙØ±Øµ Ø§Ù„Ø¹Ù…Ù„ ÙˆØ§Ù„ØªÙˆØ¸ÙŠÙ',
+    titleKU: 'Ù‡Û•Ù„ÛŒ Ú©Ø§Ø±',
     descEN: 'Browse full-time, part-time, and graduate job positions in Iraq.',
-    descAR: 'تصفح الوظائف بدوام كامل وجزئي وفرص الخريجين في العراق.',
-    descKU: 'گەڕان بەدوای هەلی کار بە شێوەی هەمیشەیی یان کاتی.',
+    descAR: 'ØªØµÙØ­ Ø§Ù„ÙˆØ¸Ø§Ø¦Ù Ø¨Ø¯ÙˆØ§Ù… ÙƒØ§Ù…Ù„ ÙˆØ¬Ø²Ø¦ÙŠ ÙˆÙØ±Øµ Ø§Ù„Ø®Ø±ÙŠØ¬ÙŠÙ† ÙÙŠ Ø§Ù„Ø¹Ø±Ø§Ù‚.',
+    descKU: 'Ú¯Û•Ú•Ø§Ù† Ø¨Û•Ø¯ÙˆØ§ÛŒ Ù‡Û•Ù„ÛŒ Ú©Ø§Ø± Ø¨Û• Ø´ÛŽÙˆÛ•ÛŒ Ù‡Û•Ù…ÛŒØ´Û•ÛŒÛŒ ÛŒØ§Ù† Ú©Ø§ØªÛŒ.',
     endpoint: 'opportunities',
     categoryValue: 'job',
     isOpportunity: true
   },
   internship: {
-    emoji: '⚙️',
+    emoji: 'âš™ï¸',
     titleEN: 'Internships',
-    titleAR: 'فرص التدريب والتأهيل',
-    titleKU: 'مەشقەکان',
+    titleAR: 'ÙØ±Øµ Ø§Ù„ØªØ¯Ø±ÙŠØ¨ ÙˆØ§Ù„ØªØ£Ù‡ÙŠÙ„',
+    titleKU: 'Ù…Û•Ø´Ù‚Û•Ú©Ø§Ù†',
     descEN: 'Gain real-world experience through structured internships at organizations.',
-    descAR: 'اكتسب تجربة حقيقية من خلال برامج تدريبات عملية مميزة في مؤسسات عراقية.',
-    descKU: 'بەدەستهێنانی ئەزموونی ڕاستەقینە لە ڕێگەی مەشقی کۆمپانیاکانەوە.',
+    descAR: 'Ø§ÙƒØªØ³Ø¨ ØªØ¬Ø±Ø¨Ø© Ø­Ù‚ÙŠÙ‚ÙŠØ© Ù…Ù† Ø®Ù„Ø§Ù„ Ø¨Ø±Ø§Ù…Ø¬ ØªØ¯Ø±ÙŠØ¨Ø§Øª Ø¹Ù…Ù„ÙŠØ© Ù…Ù…ÙŠØ²Ø© ÙÙŠ Ù…Ø¤Ø³Ø³Ø§Øª Ø¹Ø±Ø§Ù‚ÙŠØ©.',
+    descKU: 'Ø¨Û•Ø¯Û•Ø³ØªÙ‡ÛŽÙ†Ø§Ù†ÛŒ Ø¦Û•Ø²Ù…ÙˆÙˆÙ†ÛŒ Ú•Ø§Ø³ØªÛ•Ù‚ÛŒÙ†Û• Ù„Û• Ú•ÛŽÚ¯Û•ÛŒ Ù…Û•Ø´Ù‚ÛŒ Ú©Û†Ù…Ù¾Ø§Ù†ÛŒØ§Ú©Ø§Ù†Û•ÙˆÛ•.',
     endpoint: 'opportunities',
     categoryValue: 'internship',
     isOpportunity: true
   },
   training: {
-    emoji: '🏫',
+    emoji: 'ðŸ«',
     titleEN: 'Trainings',
-    titleAR: 'التدريبات وبناء المهارات',
-    titleKU: 'ڕاهێنانەکان',
+    titleAR: 'Ø§Ù„ØªØ¯Ø±ÙŠØ¨Ø§Øª ÙˆØ¨Ù†Ø§Ø¡ Ø§Ù„Ù…Ù‡Ø§Ø±Ø§Øª',
+    titleKU: 'Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†Û•Ú©Ø§Ù†',
     descEN: 'Build practical technical and soft skills through local bootcamps & courses.',
-    descAR: 'طور مهاراتك التقنية والشخصية من خلال المعسكرات التدريبية والدورات المحلية.',
-    descKU: 'بنیاتنانی کارامەییەکان لە ڕێگەی خولی ڕاهێنان و وۆرکشۆپی جۆراوجۆرەوە.',
+    descAR: 'Ø·ÙˆØ± Ù…Ù‡Ø§Ø±Ø§ØªÙƒ Ø§Ù„ØªÙ‚Ù†ÙŠØ© ÙˆØ§Ù„Ø´Ø®ØµÙŠØ© Ù…Ù† Ø®Ù„Ø§Ù„ Ø§Ù„Ù…Ø¹Ø³ÙƒØ±Ø§Øª Ø§Ù„ØªØ¯Ø±ÙŠØ¨ÙŠØ© ÙˆØ§Ù„Ø¯ÙˆØ±Ø§Øª Ø§Ù„Ù…Ø­Ù„ÙŠØ©.',
+    descKU: 'Ø¨Ù†ÛŒØ§ØªÙ†Ø§Ù†ÛŒ Ú©Ø§Ø±Ø§Ù…Û•ÛŒÛŒÛ•Ú©Ø§Ù† Ù„Û• Ú•ÛŽÚ¯Û•ÛŒ Ø®ÙˆÙ„ÛŒ Ú•Ø§Ù‡ÛŽÙ†Ø§Ù† Ùˆ ÙˆÛ†Ø±Ú©Ø´Û†Ù¾ÛŒ Ø¬Û†Ø±Ø§ÙˆØ¬Û†Ø±Û•ÙˆÛ•.',
     endpoint: 'opportunities',
     categoryValue: 'training',
     isOpportunity: true
   },
   fellowship: {
-    emoji: '🌟',
+    emoji: 'ðŸŒŸ',
     titleEN: 'Fellowships',
-    titleAR: 'الزمالات البحثية',
-    titleKU: 'زەمالەی خوێندکاران',
+    titleAR: 'Ø§Ù„Ø²Ù…Ø§Ù„Ø§Øª Ø§Ù„Ø¨Ø­Ø«ÙŠØ©',
+    titleKU: 'Ø²Û•Ù…Ø§Ù„Û•ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±Ø§Ù†',
     descEN: 'Discover elite research fellowship programs and academic exchanges.',
-    descAR: 'اكتشف برامج الزمالات البحثية والتبادل الأكاديمي المتميزة.',
-    descKU: 'بینینی بەرنامە جیاوازەکانی زەمالەی خوێندن و گۆڕینەوەی کلتوری.',
+    descAR: 'Ø§ÙƒØªØ´Ù Ø¨Ø±Ø§Ù…Ø¬ Ø§Ù„Ø²Ù…Ø§Ù„Ø§Øª Ø§Ù„Ø¨Ø­Ø«ÙŠØ© ÙˆØ§Ù„ØªØ¨Ø§Ø¯Ù„ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠ Ø§Ù„Ù…ØªÙ…ÙŠØ²Ø©.',
+    descKU: 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ø¨Û•Ø±Ù†Ø§Ù…Û• Ø¬ÛŒØ§ÙˆØ§Ø²Û•Ú©Ø§Ù†ÛŒ Ø²Û•Ù…Ø§Ù„Û•ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù† Ùˆ Ú¯Û†Ú•ÛŒÙ†Û•ÙˆÛ•ÛŒ Ú©Ù„ØªÙˆØ±ÛŒ.',
     endpoint: 'opportunities',
     categoryValue: 'fellowship',
     isOpportunity: true
   },
   volunteering: {
-    emoji: '🤝',
+    emoji: 'ðŸ¤',
     titleEN: 'Volunteering',
-    titleAR: 'العمل التطوعي',
-    titleKU: 'کاروباری خۆبەخشی',
+    titleAR: 'Ø§Ù„Ø¹Ù…Ù„ Ø§Ù„ØªØ·ÙˆØ¹ÙŠ',
+    titleKU: 'Ú©Ø§Ø±ÙˆØ¨Ø§Ø±ÛŒ Ø®Û†Ø¨Û•Ø®Ø´ÛŒ',
     descEN: 'Give back to your community and develop teamwork leadership skills.',
-    descAR: 'ساهم في خدمة مجتمعك وطوّر مهارات القيادة والعمل الجماعي لديك.',
-    descKU: 'خزمەتکردنی کۆمەڵگە لە ڕێگەی کارە خۆبەخشییە جیاوازەکانەوە.',
+    descAR: 'Ø³Ø§Ù‡Ù… ÙÙŠ Ø®Ø¯Ù…Ø© Ù…Ø¬ØªÙ…Ø¹Ùƒ ÙˆØ·ÙˆÙ‘Ø± Ù…Ù‡Ø§Ø±Ø§Øª Ø§Ù„Ù‚ÙŠØ§Ø¯Ø© ÙˆØ§Ù„Ø¹Ù…Ù„ Ø§Ù„Ø¬Ù…Ø§Ø¹ÙŠ Ù„Ø¯ÙŠÙƒ.',
+    descKU: 'Ø®Ø²Ù…Û•ØªÚ©Ø±Ø¯Ù†ÛŒ Ú©Û†Ù…Û•ÚµÚ¯Û• Ù„Û• Ú•ÛŽÚ¯Û•ÛŒ Ú©Ø§Ø±Û• Ø®Û†Ø¨Û•Ø®Ø´ÛŒÛŒÛ• Ø¬ÛŒØ§ÙˆØ§Ø²Û•Ú©Ø§Ù†Û•ÙˆÛ•.',
     endpoint: 'opportunities',
     categoryValue: 'volunteering',
     isOpportunity: true
   },
   competition: {
-    emoji: '🏆',
+    emoji: 'ðŸ†',
     titleEN: 'Competitions',
-    titleAR: 'المسابقات والجوائز',
-    titleKU: 'پێشبڕکێکان',
+    titleAR: 'Ø§Ù„Ù…Ø³Ø§Ø¨Ù‚Ø§Øª ÙˆØ§Ù„Ø¬ÙˆØ§Ø¦Ø²',
+    titleKU: 'Ù¾ÛŽØ´Ø¨Ú•Ú©ÛŽÚ©Ø§Ù†',
     descEN: 'Challenge yourself in hackathons, project fairs, and academic matches.',
-    descAR: 'تحد نفسك في الهاكاثونات العِراقية، معارض المشاريع، والمسابقات الأكاديمية.',
-    descKU: 'بەشداری لە پێشبڕکێ و هاكاتۆنە جۆراوجۆرە زانستییەکان بکە.',
+    descAR: 'ØªØ­Ø¯ Ù†ÙØ³Ùƒ ÙÙŠ Ø§Ù„Ù‡Ø§ÙƒØ§Ø«ÙˆÙ†Ø§Øª Ø§Ù„Ø¹ÙØ±Ø§Ù‚ÙŠØ©ØŒ Ù…Ø¹Ø§Ø±Ø¶ Ø§Ù„Ù…Ø´Ø§Ø±ÙŠØ¹ØŒ ÙˆØ§Ù„Ù…Ø³Ø§Ø¨Ù‚Ø§Øª Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ©.',
+    descKU: 'Ø¨Û•Ø´Ø¯Ø§Ø±ÛŒ Ù„Û• Ù¾ÛŽØ´Ø¨Ú•Ú©ÛŽ Ùˆ Ù‡Ø§ÙƒØ§ØªÛ†Ù†Û• Ø¬Û†Ø±Ø§ÙˆØ¬Û†Ø±Û• Ø²Ø§Ù†Ø³ØªÛŒÛŒÛ•Ú©Ø§Ù† Ø¨Ú©Û•.',
     endpoint: 'opportunities',
     categoryValue: 'competition',
     isOpportunity: true
   },
   event: {
-    emoji: '🎟️',
+    emoji: 'ðŸŽŸï¸',
     titleEN: 'Campus Events',
-    titleAR: 'الفعاليات والمؤتمرات',
-    titleKU: 'چالاکییەکان',
+    titleAR: 'Ø§Ù„ÙØ¹Ø§Ù„ÙŠØ§Øª ÙˆØ§Ù„Ù…Ø¤ØªÙ…Ø±Ø§Øª',
+    titleKU: 'Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ•Ú©Ø§Ù†',
     descEN: 'Stay updated on upcoming seminars, festivals, and student gatherings.',
-    descAR: 'ابقَ على اطلاع على الندوات، المهرجانات، واللقاءات الطلابية القادمة.',
-    descKU: 'بینینی کۆنفرانس و فیستیڤاڵە جۆراوجۆرەکانی زانکۆ.',
+    descAR: 'Ø§Ø¨Ù‚ÙŽ Ø¹Ù„Ù‰ Ø§Ø·Ù„Ø§Ø¹ Ø¹Ù„Ù‰ Ø§Ù„Ù†Ø¯ÙˆØ§ØªØŒ Ø§Ù„Ù…Ù‡Ø±Ø¬Ø§Ù†Ø§ØªØŒ ÙˆØ§Ù„Ù„Ù‚Ø§Ø¡Ø§Øª Ø§Ù„Ø·Ù„Ø§Ø¨ÙŠØ© Ø§Ù„Ù‚Ø§Ø¯Ù…Ø©.',
+    descKU: 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ú©Û†Ù†ÙØ±Ø§Ù†Ø³ Ùˆ ÙÛŒØ³ØªÛŒÚ¤Ø§ÚµÛ• Ø¬Û†Ø±Ø§ÙˆØ¬Û†Ø±Û•Ú©Ø§Ù†ÛŒ Ø²Ø§Ù†Ú©Û†.',
     endpoint: 'highlights',
     categoryValue: 'event',
     isOpportunity: false
   },
   news: {
-    emoji: '📰',
+    emoji: 'ðŸ“°',
     titleEN: 'University News',
-    titleAR: 'أخبار الجامعات',
-    titleKU: 'هەواڵەکانی خوێندن',
+    titleAR: 'Ø£Ø®Ø¨Ø§Ø± Ø§Ù„Ø¬Ø§Ù…Ø¹Ø§Øª',
+    titleKU: 'Ù‡Û•ÙˆØ§ÚµÛ•Ú©Ø§Ù†ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù†',
     descEN: 'Official and social campus updates, research highlights, and notices.',
-    descAR: 'آخر الأخبار الرسمية والأكاديمية، الإنجازات، وتحديثات التعليم في العراق.',
-    descKU: 'بینینی نوێترین هەواڵ و ڕووداوە ئەکادیمییەکانی زۆرینەی زانکۆکان.',
+    descAR: 'Ø¢Ø®Ø± Ø§Ù„Ø£Ø®Ø¨Ø§Ø± Ø§Ù„Ø±Ø³Ù…ÙŠØ© ÙˆØ§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ©ØŒ Ø§Ù„Ø¥Ù†Ø¬Ø§Ø²Ø§ØªØŒ ÙˆØªØ­Ø¯ÙŠØ«Ø§Øª Ø§Ù„ØªØ¹Ù„ÙŠÙ… ÙÙŠ Ø§Ù„Ø¹Ø±Ø§Ù‚.',
+    descKU: 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ù†ÙˆÛŽØªØ±ÛŒÙ† Ù‡Û•ÙˆØ§Úµ Ùˆ Ú•ÙˆÙˆØ¯Ø§ÙˆÛ• Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒÛŒÛ•Ú©Ø§Ù†ÛŒ Ø²Û†Ø±ÛŒÙ†Û•ÛŒ Ø²Ø§Ù†Ú©Û†Ú©Ø§Ù†.',
     endpoint: 'highlights',
     categoryValue: 'news',
     isOpportunity: false
   },
   announcement: {
-    emoji: '📢',
+    emoji: 'ðŸ“¢',
     titleEN: 'Announcements',
-    titleAR: 'الإعلانات الرسمية',
-    titleKU: 'ڕاگەیاندنە فەرمییەکان',
+    titleAR: 'Ø§Ù„Ø¥Ø¹Ù„Ø§Ù†Ø§Øª Ø§Ù„Ø±Ø³Ù…ÙŠØ©',
+    titleKU: 'Ú•Ø§Ú¯Û•ÛŒØ§Ù†Ø¯Ù†Û• ÙÛ•Ø±Ù…ÛŒÛŒÛ•Ú©Ø§Ù†',
     descEN: 'Important admin alerts, schedule adjustments, and ministry directives.',
-    descAR: 'التنبيهات الإدارية الهامة، القرارات الوزارية، وتعديلات الجداول الزمنية.',
-    descKU: 'ئاگادارکردنەوە فەرمییەکانی سەرۆکایەتی زانکۆکان و وەزارەت.',
+    descAR: 'Ø§Ù„ØªÙ†Ø¨ÙŠÙ‡Ø§Øª Ø§Ù„Ø¥Ø¯Ø§Ø±ÙŠØ© Ø§Ù„Ù‡Ø§Ù…Ø©ØŒ Ø§Ù„Ù‚Ø±Ø§Ø±Ø§Øª Ø§Ù„ÙˆØ²Ø§Ø±ÙŠØ©ØŒ ÙˆØªØ¹Ø¯ÙŠÙ„Ø§Øª Ø§Ù„Ø¬Ø¯Ø§ÙˆÙ„ Ø§Ù„Ø²Ù…Ù†ÙŠØ©.',
+    descKU: 'Ø¦Ø§Ú¯Ø§Ø¯Ø§Ø±Ú©Ø±Ø¯Ù†Û•ÙˆÛ• ÙÛ•Ø±Ù…ÛŒÛŒÛ•Ú©Ø§Ù†ÛŒ Ø³Û•Ø±Û†Ú©Ø§ÛŒÛ•ØªÛŒ Ø²Ø§Ù†Ú©Û†Ú©Ø§Ù† Ùˆ ÙˆÛ•Ø²Ø§Ø±Û•Øª.',
     endpoint: 'highlights',
     categoryValue: 'announcement',
     isOpportunity: false
   },
   exam: {
-    emoji: '📝',
+    emoji: 'ðŸ“',
     titleEN: 'Exams & Results',
-    titleAR: 'الامتحانات والنتائج',
-    titleKU: 'تاقیکردنەوەکان',
+    titleAR: 'Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†Ø§Øª ÙˆØ§Ù„Ù†ØªØ§Ø¦Ø¬',
+    titleKU: 'ØªØ§Ù‚ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•Ú©Ø§Ù†',
     descEN: 'Schedules, regulations, exam preparations, and official results links.',
-    descAR: 'جداول الامتحانات، الضوابط والتعليمات، ومستندات التحضير والنتائج الرسمية.',
-    descKU: 'خشتەی تاقیکردنەوەکان و ئەنجامە فەرمییە گشتییەکانی زانکۆکان.',
+    descAR: 'Ø¬Ø¯Ø§ÙˆÙ„ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†Ø§ØªØŒ Ø§Ù„Ø¶ÙˆØ§Ø¨Ø· ÙˆØ§Ù„ØªØ¹Ù„ÙŠÙ…Ø§ØªØŒ ÙˆÙ…Ø³ØªÙ†Ø¯Ø§Øª Ø§Ù„ØªØ­Ø¶ÙŠØ± ÙˆØ§Ù„Ù†ØªØ§Ø¦Ø¬ Ø§Ù„Ø±Ø³Ù…ÙŠØ©.',
+    descKU: 'Ø®Ø´ØªÛ•ÛŒ ØªØ§Ù‚ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•Ú©Ø§Ù† Ùˆ Ø¦Û•Ù†Ø¬Ø§Ù…Û• ÙÛ•Ø±Ù…ÛŒÛŒÛ• Ú¯Ø´ØªÛŒÛŒÛ•Ú©Ø§Ù†ÛŒ Ø²Ø§Ù†Ú©Û†Ú©Ø§Ù†.',
     endpoint: 'highlights',
     categoryValue: 'exam',
     isOpportunity: false
   },
   registration: {
-    emoji: '📌',
+    emoji: 'ðŸ“Œ',
     titleEN: 'Admissions & Registration',
-    titleAR: 'التسجيل والقبولات',
-    titleKU: 'تۆمارکردن و وەرگرتن',
+    titleAR: 'Ø§Ù„ØªØ³Ø¬ÙŠÙ„ ÙˆØ§Ù„Ù‚Ø¨ÙˆÙ„Ø§Øª',
+    titleKU: 'ØªÛ†Ù…Ø§Ø±Ú©Ø±Ø¯Ù† Ùˆ ÙˆÛ•Ø±Ú¯Ø±ØªÙ†',
     descEN: 'New admissions guidelines, tuition registration steps, and directories.',
-    descAR: 'خطوات تقديم القبول المركزي والمسائي، ومواعيد التسجيل للعام الجديد.',
-    descKU: 'ڕێبەری وەرگرتن لە زانکۆکان و کاتەکانی دەستپێکردنی ناونووسین.',
+    descAR: 'Ø®Ø·ÙˆØ§Øª ØªÙ‚Ø¯ÙŠÙ… Ø§Ù„Ù‚Ø¨ÙˆÙ„ Ø§Ù„Ù…Ø±ÙƒØ²ÙŠ ÙˆØ§Ù„Ù…Ø³Ø§Ø¦ÙŠØŒ ÙˆÙ…ÙˆØ§Ø¹ÙŠØ¯ Ø§Ù„ØªØ³Ø¬ÙŠÙ„ Ù„Ù„Ø¹Ø§Ù… Ø§Ù„Ø¬Ø¯ÙŠØ¯.',
+    descKU: 'Ú•ÛŽØ¨Û•Ø±ÛŒ ÙˆÛ•Ø±Ú¯Ø±ØªÙ† Ù„Û• Ø²Ø§Ù†Ú©Û†Ú©Ø§Ù† Ùˆ Ú©Ø§ØªÛ•Ú©Ø§Ù†ÛŒ Ø¯Û•Ø³ØªÙ¾ÛŽÚ©Ø±Ø¯Ù†ÛŒ Ù†Ø§ÙˆÙ†ÙˆÙˆØ³ÛŒÙ†.',
     endpoint: 'highlights',
     categoryValue: 'registration',
     isOpportunity: false
   },
   student_club: {
-    emoji: '👥',
+    emoji: 'ðŸ‘¥',
     titleEN: 'Student Clubs & Orgs',
-    titleAR: 'نوادي ومجموعات الطلاب',
-    titleKU: 'یانە و گرووپەکان',
+    titleAR: 'Ù†ÙˆØ§Ø¯ÙŠ ÙˆÙ…Ø¬Ù…ÙˆØ¹Ø§Øª Ø§Ù„Ø·Ù„Ø§Ø¨',
+    titleKU: 'ÛŒØ§Ù†Û• Ùˆ Ú¯Ø±ÙˆÙˆÙ¾Û•Ú©Ø§Ù†',
     descEN: 'Join computer science, debate, theater, and creative student societies.',
-    descAR: 'انضم لنوادي البرمجة، المناظرات، الفنون، والجمعيات العلمية بجامعتك.',
-    descKU: 'بەشداری لە گرووپە جیاوازەکانی زانستی، تەکنەلۆژی و کلتوری بکە.',
+    descAR: 'Ø§Ù†Ø¶Ù… Ù„Ù†ÙˆØ§Ø¯ÙŠ Ø§Ù„Ø¨Ø±Ù…Ø¬Ø©ØŒ Ø§Ù„Ù…Ù†Ø§Ø¸Ø±Ø§ØªØŒ Ø§Ù„ÙÙ†ÙˆÙ†ØŒ ÙˆØ§Ù„Ø¬Ù…Ø¹ÙŠØ§Øª Ø§Ù„Ø¹Ù„Ù…ÙŠØ© Ø¨Ø¬Ø§Ù…Ø¹ØªÙƒ.',
+    descKU: 'Ø¨Û•Ø´Ø¯Ø§Ø±ÛŒ Ù„Û• Ú¯Ø±ÙˆÙˆÙ¾Û• Ø¬ÛŒØ§ÙˆØ§Ø²Û•Ú©Ø§Ù†ÛŒ Ø²Ø§Ù†Ø³ØªÛŒØŒ ØªÛ•Ú©Ù†Û•Ù„Û†Ú˜ÛŒ Ùˆ Ú©Ù„ØªÙˆØ±ÛŒ Ø¨Ú©Û•.',
     endpoint: 'highlights',
     categoryValue: 'student_club',
     isOpportunity: false
   },
   activity: {
-    emoji: '🏃',
+    emoji: 'ðŸƒ',
     titleEN: 'Campus Activities',
-    titleAR: 'الأنشطة الميدانية والرياضية',
-    titleKU: 'چالاکییە مەیدانییەکان',
+    titleAR: 'Ø§Ù„Ø£Ù†Ø´Ø·Ø© Ø§Ù„Ù…ÙŠØ¯Ø§Ù†ÙŠØ© ÙˆØ§Ù„Ø±ÙŠØ§Ø¶ÙŠØ©',
+    titleKU: 'Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ• Ù…Û•ÛŒØ¯Ø§Ù†ÛŒÛŒÛ•Ú©Ø§Ù†',
     descEN: 'Register for sports tourneys, art galleries, and environmental campaigns.',
-    descAR: 'سجل في البطولات الرياضية، معارض الفنون، وحملات التشجير والتبرع.',
-    descKU: 'چالاکییە وەرزشی، هونەری و ژینگەییە جیاوازەکان لە زانکۆکان.',
+    descAR: 'Ø³Ø¬Ù„ ÙÙŠ Ø§Ù„Ø¨Ø·ÙˆÙ„Ø§Øª Ø§Ù„Ø±ÙŠØ§Ø¶ÙŠØ©ØŒ Ù…Ø¹Ø§Ø±Ø¶ Ø§Ù„ÙÙ†ÙˆÙ†ØŒ ÙˆØ­Ù…Ù„Ø§Øª Ø§Ù„ØªØ´Ø¬ÙŠØ± ÙˆØ§Ù„ØªØ¨Ø±Ø¹.',
+    descKU: 'Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ• ÙˆÛ•Ø±Ø²Ø´ÛŒØŒ Ù‡ÙˆÙ†Û•Ø±ÛŒ Ùˆ Ú˜ÛŒÙ†Ú¯Û•ÛŒÛŒÛ• Ø¬ÛŒØ§ÙˆØ§Ø²Û•Ú©Ø§Ù† Ù„Û• Ø²Ø§Ù†Ú©Û†Ú©Ø§Ù†.',
     endpoint: 'highlights',
     categoryValue: 'activity',
     isOpportunity: false
@@ -315,11 +315,11 @@ export default function SectionView({
                 id: item.id || `scraped-${Date.now()}-${Math.random()}`,
                 type: (item.category || item.type || categoryConfig.categoryValue) as any,
                 titleEN: item.titleEN || item.title || 'Untitled Opportunity',
-                titleAR: item.titleAR || item.title || 'فرصة غير معنونة',
-                titleKU: item.titleKU || item.title || 'هەلی بێ ناونیشان',
+                titleAR: item.titleAR || item.title || 'ÙØ±ØµØ© ØºÙŠØ± Ù…Ø¹Ù†ÙˆÙ†Ø©',
+                titleKU: item.titleKU || item.title || 'Ù‡Û•Ù„ÛŒ Ø¨ÛŽ Ù†Ø§ÙˆÙ†ÛŒØ´Ø§Ù†',
                 contentEN: item.contentEN || item.content || 'Check original portal for instructions.',
-                contentAR: item.contentAR || item.content || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
-                contentKU: item.contentKU || item.content || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
+                contentAR: item.contentAR || item.content || 'ÙŠØ±Ø¬Ù‰ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ù…ØµØ¯Ø± Ø§Ù„Ø£ØµÙ„ÙŠ Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„ØªÙ‚Ø¯ÙŠÙ….',
+                contentKU: item.contentKU || item.content || 'ØªÚ©Ø§ÛŒÛ• Ø³Û•Ø±Ú†Ø§ÙˆÛ•ÛŒ Ø³Û•Ø±Û•Ú©ÛŒ Ø¨Ø¨ÛŒÙ†Û• Ø¨Û† Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ.',
                 
                 // Add high-end translation support fields
                 original_language: item.original_language || item.originalLanguage,
@@ -341,7 +341,7 @@ export default function SectionView({
                   avatar: item.author?.avatar || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
                   verified: true
                 },
-                date: item.published_date ? `Posted on ${item.published_date}` : 'Recently scraped 🔔',
+                date: item.published_date ? `Posted on ${item.published_date}` : 'Recently scraped ðŸ””',
                 likes: item.likes || 10,
                 commentsCount: 0,
                 commentsList: [],
@@ -408,7 +408,7 @@ export default function SectionView({
         >
           {isRTL ? <ArrowRight className="w-4 h-4" /> : <ArrowLeft className="w-4 h-4" />}
           <span>
-            {language === 'ar' ? 'العودة للرئيسية' : language === 'ku' ? 'گەڕانەوە بۆ سەرەکی' : 'Back to Home'}
+            {language === 'ar' ? 'Ø§Ù„Ø¹ÙˆØ¯Ø© Ù„Ù„Ø±Ø¦ÙŠØ³ÙŠØ©' : language === 'ku' ? 'Ú¯Û•Ú•Ø§Ù†Û•ÙˆÛ• Ø¨Û† Ø³Û•Ø±Û•Ú©ÛŒ' : 'Back to Home'}
           </span>
         </button>
 
@@ -444,7 +444,7 @@ export default function SectionView({
             }}
             className="w-full text-xs font-black bg-transparent text-slate-100 border-none focus:outline-none cursor-pointer outline-none overflow-hidden"
           >
-            <option value="all" className="bg-[#121B2E] text-white">📍 {language === 'ar' ? 'كل المحافظات' : language === 'ku' ? 'هەموو پارێزگاکان' : 'All Governorates'}</option>
+            <option value="all" className="bg-[#121B2E] text-white">ðŸ“ {language === 'ar' ? 'ÙƒÙ„ Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø§Øª' : language === 'ku' ? 'Ù‡Û•Ù…ÙˆÙˆ Ù¾Ø§Ø±ÛŽØ²Ú¯Ø§Ú©Ø§Ù†' : 'All Governorates'}</option>
             {IraqiGovernorates.map((gov) => (
               <option key={gov.id} value={gov.id} className="bg-[#121B2E] text-white">
                 {language === 'ar' ? gov.nameAR : language === 'ku' ? gov.nameKU : gov.nameEN}
@@ -461,7 +461,7 @@ export default function SectionView({
             onChange={(e) => setSelectedUni(e.target.value)}
             className="w-full text-xs font-black bg-transparent text-slate-100 border-none focus:outline-none cursor-pointer outline-none overflow-hidden"
           >
-            <option value="all" className="bg-[#121B2E] text-white">🏫 {language === 'ar' ? 'كل الجامعات' : language === 'ku' ? 'هەموو زانکۆکان' : 'All Institutions'}</option>
+            <option value="all" className="bg-[#121B2E] text-white">ðŸ« {language === 'ar' ? 'ÙƒÙ„ Ø§Ù„Ø¬Ø§Ù…Ø¹Ø§Øª' : language === 'ku' ? 'Ù‡Û•Ù…ÙˆÙˆ Ø²Ø§Ù†Ú©Û†Ú©Ø§Ù†' : 'All Institutions'}</option>
             {availableUnis.map((uni) => (
               <option key={uni.id} value={uni.id} className="bg-[#121B2E] text-white">
                 {uni.logo} {language === 'ar' ? uni.nameAR : language === 'ku' ? uni.nameKU : uni.nameEN}
@@ -477,7 +477,7 @@ export default function SectionView({
         <div className="flex flex-col items-center justify-center py-16 gap-3" id="section-loading-screen">
           <Loader2 className="w-8 h-8 text-[#FFD21F] animate-spin" />
           <span className="text-xs text-slate-400 font-extrabold animate-pulse">
-            {language === 'ar' ? 'جاري تحميل الفرص والأخبار...' : language === 'ku' ? 'بارکردنی دەرفەتەکان...' : 'Fetching sector items from server...'}
+            {language === 'ar' ? 'Ø¬Ø§Ø±ÙŠ ØªØ­Ù…ÙŠÙ„ Ø§Ù„ÙØ±Øµ ÙˆØ§Ù„Ø£Ø®Ø¨Ø§Ø±...' : language === 'ku' ? 'Ø¨Ø§Ø±Ú©Ø±Ø¯Ù†ÛŒ Ø¯Û•Ø±ÙÛ•ØªÛ•Ú©Ø§Ù†...' : 'Fetching sector items from server...'}
           </span>
         </div>
       ) : filteredItems.length === 0 ? (
@@ -486,13 +486,13 @@ export default function SectionView({
             {categoryConfig.emoji}
           </div>
           <p className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">
-            {language === 'ar' ? 'القسم فارغ' : 'Section Empty'}
+            {language === 'ar' ? 'Ø§Ù„Ù‚Ø³Ù… ÙØ§Ø±Øº' : 'Section Empty'}
           </p>
           <p className="text-xs leading-relaxed text-slate-450 text-[#94A3B8]/90 max-w-[280px]">
             {language === 'ar' 
-              ? 'لا توجد عناصر حالياً لهذا القسم' 
+              ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¹Ù†Ø§ØµØ± Ø­Ø§Ù„ÙŠØ§Ù‹ Ù„Ù‡Ø°Ø§ Ø§Ù„Ù‚Ø³Ù…' 
               : language === 'ku' 
-              ? 'ئێستا هیچ بابەتێک بۆ ئەم بەشە نییە' 
+              ? 'Ø¦ÛŽØ³ØªØ§ Ù‡ÛŒÚ† Ø¨Ø§Ø¨Û•ØªÛŽÚ© Ø¨Û† Ø¦Û•Ù… Ø¨Û•Ø´Û• Ù†ÛŒÛŒÛ•' 
               : 'No items available in this section yet'}
           </p>
         </div>
@@ -521,3 +521,4 @@ export default function SectionView({
     </div>
   );
 }
+
