@@ -14,9 +14,10 @@ import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
 import RequestsCenter from './components/RequestsCenter';
+import MessagesInbox from './components/MessagesInbox';
 import { AuthUser, BACKEND_URL, authApi, userContentApi } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
-import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText, Inbox } from 'lucide-react';
+import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText, Inbox, MessageCircle } from 'lucide-react';
 
 export default function App() {
   const opportunityTypes = new Set(['job', 'internship', 'scholarship', 'training', 'competition', 'volunteering', 'fellowship', 'full_time_job', 'part_time_job']);
@@ -72,7 +73,7 @@ export default function App() {
   };
 
   // Navigation tab state
-  const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'requests' | 'admin'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'requests' | 'messages' | 'admin'>('home');
 
   // Selected Section state for horizontal stories
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
@@ -1140,7 +1141,17 @@ export default function App() {
             isAdminMode={isAdminVerified}
           />
         );
-      case 'requests':
+      case 'messages':
+        return (
+          <MessagesInbox
+            language={language}
+            isLoggedIn={isLoggedIn}
+            currentUserId={userProfile.id}
+            onTriggerAuth={() => setIsAuthModalOpen(true)}
+            onBack={() => setActiveTab('profile')}
+            showToast={showToast}
+          />
+        );      case 'requests':
         return (
           <RequestsCenter
             language={language}
@@ -1255,6 +1266,23 @@ export default function App() {
             )}
           </button>}
 
+          {/* TAB: Messages */}
+          <button
+            onClick={() => setActiveTab('messages')}
+            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+              activeTab === 'messages'
+                ? 'text-cyan-400 font-extrabold scale-105'
+                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
+            }`}
+          >
+            <MessageCircle className="w-5 h-5 shrink-0" />
+            <span className="text-[10px] leading-none font-bold">
+              {language === 'ar' ? 'الرسائل' : language === 'ku' ? 'نامەکان' : 'Messages'}
+            </span>
+            {activeTab === 'messages' && (
+              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
+            )}
+          </button>
           {/* TAB: Requests */}
           <button
             onClick={() => setActiveTab('requests')}
@@ -1355,4 +1383,5 @@ export default function App() {
     </div>
   );
 };
+
 
