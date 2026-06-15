@@ -299,7 +299,7 @@ export default function HomeFeed({
 
 
   const handleHeroFileUpload = async (event: React.ChangeEvent<HTMLInputElement>) => {
-    const files = Array.from(event.target.files || []);
+    const files = Array.from(event.currentTarget.files || []) as File[];
     event.target.value = '';
 
     if (!files.length) return;
@@ -307,7 +307,7 @@ export default function HomeFeed({
     try {
       setIsHeroImageProcessing(true);
 
-      const selectedFiles = files.slice(0, 5);
+      const selectedFiles: File[] = files.slice(0, 5);
       const dataUrls = await Promise.all(selectedFiles.map((file) => fileToOptimizedHeroDataUrl(file)));
 
       setFormHeroImages((current) => {
@@ -1185,4 +1185,5 @@ export default function HomeFeed({
     </div>
   );
 }
+
 
