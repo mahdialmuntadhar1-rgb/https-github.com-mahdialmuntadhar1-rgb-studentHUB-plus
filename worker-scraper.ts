@@ -293,7 +293,7 @@ function getBearerToken(request: Request) {
 async function hashPassword(password: string, salt = crypto.getRandomValues(new Uint8Array(16))) {
   const key = await crypto.subtle.importKey("raw", new TextEncoder().encode(password), "PBKDF2", false, ["deriveBits"]);
   const bits = await crypto.subtle.deriveBits(
-    { name: "PBKDF2", salt, iterations: 210000, hash: "SHA-256" },
+    { name: "PBKDF2", salt, iterations: 100000, hash: "SHA-256" },
     key,
     256
   );
@@ -390,11 +390,7 @@ async function handleRegister(request: Request, env: Env) {
     return jsonResponse({ token: await signToken(env, user), user: publicUser(user) }, 201);
   } catch (err: any) {
     console.error("REGISTER_ERROR", err);
-    return jsonResponse({
-      error: "Register failed",
-      detail: String(err?.message || err),
-      stack: String(err?.stack || "").slice(0, 800)
-    }, 500);
+    return jsonResponse({ error: "Register failed", detail: String(err?.message || err) }, 500);
   }
 }
 
@@ -1646,6 +1642,7 @@ async function logScrapingActivity(env: Env, log: any): Promise<void> {
     console.error("D1 logger action error:", err);
   }
 }
+
 
 
 
