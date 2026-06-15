@@ -3,7 +3,7 @@ export function cleanText(value: unknown): string {
 
   let text = String(value);
 
-  const looksBroken = /[ØÙÚÛÃÂðŸ]/.test(text);
+  const looksBroken = new RegExp('[\\u00d8\\u00d9\\u00da\\u00db\\u00c3\\u00c2\\u00f0\\u0178]').test(text);
   if (!looksBroken) return text;
 
   const decodeOnce = (input: string) => {

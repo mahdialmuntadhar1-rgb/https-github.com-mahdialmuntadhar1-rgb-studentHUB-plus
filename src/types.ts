@@ -102,7 +102,7 @@ export interface FeedItem {
   
   // Meta
   author: Author;
-  date: string; // e.g. '3 hours ago' / 'Ù£ Ø³Ø§Ø¹Ø§Øª Ù…Ø¶Øª'
+  date: string; // e.g. '3 hours ago' / '٣ ساعات مضت'
   rawDate?: string; // ISO date for sorting
   likes: number;
   commentsCount: number;

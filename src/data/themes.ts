@@ -19,7 +19,7 @@
 export const brandingThemes: Theme[] = [
   {
     id: 'iraq-local',
-    name: 'Iraq Premium Local ðŸ‡®ðŸ‡¶',
+    name: 'Iraq Premium Local 🇮🇶',
     primary: '#4F46E5', // Royal Indigo
     secondary: '#06B6D4', // Iraqi Turquoise
     accent: '#F59E0B', // Warm Amber (Main CTA)
@@ -36,7 +36,7 @@ export const brandingThemes: Theme[] = [
   },
   {
     id: 'campus-sunrise',
-    name: 'Campus Sunrise ðŸŒ…',
+    name: 'Campus Sunrise 🌅',
     primary: '#FF6B00',
     secondary: '#1D4ED8',
     accent: '#FF2E93',
@@ -50,7 +50,7 @@ export const brandingThemes: Theme[] = [
   },
   {
     id: 'future-blue',
-    name: 'Future Blue ðŸš€',
+    name: 'Future Blue 🚀',
     primary: '#2563EB',
     secondary: '#06B6D4',
     accent: '#F97316',
@@ -64,7 +64,7 @@ export const brandingThemes: Theme[] = [
   },
   {
     id: 'youth-violet',
-    name: 'Youth Violet ðŸ”®',
+    name: 'Youth Violet 🔮',
     primary: '#7C3AED',
     secondary: '#EC4899',
     accent: '#F59E0B',
@@ -78,7 +78,7 @@ export const brandingThemes: Theme[] = [
   },
   {
     id: 'basra-energy',
-    name: 'Basra Energy ðŸŒ´',
+    name: 'Basra Energy 🌴',
     primary: '#FF7A00',
     secondary: '#0EA5E9',
     accent: '#22C55E',
@@ -92,7 +92,7 @@ export const brandingThemes: Theme[] = [
   },
   {
     id: 'academic-trust',
-    name: 'Academic Trust ðŸŽ“',
+    name: 'Academic Trust 🎓',
     primary: '#0F4C81',
     secondary: '#2563EB',
     accent: '#FFB703',
@@ -106,7 +106,7 @@ export const brandingThemes: Theme[] = [
   },
   {
     id: 'emerald-campus',
-    name: 'Emerald Campus ðŸŒ¿',
+    name: 'Emerald Campus 🌿',
     primary: '#059669',
     secondary: '#0F766E',
     accent: '#F97316',
@@ -120,7 +120,7 @@ export const brandingThemes: Theme[] = [
   },
   {
     id: 'neon-student',
-    name: 'Neon Student âš¡',
+    name: 'Neon Student ⚡',
     primary: '#4F46E5',
     secondary: '#06B6D4',
     accent: '#F43F5E',
@@ -134,7 +134,7 @@ export const brandingThemes: Theme[] = [
   },
   {
     id: 'rose-navy',
-    name: 'Rose Navy ðŸŒ¹',
+    name: 'Rose Navy 🌹',
     primary: '#E11D48',
     secondary: '#1E3A8A',
     accent: '#F59E0B',
@@ -148,7 +148,7 @@ export const brandingThemes: Theme[] = [
   },
   {
     id: 'kurdistan-fresh',
-    name: 'Kurdistan Freshâ˜€ï¸',
+    name: 'Kurdistan Fresh☀️',
     primary: '#16A34A',
     secondary: '#DC2626',
     accent: '#FACC15',

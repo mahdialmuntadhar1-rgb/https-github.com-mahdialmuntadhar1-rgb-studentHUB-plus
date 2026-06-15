@@ -31,26 +31,26 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
 
   // Localized texts
   const t = {
-    login: { en: 'Sign In', ar: 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„', ku: 'Ú†ÙˆÙˆÙ†Û•Ú˜ÙˆÙˆØ±Û•ÙˆÛ•' },
-    register: { en: 'Create Account', ar: 'Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨ Ø¬Ø¯ÙŠØ¯', ku: 'Ø¯Ø±ÙˆØ³ØªÚ©Ø±Ø¯Ù†ÛŒ Ù‡Û•Ú˜Ù…Ø§Ø±' },
-    forgot: { en: 'Reset Password', ar: 'Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ø­Ø³Ø§Ø¨', ku: 'Ú¯ÛŽÚ•Ø§Ù†Û•ÙˆÛ•ÛŒ ÙˆØ´Û•ÛŒ ØªÛŽÙ¾Û•Ú•' },
-    emailLabel: { en: 'Academic Email', ar: 'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ø§Ù„Ø¬Ø§Ù…Ø¹ÙŠ', ku: 'Ø¦ÛŒÙ…Û•ÛŒÚµÛŒ Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒ' },
-    passwordLabel: { en: 'Password', ar: 'ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±', ku: 'ÙˆØ´Û•ÛŒ ØªÛŽÙ¾Û•Ú•' },
-    usernameLabel: { en: 'Full Name', ar: 'Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„', ku: 'Ù†Ø§ÙˆÛŒ ØªÛ•ÙˆØ§Ùˆ' },
-    forgotLink: { en: 'Forgot Password?', ar: 'Ù†Ø³ÙŠØª ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±ØŸ', ku: 'ÙˆØ´Û•ÛŒ ØªÛŽÙ¾Û•Ú•Øª Ù„Û•Ø¨ÛŒØ±Ú†ÙˆÙˆÛ•ØŸ' },
-    noAccount: { en: "Don't have an account?", ar: 'Ù„ÙŠØ³ Ù„Ø¯ÙŠÙƒ Ø­Ø³Ø§Ø¨ØŸ', ku: 'Ù‡Û•Ú˜Ù…Ø§Ø±Øª Ù†ÛŒÛŒÛ•ØŸ' },
-    haveAccount: { en: 'Already have an account?', ar: 'Ù„Ø¯ÙŠÙƒ Ø­Ø³Ø§Ø¨ Ø¨Ø§Ù„ÙØ¹Ù„ØŸ', ku: 'Ø®Ø§ÙˆÛ•Ù†ÛŒ Ù‡Û•Ú˜Ù…Ø§Ø±ÛŒØªØŸ' },
-    registerNow: { en: 'Register Now', ar: 'Ø³Ø¬Ù„ Ø§Ù„Ø¢Ù†', ku: 'Ø¦ÛŽØ³ØªØ§ ØªÛ†Ù…Ø§Ø± Ø¨Ú©Û•' },
-    loginNow: { en: 'Login Now', ar: 'Ø³Ø¬Ù„ Ø¯Ø®ÙˆÙ„Ùƒ', ku: 'Ø¦ÛŽØ³ØªØ§ Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ•' },
-    backToLogin: { en: 'Back to Login', ar: 'Ø§Ù„Ø¹ÙˆØ¯Ø© Ù„ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„', ku: 'Ú¯Û•Ú•Ø§Ù†Û•ÙˆÛ• Ø¨Û† Ú†ÙˆÙˆÙ†Û•Ú˜ÙˆÙˆØ±Û•ÙˆÛ•' },
-    remember: { en: 'Remember session', ar: 'ØªØ°ÙƒØ±Ù†ÙŠ Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø¬Ù‡Ø§Ø²', ku: 'Ø¨ÛŒØ±Ù… Ø¨Ø®Û•Ø±Û•ÙˆÛ•' },
-    validationAcademicEmail: { en: 'Please enter a valid student email.', ar: 'ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ Ø¨Ø±ÙŠØ¯ Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ ØµØ­ÙŠØ­.', ku: 'ØªÚ©Ø§ÛŒÛ• Ø¦ÛŒÙ…Û•ÛŒÚµÛŽÚ©ÛŒ Ø¯Ø±ÙˆØ³Øª Ø¨Ù†ÙˆÙˆØ³Û•.' },
-    validationPasswordLen: { en: 'Password must be at least 6 characters.', ar: 'ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ÙŠØ¬Ø¨ Ø£Ù„Ø§ ØªÙ‚Ù„ Ø¹Ù† 6 Ø£Ø­Ø±Ù.', ku: 'ÙˆØ´Û•ÛŒ ØªÛŽÙ¾Û•Ú• Ø¯Û•Ø¨ÛŽØª Ù„Ø§Ù†ÛŒÚ©Û•Ù… 6 Ù¾ÛŒØª Ø¨ÛŽØª.' },
-    validationNameEmpty: { en: 'Please enter your name.', ar: 'ÙŠØ±Ø¬Ù‰ ÙƒØªØ§Ø¨Ø© Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„.', ku: 'ØªÚ©Ø§ÛŒÛ• Ù†Ø§ÙˆÛŒ Ø®Û†Øª Ø¨Ù†ÙˆÙˆØ³Û•.' },
-    emailSentTitle: { en: 'Instruction Sent', ar: 'ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„ØªØ¹Ù„ÙŠÙ…Ø§Øª', ku: 'Ú•ÛŽÙ†Ù…Ø§ÛŒÛŒ Ù†ÛŽØ±Ø¯Ø±Ø§' },
-    emailSentDesc: { en: 'A secure recovery instruction has been recorded.', ar: 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø·Ù„Ø¨ Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø¢Ù…Ù†.', ku: 'Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒ Ú¯ÛŽÚ•Ø§Ù†Û•ÙˆÛ•ÛŒÛ•Ú©ÛŒ Ù¾Ø§Ø±ÛŽØ²Ø±Ø§Ùˆ ØªÛ†Ù…Ø§Ø±Ú©Ø±Ø§.' },
-    registerSuccess: { en: 'Welcome to Jamiaati!', ar: 'Ø£Ù‡Ù„Ø§Ù‹ Ø¨Ùƒ ÙÙŠ Ù…Ù†ØµØ© Ø¬Ø§Ù…Ø¹ØªÙŠ!', ku: 'Ø¨Û•Ø®ÛŽØ±Ø¨ÛŽÛŒØª Ø¨Û† Ø¬Ø§Ù…Ø¹Û•ØªÛŒ!' },
-    loginSuccess: { en: 'Welcome back!', ar: 'Ø£Ù‡Ù„Ø§Ù‹ Ø¨Ø¹ÙˆØ¯ØªÙƒ Ù…Ø¬Ø¯Ø¯Ø§Ù‹!', ku: 'Ø¨Û•Ø®ÛŽØ±Ø¨ÛŽÛŒØªÛ•ÙˆÛ•!' }
+    login: { en: 'Sign In', ar: 'تسجيل الدخول', ku: 'چوونەژوورەوە' },
+    register: { en: 'Create Account', ar: 'إنشاء حساب جديد', ku: 'دروستکردنی هەژمار' },
+    forgot: { en: 'Reset Password', ar: 'استعادة الحساب', ku: 'گێڕانەوەی وشەی تێپەڕ' },
+    emailLabel: { en: 'Academic Email', ar: 'البريد الإلكتروني الجامعي', ku: 'ئیمەیڵی ئەکادیمی' },
+    passwordLabel: { en: 'Password', ar: 'كلمة المرور', ku: 'وشەی تێپەڕ' },
+    usernameLabel: { en: 'Full Name', ar: 'الاسم الكامل', ku: 'ناوی تەواو' },
+    forgotLink: { en: 'Forgot Password?', ar: 'نسيت كلمة المرور؟', ku: 'وشەی تێپەڕت لەبیرچووە؟' },
+    noAccount: { en: "Don't have an account?", ar: 'ليس لديك حساب؟', ku: 'هەژمارت نییە؟' },
+    haveAccount: { en: 'Already have an account?', ar: 'لديك حساب بالفعل؟', ku: 'خاوەنی هەژماریت؟' },
+    registerNow: { en: 'Register Now', ar: 'سجل الآن', ku: 'ئێستا تۆمار بکە' },
+    loginNow: { en: 'Login Now', ar: 'سجل دخولك', ku: 'ئێستا بچۆ ژوورەوە' },
+    backToLogin: { en: 'Back to Login', ar: 'العودة لتسجيل الدخول', ku: 'گەڕانەوە بۆ چوونەژوورەوە' },
+    remember: { en: 'Remember session', ar: 'تذكرني على هذا الجهاز', ku: 'بیرم بخەرەوە' },
+    validationAcademicEmail: { en: 'Please enter a valid student email.', ar: 'يرجى إدخال بريد إلكتروني صحيح.', ku: 'تکایە ئیمەیڵێکی دروست بنووسە.' },
+    validationPasswordLen: { en: 'Password must be at least 6 characters.', ar: 'كلمة المرور يجب ألا تقل عن 6 أحرف.', ku: 'وشەی تێپەڕ دەبێت لانیکەم 6 پیت بێت.' },
+    validationNameEmpty: { en: 'Please enter your name.', ar: 'يرجى كتابة الاسم الكامل.', ku: 'تکایە ناوی خۆت بنووسە.' },
+    emailSentTitle: { en: 'Instruction Sent', ar: 'تم إرسال التعليمات', ku: 'ڕێنمایی نێردرا' },
+    emailSentDesc: { en: 'A secure recovery instruction has been recorded.', ar: 'تم تسجيل طلب استعادة آمن.', ku: 'داواکاری گێڕانەوەیەکی پارێزراو تۆمارکرا.' },
+    registerSuccess: { en: 'Welcome to Jamiaati!', ar: 'أهلاً بك في منصة جامعتي!', ku: 'بەخێربێیت بۆ جامعەتی!' },
+    loginSuccess: { en: 'Welcome back!', ar: 'أهلاً بعودتك مجدداً!', ku: 'بەخێربێیتەوە!' }
   };
 
   const getLabel = (key: keyof typeof t) => {
@@ -84,9 +84,9 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
         setSuccess(
           result?.dryRun
             ? language === 'ar'
-              ? 'Ø§Ø³ØªØ¹Ø§Ø¯Ø© ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ØªØ¹Ù…Ù„ Ø¨ÙˆØ¶Ø¹ DRY_RUN. Ù„Ù… ÙŠØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø¨Ø±ÙŠØ¯ Ø­Ù‚ÙŠÙ‚ÙŠØŒ ÙˆÙŠÙ…ÙƒÙ† Ù„Ù„Ù…Ø³Ø¤ÙˆÙ„ Ù…Ø±Ø§Ø¬Ø¹Ø© Ø§Ù„Ø·Ù„Ø¨ Ø§Ù„ØªØ¬Ø±ÙŠØ¨ÙŠ.'
+              ? 'استعادة كلمة المرور تعمل بوضع DRY_RUN. لم يتم إرسال بريد حقيقي، ويمكن للمسؤول مراجعة الطلب التجريبي.'
               : language === 'ku'
-              ? 'Ú¯ÛŽÚ•Ø§Ù†Û•ÙˆÛ•ÛŒ ÙˆØ´Û•ÛŒ ØªÛŽÙ¾Û•Ú• Ù„Û• Ø¯Û†Ø®ÛŒ DRY_RUN Ù€Û•. Ù‡ÛŒÚ† Ø¦ÛŒÙ…Û•ÛŒÚµÛŽÚ©ÛŒ Ú•Ø§Ø³ØªÛ•Ù‚ÛŒÙ†Û• Ù†Û•Ù†ÛŽØ±Ø¯Ø±Ø§Ø› Ø¨Û•Ú•ÛŽÙˆÛ•Ø¨Û•Ø± Ø¯Û•ØªÙˆØ§Ù†ÛŽØª Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒÛŒÛ• ØªØ§Ù‚ÛŒÚ©Ø±Ø§ÙˆÛ•Ú©Û• Ø¨Ø¨ÛŒÙ†ÛŽØª.'
+              ? 'گێڕانەوەی وشەی تێپەڕ لە دۆخی DRY_RUN ـە. هیچ ئیمەیڵێکی ڕاستەقینە نەنێردرا؛ بەڕێوەبەر دەتوانێت داواکارییە تاقیکراوەکە ببینێت.'
               : 'Password reset is in DRY_RUN mode. No real email was sent; an admin can review the simulated request.'
             : getLabel('emailSentDesc')
         );
@@ -107,9 +107,9 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       if (!token) {
         throw new Error(
           language === 'ar'
-            ? 'ØªÙ… Ø§Ù„Ø§ØªØµØ§Ù„ Ø¨Ø§Ù„Ø®Ø§Ø¯Ù…ØŒ Ù„ÙƒÙ† Ù„Ù… ÙŠØªÙ… Ø§Ø³ØªÙ„Ø§Ù… Ø±Ù…Ø² Ø§Ù„Ø¯Ø®ÙˆÙ„.'
+            ? 'تم الاتصال بالخادم، لكن لم يتم استلام رمز الدخول.'
             : language === 'ku'
-            ? 'Ù¾Û•ÛŒÙˆÛ•Ù†Ø¯ÛŒ Ø¨Û• Ø³ÛŽØ±Ú¤Û•Ø±Û•ÙˆÛ• Ú©Ø±Ø§ØŒ Ø¨Û•ÚµØ§Ù… ØªÛ†Ú©Ù†ÛŒ Ú†ÙˆÙˆÙ†Û•Ú˜ÙˆÙˆØ±Û•ÙˆÛ• Ù†Û•Ú¯Û•Ú•Ø§ÛŒÛ•ÙˆÛ•.'
+            ? 'پەیوەندی بە سێرڤەرەوە کرا، بەڵام تۆکنی چوونەژوورەوە نەگەڕایەوە.'
             : 'Server responded, but no login token was returned.'
         );
       }
@@ -144,21 +144,21 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       setError(
         rawMessage.includes('Invalid email or password')
           ? language === 'ar'
-            ? 'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ø£Ùˆ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ØºÙŠØ± ØµØ­ÙŠØ­Ø©.'
+            ? 'البريد الإلكتروني أو كلمة المرور غير صحيحة.'
             : language === 'ku'
-            ? 'Ø¦ÛŒÙ…Û•ÛŒÚµ ÛŒØ§Ù† ÙˆØ´Û•ÛŒ ØªÛŽÙ¾Û•Ú• Ù‡Û•ÚµÛ•ÛŒÛ•.'
+            ? 'ئیمەیڵ یان وشەی تێپەڕ هەڵەیە.'
             : 'Invalid email or password.'
           : rawMessage.includes('Email already exists')
           ? language === 'ar'
-            ? 'Ù‡Ø°Ø§ Ø§Ù„Ø¨Ø±ÙŠØ¯ Ù…Ø³Ø¬Ù„ Ù…Ø³Ø¨Ù‚Ø§Ù‹.'
+            ? 'هذا البريد مسجل مسبقاً.'
             : language === 'ku'
-            ? 'Ø¦Û•Ù… Ø¦ÛŒÙ…Û•ÛŒÚµÛ• Ù¾ÛŽØ´ØªØ± ØªÛ†Ù…Ø§Ø±Ú©Ø±Ø§ÙˆÛ•.'
+            ? 'ئەم ئیمەیڵە پێشتر تۆمارکراوە.'
             : 'This email is already registered.'
           : rawMessage ||
         (language === 'ar'
-          ? 'ÙØ´Ù„ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„. ØªØ£ÙƒØ¯ Ù…Ù† Ø§Ù„Ø¨Ø±ÙŠØ¯ ÙˆÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±.'
+          ? 'فشل تسجيل الدخول. تأكد من البريد وكلمة المرور.'
           : language === 'ku'
-          ? 'Ú†ÙˆÙˆÙ†Û•Ú˜ÙˆÙˆØ±Û•ÙˆÛ• Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ù†Û•Ø¨ÙˆÙˆ. Ø¦ÛŒÙ…Û•ÛŒÚµ Ùˆ ÙˆØ´Û•ÛŒ ØªÛŽÙ¾Û•Ú• Ø¨Ù¾Ø´Ú©Ù†Û•.'
+          ? 'چوونەژوورەوە سەرکەوتوو نەبوو. ئیمەیڵ و وشەی تێپەڕ بپشکنە.'
           : 'Authentication failed. Please check your email and password.')
       );
     } finally {
@@ -210,7 +210,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
               {getLabel(mode)}
             </h3>
             <p className="text-[10px] uppercase font-bold text-cyan-400 font-mono tracking-widest mt-1">
-              Jamiaati Portal Â· Ø¨ÙˆØ§Ø¨ØªÙ†Ø§
+              Jamiaati Portal · بوابتنا
             </p>
           </div>
 
@@ -268,7 +268,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
+                    placeholder="••••••••"
                     className="w-full text-xs font-bold text-white bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-10 py-3 focus:outline-none transition-colors"
                   />
                   <button

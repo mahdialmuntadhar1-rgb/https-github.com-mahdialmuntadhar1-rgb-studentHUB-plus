@@ -49,14 +49,14 @@ export default function LifeFeed({
 
   // Filter keys inside Life Feed
   const chips = [
-    { id: 'all', labelEN: 'All', labelAR: 'Ø§Ù„ÙƒÙ„', labelKU: 'Ù‡Û•Ù…ÙˆÙˆ' },
-    { id: 'video', labelEN: 'Videos ðŸŽ¥', labelAR: 'ÙÙŠØ¯ÙŠÙˆÙ‡Ø§Øª', labelKU: 'Ú¤ÛŒØ¯ÛŒÛ†Ú©Ø§Ù†' },
-    { id: 'photo', labelEN: 'Photos ðŸ“¸', labelAR: 'ØµÙˆØ±', labelKU: 'ÙˆÛŽÙ†Û•Ú©Ø§Ù†' },
-    { id: 'story', labelEN: 'Stories â³', labelAR: 'Ù‚ØµØµ Ø·Ù„Ø§Ø¨ÙŠØ©', labelKU: 'Ø³ØªÛ†Ø±ÛŒ' },
-    { id: 'poll', labelEN: 'Polls ðŸ“Š', labelAR: 'Ø§Ø³ØªØ·Ù„Ø§Ø¹Ø§Øª', labelKU: 'Ú•Ø§Ù¾Ø±Ø³ÛŒÛŒÛ•Ú©Ø§Ù†' },
-    { id: 'clips', labelEN: 'Clubs ðŸ¤', labelAR: 'Ù†ÙˆØ§Ø¯ÙŠ Ø·Ù„Ø§Ø¨ÙŠØ©', labelKU: 'ÛŒØ§Ù†Û•Ú©Ø§Ù†' },
-    { id: 'nearby', labelEN: 'Nearby Cafes â˜•', labelAR: 'Ù‚Ø±Ø¨ Ø§Ù„Ø¬Ø§Ù…Ø¹Ø©', labelKU: 'Ù„Û•Ù†Ø²ÛŒÚ©Û•ÙˆÛ•' },
-    { id: 'trending', labelEN: 'Trending ðŸ”¥', labelAR: 'Ø±Ø§Ø¦Ø¬ Ø§Ù„Ø¢Ù†', labelKU: 'ØªØ±ÛŽÙ†Ø¯ÛŒÙ†Ú¯' }
+    { id: 'all', labelEN: 'All', labelAR: 'الكل', labelKU: 'هەموو' },
+    { id: 'video', labelEN: 'Videos 🎥', labelAR: 'فيديوهات', labelKU: 'ڤیدیۆکان' },
+    { id: 'photo', labelEN: 'Photos 📸', labelAR: 'صور', labelKU: 'وێنەکان' },
+    { id: 'story', labelEN: 'Stories ⏳', labelAR: 'قصص طلابية', labelKU: 'ستۆری' },
+    { id: 'poll', labelEN: 'Polls 📊', labelAR: 'استطلاعات', labelKU: 'ڕاپرسییەکان' },
+    { id: 'clips', labelEN: 'Clubs 🤝', labelAR: 'نوادي طلابية', labelKU: 'یانەکان' },
+    { id: 'nearby', labelEN: 'Nearby Cafes ☕', labelAR: 'قرب الجامعة', labelKU: 'لەنزیکەوە' },
+    { id: 'trending', labelEN: 'Trending 🔥', labelAR: 'رائج الآن', labelKU: 'ترێندینگ' }
   ];
 
   // Specific circular story list data
@@ -82,7 +82,7 @@ export default function LifeFeed({
   return (
     <div className="px-4 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-[#F3F7FF] min-h-screen" id="life-feed-container">
       
-      {/* Absolute Header Alert UX Rule: "Viewing Campus Life Â· Show all" */}
+      {/* Absolute Header Alert UX Rule: "Viewing Campus Life · Show all" */}
       <div 
         id="life-filter-reset-banner"
         onClick={onShowAll}
@@ -90,7 +90,7 @@ export default function LifeFeed({
       >
         <div className="flex items-center gap-2.5">
           <div className="w-8 h-8 rounded-xl bg-[#6B25C9]/10 text-[#6B25C9] flex items-center justify-center font-bold">
-            ðŸŒ¸
+            🌸
           </div>
           <span className="text-[11px] font-black tracking-tight text-[#161A33]">
             {getTranslation('viewingLife', language)}
@@ -105,7 +105,7 @@ export default function LifeFeed({
       {/* Stories Rail */}
       <div className="mb-5" id="stories-circular-container">
         <h3 className="text-[10px] font-black uppercase text-[#6B25C9] tracking-wider mb-2.5 flex items-center gap-1">
-          âœ¨ Campus Moments Stories
+          ✨ Campus Moments Stories
         </h3>
         <div className="flex gap-3 overflow-x-auto pb-1.5 scrollbar-none" id="stories-circular-rail">
           {storiesList.map((story) => (
@@ -169,7 +169,7 @@ export default function LifeFeed({
           <SkeletonLoader />
         ) : filteredItems.length === 0 ? (
           <div className="text-center py-12 text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-6 shadow-sm">
-            <div className="text-3xl mb-2">ðŸŽˆ</div>
+            <div className="text-3xl mb-2">🎈</div>
             <h3 className="font-extrabold text-[#161A33] text-xs text-center">No active entries matching filter</h3>
             <p className="text-[10px] text-slate-500 max-w-xs mt-1.5 mx-auto text-center leading-relaxed">
               We reused details across lists to avoid empty views. Change selectors or try the "All" tab.
@@ -236,7 +236,7 @@ export default function LifeFeed({
                 </div>
               ) : (
                 <div className="bg-gradient-to-tr from-[#4F46E5] to-[#2563EB] p-8 rounded-2xl text-center text-white text-sm font-bold min-h-[300px] flex flex-col justify-center max-w-md mx-auto shadow-2xl">
-                  <div className="text-4xl mb-4">ðŸ’¬</div>
+                  <div className="text-4xl mb-4">💬</div>
                   <p className="leading-relaxed font-black">
                     "{language === 'ar' ? selectedStory.contentAR : language === 'ku' ? selectedStory.contentKU : selectedStory.contentEN}"
                   </p>

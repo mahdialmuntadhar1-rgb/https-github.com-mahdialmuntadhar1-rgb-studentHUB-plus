@@ -126,7 +126,7 @@ export default function App() {
     setUserProfile(prev => ({
       ...prev,
       id: user.id || prev.id,
-      name: user.name || prev.name || 'Ø·Ø§Ù„ب Ø¬Ø§Ù…Ø¹ØªÙŠ',
+      name: user.name || prev.name || 'طالب جامعتي',
       role: toProfileRole(user.role)
     }));
   };
@@ -301,20 +301,20 @@ export default function App() {
       const mapped = all.map((inst: any) => {
         const govId = normalizeGovernorate(inst.governorate);
         
-        let logo = 'ðŸŽ“';
+        let logo = '🎓';
         const type = (inst.type || '').toLowerCase();
-        if (type.includes('private')) logo = 'ðŸ›️';
-        else if (type.includes('college')) logo = 'ðŸ“–';
-        else if (type.includes('school')) logo = 'ðŸ«';
-        else if (type.includes('division') || type.includes('department')) logo = 'ðŸ”¬';
-        else if (type.includes('institute') || type.includes('research')) logo = 'ðŸ›¡ï¸';
+        if (type.includes('private')) logo = '🏛️';
+        else if (type.includes('college')) logo = '📖';
+        else if (type.includes('school')) logo = '🏫';
+        else if (type.includes('division') || type.includes('department')) logo = '🔬';
+        else if (type.includes('institute') || type.includes('research')) logo = '🛡️';
         
         const charSum = inst.id.split('').reduce((sum: number, c: string) => sum + c.charCodeAt(0), 0);
         const color = colors[charSum % colors.length];
 
         const nameEN = inst.name_en?.trim() || inst.name_ar?.trim() || 'Unnamed Institution';
-        let nameAR = inst.name_ar?.trim() || inst.name_en?.trim() || 'Ù…ؤسسة ØºÙŠر Ù…Ø¹Ø±Ùˆفة';
-        let nameKU = inst.name_ku?.trim() || inst.name_en?.trim() || inst.name_ar?.trim() || 'Ø¯Ø§Ù…Û•Ø²Ø±Ø§ÙˆÛ•ÛŒ Ù†Û•Ù†Ø§Ø³Ø±Ø§Ùˆ';
+        let nameAR = inst.name_ar?.trim() || inst.name_en?.trim() || 'مؤسسة غير معروفة';
+        let nameKU = inst.name_ku?.trim() || inst.name_en?.trim() || inst.name_ar?.trim() || 'دامەزراوەی نەناسراو';
 
         return {
           id: inst.id,
@@ -412,11 +412,11 @@ export default function App() {
               id: String(item.id || `scraped-${Date.now()}-${Math.random()}`),
               type: (item.category || item.type || 'job') as any,
               titleEN: item.title || item.titleEN || 'Untitled Opportunity',
-              titleAR: item.title || item.titleAR || 'فرصة ØºÙŠر Ù…Ø¹Ù†ÙˆÙ†ة',
-              titleKU: item.title || item.titleKU || 'Ù‡Û•Ù„ÛŒ Ø¨ÛŽ Ù†Ø§ÙˆÙ†ÛŒØ´Ø§Ù†',
+              titleAR: item.title || item.titleAR || 'فرصة غير معنونة',
+              titleKU: item.title || item.titleKU || 'هەلی بێ ناونیشان',
               contentEN: item.description || item.summary || item.contentEN || 'Check original portal for instructions.',
-              contentAR: item.description || item.summary || item.contentAR || 'ÙŠØ±Ø¬Ù‰ Ù…راجعة Ø§Ù„Ù…صدر Ø§Ù„Ø£ØµÙ„ÙŠ Ù„Ù…Ø¹Ù„ÙˆÙ…ات Ø§Ù„ØªÙ‚Ø¯ÙŠÙ….',
-              contentKU: item.description || item.summary || item.contentKU || 'ØªÚ©Ø§ÛŒÛ• Ø³Û•Ø±Ú†Ø§ÙˆÛ•ÛŒ Ø³Û•Ø±Û•Ú©ÛŒ Ø¨Ø¨ÛŒÙ†Û• Ø¨Û† Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ.',
+              contentAR: item.description || item.summary || item.contentAR || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
+              contentKU: item.description || item.summary || item.contentKU || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
               author: {
                 name: item.organization || item.institution_name || 'Scraped Recruiter',
                 role: 'institution' as const,
@@ -465,18 +465,18 @@ export default function App() {
               id: String(item.id || `highlight-${Date.now()}-${Math.random()}`),
               type: (item.category || 'news') as any,
               titleEN: item.title || item.titleEN || 'Campus Notification',
-              titleAR: item.title || item.titleAR || 'ØªÙ†Ø¨ÙŠÙ‡ Ø¬Ø§Ù…Ø¹ÙŠ',
-              titleKU: item.title || item.titleKU || 'Ø¦Ø§Ú¯Ø§Ø¯Ø§Ø±ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±Ø§Ù†',
+              titleAR: item.title || item.titleAR || 'تنبيه جامعي',
+              titleKU: item.title || item.titleKU || 'ئاگاداری خوێندکاران',
               contentEN: item.summary || item.contentEN || 'Check original university channel for details.',
-              contentAR: item.summary || item.contentAR || 'ÙŠØ±Ø¬Ù‰ Ù…راجعة Ø§Ù„Ù‚Ù†اة Ø§Ù„Ø±Ø³Ù…ÙŠة Ù„Ù„Ù…Ø²ÙŠد Ù…Ù† Ø§Ù„ØªÙØ§ØµÙŠÙ„.',
-              contentKU: item.summary || item.contentKU || 'ØªÚ©Ø§ÛŒÛ• Ø³Û•Ø±Ú†Ø§ÙˆÛ•ÛŒ ÙÛ•Ø±Ù…ÛŒ Ø¨Ø¨ÛŒÙ†Û• Ø¨Û† Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ.',
+              contentAR: item.summary || item.contentAR || 'يرجى مراجعة القناة الرسمية للمزيد من التفاصيل.',
+              contentKU: item.summary || item.contentKU || 'تکایە سەرچاوەی فەرمی ببینە بۆ زانیاری.',
               author: {
                 name: item.organization || 'Academic Center Feed',
                 role: 'institution' as const,
                 avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
                 verified: true
               },
-              date: item.created_at ? `Posted on ${new Date(item.created_at).toLocaleDateString()}` : 'Recently posted ðŸ””',
+              date: item.created_at ? `Posted on ${new Date(item.created_at).toLocaleDateString()}` : 'Recently posted 🔔',
               likes: item.likes || 15,
               commentsCount: 0,
               commentsList: [],
@@ -586,12 +586,12 @@ export default function App() {
           if (isLiked) {
             handleAwardPoints(5);
             showToast(
-              language === 'ar' ? 'ØªÙ… Ø§Ù„إعجاب Ø¨Ø§Ù„Ù…Ù†Ø´Ùˆر. +5 Ù†Ù‚اط' : language === 'ku' ? 'Ø¨Ø§Ø¨Û•ØªÛ•Ú©Û• Ø¨Û•دڵ Ø¨ÙˆÙˆ. +5 خاڵ' : 'Post liked. +5 pts',
+              language === 'ar' ? 'تم الإعجاب بالمنشور. +5 نقاط' : language === 'ku' ? 'بابەتەکە بەدڵ بوو. +5 خاڵ' : 'Post liked. +5 pts',
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'ØªÙ… Ø¥Ù„غاء Ø§Ù„إعجاب Ø¨Ø§Ù„Ù…Ù†Ø´Ùˆر' : language === 'ku' ? 'Ø¯ÚµØ®Ùˆاز Ù„Û• Ø¨Ø§Ø¨Û•ØªÛ•Ú©Û• Ù„ادرا' : 'Removed like from post',
+              language === 'ar' ? 'تم إلغاء الإعجاب بالمنشور' : language === 'ku' ? 'دڵخواز لە بابەتەکە لادرا' : 'Removed like from post',
               'info'
             );
           }
@@ -617,7 +617,7 @@ export default function App() {
       return item;
     }));
     showToast(
-      language === 'ar' ? 'ØªÙ… ØªØ­Ø¯ÙŠث Ø§Ù„Ù…Ù†Ø´Ùˆر Ø¨Ù†جاح! âœï¸' : 'Post updated successfully by admin! âœï¸', 
+      language === 'ar' ? 'تم تحديث المنشور بنجاح! ✏️' : 'Post updated successfully by admin! ✏️', 
       'success'
     );
   };
@@ -630,7 +630,7 @@ export default function App() {
       });
     }
     showToast(
-      language === 'ar' ? 'ØªÙ… حذف Ø§Ù„Ù…Ù†Ø´Ùˆر Ø¨Ù†جاح! ðŸ—‘️' : 'Post deleted successfully by admin! ðŸ—‘️', 
+      language === 'ar' ? 'تم حذف المنشور بنجاح! 🗑️' : 'Post deleted successfully by admin! 🗑️', 
       'success'
     );
   };
@@ -650,12 +650,12 @@ export default function App() {
           if (isSaved) {
             handleAwardPoints(10);
             showToast(
-              language === 'ar' ? 'ØªÙ… Ø§Ù„حفظ ÙÙŠ Ù…ÙƒØªØ¨ØªÙƒ. +10 Ù†Ù‚اط' : language === 'ku' ? 'Ù„Û• Ú©ØªÛŽØ¨Ø®Ø§Ù†Û•Ú©Û•ت Ù¾Ø§Ø´Û•Ú©Û•Ùˆت کرا. +10 خاڵ' : 'Saved to your library. +10 pts',
+              language === 'ar' ? 'تم الحفظ في مكتبتك. +10 نقاط' : language === 'ku' ? 'لە کتێبخانەکەت پاشەکەوت کرا. +10 خاڵ' : 'Saved to your library. +10 pts',
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'ØªÙ…ت Ø§Ù„Ø¥Ø²Ø§Ù„ة Ù…Ù† Ø§Ù„Ù…Ø­ÙÙˆظات' : language === 'ku' ? 'Ù„Û• Ù¾Ø§Ø´Û•Ú©Û•ÙˆØªÚ©Ø±Ø§ÙˆÛ•Ú©Ø§Ù† Ù„ادرا' : 'Removed bookmark',
+              language === 'ar' ? 'تمت الإزالة من المحفوظات' : language === 'ku' ? 'لە پاشەکەوتکراوەکان لادرا' : 'Removed bookmark',
               'info'
             );
           }
@@ -680,7 +680,7 @@ export default function App() {
           triggeredToast = true;
           handleAwardPoints(25); // high reward for sharing feedback
           showToast(
-            language === 'ar' ? 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø±Ø£ÙŠÙƒ. +25 Ù†Ù‚طة' : language === 'ku' ? 'Ø¯Û•Ù†Ú¯Û•Ú©Û•ت ØªÛ†Ù…ارکرا. +25 خاڵ' : 'Feedback vote recorded. +25 pts',
+            language === 'ar' ? 'تم تسجيل رأيك. +25 نقطة' : language === 'ku' ? 'دەنگەکەت تۆمارکرا. +25 خاڵ' : 'Feedback vote recorded. +25 pts',
             'success'
           );
         }
@@ -715,12 +715,12 @@ export default function App() {
           if (isApplied) {
             handleAwardPoints(50); // Massive career action reward!
             showToast(
-              language === 'ar' ? 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø·Ù„ب Ø§Ù„ØªÙ‚Ø¯ÙŠÙ… Ø¨Ù†جاح. +50 Ù†Ù‚طة' : language === 'ku' ? 'Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒÛŒÛ•Ú©Û•ت Ø¨Û• Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆÛŒÛŒ ØªÛ†Ù…ارکرا. +50 خاڵ' : 'Application registered successfully. +50 pts',
+              language === 'ar' ? 'تم تسجيل طلب التقديم بنجاح. +50 نقطة' : language === 'ku' ? 'داواکارییەکەت بە سەرکەوتوویی تۆمارکرا. +50 خاڵ' : 'Application registered successfully. +50 pts',
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'ØªÙ… Ø¥Ù„غاء Ø·Ù„ب Ø§Ù„ØªÙ‚Ø¯ÙŠÙ…' : language === 'ku' ? 'Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒÛŒÛ•Ú©Û•ت Ù‡Û•ÚµÙˆÛ•Ø´ÛŽÙ†Ø±Ø§ÛŒÛ•ÙˆÛ•' : 'Cancelled application request',
+              language === 'ar' ? 'تم إلغاء طلب التقديم' : language === 'ku' ? 'داواکارییەکەت هەڵوەشێنرایەوە' : 'Cancelled application request',
               'info'
             );
           }
@@ -744,12 +744,12 @@ export default function App() {
           if (isRsvped) {
             handleAwardPoints(30);
             showToast(
-              language === 'ar' ? 'ØªÙ… ØªØ£ÙƒÙŠد Ø§Ù„Ø­Ø¶Ùˆر. +30 Ù†Ù‚طة' : language === 'ku' ? 'Ø¦Ø§Ù…Ø§Ø¯Û•Ø¨ÙˆÙˆÙ† Ù¾Ø´ØªÚ•Ø§Ø³ØªÚ©Ø±Ø§ÛŒÛ•ÙˆÛ•. +30 خاڵ' : 'Attendance confirmed. +30 pts',
+              language === 'ar' ? 'تم تأكيد الحضور. +30 نقطة' : language === 'ku' ? 'ئامادەبوون پشتڕاستکرایەوە. +30 خاڵ' : 'Attendance confirmed. +30 pts',
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'ØªÙ… Ø¥Ù„غاء ØªØ£ÙƒÙŠد Ø§Ù„Ø­Ø¶Ùˆر' : language === 'ku' ? 'Ù¾Ø´ØªÚ•Ø§Ø³ØªÚ©Ø±Ø¯Ù†Û•ÙˆÛ•ÛŒ Ø¦Ø§Ù…Ø§Ø¯Û•Ø¨ÙˆÙˆÙ† Ù‡Û•ÚµÙˆÛ•Ø´ÛŽÙ†Ø±Ø§ÛŒÛ•ÙˆÛ•' : 'Reservation cancelled',
+              language === 'ar' ? 'تم إلغاء تأكيد الحضور' : language === 'ku' ? 'پشتڕاستکردنەوەی ئامادەبوون هەڵوەشێنرایەوە' : 'Reservation cancelled',
               'info'
             );
           }
@@ -774,12 +774,12 @@ export default function App() {
           if (isJoined) {
             handleAwardPoints(30);
             showToast(
-              language === 'ar' ? 'Ø§Ù†Ø¶Ù…Ù…ت Ø¥Ù„Ù‰ Ù…Ø¬Ù…Ùˆعة Ø§Ù„Ù…راجعة. +30 Ù†Ù‚طة' : language === 'ku' ? 'Ù¾Û•ÛŒÙˆÛ•ست Ø¨ÙˆÙˆÛŒت Ø¨Û• Ú¯Ø±ÙˆÙˆÙ¾ÛŒ Ú¯ÙØªÙˆÚ¯Û†. +30 خاڵ' : 'Joined study circle. +30 pts',
+              language === 'ar' ? 'انضممت إلى مجموعة المراجعة. +30 نقطة' : language === 'ku' ? 'پەیوەست بوویت بە گرووپی گفتوگۆ. +30 خاڵ' : 'Joined study circle. +30 pts',
               'success'
             );
           } else {
             showToast(
-              language === 'ar' ? 'غادرت Ù…Ø¬Ù…Ùˆعة Ø§Ù„Ù…راجعة' : language === 'ku' ? 'Ú¯Ø±ÙˆÙˆÙ¾ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù†Û•Ú©Û•ت Ø¬ÛŽÙ‡ÛŽشت' : 'Left study circle',
+              language === 'ar' ? 'غادرت مجموعة المراجعة' : language === 'ku' ? 'گرووپی خوێندنەکەت جێهێشت' : 'Left study circle',
               'info'
             );
           }
@@ -804,16 +804,16 @@ export default function App() {
 
     if (language === 'en') {
       contentEN = content;
-      contentAR = `${content} (Ù…ØªØ±Ø¬Ù…)`;
-      contentKU = `${content} (ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø¯Ø±Ø§Ùˆ)`;
+      contentAR = `${content} (مترجم)`;
+      contentKU = `${content} (وەرگێڕدراو)`;
     } else if (language === 'ar') {
       contentAR = content;
       contentEN = `${content} (Auto-translated)`;
-      contentKU = `${content} (ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø¯Ø±Ø§Ùˆ)`;
+      contentKU = `${content} (وەرگێڕدراو)`;
     } else if (language === 'ku') {
       contentKU = content;
       contentEN = `${content} (Auto-translated)`;
-      contentAR = `${content} (Ù…ØªØ±Ø¬Ù…)`;
+      contentAR = `${content} (مترجم)`;
     }
 
     const newComment: Comment = {
@@ -835,7 +835,7 @@ export default function App() {
 
     handleAwardPoints(15); // reward commenting and discussion
     showToast(
-      language === 'ar' ? 'ØªÙ… Ù†شر ØªØ¹Ù„ÙŠÙ‚Ùƒ. +15 Ù†Ù‚طة' : language === 'ku' ? 'Ù„ÛŽØ¯ÙˆØ§Ù†Û•Ú©Û•ت Ø¨ÚµØ§ÙˆÚ©Ø±Ø§ÛŒÛ•ÙˆÛ•. +15 خاڵ' : 'Comment posted. +15 pts',
+      language === 'ar' ? 'تم نشر تعليقك. +15 نقطة' : language === 'ku' ? 'لێدوانەکەت بڵاوکرایەوە. +15 خاڵ' : 'Comment posted. +15 pts',
       'success'
     );
 
@@ -872,24 +872,24 @@ export default function App() {
     if (language === 'en') {
       titleEN = title;
       contentEN = body;
-      titleAR = `${title} (Ù…ØªØ±Ø¬Ù… Ù„Ù„Ø·Ù„اب)`;
-      contentAR = `${body}\n\n[ØªÙ… Ø§Ù„ØªØ±Ø¬Ù…ة ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ Ø¥Ù„Ù‰ Ø§Ù„Ø¹Ø±Ø¨ÙŠة عبر Ø®Ø§Ø¯Ù… Ø§Ù„Ø·Ù„اب]`;
-      titleKU = `${title} (ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø¯Ø±Ø§Ùˆ)`;
-      contentKU = `${body}\n\n[Ø¨Û• Ø´ÛŒÙˆØ§Ø²ÛŽÚ©ÛŒ Ø¦Û†ØªÛ†Ù…Ø§ØªÛŒÚ©ÛŒ ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø¯Ø±Ø§ÙˆÛ• Ø¨Û† Ú©ÙˆØ±Ø¯ÛŒ]`;
+      titleAR = `${title} (مترجم للطلاب)`;
+      contentAR = `${body}\n\n[تم الترجمة تلقائياً إلى العربية عبر خادم الطلاب]`;
+      titleKU = `${title} (وەرگێڕدراو)`;
+      contentKU = `${body}\n\n[بە شیوازێکی ئۆتۆماتیکی وەرگێڕدراوە بۆ کوردی]`;
     } else if (language === 'ar') {
       titleAR = title;
       contentAR = body;
       titleEN = `${title} (Auto-translated)`;
       contentEN = `${body}\n\n[Auto-translated to English via Jamiaati Translate Engine]`;
-      titleKU = `${title} (ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø¯Ø±Ø§Ùˆ)`;
-      contentKU = `${body}\n\n[Ø¨Û• Ø´ÛŒÙˆØ§Ø²ÛŽÚ©ÛŒ Ø¦Û†ØªÛ†Ù…Ø§ØªÛŒÚ©ÛŒ ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø¯Ø±Ø§ÙˆÛ• Ø¨Û† Ú©ÙˆØ±Ø¯ÛŒ]`;
+      titleKU = `${title} (وەرگێڕدراو)`;
+      contentKU = `${body}\n\n[بە شیوازێکی ئۆتۆماتیکی وەرگێڕدراوە بۆ کوردی]`;
     } else if (language === 'ku') {
       titleKU = title;
       contentKU = body;
       titleEN = `${title} (Auto-translated)`;
       contentEN = `${body}\n\n[Auto-translated to English via Jamiaati Translate Engine]`;
-      titleAR = `${title} (Ù…ØªØ±Ø¬Ù… Ù„Ù„Ø·Ù„اب)`;
-      contentAR = `${body}\n\n[ØªÙ… Ø§Ù„ØªØ±Ø¬Ù…ة ØªÙ„Ù‚Ø§Ø¦ÙŠØ§Ù‹ Ø¥Ù„Ù‰ Ø§Ù„Ø¹Ø±Ø¨ÙŠة عبر Ø®Ø§Ø¯Ù… Ø§Ù„Ø·Ù„اب]`;
+      titleAR = `${title} (مترجم للطلاب)`;
+      contentAR = `${body}\n\n[تم الترجمة تلقائياً إلى العربية عبر خادم الطلاب]`;
     }
 
     const freshPost: FeedItem = {
@@ -940,7 +940,7 @@ export default function App() {
 
     handleAwardPoints(40); // high points for sharing posts!
     showToast(
-      language === 'ar' ? 'ØªÙ… Ù†شر Ù…Ø³Ø§Ù‡Ù…ØªÙƒ Ø¨Ù†جاح. +40 Ù†Ù‚طة' : language === 'ku' ? 'Ø¨Û•Ø´Ø¯Ø§Ø±ÛŒÛŒÛ•Ú©Û•ت Ø¨Û• Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆÛŒÛŒ Ø¨ÚµØ§ÙˆÚ©Ø±Ø§ÛŒÛ•ÙˆÛ•. +40 خاڵ' : 'Contribution published successfully. +40 pts',
+      language === 'ar' ? 'تم نشر مساهمتك بنجاح. +40 نقطة' : language === 'ku' ? 'بەشدارییەکەت بە سەرکەوتوویی بڵاوکرایەوە. +40 خاڵ' : 'Contribution published successfully. +40 pts',
       'success'
     );
     setFeedItems(prev => [freshPost, ...prev]);
@@ -968,9 +968,9 @@ export default function App() {
         if (backendPost.status === 'pending_review') {
           showToast(
             language === 'ar'
-              ? 'ØªÙ… حفظ Ø§Ù„Ù…Ù†Ø´Ùˆر Ø§Ù„Ù…Ø¬Ù‡ÙˆÙ„ Ù„Ù„Ù…راجعة Ù‚Ø¨Ù„ Ø§Ù„Ù†شر.'
+              ? 'تم حفظ المنشور المجهول للمراجعة قبل النشر.'
               : language === 'ku'
-              ? 'Ø¨Ø§Ø¨Û•ØªÛŒ Ù†Ø§Ø¯ÛŒار Ø¨Û† Ù¾ÛŽØ¯Ø§Ú†ÙˆÙˆÙ†Û•ÙˆÛ• Ù¾Ø§Ø´Û•Ú©Û•Ùˆت کرا.'
+              ? 'بابەتی نادیار بۆ پێداچوونەوە پاشەکەوت کرا.'
               : 'Anonymous post saved for moderation before publishing.',
             'info'
           );
@@ -998,9 +998,9 @@ export default function App() {
   const handleRoleToggle = () => {
     showToast(
       language === 'ar'
-        ? 'ØªØºÙŠÙŠر Ø§Ù„Ø¯Ùˆر ØºÙŠر Ù…تاح ÙÙŠ Ø§Ù„Ù†سخة Ø§Ù„Ø¹Ø§Ù…ة. ØµÙ„Ø§Ø­ÙŠات Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ ØªØ£ØªÙŠ Ù…Ù† Ø§Ù„Ø®Ø§Ø¯Ù… ÙÙ‚ط.'
+        ? 'تغيير الدور غير متاح في النسخة العامة. صلاحيات المسؤول تأتي من الخادم فقط.'
         : language === 'ku'
-        ? 'Ú¯Û†Ú•ÛŒÙ†ÛŒ Ú•Û†ڵ Ù„Û• ÙˆÛ•Ø´Ø§Ù†ÛŒ Ú¯Ø´ØªÛŒ Ø¯Ø§Ø®Ø±Ø§ÙˆÛ•. Ø¯Û•Ø³Û•ÚµØ§ØªÛŒ Ø¨Û•Ú•ÛŽÙˆÛ•Ø¨Û•ر ØªÛ•Ù†Ù‡ا Ù„Û• Ø³ÛŽØ±Ú¤Û•Ø±Û•ÙˆÛ• Ø¯ÛŽت.'
+        ? 'گۆڕینی ڕۆڵ لە وەشانی گشتی داخراوە. دەسەڵاتی بەڕێوەبەر تەنها لە سێرڤەرەوە دێت.'
         : 'Role switching is disabled in the public app. Admin access must come from the backend.',
       'info'
     );
@@ -1173,7 +1173,7 @@ export default function App() {
             onLogout={() => {
               clearAuthSession();
               showToast(
-                language === 'ar' ? 'ØªÙ… ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±Ùˆج Ø¨Ù†جاح.' : language === 'ku' ? 'Ø¨Û• Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆÛŒÛŒ Ú†ÙˆÙˆÛŒØªÛ• Ø¯Û•Ø±Û•ÙˆÛ•.' : 'Logged out successfully.',
+                language === 'ar' ? 'تم تسجيل الخروج بنجاح.' : language === 'ku' ? 'بە سەرکەوتوویی چوویتە دەرەوە.' : 'Logged out successfully.',
                 'info'
               );
             }}
@@ -1234,7 +1234,7 @@ export default function App() {
         <main className="flex-1 overflow-y-auto bg-[#0B1020]">
           {feedApiError && (
             <div className="mx-4 mt-3 rounded-2xl border border-rose-500/30 bg-rose-950/30 px-3 py-2 text-[10px] font-bold text-rose-200">
-              {language === 'ar' ? `تعذر ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø®Ù„اصة Ù…Ù† Ø§Ù„Ø®Ø§Ø¯Ù…: ${feedApiError}` : language === 'ku' ? `Ø¨Ø§Ø±Ú©Ø±Ø¯Ù†ÛŒ ÙÛŒد Ù„Û• Ø³ÛŽØ±Ú¤Û•ر Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ù†Û•Ø¨ÙˆÙˆ: ${feedApiError}` : `Could not load live feed from backend: ${feedApiError}`}
+              {language === 'ar' ? `تعذر تحميل الخلاصة من الخادم: ${feedApiError}` : language === 'ku' ? `بارکردنی فید لە سێرڤەر سەرکەوتوو نەبوو: ${feedApiError}` : `Could not load live feed from backend: ${feedApiError}`}
             </div>
           )}
           {renderActiveView()}
@@ -1382,12 +1382,12 @@ export default function App() {
             }
             applyAuthSession(token, user || {
               id: userProfile.id,
-              name: newUsername || userProfile.name || 'Ø·Ø§Ù„ب Ø¬Ø§Ù…Ø¹ØªÙŠ',
+              name: newUsername || userProfile.name || 'طالب جامعتي',
               email: '',
               role: role || 'student'
             });
             showToast(
-              language === 'ar' ? `Ù…Ø±Ø­Ø¨Ø§Ù‹ Ø¨Ùƒ ${newUsername || 'زائر'}ØŒ ØªÙ… Ø§Ù„Ø¯Ø®ÙˆÙ„ Ø¨Ù†جاح` : language === 'ku' ? `Ø¨Û•Ø®ÛŽØ±Ø¨ÛŽÛŒØªÛ•ÙˆÛ• ${newUsername || 'Ù…ÛŒÙˆØ§Ù†'}ØŒ Ú†ÙˆÙˆÙ†Û•Ú˜ÙˆÙˆØ±Û•ÙˆÛ• Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ø¨ÙˆÙˆ` : `Welcome back, ${newUsername || 'Guest'}! Signed in`,
+              language === 'ar' ? `مرحباً بك ${newUsername || 'زائر'}، تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'میوان'}، چوونەژوورەوە سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Guest'}! Signed in`,
               'success'
             );
           }}
@@ -1424,7 +1424,7 @@ export default function App() {
                     onClick={() => setToasts(prev => prev.filter(t => t.id !== toast.id))}
                     className="text-slate-400 hover:text-white transition-colors p-1 bg-transparent border-0 cursor-pointer text-[10px] font-black"
                   >
-                    Ã—
+                    ×
                   </button>
                 </div>
               </motion.div>

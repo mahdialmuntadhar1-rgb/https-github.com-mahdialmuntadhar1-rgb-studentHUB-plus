@@ -40,14 +40,14 @@ interface HomeFeedProps {
 const HERO_DEFAULTS = {
   image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600',
   titleEN: 'Master Your Campus Journey!',
-  titleAR: 'ØªÙ…ÙŠÙ‘Ø² ÙˆØ§Ø¨Ù†Ù Ù…Ø³ØªÙ‚Ø¨Ù„Ùƒ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠ!',
-  titleKU: 'Ø¯Ø§Ù‡Ø§ØªÙˆÙˆÛŒÛ•Ú©ÛŒ Ù¾Ú•Ø´Ù†Ú¯Ø¯Ø§Ø± Ø¨Ù†ÙŠØ§Øª Ø¨Ù†ÛŽ!',
+  titleAR: 'تميّز وابنِ مستقبلك الأكاديمي!',
+  titleKU: 'داهاتوویەکی پڕشنگدار بنيات بنێ!',
   descEN: 'The ultimate collegiate hub for premium opportunities & academic resources',
-  descAR: 'Ø§Ù„Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø·Ù„Ø§Ø¨ÙŠØ© Ø§Ù„Ø£Ù‚ÙˆÙ‰ Ù„Ù„Ø¬Ø§Ù…Ø¹Ø§Øª ÙˆØ§Ù„ØªØ¯Ø±ÙŠØ¨ ÙÙŠ Ø¹ÙØ±Ø§Ù‚Ù†Ø§ Ø§Ù„Ø­Ø¨ÙŠØ¨',
-  descKU: 'ÛŒÛ•Ú©Û•Ù… Ø¯Û•Ø±ÙˆØ§Ø²Û•ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±Ø§Ù†ÛŒ Ø²Ø§Ù†Ú©Û† Ùˆ Ø¯Ø§Ø¨ÛŒÙ†Ú©Ø±Ø¯Ù†ÛŒ Ù‡Û•Ù„ÛŒ Ù…Û•Ø´Ù‚',
+  descAR: 'البوابة الطلابية الأقوى للجامعات والتدريب في عِراقنا الحبيب',
+  descKU: 'یەکەم دەروازەی خوێندکارانی زانکۆ و دابینکردنی هەلی مەشق',
   tagEN: 'PORTAL ACCELERATION',
-  tagAR: 'Ø¨ÙˆØ§Ø¨Ø© Ù‡ÙˆÙŠØªÙ†Ø§ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ©',
-  tagKU: 'Ø¯Û•Ø±ÙˆØ§Ø²Û•ÛŒ Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒ Ø¹ÛŽØ±Ø§Ù‚'
+  tagAR: 'بوابة هويتنا الأكاديمية',
+  tagKU: 'دەروازەی ئەکادیمی عێراق'
 };
 
 function cachePortalSettings(settings: PortalSettings) {
@@ -222,16 +222,16 @@ export default function HomeFeed({
       window.dispatchEvent(new Event('jamiaati_stories_updated'));
       setIsEditingHero(false);
       if (showToast) {
-        showToast(language === 'ar' ? 'ØªÙ… Ø­ÙØ¸ Ø§Ù„ØªØºÙŠÙŠØ±Ø§Øª Ø¹Ù„Ù‰ Ø§Ù„Ø®Ø§Ø¯Ù… Ø¨Ù†Ø¬Ø§Ø­! ðŸ’«' : language === 'ku' ? 'Ú¯Û†Ú•Ø§Ù†Ú©Ø§Ø±ÛŒÛŒÛ•Ú©Ø§Ù† Ù„Û• Ø³ÛŽØ±Ú¤Û•Ø± Ù¾Ø§Ø´Û•Ú©Û•ÙˆØª Ú©Ø±Ø§Ù†! ðŸ’«' : 'Hero settings saved to backend! ðŸ’«', 'success');
+        showToast(language === 'ar' ? 'تم حفظ التغييرات على الخادم بنجاح! 💫' : language === 'ku' ? 'گۆڕانکارییەکان لە سێرڤەر پاشەکەوت کران! 💫' : 'Hero settings saved to backend! 💫', 'success');
       }
     } catch (err: any) {
       if (showToast) {
-        showToast(language === 'ar' ? `ÙØ´Ù„ Ø­ÙØ¸ Ø¥Ø¹Ø¯Ø§Ø¯Ø§Øª Ø§Ù„ÙˆØ§Ø¬Ù‡Ø©: ${err.message}` : language === 'ku' ? `Ù¾Ø§Ø´Û•Ú©Û•ÙˆØªÚ©Ø±Ø¯Ù†ÛŒ Ú•ÙˆÙˆÚ©Ø§Ø± Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ù†Û•Ø¨ÙˆÙˆ: ${err.message}` : `Failed to save hero settings: ${err.message}`, 'error');
+        showToast(language === 'ar' ? `فشل حفظ إعدادات الواجهة: ${err.message}` : language === 'ku' ? `پاشەکەوتکردنی ڕووکار سەرکەوتوو نەبوو: ${err.message}` : `Failed to save hero settings: ${err.message}`, 'error');
       }
     }
   };
 
-  // âš ï¸ Searchable Custom Picker States (Task 1, 2, 3, 5)
+  // ⚠️ Searchable Custom Picker States (Task 1, 2, 3, 5)
   const [showPicker, setShowPicker] = useState(false);
   const [pickerSearch, setPickerSearch] = useState('');
   const [pickerPage, setPickerPage] = useState(1);
@@ -282,100 +282,100 @@ export default function HomeFeed({
   const storyHighlightsData = [
     {
       id: 'scholarship',
-      emoji: 'ðŸŽ“',
+      emoji: '🎓',
       labelEN: 'Scholarships',
-      labelAR: 'Ø§Ù„Ù…Ù†Ø­',
-      labelKU: 'Ø¨ÙˆØ±Ø³ÛŒÛ•Ú©Ø§Ù†',
+      labelAR: 'المنح',
+      labelKU: 'بورسیەکان',
       color: 'from-pink-500 to-rose-500',
       tabType: 'opportunities',
       filterType: 'scholarship'
     },
     {
       id: 'job',
-      emoji: 'ðŸ’¼',
+      emoji: '💼',
       labelEN: 'Jobs',
-      labelAR: 'Ø§Ù„ÙˆØ¸Ø§Ø¦Ù',
-      labelKU: 'Ú©Ø§Ø±Û•Ú©Ø§Ù†',
+      labelAR: 'الوظائف',
+      labelKU: 'کارەکان',
       color: 'from-emerald-500 to-teal-500',
       tabType: 'opportunities',
       filterType: 'job'
     },
     {
       id: 'internship',
-      emoji: 'âš™ï¸',
+      emoji: '⚙️',
       labelEN: 'Internships',
-      labelAR: 'ÙØ±Øµ Ø§Ù„ØªØ¯Ø±ÙŠØ¨',
-      labelKU: 'Ù…Û•Ø´Ù‚Û•Ú©Ø§Ù†',
+      labelAR: 'فرص التدريب',
+      labelKU: 'مەشقەکان',
       color: 'from-blue-500 to-indigo-500',
       tabType: 'opportunities',
       filterType: 'internship'
     },
     {
       id: 'training',
-      emoji: 'ðŸ«',
+      emoji: '🏫',
       labelEN: 'Trainings',
-      labelAR: 'Ø§Ù„ØªØ¯Ø±ÙŠØ¨',
-      labelKU: 'Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†',
+      labelAR: 'التدريب',
+      labelKU: 'ڕاهێنان',
       color: 'from-cyan-500 to-blue-500',
       tabType: 'opportunities',
       filterType: 'training'
     },
     {
       id: 'event',
-      emoji: 'ðŸŽŸï¸',
+      emoji: '🎟️',
       labelEN: 'Events',
-      labelAR: 'Ø§Ù„ÙØ¹Ø§Ù„ÙŠØ§Øª',
-      labelKU: 'Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ•Ú©Ø§Ù†',
+      labelAR: 'الفعاليات',
+      labelKU: 'چالاکییەکان',
       color: 'from-purple-500 to-blue-500',
       tabType: 'campus',
       filterType: 'event'
     },
     {
       id: 'news',
-      emoji: 'ðŸ“°',
+      emoji: '📰',
       labelEN: 'News',
-      labelAR: 'Ø§Ù„Ø£Ø®Ø¨Ø§Ø±',
-      labelKU: 'Ù‡Û•ÙˆØ§ÚµÛ•Ú©Ø§Ù†',
+      labelAR: 'الأخبار',
+      labelKU: 'هەواڵەکان',
       color: 'from-amber-500 to-rose-500',
       tabType: 'campus',
       filterType: 'news'
     },
     {
       id: 'announcement',
-      emoji: 'ðŸ“¢',
+      emoji: '📢',
       labelEN: 'Announcements',
-      labelAR: 'Ø§Ù„Ø¥Ø¹Ù„Ø§Ù†Ø§Øª',
-      labelKU: 'Ú•Ø§Ú¯Û•ÛŒØ§Ù†Ø¯Ù†Û•Ú©Ø§Ù†',
+      labelAR: 'الإعلانات',
+      labelKU: 'ڕاگەیاندنەکان',
       color: 'from-teal-500 to-emerald-500',
       tabType: 'campus',
       filterType: 'announcement'
     },
     {
       id: 'exam',
-      emoji: 'ðŸ“',
+      emoji: '📝',
       labelEN: 'Exams',
-      labelAR: 'Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†Ø§Øª',
-      labelKU: 'ØªØ§Ù‚ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•Ú©Ø§Ù†',
+      labelAR: 'الامتحانات',
+      labelKU: 'تاقیکردنەوەکان',
       color: 'from-[#2F7CCB] to-indigo-500',
       tabType: 'campus',
       filterType: 'exam'
     },
     {
       id: 'registration',
-      emoji: 'ðŸ“Œ',
+      emoji: '📌',
       labelEN: 'Registration',
-      labelAR: 'Ø§Ù„ØªØ³Ø¬ÙŠÙ„',
-      labelKU: 'ØªÛ†Ù…Ø§Ø±Ú©Ø±Ø¯Ù†',
+      labelAR: 'التسجيل',
+      labelKU: 'تۆمارکردن',
       color: 'from-fuchsia-500 to-pink-500',
       tabType: 'campus',
       filterType: 'registration'
     },
     {
       id: 'student_club',
-      emoji: 'ðŸ‘¥',
+      emoji: '👥',
       labelEN: 'Student Clubs',
-      labelAR: 'Ø§Ù„Ù†ÙˆØ§Ø¯ÙŠ Ø§Ù„Ø·Ù„Ø§Ø¨ÙŠØ©',
-      labelKU: 'ÛŒØ§Ù†Û• Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±ÛŒÛŒÛ•Ú©Ø§Ù†',
+      labelAR: 'النوادي الطلابية',
+      labelKU: 'یانە خوێندکارییەکان',
       color: 'from-violet-500 to-fuchsia-500',
       tabType: 'campus',
       filterType: 'student_club'
@@ -399,12 +399,12 @@ export default function HomeFeed({
     e.preventDefault();
     if (!postBody.trim() || isPosting) return;
     if (postBody.trim().length > 2000) {
-      setMessage(language === 'ar' ? 'Ø§Ù„Ù…Ù†Ø´ÙˆØ± Ø·ÙˆÙŠÙ„ Ø¬Ø¯Ø§Ù‹. Ø§Ù„Ø­Ø¯ Ø§Ù„Ø£Ù‚ØµÙ‰ 2000 Ø­Ø±Ù.' : language === 'ku' ? 'Ø¨Ø§Ø¨Û•ØªÛ•Ú©Û• Ø²Û†Ø± Ø¯Ø±ÛŽÚ˜Û•. Ø³Ù†ÙˆÙˆØ± 2000 Ù¾ÛŒØªÛ•.' : 'Post is too long. Maximum is 2000 characters.');
+      setMessage(language === 'ar' ? 'المنشور طويل جداً. الحد الأقصى 2000 حرف.' : language === 'ku' ? 'بابەتەکە زۆر درێژە. سنوور 2000 پیتە.' : 'Post is too long. Maximum is 2000 characters.');
       return;
     }
     setIsPosting(true);
 
-    const generatedTitle = postTitle.trim() || (anonymous ? 'Anonymous Question' : 'Campus Moment ðŸŒŸ');
+    const generatedTitle = postTitle.trim() || (anonymous ? 'Anonymous Question' : 'Campus Moment 🌟');
     onAddNewPost(generatedTitle, postBody, anonymous, 'post');
     
     setPostTitle('');
@@ -413,7 +413,7 @@ export default function HomeFeed({
     setAnonymous(false);
     setShowPublisher(false);
 
-    setMessage(language === 'ar' ? 'ØªÙ… Ù†Ø´Ø± Ù…Ø´Ø§Ø±ÙƒØªÙƒ Ø¨Ù†Ø¬Ø§Ø­! âœ¨' : language === 'ku' ? 'Ø¨Ø§Ø¨Û•ØªÛ•Ú©Û•Øª Ø¨Û• Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆÛŒÛŒ Ø¨ÚµØ§ÙˆÚ©Ø±Ø§ÛŒÛ•ÙˆÛ•! âœ¨' : 'Post shared successfully on Campus Today!');
+    setMessage(language === 'ar' ? 'تم نشر مشاركتك بنجاح! ✨' : language === 'ku' ? 'بابەتەکەت بە سەرکەوتوویی بڵاوکرایەوە! ✨' : 'Post shared successfully on Campus Today!');
     setTimeout(() => setMessage(''), 3000);
     window.setTimeout(() => setIsPosting(false), 800);
   };
@@ -543,7 +543,7 @@ export default function HomeFeed({
             type="submit"
             className="w-full bg-[#FFD21F] hover:bg-[#FFD21F]/90 text-slate-950 font-black text-xs py-2 rounded-xl border border-slate-950 shadow-[2px_2px_0px_0px_#1B2E4D] cursor-pointer select-none text-center"
           >
-            Save Customized Hero Settings âœ¨
+            Save Customized Hero Settings ✨
           </button>
         </form>
       ) : (
@@ -572,16 +572,16 @@ export default function HomeFeed({
 
           <div className="relative z-10 select-none">
             <div className="inline-flex items-center gap-1.5 bg-[#FFD21F] text-[#161A33] text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full mb-1.5 border border-[#161A33]/15">
-              <span>âœ¨ {language === 'ar' ? heroTagAR : language === 'ku' ? heroTagKU : heroTagEN}</span>
+              <span>✨ {language === 'ar' ? heroTagAR : language === 'ku' ? heroTagKU : heroTagEN}</span>
             </div>
             
             <h2 className="text-sm md:text-base font-black tracking-tight leading-tight uppercase text-white drop-shadow-md">
               {language === 'ar' ? (
-                <>{heroTitleAR} ðŸš€</>
+                <>{heroTitleAR} 🚀</>
               ) : language === 'ku' ? (
-                <>{heroTitleKU} ðŸš€</>
+                <>{heroTitleKU} 🚀</>
               ) : (
-                <>{heroTitleEN} ðŸš€</>
+                <>{heroTitleEN} 🚀</>
               )}
             </h2>
             
@@ -591,11 +591,11 @@ export default function HomeFeed({
 
             <div className="mt-2.5 flex items-center justify-between">
               <span className="text-[9px] font-black bg-white text-[#161A33] px-3 py-1 rounded-lg shadow-sm border border-[#161A33]/20 flex items-center gap-1">
-                <span>{language === 'ar' ? 'Ø¹ÙØ±Ø§Ù‚Ù†Ø§ Ø¨Ù„Ù…Ø­Ø© ðŸ‡®ðŸ‡¶' : language === 'ku' ? 'Ø¹ÛŽØ±Ø§Ù‚ÛŒ Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒ ðŸ‡®ðŸ‡¶' : 'Iraq Academia ðŸ‡®ðŸ‡¶'}</span>
+                <span>{language === 'ar' ? 'عِراقنا بلمحة 🇮🇶' : language === 'ku' ? 'عێراقی ئەکادیمی 🇮🇶' : 'Iraq Academia 🇮🇶'}</span>
               </span>
               <span className="text-[8px] font-mono font-bold text-[#FFD21F] bg-black/40 px-1.5 py-0.5 rounded border border-white/10 flex items-center gap-1 select-none">
                 <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                â— {language === 'ar' ? 'Ø±Ø³Ù…ÙŠ ÙˆÙ…Ø¨Ø§Ø´Ø±' : language === 'ku' ? 'Ú•Ø§Ø³ØªÛ•ÙˆØ®Û†' : 'OFFICIAL LIVE'}
+                ● {language === 'ar' ? 'رسمي ومباشر' : language === 'ku' ? 'ڕاستەوخۆ' : 'OFFICIAL LIVE'}
               </span>
             </div>
           </div>
@@ -621,7 +621,7 @@ export default function HomeFeed({
             onChange={handleGovChange}
             className="w-full text-xs font-black text-[#161A33] bg-transparent border-0 focus:outline-none cursor-pointer outline-none p-0 select-none"
           >
-            <option value="all">ðŸ“ {language === 'ar' ? 'ÙƒÙ„ Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø§Øª' : language === 'ku' ? 'Ù‡Û•Ù…ÙˆÙˆ Ù¾Ø§Ø±ÛŽØ²Ú¯Ø§Ú©Ø§Ù†' : 'All Governorates'}</option>
+            <option value="all">📍 {language === 'ar' ? 'كل المحافظات' : language === 'ku' ? 'هەموو پارێزگاکان' : 'All Governorates'}</option>
             {IraqiGovernorates.map(gov => (
               <option key={gov.id} value={gov.id}>
                 {language === 'ar' ? gov.nameAR : language === 'ku' ? gov.nameKU : gov.nameEN}
@@ -651,9 +651,9 @@ export default function HomeFeed({
             <School className={`w-4 h-4 shrink-0 ${selectedUni !== 'all' ? 'text-[#2F7CCB]' : 'text-slate-500'}`} />
             <span className="text-xs font-black text-[#161A33] truncate">
               {institutionsLoading ? (
-                <span>{language === 'ar' ? 'â³ Ø¬Ø§Ø±ÙŠ Ø¬Ù„Ø¨ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª...' : 'â³ Loading...'}</span>
+                <span>{language === 'ar' ? '⏳ جاري جلب البيانات...' : '⏳ Loading...'}</span>
               ) : selectedUni === 'all' ? (
-                <span>ðŸ« {language === 'ar' ? 'ÙƒÙ„ Ø§Ù„Ø¬Ø§Ù…Ø¹Ø§Øª' : language === 'ku' ? 'Ù‡Û•Ù…ÙˆÙˆ Ø²Ø§Ù†Ú©Û†Ú©Ø§Ù†' : 'All Institutions'}</span>
+                <span>🏫 {language === 'ar' ? 'كل الجامعات' : language === 'ku' ? 'هەموو زانکۆکان' : 'All Institutions'}</span>
               ) : (
                 (() => {
                   const sourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
@@ -661,7 +661,7 @@ export default function HomeFeed({
                   if (found) {
                     return `${found.logo} ${language === 'ar' ? found.nameAR : language === 'ku' ? found.nameKU : found.nameEN}`;
                   }
-                  return `ðŸ« ${selectedUni}`;
+                  return `🏫 ${selectedUni}`;
                 })()
               )}
             </span>
@@ -682,10 +682,10 @@ export default function HomeFeed({
       <div className="w-full mb-5 bg-[#121B2E] rounded-3xl border border-[#1F2E4D] p-3.5 shadow-sm" id="story-highlights-scroller-box">
         <div className="flex items-center justify-between mb-3 px-1">
           <span className="text-[9px] font-black uppercase tracking-wider text-cyan-400 bg-cyan-950/40 px-2.5 py-1 rounded-md leading-none">
-            {language === 'ar' ? 'Ø£Ø¨Ø±Ø² Ø§Ù„Ù‚ØµØµ ÙˆØ§Ù„Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠ âš¡' : language === 'ku' ? 'Ú†ÛŒØ±Û†Ú©Û• Ø¯ÛŒØ§Ø±Û•Ú©Ø§Ù†Û• Ø²Ø§Ù†Ú©Û† âš¡' : 'CAMPUS HIGHLIGHTS âš¡'}
+            {language === 'ar' ? 'أبرز القصص والدليل الأكاديمي ⚡' : language === 'ku' ? 'چیرۆکە دیارەکانە زانکۆ ⚡' : 'CAMPUS HIGHLIGHTS ⚡'}
           </span>
           <span className="text-[8px] font-black text-slate-400 flex items-center gap-1 select-none animate-pulse">
-            {language === 'ar' ? 'Ø§Ø³Ø­Ø¨ Ù„Ù„ÙŠÙ…ÙŠÙ† ÙˆØ§Ù„ÙŠØ³Ø§Ø±' : language === 'ku' ? 'Ú•Ø§Ø¨Ú©ÛŽØ´Û• Ø¨Û† Ø¨ÛŒÙ†ÛŒÙ†' : 'Swipe items'}
+            {language === 'ar' ? 'اسحب لليمين واليسار' : language === 'ku' ? 'ڕابکێشە بۆ بینین' : 'Swipe items'}
           </span>
         </div>
 
@@ -718,7 +718,7 @@ export default function HomeFeed({
 
                   {/* Sparkle badge */}
                   <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-[#FFD21F] border border-white rounded-full flex items-center justify-center text-[7px]" title="Quick View">
-                    âœ¨
+                    ✨
                   </span>
                 </div>
 
@@ -745,9 +745,9 @@ export default function HomeFeed({
             <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse shrink-0" />
             <span>
               {language === 'ar' 
-                ? `Ø¹Ø±Ø¶ ÙÙ„ØªØ±Ø©: ${storyHighlightsData.find(s => s.filterType === activeStoryFilter)?.labelAR || 'ØªØµÙ†ÙŠÙ Ù…Ø®ØµØµ'}` 
+                ? `عرض فلترة: ${storyHighlightsData.find(s => s.filterType === activeStoryFilter)?.labelAR || 'تصنيف مخصص'}` 
                 : language === 'ku'
-                ? `Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ø¯Û•Ø³ØªÙ†ÛŒØ´Ø§Ù†Ú©Ø±Ø§ÙˆÛŒ: ${storyHighlightsData.find(s => s.filterType === activeStoryFilter)?.labelKU || 'ÙÙ„ØªÛ•Ø±'}`
+                ? `بینینی دەستنیشانکراوی: ${storyHighlightsData.find(s => s.filterType === activeStoryFilter)?.labelKU || 'فلتەر'}`
                 : `Showing matching category: ${storyHighlightsData.find(s => s.filterType === activeStoryFilter)?.labelEN || 'Filtered'}`}
             </span>
           </div>
@@ -755,7 +755,7 @@ export default function HomeFeed({
             onClick={() => setActiveStoryFilter(null)}
             className="text-[10px] font-black hover:text-white transition-colors bg-white/10 px-1.5 py-0.5 rounded cursor-pointer"
           >
-            Clear âœ•
+            Clear ✕
           </button>
         </div>
       )}
@@ -770,9 +770,9 @@ export default function HomeFeed({
         )}
 
         <div className="flex items-center gap-2.5 pointer-events-auto" onClick={() => setShowPublisher(!showPublisher)}>
-          <div className="text-xl">âš¡</div>
+          <div className="text-xl">⚡</div>
           <div className="flex-1 bg-[#F7F4FF] hover:bg-[#F3F7FF] border border-[#E6E1F5] px-3.5 py-3 rounded-xl text-xs font-bold text-slate-500 transition-all cursor-pointer shadow-inner">
-            {language === 'ar' ? 'Ø´Ø§Ø±Ùƒ Ø´ÙŠØ¦Ø§Ù‹ Ù…Ø¹ Ø²Ù…Ù„Ø§Ø¦Ùƒ Ø§Ù„ÙŠÙˆÙ…...' : language === 'ku' ? 'Ø¦Û•Ù…Ú•Û† Ø´ØªÛŽÚ© Ù‡Ø§ÙˆØ¨Û•Ø´ Ø¨Ú©Û•...' : "What's happening on campus today?"}
+            {language === 'ar' ? 'شارك شيئاً مع زملائك اليوم...' : language === 'ku' ? 'ئەمڕۆ شتێک هاوبەش بکە...' : "What's happening on campus today?"}
           </div>
           <button id="post-trigger-plus" className="p-3 bg-[#FFD21F] text-[#161A33] hover:bg-yellow-450 border-2 border-[#161A33] rounded-xl transition-all cursor-pointer shadow-[2px_2px_0px_0px_#161A33]">
             <PlusCircle className="w-5 h-5" />
@@ -803,11 +803,11 @@ export default function HomeFeed({
                 required
                 maxLength={2000}
                 rows={3}
-                placeholder={language === 'ar' ? 'Ø§ÙƒØªØ¨ Ù…Ø§ ØªÙÙƒØ± Ø¨Ù‡ Ù„Ù…Ø´Ø§Ø±ÙƒØªÙ‡ Ù…Ø¹ Ø§Ù„ÙƒÙ„ÙŠØ©...' : language === 'ku' ? 'Ø¦Û•Ù…Ú•Û† Ú†ÛŒ Ù„Û• Ø²Ø§Ù†Ú©Û† Ú•ÙˆÙˆØ¯Û•Ø¯Ø§ØªØŸ...' : 'What is happening on campus today?'}
+                placeholder={language === 'ar' ? 'اكتب ما تفكر به لمشاركته مع الكلية...' : language === 'ku' ? 'ئەمڕۆ چی لە زانکۆ ڕوودەدات؟...' : 'What is happening on campus today?'}
                 className="w-full text-xs font-semibold text-[#161A33] bg-white border border-[#E6E1F5] rounded-xl p-3.5 focus:bg-[#F3F7FF] focus:outline-none focus:border-[#6B25C9] transition-colors resize-none"
               />
               <div className="flex items-center justify-between text-[10px] font-bold text-slate-400">
-                <span>{language === 'ar' ? 'Ù…Ù†Ø´ÙˆØ± Ù†ØµÙŠ ÙÙ‚Ø· Ù„Ù„Ù†Ø³Ø®Ø© Ø§Ù„Ø£ÙˆÙ„Ù‰' : language === 'ku' ? 'Ø¨Û† MVP ØªÛ•Ù†Ù‡Ø§ Ø¯Û•Ù‚ Ù¾Ø´ØªÛŒÙˆØ§Ù†ÛŒ Ø¯Û•Ú©Ø±ÛŽØª' : 'Text-only MVP. Image upload is hidden until R2 is ready.'}</span>
+                <span>{language === 'ar' ? 'منشور نصي فقط للنسخة الأولى' : language === 'ku' ? 'بۆ MVP تەنها دەق پشتیوانی دەکرێت' : 'Text-only MVP. Image upload is hidden until R2 is ready.'}</span>
                 <span className={postBody.length > 1800 ? 'text-amber-400' : ''}>{postBody.length}/2000</span>
               </div>
 
@@ -838,7 +838,7 @@ export default function HomeFeed({
                     disabled={isPosting || !postBody.trim()}
                     className="text-[10px] font-black bg-[#FFD21F] text-[#161A33] hover:bg-[#FFE052] disabled:opacity-60 disabled:cursor-not-allowed px-4 py-2 rounded-xl shadow-sm border-2 border-[#161A33] cursor-pointer transition-all"
                   >
-                    {isPosting ? (language === 'ar' ? 'Ø¬Ø§Ø± Ø§Ù„Ù†Ø´Ø±...' : language === 'ku' ? 'Ø¨ÚµØ§ÙˆØ¯Û•Ú©Ø±ÛŽØªÛ•ÙˆÛ•...' : 'Posting...') : getTranslation('postBtn', language)}
+                    {isPosting ? (language === 'ar' ? 'جار النشر...' : language === 'ku' ? 'بڵاودەکرێتەوە...' : 'Posting...') : getTranslation('postBtn', language)}
                   </button>
                 </div>
               </div>
@@ -853,13 +853,13 @@ export default function HomeFeed({
           <SkeletonLoader />
         ) : filteredFeedItems.length === 0 ? (
           <div className="text-center py-12 text-slate-500 bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-6 shadow-sm">
-            <div className="text-3xl mb-2">ðŸ”­</div>
+            <div className="text-3xl mb-2">🔭</div>
             <h3 className="font-extrabold text-white text-xs">No active posts match these filters</h3>
             <p className="text-[10px] text-slate-400 max-w-xs mt-1.5 mx-auto leading-relaxed">
               {language === 'ar' 
-                ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ù†Ø´ÙˆØ±Ø§Øª Ù„Ù„Ø·Ù„Ø§Ø¨ ØªÙ†Ø§Ø³Ø¨ Ø§Ø®ØªÙŠØ§Ø±Ø§Øª Ø§Ù„ØªØµÙÙŠØ© Ù‡Ø°Ù‡ Ø­Ø§Ù„ÙŠØ§Ù‹. ÙˆØ³Ù‘Ø¹ Ø§Ù„ØªØ­Ø¯ÙŠØ¯ Ø£Ùˆ ØºÙŠÙ‘Ø± Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø© Ù„Ø±Ø¤ÙŠØ© Ø§Ù„Ù…Ø²ÙŠØ¯!' 
+                ? 'لا توجد منشورات للطلاب تناسب اختيارات التصفية هذه حالياً. وسّع التحديد أو غيّر المحافظة لرؤية المزيد!' 
                 : language === 'ku' 
-                ? 'Ù‡ÛŒÚ† Ø¨Ø§Ø¨Û•ØªÛŽÚ© Ù†ÛŒÛŒÛ• Ø¨Û•Ù¾ÛŽÛŒ Ø¦Û•Ù… Ù¾Ø§ÚµØ§ÙˆØªÙ†Û• Ù„Û• Ø¦ÛŽØ³ØªØ§Ø¯Ø§. ØªØµÙÛŒÛ•Ú©Û•Øª Ø¨Ú¯Û†Ú•Û• Ø¨Û† Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ù‡Û•Ù…ÙˆÙˆ Ø´ØªÛŽÚ©!' 
+                ? 'هیچ بابەتێک نییە بەپێی ئەم پاڵاوتنە لە ئێستادا. تصفیەکەت بگۆڕە بۆ بینینی هەموو شتێک!' 
                 : 'No campus items match this selector combination. Broaden your filters to explore materials around the map!'}
             </p>
           </div>
@@ -884,7 +884,7 @@ export default function HomeFeed({
         )}
       </div>
 
-      {/* âš ï¸ Searchable Custom Institution Picker Modal (Task 1, 2, 3) */}
+      {/* ⚠️ Searchable Custom Institution Picker Modal (Task 1, 2, 3) */}
       <AnimatePresence>
         {showPicker && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" id="institution-picker-modal">
@@ -912,12 +912,12 @@ export default function HomeFeed({
                   </div>
                   <div>
                     <h3 className="text-sm font-black text-[#161A33]">
-                      {language === 'ar' ? 'Ø§Ø®ØªØ± Ø§Ù„Ù…Ø¤Ø³Ø³Ø© Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ©' : language === 'ku' ? 'Ø¯Ø§Ù…Û•Ø²Ø±Ø§ÙˆÛ•ÛŒ Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒ Ù‡Û•ÚµØ¨Ú˜ÛŽØ±Û•' : 'Select Academic Institution'}
+                      {language === 'ar' ? 'اختر المؤسسة الأكاديمية' : language === 'ku' ? 'دامەزراوەی ئەکادیمی هەڵبژێرە' : 'Select Academic Institution'}
                     </h3>
                     <p className="text-[10px] text-slate-500 font-bold">
                       {selectedGov === 'all' 
-                        ? (language === 'ar' ? 'Ø¹Ø±Ø¶ ÙƒØ§ÙØ© Ø§Ù„Ù…Ø¤Ø³Ø³Ø§Øª ÙÙŠ Ø§Ù„Ø¹Ø±Ø§Ù‚' : 'Showing all institutions across Iraq')
-                        : `${language === 'ar' ? 'Ù…ØµÙÙ‰ Ø­Ø³Ø¨ Ù…Ø­Ø§ÙØ¸Ø©: ' : 'Filter: '}${IraqiGovernorates.find(g => g.id === selectedGov)?.nameEN || selectedGov}`}
+                        ? (language === 'ar' ? 'عرض كافة المؤسسات في العراق' : 'Showing all institutions across Iraq')
+                        : `${language === 'ar' ? 'مصفى حسب محافظة: ' : 'Filter: '}${IraqiGovernorates.find(g => g.id === selectedGov)?.nameEN || selectedGov}`}
                     </p>
                   </div>
                 </div>
@@ -938,7 +938,7 @@ export default function HomeFeed({
                     setPickerSearch(e.target.value);
                     setPickerPage(1);
                   }}
-                  placeholder={language === 'ar' ? 'Ø§Ø¨Ø­Ø« Ø¨Ø§Ù„Ø§Ø³Ù… Ø§Ù„Ø¹Ø±Ø¨ÙŠ Ø£Ùˆ Ø§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠ...' : language === 'ku' ? 'Ø¨Ú¯Û•Ú•ÛŽ Ø¨Û•Ù¾ÛŽÛŒ Ù†Ø§Ùˆ...' : 'Search by Arabic or English name...'}
+                  placeholder={language === 'ar' ? 'ابحث بالاسم العربي أو الإنجليزي...' : language === 'ku' ? 'بگەڕێ بەپێی ناو...' : 'Search by Arabic or English name...'}
                   className="w-full text-xs font-bold border-2 border-[#161A33] rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F7CCB] focus:shadow-[2px_2px_0px_0px_#2F7CCB] transition-all bg-slate-50 text-[#161A33]"
                   autoFocus
                 />
@@ -947,11 +947,11 @@ export default function HomeFeed({
               {/* Status & Results Information */}
               <div className="flex justify-between items-center text-[10px] text-slate-500 font-extrabold px-1 mb-2">
                 <span>
-                  {language === 'ar' ? 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù†ØªØ§Ø¦Ø¬: ' : 'Matched results: '}
+                  {language === 'ar' ? 'إجمالي النتائج: ' : 'Matched results: '}
                   <strong className="text-[#161A33]">{totalItems}</strong>
                 </span>
                 <span>
-                  {language === 'ar' ? 'ØµÙØ­Ø© ' : 'Page '}
+                  {language === 'ar' ? 'صفحة ' : 'Page '}
                   <strong className="text-[#161A33]">{pickerPage}</strong> / {maxPage}
                 </span>
               </div>
@@ -961,23 +961,23 @@ export default function HomeFeed({
                 {institutionsLoading ? (
                   <div className="flex flex-col items-center justify-center py-10 gap-3">
                     <span className="w-8 h-8 rounded-full border-4 border-[#2F7CCB] border-t-transparent animate-spin animate-duration-1000" />
-                    <span className="text-xs font-bold text-slate-500">{language === 'ar' ? 'â³ Ø¬Ø§Ø±ÙŠ Ø¬Ù„Ø¨ Ø§Ù„Ù…Ø¤Ø³Ø³Ø§Øª...' : 'Loading institutions from API...'}</span>
+                    <span className="text-xs font-bold text-slate-500">{language === 'ar' ? '⏳ جاري جلب المؤسسات...' : 'Loading institutions from API...'}</span>
                   </div>
                 ) : institutionsError ? (
                   <div className="p-4 bg-rose-50 border-2 border-rose-200 rounded-xl text-center flex flex-col gap-3">
-                    <p className="text-xs font-bold text-rose-950">{language === 'ar' ? `ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª: ${institutionsError}` : `API connection error: ${institutionsError}`}</p>
+                    <p className="text-xs font-bold text-rose-950">{language === 'ar' ? `فشل تحميل البيانات: ${institutionsError}` : `API connection error: ${institutionsError}`}</p>
                     <button
                       onClick={onRetryInstitutions}
                       className="py-1.5 px-4 bg-rose-100 hover:bg-rose-200 text-rose-950 font-black border-2 border-[#161A33] cursor-pointer text-[10px] rounded-lg transition-all"
                     >
-                      ðŸ”„ Retry Call
+                      🔄 Retry Call
                     </button>
                   </div>
                 ) : paginatedUnis.length === 0 ? (
                   <div className="text-center py-10 bg-slate-50 border border-dashed border-slate-350 rounded-xl">
-                    <span className="text-2xl block mb-1">ðŸ›°ï¸</span>
+                    <span className="text-2xl block mb-1">🛰️</span>
                     <span className="text-xs font-extrabold text-slate-500">
-                      {language === 'ar' ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø¤Ø³Ø³Ø§Øª Ù…Ø·Ø§Ø¨Ù‚Ø© Ù„Ù„Ø¨Ø­Ø«' : 'No matching academic centers'}
+                      {language === 'ar' ? 'لا توجد مؤسسات مطابقة للبحث' : 'No matching academic centers'}
                     </span>
                   </div>
                 ) : (
@@ -995,7 +995,7 @@ export default function HomeFeed({
                             : 'border-slate-200 font-bold text-slate-700'
                         }`}
                       >
-                        <span className="text-xs">ðŸ« {language === 'ar' ? 'ÙƒÙ„ Ø§Ù„Ø¬Ø§Ù…Ø¹Ø§Øª ÙˆØ§Ù„Ù…Ø¤Ø³Ø³Ø§Øª' : language === 'ku' ? 'Ù‡Û•Ù…ÙˆÙˆ Ø²Ø§Ù†Ú©Û†Ú©Ø§Ù†' : 'All Institutions / Global Scope'}</span>
+                        <span className="text-xs">🏫 {language === 'ar' ? 'كل الجامعات والمؤسسات' : language === 'ku' ? 'هەموو زانکۆکان' : 'All Institutions / Global Scope'}</span>
                         {selectedUni === 'all' && <CheckCircle className="w-4 h-4 text-[#2F7CCB] shrink-0" />}
                       </button>
                     )}
@@ -1019,7 +1019,7 @@ export default function HomeFeed({
                             {language === 'ar' ? uni.nameAR : language === 'ku' ? uni.nameKU : uni.nameEN}
                           </p>
                           <p className="text-[9px] font-semibold text-slate-400 capitalize flex items-center gap-1.5 mt-0.5">
-                            ðŸ“ {IraqiGovernorates.find(g => g.id === uni.governorateId)?.nameEN || uni.governorateId}
+                            📍 {IraqiGovernorates.find(g => g.id === uni.governorateId)?.nameEN || uni.governorateId}
                           </p>
                         </div>
                         {selectedUni === uni.id && <CheckCircle className="w-4 h-4 text-[#2F7CCB] shrink-0" />}
@@ -1037,7 +1037,7 @@ export default function HomeFeed({
                     onClick={() => setPickerPage(p => Math.max(1, p - 1))}
                     className="p-1.5 px-3 border-2 border-[#161A33] rounded-lg text-xs font-black bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white cursor-pointer flex items-center gap-1"
                   >
-                    â—€ {language === 'ar' ? 'Ø§Ù„Ø³Ø§Ø¨Ù‚' : 'Prev'}
+                    ◀ {language === 'ar' ? 'السابق' : 'Prev'}
                   </button>
                   <span className="text-[10px] font-extrabold text-slate-500">
                     {pickerPage} / {maxPage}
@@ -1047,7 +1047,7 @@ export default function HomeFeed({
                     onClick={() => setPickerPage(p => Math.min(maxPage, p + 1))}
                     className="p-1.5 px-3 border-2 border-[#161A33] rounded-lg text-xs font-black bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white cursor-pointer flex items-center gap-1"
                   >
-                    {language === 'ar' ? 'Ø§Ù„ØªØ§Ù„ÙŠ' : 'Next'} â–¶
+                    {language === 'ar' ? 'التالي' : 'Next'} ▶
                   </button>
                 </div>
               )}
@@ -1065,8 +1065,8 @@ export default function HomeFeed({
         return isDev ? (
           <div className="mt-8 bg-white border-4 border-dashed border-[#161A33] rounded-3xl p-4.5 shadow-[4px_4px_0px_0px_#161A33] text-left" id="dev-admin-debug-panel">
             <div className="flex items-center gap-2 mb-2.5 border-b-2 border-[#161A33] pb-1.5">
-              <span className="text-sm">ðŸ› ï¸</span>
-              <h3 className="text-xs font-black uppercase tracking-wider text-[#161A33]">{language === 'ar' ? 'Ù„ÙˆØ­Ø© ØªØµØ­ÙŠØ­ Ø§Ù„Ø£Ø®Ø·Ø§Ø¡ (Ø§Ù„Ù…Ø´Ø±Ù)' : 'Admin Debug Control Panel'}</h3>
+              <span className="text-sm">🛠️</span>
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#161A33]">{language === 'ar' ? 'لوحة تصحيح الأخطاء (المشرف)' : 'Admin Debug Control Panel'}</h3>
             </div>
             <div className="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-700">
               <div className="p-2 bg-slate-50 border border-[#161A33]/10 rounded-xl">
@@ -1099,7 +1099,7 @@ export default function HomeFeed({
                   </span>
                   <span className="text-slate-300 font-medium">|</span>
                   <span className="font-extrabold font-mono text-[10px] truncate max-w-[200px]" title={institutionsError || 'ONLINE'}>
-                    {institutionsError ? <span className="text-rose-600">ERROR: {institutionsError}</span> : <span className="text-emerald-600">ONLINE âœ“</span>}
+                    {institutionsError ? <span className="text-rose-600">ERROR: {institutionsError}</span> : <span className="text-emerald-600">ONLINE ✓</span>}
                   </span>
                 </div>
               </div>
@@ -1109,7 +1109,7 @@ export default function HomeFeed({
                 onClick={onRetryInstitutions}
                 className="mt-3 w-full py-2 bg-rose-100 hover:bg-rose-200 text-rose-950 font-black border-2 border-[#161A33] cursor-pointer text-[10px] rounded-xl transition-all shadow-[2px_2px_0px_0px_#161A33]"
               >
-                ðŸ”„ Retry Institutions Load API Call
+                🔄 Retry Institutions Load API Call
               </button>
             )}
           </div>
