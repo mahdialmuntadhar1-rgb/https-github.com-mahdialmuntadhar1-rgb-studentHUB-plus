@@ -219,7 +219,9 @@ function requireJwtSecret(env: Env) {
 
 async function readJson(request: Request) {
   try {
-    return await request.json();
+    const raw = await request.text();
+    if (!raw.trim()) return {};
+    return JSON.parse(raw);
   } catch {
     return {};
   }
@@ -1644,6 +1646,7 @@ async function logScrapingActivity(env: Env, log: any): Promise<void> {
     console.error("D1 logger action error:", err);
   }
 }
+
 
 
 
