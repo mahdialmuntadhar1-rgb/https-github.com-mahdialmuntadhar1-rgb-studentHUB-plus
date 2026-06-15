@@ -81,6 +81,16 @@ export const translations = {
     ar: 'حسابي',
     ku: 'هەژمارم',
   },
+  socialRequests: {
+    en: 'Requests',
+    ar: 'الطلبات',
+    ku: 'داواکارییەکان',
+  },
+  socialMessages: {
+    en: 'Messages',
+    ar: 'الرسائل',
+    ku: 'نامەکان',
+  },
   viewingLife: {
     en: 'Viewing Campus Life · Show all',
     ar: 'عرض حياة الجامعة · أظهر الكل',

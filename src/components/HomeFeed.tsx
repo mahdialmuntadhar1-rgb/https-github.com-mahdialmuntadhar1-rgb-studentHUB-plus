@@ -34,6 +34,7 @@ interface HomeFeedProps {
   onDeleteFeedItem?: (id: string) => void;
   isAdminMode?: boolean;
   onSelectSection?: (sectionId: string) => void;
+  onUserClick?: (user: any) => void;
 }
 
 // Global reuseable beautiful pulse Skeleton Loader
@@ -97,7 +98,8 @@ export default function HomeFeed({
   onEditFeedItem,
   onDeleteFeedItem,
   isAdminMode = false,
-  onSelectSection
+  onSelectSection,
+  onUserClick
 }: HomeFeedProps) {
    // Custom Story-based categories filter state
   const [activeStoryFilter, setActiveStoryFilter] = useState<string | null>(null);
@@ -909,6 +911,7 @@ export default function HomeFeed({
               onEditFeedItem={onEditFeedItem}
               onDeleteFeedItem={onDeleteFeedItem}
               isAdminMode={isAdminMode}
+              onUserClick={onUserClick}
             />
           ))
         )}

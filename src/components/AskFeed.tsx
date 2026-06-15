@@ -24,6 +24,7 @@ interface AskFeedProps {
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
   onDeleteFeedItem?: (id: string) => void;
   isAdminMode?: boolean;
+  onUserClick?: (user: any) => void;
 }
 
 export default function AskFeed({
@@ -42,7 +43,8 @@ export default function AskFeed({
   isFeedLoading = false,
   onEditFeedItem,
   onDeleteFeedItem,
-  isAdminMode = false
+  isAdminMode = false,
+  onUserClick
 }: AskFeedProps) {
   const [askQuery, setAskQuery] = useState('');
   const [isAiLoading, setIsAiLoading] = useState(false);
@@ -298,6 +300,7 @@ export default function AskFeed({
               onEditFeedItem={onEditFeedItem}
               onDeleteFeedItem={onDeleteFeedItem}
               isAdminMode={isAdminMode}
+              onUserClick={onUserClick}
             />
           ))
         )}

@@ -1,4 +1,12 @@
-import { Language } from '../types';
+import { 
+  Language, 
+  FriendRequestsResponse, 
+  SendFriendRequestResponse, 
+  MessageRequestsResponse, 
+  MessageThreadsResponse, 
+  ThreadMessagesResponse, 
+  MessageItem 
+} from '../types';
 
 export const BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
 const API_BASE = `${BACKEND_URL}/api`;
@@ -355,3 +363,168 @@ export const outreachApi = {
     }
   }
 };
+
+export const socialApi = {
+  // Friend Requests
+  async getFriendRequests(lang: Language = 'ar'): Promise<FriendRequestsResponse> {
+    try {
+      const res = await fetch(`${API_BASE}/friend-requests`, {
+        headers: getHeaders(),
+      });
+      return await handleResponse(res, lang);
+    } catch (err: any) {
+      console.error('Error in getFriendRequests:', err);
+      throw err;
+    }
+  },
+
+  async sendFriendRequest(targetUserId: string, message?: string, lang: Language = 'ar'): Promise<SendFriendRequestResponse> {
+    try {
+      const res = await fetch(`${API_BASE}/friend-requests`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ targetUserId, message }),
+      });
+      return await handleResponse(res, lang);
+    } catch (err: any) {
+      console.error('Error in sendFriendRequest:', err);
+      throw err;
+    }
+  },
+
+  async acceptFriendRequest(requestId: string, lang: Language = 'ar'): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/friend-requests/${requestId}/accept`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      return await handleResponse(res, lang);
+    } catch (err: any) {
+      console.error('Error in acceptFriendRequest:', err);
+      throw err;
+    }
+  },
+
+  async declineFriendRequest(requestId: string, lang: Language = 'ar'): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/friend-requests/${requestId}/decline`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      return await handleResponse(res, lang);
+    } catch (err: any) {
+      console.error('Error in declineFriendRequest:', err);
+      throw err;
+    }
+  },
+
+  async cancelFriendRequest(requestId: string, lang: Language = 'ar'): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/friend-requests/${requestId}/cancel`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      return await handleResponse(res, lang);
+    } catch (err: any) {
+      console.error('Error in cancelFriendRequest:', err);
+      throw err;
+    }
+  },
+
+  // Message Requests
+  async getMessageRequests(lang: Language = 'ar'): Promise<MessageRequestsResponse> {
+    try {
+      const res = await fetch(`${API_BASE}/message-requests`, {
+        headers: getHeaders(),
+      });
+      return await handleResponse(res, lang);
+    } catch (err: any) {
+      console.error('Error in getMessageRequests:', err);
+      throw err;
+    }
+  },
+
+  async sendMessageRequest(recipientId: string, body: string, lang: Language = 'ar'): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/message-requests`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ recipientId, body }),
+      });
+      return await handleResponse(res, lang);
+    } catch (err: any) {
+      console.error('Error in sendMessageRequest:', err);
+      throw err;
+    }
+  },
+
+  async acceptMessageRequest(threadId: string, lang: Language = 'ar'): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/message-requests/${threadId}/accept`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      return await handleResponse(res, lang);
+    } catch (err: any) {
+      console.error('Error in acceptMessageRequest:', err);
+      throw err;
+    }
+  },
+
+  async declineMessageRequest(threadId: string, lang: Language = 'ar'): Promise<any> {
+    try {
+      const res = await fetch(`${API_BASE}/message-requests/${threadId}/decline`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+      return await handleResponse(res, lang);
+    } catch (err: any) {
+      console.error('Error in declineMessageRequest:', err);
+      throw err;
+    }
+  },
+
+  // Direct Messages
+  async getThreads(lang: Language = 'ar'): Promise<MessageThreadsResponse> {
+    try {
+      const res = await fetch(`${API_BASE}/messages/threads`, {
+        headers: getHeaders(),
+      });
+      return await handleResponse(res, lang);
+    } catch (err: any) {
+      console.error('Error in getThreads:', err);
+      throw err;
+    }
+  },
+
+  async getMessageThreads(lang: Language = 'ar'): Promise<MessageThreadsResponse> {
+    return this.getThreads(lang);
+  },
+
+  async getThreadMessages(threadId: string, lang: Language = 'ar'): Promise<ThreadMessagesResponse> {
+    try {
+      const res = await fetch(`${API_BASE}/messages/threads/${threadId}/messages`, {
+        headers: getHeaders(),
+      });
+      return await handleResponse(res, lang);
+    } catch (err: any) {
+      console.error('Error in getThreadMessages:', err);
+      throw err;
+    }
+  },
+
+  async sendThreadMessage(threadId: string, body: string, lang: Language = 'ar'): Promise<MessageItem> {
+    try {
+      const res = await fetch(`${API_BASE}/messages/threads/${threadId}/messages`, {
+        method: 'POST',
+        headers: getHeaders(),
+        body: JSON.stringify({ body }),
+      });
+      return await handleResponse(res, lang);
+    } catch (err: any) {
+      console.error('Error in sendThreadMessage:', err);
+      throw err;
+    }
+  }
+};
+

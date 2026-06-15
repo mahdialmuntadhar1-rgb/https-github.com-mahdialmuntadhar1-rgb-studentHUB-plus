@@ -13,7 +13,9 @@ import SectionView from './components/SectionView';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
-import { BACKEND_URL } from './lib/api';
+import SocialHub from './components/SocialHub';
+import UserProfileModal from './components/UserProfileModal';
+import { BACKEND_URL, socialApi } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
 
@@ -70,7 +72,10 @@ export default function App() {
   };
 
   // Navigation tab state
-  const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'admin'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'chats' | 'admin'>('home');
+
+  // Interactive student profile details overlay state
+  const [selectedUserForProfileCard, setSelectedUserForProfileCard] = useState<any | null>(null);
 
   // Selected Section state for horizontal stories
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
@@ -92,6 +97,43 @@ export default function App() {
   // Auth States
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => localStorage.getItem('jamiaati_logged_in') !== 'false');
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  // Social Badge Counts (Friend/Connection Requests & Messages)
+  const [friendRequestsCount, setFriendRequestsCount] = useState<number>(0);
+  const [messageRequestsCount, setMessageRequestsCount] = useState<number>(0);
+  const [socialSubTab, setSocialSubTab] = useState<'threads' | 'requests' | 'discover'>('threads');
+
+  const updateSocialBadgeCounts = async () => {
+    if (!isLoggedIn) {
+      setFriendRequestsCount(0);
+      setMessageRequestsCount(0);
+      return;
+    }
+    try {
+      const [fReqs, mReqs] = await Promise.all([
+        socialApi.getFriendRequests(language).catch(() => ({ incoming: [] })),
+        socialApi.getMessageRequests(language).catch(() => ({ incoming: [] }))
+      ]);
+      const fCount = fReqs && Array.isArray(fReqs.incoming) ? fReqs.incoming.length : 0;
+      const mCount = mReqs && Array.isArray(mReqs.incoming) ? mReqs.incoming.length : 0;
+      setFriendRequestsCount(fCount);
+      setMessageRequestsCount(mCount);
+    } catch (e) {
+      console.warn("Failed to load badge counts.", e);
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      updateSocialBadgeCounts();
+      // Periodically update the badge counts silently every 30 seconds
+      const interval = setInterval(updateSocialBadgeCounts, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setFriendRequestsCount(0);
+      setMessageRequestsCount(0);
+    }
+  }, [isLoggedIn, language, activeTab]);
 
   // Feed database state (persisted in session / local storage for active play)
   const [feedItems, setFeedItems] = useState<FeedItem[]>(() => {
@@ -833,6 +875,7 @@ export default function App() {
           onEditFeedItem={handleEditFeedItem}
           onDeleteFeedItem={handleDeleteFeedItem}
           isAdminMode={userProfile.role === 'staff'}
+          onUserClick={setSelectedUserForProfileCard}
         />
       );
     }
@@ -867,6 +910,7 @@ export default function App() {
             onDeleteFeedItem={handleDeleteFeedItem}
             isAdminMode={userProfile.role === 'staff'}
             onSelectSection={setSelectedSection}
+            onUserClick={setSelectedUserForProfileCard}
           />
         );
       case 'life':
@@ -888,6 +932,7 @@ export default function App() {
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
             isAdminMode={userProfile.role === 'staff'}
+            onUserClick={setSelectedUserForProfileCard}
           />
         );
       case 'ask':
@@ -909,6 +954,7 @@ export default function App() {
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
             isAdminMode={userProfile.role === 'staff'}
+            onUserClick={setSelectedUserForProfileCard}
           />
         );
       case 'future':
@@ -930,6 +976,7 @@ export default function App() {
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
             isAdminMode={userProfile.role === 'staff'}
+            onUserClick={setSelectedUserForProfileCard}
           />
         );
       case 'profile':
@@ -950,6 +997,7 @@ export default function App() {
             onLogout={() => {
               setIsLoggedIn(false);
               localStorage.setItem('jamiaati_logged_in', 'false');
+              localStorage.removeItem('jamiaati_token');
               showToast(
                 language === 'ar' ? 'تم تسجيل خروجك بنجاح. نراك قريباً! 👋' : language === 'ku' ? 'خۆتۆمارکردنەکەت کۆتایی پێهات. بە هیوای دیدار! 👋' : 'Logged out successfully. See you! 👋', 
                 'info'
@@ -960,6 +1008,13 @@ export default function App() {
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
             isAdminMode={userProfile.role === 'staff'}
+            onUserClick={setSelectedUserForProfileCard}
+            onNavigateToSocialTab={(tabType) => {
+              setSocialSubTab(tabType);
+              setActiveTab('chats');
+            }}
+            incomingFriendRequestsCount={friendRequestsCount}
+            incomingMessageRequestsCount={messageRequestsCount}
           />
         );
       case 'admin':
@@ -969,6 +1024,21 @@ export default function App() {
             onBack={() => setActiveTab('profile')}
             showToast={showToast}
             userRole={userProfile.role}
+          />
+        );
+      case 'chats':
+        return (
+          <SocialHub
+            language={language}
+            isLoggedIn={isLoggedIn}
+            onTriggerAuth={() => setIsAuthModalOpen(true)}
+            showToast={showToast}
+            onViewUserProfile={(usr) => {
+              setSelectedUserForProfileCard(usr);
+            }}
+            currentUserId={isLoggedIn ? userProfile.id : undefined}
+            currentUserName={isLoggedIn ? userProfile.name : undefined}
+            initialTab={socialSubTab}
           />
         );
       default:
@@ -987,6 +1057,12 @@ export default function App() {
           setLanguage={setLanguage}
           currentUserAvatar={userProfile.avatar}
           onProfileClick={() => setActiveTab('profile')}
+          onChatsClick={() => {
+            setSocialSubTab('threads');
+            setActiveTab('chats');
+          }}
+          incomingFriendRequestsCount={friendRequestsCount}
+          incomingMessageRequestsCount={messageRequestsCount}
         />
 
         {/* Dynamic Inner views container */}
@@ -1072,7 +1148,12 @@ export default function App() {
                 : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
             }`}
           >
-            <User className="w-5 h-5 shrink-0" />
+            <div className="relative">
+              <User className="w-5 h-5 shrink-0" />
+              {isLoggedIn && (friendRequestsCount + messageRequestsCount) > 0 && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full border border-[#0B1020] animate-pulse" />
+              )}
+            </div>
             <span className="text-[10px] leading-none font-bold">{getTranslation('navProfile', language)}</span>
             {activeTab === 'profile' && (
               <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
@@ -1088,6 +1169,7 @@ export default function App() {
           onAuthSuccess={(newUsername) => {
             setIsLoggedIn(true);
             localStorage.setItem('jamiaati_logged_in', 'true');
+            localStorage.setItem('jamiaati_token', 'mock_token_for_student_hub_' + Date.now());
             setUserProfile(prev => ({
               ...prev,
               name: newUsername || 'Zara Al-Iraqi'
@@ -1098,6 +1180,30 @@ export default function App() {
             );
           }}
         />
+
+        {/* User Profile Details Modal (Student Discovery) */}
+        <AnimatePresence>
+          {selectedUserForProfileCard && (
+            <UserProfileModal
+              isOpen={true}
+              user={selectedUserForProfileCard}
+              currentUser={isLoggedIn ? userProfile : null}
+              onClose={() => setSelectedUserForProfileCard(null)}
+              language={language}
+              isLoggedIn={isLoggedIn}
+              onTriggerAuth={() => setIsAuthModalOpen(true)}
+              showToast={showToast}
+              onOpenDirectChat={(recipientId, recipientName) => {
+                setSelectedUserForProfileCard(null);
+                setActiveTab('chats');
+                localStorage.setItem('jamiaati_pending_chat_recipient_id', recipientId);
+                localStorage.setItem('jamiaati_pending_chat_recipient_name', recipientName);
+                // Dispatch a storage event or tab change notification
+                window.dispatchEvent(new Event('jamiaati_switch_chat'));
+              }}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Floating Toast Notification Center */}
         <div className="fixed top-18 left-1/2 -translate-x-1/2 z-50 w-full max-w-[340px] flex flex-col gap-2 pointer-events-none">

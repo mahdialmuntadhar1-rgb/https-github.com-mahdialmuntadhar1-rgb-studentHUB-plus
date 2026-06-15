@@ -292,3 +292,97 @@ export function hasAlternativeLanguages(item: any, currentLanguage: 'en' | 'ar' 
   }
 }
 
+// Social Networking & Messaging Types
+export interface SocialRecipient {
+  id: string;
+  name: string;
+  full_name?: string;
+  email?: string;
+  role: string;
+  avatar_url?: string;
+}
+
+export interface FriendRequestItem {
+  id: string;
+  requester_id: string;
+  recipient_id: string;
+  status: 'pending' | 'accepted' | 'declined';
+  message?: string;
+  created_at: string;
+  updated_at: string;
+  requester_name?: string;
+  requester_avatar?: string;
+  requester_email?: string;
+  recipient_name?: string;
+  recipient_avatar?: string;
+  recipient_email?: string;
+  senderName?: string;
+  senderAvatar?: string;
+  senderUni?: string;
+}
+
+export interface FriendRequestsResponse {
+  incoming: FriendRequestItem[];
+  outgoing: FriendRequestItem[];
+}
+
+export interface SendFriendRequestResponse {
+  request: FriendRequestItem;
+  recipient: SocialRecipient;
+}
+
+export interface MessageRequestItem {
+  id: string;
+  threadId: string;
+  senderId?: string;
+  senderName?: string;
+  senderAvatar?: string;
+  body: string;
+  recipientId?: string;
+  recipientName?: string;
+  recipientAvatar?: string;
+  recipientEmail?: string;
+  senderEmail?: string;
+  status?: string;
+  created_at?: string;
+}
+
+export interface MessageRequestsResponse {
+  incoming: MessageRequestItem[];
+  outgoing: MessageRequestItem[];
+}
+
+export interface MessageThread {
+  id: string;
+  type?: string;
+  status?: string;
+  requester_id?: string;
+  recipient_id?: string;
+  last_message_at?: string;
+  other_user_id?: string;
+  other_name?: string;
+  other_email?: string;
+  last_message?: string;
+}
+
+export interface MessageThreadsResponse {
+  threads: MessageThread[];
+}
+
+export interface MessageItem {
+  id: string;
+  thread_id: string;
+  sender_id: string;
+  body: string;
+  status: string;
+  created_at: string;
+  deleted_at?: string;
+  sender_name?: string;
+  sender_role?: string;
+}
+
+export interface ThreadMessagesResponse {
+  thread: MessageThread;
+  messages: MessageItem[];
+}
+

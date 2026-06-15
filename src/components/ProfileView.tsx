@@ -25,6 +25,10 @@ interface ProfileViewProps {
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
   onDeleteFeedItem?: (id: string) => void;
   isAdminMode?: boolean;
+  onUserClick?: (user: any) => void;
+  onNavigateToSocialTab?: (tab: 'threads' | 'requests' | 'discover') => void;
+  incomingFriendRequestsCount?: number;
+  incomingMessageRequestsCount?: number;
 }
 
 export default function ProfileView({
@@ -45,7 +49,11 @@ export default function ProfileView({
   onNavigateAdmin,
   onEditFeedItem,
   onDeleteFeedItem,
-  isAdminMode = false
+  isAdminMode = false,
+  onUserClick,
+  onNavigateToSocialTab,
+  incomingFriendRequestsCount = 0,
+  incomingMessageRequestsCount = 0
 }: ProfileViewProps) {
   const [activeTab, setActiveTab] = useState<'bookmarks' | 'activities'>('bookmarks');
 
@@ -210,6 +218,64 @@ export default function ProfileView({
 
       </div>
 
+      {/* Social Messages & Connection Requests Actions */}
+      <div className="bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-4 flex flex-col gap-3 mb-5" id="profile-social-shortcuts-container">
+        <h3 className="text-[11px] font-black text-slate-200 tracking-wider uppercase flex items-center gap-1.5 leading-none">
+          <span>💬</span>
+          <span>
+            {language === 'ar' ? 'الرسائل والطلبات' : language === 'ku' ? 'نامەکان و داواکارییەکان' : 'Messages & Requests'}
+          </span>
+        </h3>
+        
+        <div className="grid grid-cols-2 gap-3" id="profile-social-shortcuts-grid">
+          {/* Messages Entry Button */}
+          <button
+            onClick={() => onNavigateToSocialTab?.('threads')}
+            className="bg-[#16223F] hover:bg-[#1A284B] border border-[#1F2E4D] hover:border-cyan-500/30 p-2.5 h-16 rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer relative group text-center"
+            id="profile-shortcut-messages"
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="text-base text-cyan-400 group-hover:scale-110 transition-transform">💬</span>
+              <span className="text-xs font-extrabold text-white">
+                {language === 'ar' ? 'الرسائل' : language === 'ku' ? 'نامەکان' : 'Messages'}
+              </span>
+            </div>
+            <span className="text-[8px] md:text-[9px] text-slate-400 mt-1 font-semibold leading-none">
+              {language === 'ar' ? 'الدردشات الخاصة' : language === 'ku' ? 'نامە فەرمییەکان' : 'Direct student chats'}
+            </span>
+            
+            {incomingMessageRequestsCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-cyan-500 text-slate-900 text-[10px] font-black h-5 px-1.5 rounded-full flex items-center justify-center min-w-5 shadow-md border border-[#121B2E]" id="message-badge-count">
+                {incomingMessageRequestsCount}
+              </span>
+            )}
+          </button>
+
+          {/* Requests Entry Button */}
+          <button
+            onClick={() => onNavigateToSocialTab?.('requests')}
+            className="bg-[#16223F] hover:bg-[#1A284B] border border-[#1F2E4D] hover:border-indigo-500/30 p-2.5 h-16 rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer relative group text-center"
+            id="profile-shortcut-requests"
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="text-base text-indigo-400 group-hover:scale-110 transition-transform">🔔</span>
+              <span className="text-xs font-extrabold text-white">
+                {language === 'ar' ? 'الطلبات' : language === 'ku' ? 'داواکارییەکان' : 'Requests'}
+              </span>
+            </div>
+            <span className="text-[8px] md:text-[9px] text-slate-400 mt-1 font-semibold leading-none">
+              {language === 'ar' ? 'طلبات الصداقة والمراسلة' : language === 'ku' ? 'داواکاری هاوڕێیەتی' : 'Academic connects'}
+            </span>
+            
+            {incomingFriendRequestsCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-[#D9272E] text-white text-[10px] font-black h-5 px-1.5 rounded-full flex items-center justify-center min-w-5 shadow-md border border-[#121B2E]" id="requests-badge-count">
+                {incomingFriendRequestsCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
+
       {/* Selector Tabs: Bookmarked, Applied activities */}
       <div className="flex border-b border-[#1F2E4D] mb-4 mt-1" id="profile-saved-tabs">
         <button
@@ -262,6 +328,7 @@ export default function ProfileView({
                 onEditFeedItem={onEditFeedItem}
                 onDeleteFeedItem={onDeleteFeedItem}
                 isAdminMode={isAdminMode}
+                onUserClick={onUserClick}
               />
             ))
           )
@@ -288,6 +355,7 @@ export default function ProfileView({
                 onEditFeedItem={onEditFeedItem}
                 onDeleteFeedItem={onDeleteFeedItem}
                 isAdminMode={isAdminMode}
+                onUserClick={onUserClick}
               />
             ))
           )

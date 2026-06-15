@@ -43,6 +43,7 @@ interface FutureFeedProps {
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
   onDeleteFeedItem?: (id: string) => void;
   isAdminMode?: boolean;
+  onUserClick?: (user: any) => void;
 }
 
 export default function FutureFeed({
@@ -61,7 +62,8 @@ export default function FutureFeed({
   isFeedLoading = false,
   onEditFeedItem,
   onDeleteFeedItem,
-  isAdminMode = false
+  isAdminMode = false,
+  onUserClick
 }: FutureFeedProps) {
   const [opportunities, setOpportunities] = useState<FeedItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);

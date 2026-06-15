@@ -37,6 +37,7 @@ interface FeedCardProps {
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
   onDeleteFeedItem?: (id: string) => void;
   isAdminMode?: boolean;
+  onUserClick?: (user: { id?: string; name: string; role: string; avatar: string; university?: string }) => void;
 }
 
 export default function FeedCard({
@@ -51,7 +52,8 @@ export default function FeedCard({
   onAddComment,
   onEditFeedItem,
   onDeleteFeedItem,
-  isAdminMode = false
+  isAdminMode = false,
+  onUserClick
 }: FeedCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -357,7 +359,14 @@ export default function FeedCard({
           <div className="flex items-center justify-between mb-4.5" id={`card-header-${item.id}`}>
             <div className="flex items-center gap-3">
               {/* Avatar with role status ring */}
-              <div className="relative shrink-0">
+              <div 
+                onClick={() => {
+                  if (item.type !== 'anonymous_question') {
+                    onUserClick?.({ ...item.author, university: resolvedUniLabel });
+                  }
+                }}
+                className={`relative shrink-0 ${item.type !== 'anonymous_question' ? 'cursor-pointer hover:opacity-90 transition-opacity' : ''}`}
+              >
                 <img 
                   src={item.author.avatar} 
                   alt={item.author.name}
@@ -374,7 +383,14 @@ export default function FeedCard({
               </div>
               <div>
                 <div className="flex items-center gap-2 flex-wrap">
-                  <h3 className="text-xs font-black text-[#161A33] leading-tight">
+                  <h3 
+                    onClick={() => {
+                      if (item.type !== 'anonymous_question') {
+                        onUserClick?.({ ...item.author, university: resolvedUniLabel });
+                      }
+                    }}
+                    className={`text-xs font-black text-[#161A33] leading-tight ${item.type !== 'anonymous_question' ? 'cursor-pointer hover:text-[#6B25C9] transition-colors shadow-none' : ''}`}
+                  >
                     {item.type === 'anonymous_question' ? getTranslation('anonymousLabel', language) : item.author.name}
                   </h3>
                   {item.author.verified && (

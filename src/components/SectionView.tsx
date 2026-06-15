@@ -39,6 +39,7 @@ interface SectionViewProps {
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
   onDeleteFeedItem?: (id: string) => void;
   isAdminMode?: boolean;
+  onUserClick?: (user: any) => void;
 }
 
 const categoryConfigs: Record<string, {
@@ -240,7 +241,8 @@ export default function SectionView({
   onAddComment,
   onEditFeedItem,
   onDeleteFeedItem,
-  isAdminMode = false
+  isAdminMode = false,
+  onUserClick
 }: SectionViewProps) {
   const [items, setItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
@@ -510,6 +512,7 @@ export default function SectionView({
               onEditFeedItem={onEditFeedItem}
               onDeleteFeedItem={onDeleteFeedItem}
               isAdminMode={isAdminMode}
+              onUserClick={onUserClick}
             />
           ))}
         </div>
