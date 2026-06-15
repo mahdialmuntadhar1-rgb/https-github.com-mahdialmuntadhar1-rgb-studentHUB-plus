@@ -84,6 +84,37 @@ export default function FeedCard({
   const cleanAuthorName = cleanText(item.author?.name || 'Student');
   const safeTags = toStringArray((item as any).tags);
 
+  const isOpportunityLike = [
+    'job',
+    'internship',
+    'scholarship',
+    'training',
+    'part_time_job',
+    'full_time_job',
+    'volunteering',
+    'competition',
+    'graduation_project_support',
+    'fellowship',
+    'event',
+    'announcement',
+    'exam'
+  ].includes(item.type);
+
+  const fallbackPostImages = [
+    'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=900',
+    'https://images.unsplash.com/photo-1523580846011-d3a5bc25702b?auto=format&fit=crop&q=80&w=900',
+    'https://images.unsplash.com/photo-1517048676732-d65bc937f952?auto=format&fit=crop&q=80&w=900',
+    'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=900',
+    'https://images.unsplash.com/photo-1503676260728-1c00da094a0b?auto=format&fit=crop&q=80&w=900',
+    'https://images.unsplash.com/photo-1524995997946-a1c2e315a42f?auto=format&fit=crop&q=80&w=900'
+  ];
+
+  const fallbackImageIndex = Math.abs(
+    Array.from(String(item.id || title || content || 'post')).reduce((sum, char) => sum + char.charCodeAt(0), 0)
+  ) % fallbackPostImages.length;
+
+  const fallbackPostImage = fallbackPostImages[fallbackImageIndex];
+
   // Resolve Governorate & University labels
   const matchedUni = IraqiUniversities.find(u => u.id === item.universityId);
   const matchedGov = IraqiGovernorates.find(g => g.id === item.governorateId);
@@ -99,53 +130,14 @@ export default function FeedCard({
   // Helper to render high-contrast, youthful Instagram-like galleries and mosaics
   const renderImageGallery = () => {
     if (!item.imageUrl) {
-      const visualType = String(item.type || item.opportunityCategory || 'post').toLowerCase();
-      let VisualIcon = Users;
-      let label = 'Campus Post';
-
-      if (visualType.includes('job')) {
-        VisualIcon = Briefcase;
-        label = 'Career Opportunity';
-      } else if (visualType.includes('scholar')) {
-        VisualIcon = GraduationCap;
-        label = 'Scholarship';
-      } else if (visualType.includes('intern')) {
-        VisualIcon = UserCheck;
-        label = 'Internship';
-      } else if (visualType.includes('train')) {
-        VisualIcon = Award;
-        label = 'Training';
-      } else if (visualType.includes('event')) {
-        VisualIcon = Calendar;
-        label = 'Campus Event';
-      } else if (visualType.includes('exam')) {
-        VisualIcon = FileText;
-        label = 'Exam / Notice';
-      } else if (visualType.includes('question')) {
-        VisualIcon = HelpCircle;
-        label = 'Student Question';
-      }
-
       return (
-        <div className="relative mb-3 overflow-hidden rounded-2xl border border-[#E6E1F5] bg-gradient-to-br from-[#F3F7FF] via-white to-[#FFF7D6] p-4 shadow-sm">
-          <div className="absolute -right-6 -top-8 h-28 w-28 rounded-full bg-[#6B25C9]/10" />
-          <div className="absolute -bottom-10 -left-8 h-32 w-32 rounded-full bg-[#2F7CCB]/10" />
-          <div className="relative flex items-center gap-3">
-            <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-2xl border-2 border-[#161A33] bg-white shadow-[3px_3px_0px_0px_#161A33]">
-              <VisualIcon className="h-8 w-8 text-[#6B25C9]" />
-            </div>
-            <div className="min-w-0">
-              <p className="text-[10px] font-black uppercase tracking-wider text-[#6B25C9]">
-                {label}
-              </p>
-              <p className="mt-1 text-sm font-black leading-snug text-[#161A33]">
-                Jamiaati Moment
-              </p>
-              <p className="mt-1 text-[10px] font-bold text-slate-500">
-                {language === 'ar' ? 'منشور طلابي خفيف' : language === 'ku' ? 'ساتێکی خوێندکاری' : 'Light student post'}
-              </p>
-            </div>
-          </div>
+        <div className="group relative rounded-3xl overflow-hidden mb-3 border border-[#E6E1F5] bg-slate-50 shadow-sm">
+          <img
+            src={fallbackPostImage}
+            alt={title || content || 'Student post'}
+            className="w-full h-56 object-cover"
+            referrerPolicy="no-referrer"
+          />
         </div>
       );
     }
@@ -322,7 +314,7 @@ export default function FeedCard({
       whileInView={{ opacity: 1, y: 0 }}
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.3 }}
-      className={`bg-white rounded-3xl transition-all duration-300 p-5 mb-5 relative flex flex-col ${
+      className={`bg-white rounded-3xl transition-all duration-300 p-4 mb-4 relative flex flex-col ${
         item.author.verified 
           ? 'border-3 border-[#6B25C9] shadow-md shadow-[#6B25C9]/5' 
           : 'border-2 border-[#E6E1F5] hover:border-[#6B25C9] shadow-sm'
@@ -479,6 +471,18 @@ export default function FeedCard({
                       ✨ {getTranslation('verifiedPartner', language)}
                     </span>
                   )}
+                  {!isOwner && item.type !== 'anonymous_question' && item.author?.id && (
+                    <div id={`inline-user-actions-${item.id}`} className="ml-1 shrink-0">
+                      <UserActions
+                        userId={item.author.id}
+                        userName={cleanAuthorName}
+                        currentUserId={currentUserId}
+                        language={language}
+                        compact
+                        className="gap-1"
+                      />
+                    </div>
+                  )}
                 </div>
                 <div className="flex flex-wrap items-center gap-1.5 text-[10px] text-slate-500 mt-1.5" id={`card-author-meta-${item.id}`}>
                   <span className="font-black text-[#6B25C9] bg-[#6B25C9]/10 px-2 py-0.5 rounded-md shrink-0">
@@ -544,17 +548,6 @@ export default function FeedCard({
               </span>
             </div>
           </div>
-
-          {!isOwner && item.type !== 'anonymous_question' && item.author?.id && (
-            <UserActions
-              userId={item.author.id}
-              userName={cleanAuthorName}
-              currentUserId={currentUserId}
-              language={language}
-              compact
-              className="mb-3"
-            />
-          )}
 
               {showUserCard && canOpenAuthorCard && (
                 <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/45 p-4">
@@ -633,7 +626,7 @@ export default function FeedCard({
       {/* Main Body */}
       <div className="flex-1" id={`card-body-${item.id}`}>
         {/* Localized Title */}
-        {title && (
+        {title && isOpportunityLike && (
           <h2 dir="auto" className="text-sm font-black text-[#161A33] tracking-tight leading-snug mb-1.5 flex flex-wrap items-center gap-1.5">
             <span>{title}</span>
             {['job', 'internship', 'scholarship', 'training', 'part_time_job', 'full_time_job', 'volunteering', 'competition', 'graduation_project_support', 'fellowship', 'event', 'announcement', 'exam'].includes(item.type) && (
@@ -668,7 +661,7 @@ export default function FeedCard({
         {renderImageGallery()}
 
         {/* Localized Content Text */}
-        <p dir="auto" className="text-xs font-semibold text-slate-700 leading-relaxed break-words whitespace-pre-line mb-2 line-clamp-4">
+        <p dir="auto" className="text-[13px] font-semibold text-slate-700 leading-relaxed break-words whitespace-pre-line mb-2 line-clamp-4">
           {content}
         </p>
 

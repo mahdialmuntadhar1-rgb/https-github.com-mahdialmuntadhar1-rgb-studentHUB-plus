@@ -78,7 +78,7 @@ export default function UserActions({
   };
 
   const buttonBase = compact
-    ? 'px-2.5 py-1.5 text-[10px]'
+    ? 'h-8 w-8 justify-center p-0 text-xs rounded-full'
     : 'px-3 py-2 text-xs';
 
   return (
@@ -97,7 +97,7 @@ export default function UserActions({
         ) : (
           <UserPlus className="h-3.5 w-3.5" />
         )}
-        <span>
+        <span className={compact ? 'sr-only' : ''}>
           {friendStatus === 'sent'
             ? label(language, 'تم إرسال الطلب', 'داواکاری نێردرا', 'Request Sent')
             : label(language, 'إضافة صديق', 'زیادکردنی هاوڕێ', 'Add Friend')}
@@ -119,7 +119,7 @@ export default function UserActions({
         ) : (
           <MessageCircle className="h-3.5 w-3.5" />
         )}
-        <span>
+        <span className={compact ? 'sr-only' : ''}>
           {messageStatus === 'sent'
             ? label(language, 'تم إرسال الرسالة', 'نامە نێردرا', 'Message Sent')
             : label(language, 'طلب مراسلة', 'داواکاری نامە', 'Message Request')}
