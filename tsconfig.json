@@ -22,13 +22,5 @@
     },
     "allowImportingTsExtensions": true,
     "noEmit": true
-  },
-  "exclude": [
-    "scripts",
-    "dist",
-    "node_modules",
-    "BACKUP_BEFORE_PUBLIC_SHIPPING_FIX_*",
-    "_local_backups",
-    "BACKUP_BEFORE_I18N_CONTRAST_FIX_*"
-  ]
+  }
 }

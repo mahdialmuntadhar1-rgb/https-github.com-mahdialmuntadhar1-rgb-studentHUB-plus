@@ -74,54 +74,6 @@ export default function FeedCard({
   const title = getLocalizedContent(item, 'title', language, showOriginal);
   const content = getLocalizedContent(item, 'content', language, showOriginal);
 
-  const cleanOverlayText = (value?: string) => {
-    const raw = String(value || '').trim();
-    if (!raw) return '';
-
-    const withoutUrls = raw
-      .replace(/https?:\/\/\S+/gi, '')
-      .replace(/www\.\S+/gi, '')
-      .replace(/\b[a-z0-9.-]+\.(com|net|org|edu|iq|dev|app)\S*/gi, '')
-      .replace(/\b(api|cdn|assets|uploads|worker|workers|cloudflare|unsplash|localhost)\b/gi, '')
-      .replace(/\bRef:\s*#?\S+/gi, '')
-      .replace(/#?[a-f0-9]{10,}/gi, '')
-      .replace(/[_-]{2,}/g, ' ')
-      .trim();
-
-    if (/^(https?|ftp|blob|data):/i.test(raw)) return '';
-    if (/^(api|src|url|href|ref|id)[:\s]/i.test(raw)) return '';
-    return withoutUrls;
-  };
-
-  const overlayCopy = {
-    campusHighlight: getTranslation('overlayCampusHighlight', language),
-    viewFullscreen: getTranslation('overlayViewFullscreen', language),
-    liveHub: getTranslation('overlayLiveHub', language),
-    platform: getTranslation('overlayStudentHubPlatform', language),
-    verifiedPost: getTranslation('overlayVerifiedPost', language),
-  };
-
-  const getOverlayTypeLabel = (type: string) => {
-    switch (type) {
-      case 'announcement': return getTranslation('typeAnnouncement', language);
-      case 'job':
-      case 'full_time_job':
-      case 'part_time_job': return getTranslation('typeJob', language);
-      case 'internship': return getTranslation('typeInternship', language);
-      case 'scholarship': return getTranslation('typeScholarship', language);
-      case 'training': return getTranslation('typeTraining', language);
-      case 'event': return getTranslation('typeEvent', language);
-      case 'anonymous_question':
-      case 'help':
-      case 'ask': return getTranslation('typeQuestion', language);
-      case 'study_group': return getTranslation('typeStudyGroup', language);
-      case 'poll': return getTranslation('typePoll', language);
-      case 'photo': return getTranslation('typePhoto', language);
-      case 'video': return getTranslation('typeVideo', language);
-      default: return cleanOverlayText(type.replace(/_/g, ' ')) || getTranslation('typeStudentPost', language);
-    }
-  };
-
   // Resolve Governorate & University labels
   const matchedUni = IraqiUniversities.find(u => u.id === item.universityId);
   const matchedGov = IraqiGovernorates.find(g => g.id === item.governorateId);
@@ -213,7 +165,7 @@ export default function FeedCard({
               </span>
               <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/5">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
-                <span className="text-[8px] font-mono text-white/70 uppercase tracking-widest leading-none">{overlayCopy.liveHub}</span>
+                <span className="text-[8px] font-mono text-white/70 uppercase tracking-widest leading-none">Live Hub</span>
               </div>
             </div>
 
@@ -223,7 +175,7 @@ export default function FeedCard({
               </div>
               <div className="flex flex-col text-left">
                 <span className="text-[8px] font-black uppercase text-white/60 tracking-wider mb-0.5">
-                  {getOverlayTypeLabel(item.type)}
+                  {item.type.replace(/_/g, ' ')}
                 </span>
                 <h3 className="text-xs sm:text-sm font-black text-white leading-snug tracking-tight line-clamp-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-sans">
                   {title}
@@ -233,10 +185,10 @@ export default function FeedCard({
 
             <div className="flex items-center justify-between border-t border-white/10 pt-2 text-[9px] text-white/65 font-bold">
               <span className="truncate max-w-[65%] bg-black/30 px-1.5 py-0.5 rounded backdrop-blur-sm">
-                {resolvedUniLabel ? `🏫 ${cleanOverlayText(resolvedUniLabel)}` : `💡 ${overlayCopy.platform}`}
+                {resolvedUniLabel ? `🏫 ${resolvedUniLabel}` : `💡 StudentHUB Platform`}
               </span>
               <span className="font-mono text-[8px] bg-black/40 border border-white/10 rounded px-1.5 py-0.5">
-                {overlayCopy.verifiedPost}
+                Ref: #{item.id}
               </span>
             </div>
           </div>
@@ -267,8 +219,8 @@ export default function FeedCard({
         <div className="group relative rounded-2xl overflow-hidden mb-3 border border-slate-200/80 dark:border-[#1F2E4D] bg-slate-50 dark:bg-[#16223F] transition-all duration-300 shadow-md hover:shadow-xl hover:scale-[1.01] active:scale-[0.99] cursor-pointer">
           <img src={item.imageUrl} alt={title} className="w-full h-auto max-h-[380px] object-cover" referrerPolicy="no-referrer" />
           <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/60 via-black/10 to-transparent p-3 opacity-0 group-hover:opacity-100 transition-opacity flex items-center justify-between text-white text-[10px] font-black">
-            <span>✨ {overlayCopy.campusHighlight}</span>
-            <span>{overlayCopy.viewFullscreen} 🔎</span>
+            <span>✨ Campus Highlight</span>
+            <span>View Fullscreen 🔎</span>
           </div>
         </div>
       );
@@ -348,7 +300,7 @@ export default function FeedCard({
       default:
         // Check fallback by opportunity category
         if (defaultCategory) {
-          return { text: cleanOverlayText(defaultCategory) || getTranslation('typeStudentPost', language), color: 'bg-indigo-500/10 text-indigo-450 border-indigo-550/20' };
+          return { text: defaultCategory, color: 'bg-indigo-500/10 text-indigo-450 border-indigo-550/20' };
         }
         return { text: language === 'ar' ? 'منشور طلابي' : language === 'ku' ? 'بڵاوکراوە' : 'Student Post', color: 'bg-slate-800 text-slate-350 border-slate-700' };
     }
@@ -416,11 +368,11 @@ export default function FeedCard({
           setIsEditingFeed(false);
         }} className="flex flex-col gap-3 font-bold text-xs text-slate-700 text-left p-1" id={`card-edit-form-${item.id}`}>
           <h3 className="text-xs font-black uppercase text-[#6B25C9] mb-1">
-            {getTranslation('adminEditPostTitle', language)}
+            {language === 'ar' ? 'تعديل المنشور كمسؤول' : 'Administrative Post Editor'}
           </h3>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[8px] uppercase tracking-wider text-slate-400">{getTranslation('adminTitleEN', language)}</span>
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Title EN</span>
             <input 
               type="text" 
               required
@@ -431,7 +383,7 @@ export default function FeedCard({
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[8px] uppercase tracking-wider text-slate-400">{getTranslation('adminTitleAR', language)}</span>
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Title AR</span>
             <input 
               type="text" 
               value={editTitleAR} 
@@ -441,7 +393,7 @@ export default function FeedCard({
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[8px] uppercase tracking-wider text-slate-400">{getTranslation('adminTitleKU', language)}</span>
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Title KU</span>
             <input 
               type="text" 
               value={editTitleKU} 
@@ -451,7 +403,7 @@ export default function FeedCard({
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[8px] uppercase tracking-wider text-slate-400">{getTranslation('adminContentEN', language)}</span>
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Content EN</span>
             <textarea 
               rows={3}
               required
@@ -462,7 +414,7 @@ export default function FeedCard({
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[8px] uppercase tracking-wider text-slate-400">{getTranslation('adminContentAR', language)}</span>
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Content AR</span>
             <textarea 
               rows={3}
               value={editContentAR} 
@@ -472,7 +424,7 @@ export default function FeedCard({
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[8px] uppercase tracking-wider text-slate-400">{getTranslation('adminContentKU', language)}</span>
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Content KU</span>
             <textarea 
               rows={3}
               value={editContentKU} 
@@ -482,7 +434,7 @@ export default function FeedCard({
           </div>
 
           <div className="flex flex-col gap-1">
-            <span className="text-[8px] uppercase tracking-wider text-slate-400">{getTranslation('adminImageUrl', language)}</span>
+            <span className="text-[8px] uppercase tracking-wider text-slate-400">Image Asset URL</span>
             <input 
               type="text" 
               value={editImage} 

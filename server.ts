@@ -346,8 +346,7 @@ app.get("/api/opportunities", (req, res) => {
   let list = db.opportunities || [];
   
   // Enforce approved or expired status for search feed
-  const todayStrForPublic = new Date().toISOString().split("T")[0];
-  list = list.filter((o: any) => o.status === "approved" && (!o.deadline || o.deadline >= todayStrForPublic));
+  list = list.filter((o: any) => o.status === "approved" || o.status === "expired" || !o.status);
   
   // Map category constraint
   const allowedCategories = ["job", "scholarship", "internship", "training", "fellowship", "volunteering", "competition"];
@@ -403,8 +402,7 @@ app.get("/api/highlights", (req, res) => {
   let list = db.opportunities || [];
   
   // Enforce approved status
-  const todayStrForHighlights = new Date().toISOString().split("T")[0];
-  list = list.filter((o: any) => o.status === "approved" && (!o.deadline || o.deadline >= todayStrForHighlights));
+  list = list.filter((o: any) => o.status === "approved" || o.status === "expired" || !o.status);
   
   // Map highlights categories
   const allowedCategories = ["event", "news", "announcement", "exam", "registration", "student_club", "activity"];
