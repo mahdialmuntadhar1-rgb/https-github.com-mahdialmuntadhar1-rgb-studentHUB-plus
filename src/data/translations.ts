@@ -420,7 +420,152 @@ export const translations = {
     en: 'No student shares here yet. Broaden your selectors to see the rest of Iraq!',
     ar: 'لا توجد منشورات للطلاب هنا لهذه التصفية. وسّع نطاق تحديد المحافظة أو الجامعة لترى المزيد!',
     ku: 'هیچ پۆستێک نییە بەم گەڕانەت. گەڕانەکەت فراوانتر بکە بۆ بینینی هەموو زانکۆکانی عێراق!',
-  }
+  },
+  languageSwitcherLabel: {
+    en: 'Language',
+    ar: 'اللغة',
+    ku: 'زمان',
+  },
+  navChats: {
+    en: 'Inbox & Chats',
+    ar: 'الرسائل والدردشة',
+    ku: 'نامە و چات',
+  },
+  overlayCampusHighlight: {
+    en: 'Campus Highlight',
+    ar: 'أبرز ما في الجامعة',
+    ku: 'گرنگترینەکانی زانکۆ',
+  },
+  overlayViewFullscreen: {
+    en: 'View',
+    ar: 'عرض',
+    ku: 'بینین',
+  },
+  overlayLiveHub: {
+    en: 'Live',
+    ar: 'مباشر',
+    ku: 'ڕاستەوخۆ',
+  },
+  overlayStudentHubPlatform: {
+    en: 'StudentHUB Platform',
+    ar: 'منصة جامعتي',
+    ku: 'پلاتفۆرمی زانکۆ',
+  },
+  overlayVerifiedPost: {
+    en: 'Verified post',
+    ar: 'منشور موثوق',
+    ku: 'بابەتی پشتڕاستکراو',
+  },
+  typeAnnouncement: {
+    en: 'Announcement',
+    ar: 'إعلان',
+    ku: 'ڕاگەیاندن',
+  },
+  typeJob: {
+    en: 'Job',
+    ar: 'وظيفة',
+    ku: 'کار',
+  },
+  typeInternship: {
+    en: 'Internship',
+    ar: 'تدريب عملي',
+    ku: 'مەشق',
+  },
+  typeScholarship: {
+    en: 'Scholarship',
+    ar: 'منحة دراسية',
+    ku: 'بورس',
+  },
+  typeTraining: {
+    en: 'Training',
+    ar: 'دورة تدريبية',
+    ku: 'ڕاهێنان',
+  },
+  typeEvent: {
+    en: 'Campus Event',
+    ar: 'فعالية جامعية',
+    ku: 'چالاکی زانکۆ',
+  },
+  typeQuestion: {
+    en: 'Question',
+    ar: 'سؤال',
+    ku: 'پرسیار',
+  },
+  typeStudyGroup: {
+    en: 'Study Group',
+    ar: 'مجموعة دراسة',
+    ku: 'گروپی خوێندن',
+  },
+  typePoll: {
+    en: 'Poll',
+    ar: 'استطلاع',
+    ku: 'ڕاپرسی',
+  },
+  typePhoto: {
+    en: 'Photo',
+    ar: 'صورة',
+    ku: 'وێنە',
+  },
+  typeVideo: {
+    en: 'Video',
+    ar: 'فيديو',
+    ku: 'ڤیدیۆ',
+  },
+  typeStudentPost: {
+    en: 'Student Post',
+    ar: 'منشور طلابي',
+    ku: 'بابەتی خوێندکار',
+  },
+  adminEditPostTitle: {
+    en: 'Administrative Post Editor',
+    ar: 'تعديل المنشور كمسؤول',
+    ku: 'دەستکاریکردنی بابەت وەک بەڕێوەبەر',
+  },
+  adminTitleEN: {
+    en: 'Title EN',
+    ar: 'العنوان بالإنجليزية',
+    ku: 'ناونیشان بە ئینگلیزی',
+  },
+  adminTitleAR: {
+    en: 'Title AR',
+    ar: 'العنوان بالعربية',
+    ku: 'ناونیشان بە عەرەبی',
+  },
+  adminTitleKU: {
+    en: 'Title KU',
+    ar: 'العنوان بالكردية',
+    ku: 'ناونیشان بە کوردی',
+  },
+  adminContentEN: {
+    en: 'Content EN',
+    ar: 'المحتوى بالإنجليزية',
+    ku: 'ناوەڕۆک بە ئینگلیزی',
+  },
+  adminContentAR: {
+    en: 'Content AR',
+    ar: 'المحتوى بالعربية',
+    ku: 'ناوەڕۆک بە عەرەبی',
+  },
+  adminContentKU: {
+    en: 'Content KU',
+    ar: 'المحتوى بالكردية',
+    ku: 'ناوەڕۆک بە کوردی',
+  },
+  adminImageUrl: {
+    en: 'Image URL',
+    ar: 'رابط الصورة',
+    ku: 'لینکی وێنە',
+  },
+  adminCancel: {
+    en: 'Cancel',
+    ar: 'إلغاء',
+    ku: 'هەڵوەشاندنەوە',
+  },
+  adminSave: {
+    en: 'Save changes',
+    ar: 'حفظ التغييرات',
+    ku: 'پاشەکەوتکردنی گۆڕانکاری',
+  },
 };
 
 export function getTranslation(key: keyof typeof translations, lang: Language): string {

@@ -50,7 +50,11 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     emailSentTitle: { en: 'Instruction Sent', ar: 'تم إرسال التعليمات', ku: 'ڕێنمایی نێردران' },
     emailSentDesc: { en: 'A secure recovery code has been sent to your inbox.', ar: 'تم إرسال رمز إعادة التعيين الآمن لبريدك الإلكتروني.', ku: 'کۆدی سەرلەنوێ ڕێکخستنەوە نێردرا بۆ ئیمەیڵەکەت.' },
     registerSuccess: { en: 'Welcome to Jamiaati!', ar: 'أهلاً بك في منصة جامعتي!', ku: 'بەخێربێیت بۆ جامەعەتی!' },
-    loginSuccess: { en: 'Welcome back!', ar: 'أهلاً بعودتك مجدداً!', ku: 'بەخێربێیتەوە!' }
+    loginSuccess: { en: 'Welcome back!', ar: 'أهلاً بعودتك مجدداً!', ku: 'بەخێربێیتەوە!' },
+    namePlaceholder: { en: 'e.g. Ahmad Al-Mansour', ar: 'مثال: أحمد المنصور', ku: 'نمونە: ئەحمەد مەنسور' },
+    emailPlaceholder: { en: 'name@university.edu.iq', ar: 'name@university.edu.iq', ku: 'name@university.edu.iq' },
+    passwordPlaceholder: { en: 'Enter your password', ar: 'اكتب كلمة المرور', ku: 'وشەی تێپەڕ بنووسە' },
+    portalSubtitle: { en: 'Jamiaati Portal', ar: 'بوابة جامعتي', ku: 'دەروازەی زانکۆی من' }
   };
 
   const getLabel = (key: keyof typeof t) => {
@@ -204,7 +208,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
               {getLabel(mode)}
             </h3>
             <p className="text-[10px] uppercase font-bold text-cyan-400 font-mono tracking-widest mt-1">
-              Jamiaati Portal • بَوّابَتُنا
+              {getLabel('portalSubtitle')}
             </p>
           </div>
 
@@ -224,8 +228,8 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
                     required
                     value={username}
                     onChange={e => setUsername(e.target.value)}
-                    placeholder="e.g. Ahmad Al-Mansour"
-                    className="w-full text-xs font-bold text-white bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors"
+                    placeholder={getLabel('namePlaceholder')}
+                    className="w-full text-xs font-bold text-white placeholder:text-slate-400 bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -243,8 +247,8 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder="name@university.edu.iq"
-                  className="w-full text-xs font-bold text-white bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors"
+                  placeholder={getLabel('emailPlaceholder')}
+                  className="w-full text-xs font-bold text-white placeholder:text-slate-400 bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -262,8 +266,8 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
-                    className="w-full text-xs font-bold text-white bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-10 py-3 focus:outline-none transition-colors"
+                    placeholder={getLabel('passwordPlaceholder')}
+                    className="w-full text-xs font-bold text-white placeholder:text-slate-400 bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-10 py-3 focus:outline-none transition-colors"
                   />
                   <button
                     type="button"

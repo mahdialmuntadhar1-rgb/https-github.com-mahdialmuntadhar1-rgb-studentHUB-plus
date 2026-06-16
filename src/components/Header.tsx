@@ -45,12 +45,77 @@ export default function Header({
     return 'کوردی';
   };
 
+  const getHeaderNotificationText = (id: number) => {
+    if (id === 1) {
+      return language === 'ar'
+        ? 'أحمد ردّ على سؤالك الأكاديمي.'
+        : language === 'ku'
+        ? 'ئەحمەد وەڵامی پرسیارەکەت دایەوە.'
+        : 'Ahmad replied to your syllabus question.';
+    }
+
+    if (id === 2) {
+      return language === 'ar'
+        ? 'فرص تدريب جديدة متاحة الآن.'
+        : language === 'ku'
+        ? 'هەلی مەشقی نوێ ئێستا بەردەستە.'
+        : 'New internships are now listed.';
+    }
+
+    return language === 'ar'
+      ? 'تم تحديث تقويم الامتحانات النهائية.'
+      : language === 'ku'
+      ? 'کاتی تاقیکردنەوە کۆتاییەکان نوێکرایەوە.'
+      : 'Final exam calendar was updated.';
+  };
+
+  const getHeaderNotificationTime = (id: number) => {
+    if (id === 1) return language === 'ar' ? 'قبل ١٠ دقائق' : language === 'ku' ? '١٠ خولەک پێش ئێستا' : '10m ago';
+    if (id === 2) return language === 'ar' ? 'قبل ساعة' : language === 'ku' ? '١ کاتژمێر پێش ئێستا' : '1h ago';
+    return language === 'ar' ? 'قبل ٣ ساعات' : language === 'ku' ? '٣ کاتژمێر پێش ئێستا' : '3h ago';
+  };
+
+  const localizedNotifications = notifications.map(n => ({
+    ...n,
+    text: getHeaderNotificationText(n.id),
+    time: getHeaderNotificationTime(n.id),
+  }));
+
   return (
     <header className="sticky top-0 z-40 bg-white border-b border-[#E6E1F5] px-3.5 py-2 shadow-sm" id="app-header-container">
       {/* Top row: Brand & Language Bar & Notif & Profile */}
-      <div className="flex items-center justify-between gap-1.5 max-w-lg mx-auto" id="header-top-row">
+      <div className="flex flex-wrap items-center justify-between gap-2 max-w-lg mx-auto" id="header-top-row">
         
-        {/* Brand Logo and Title */}
+        
+        <div className="order-first w-full flex justify-center mb-1.5" id="header-language-switcher-row" aria-label={getTranslation('languageSwitcherLabel', language)}>
+          <div className="inline-flex items-center justify-center gap-1 rounded-2xl bg-[#0F172A] border border-[#334155] p-1 shadow-lg shadow-slate-950/15">
+            {(['ar', 'ku', 'en'] as Language[]).map(lang => {
+              const isActive = language === lang;
+              return (
+                <button
+                  key={lang}
+                  type="button"
+                  aria-pressed={isActive}
+                  onClick={() => setLanguage(lang)}
+                  className={`min-w-[74px] px-2.5 py-1.5 text-[10px] font-black rounded-xl cursor-pointer transition-all duration-150 flex items-center justify-center gap-1.5 border ${isActive ? 'bg-[#FFD21F] text-[#161A33] border-[#FFD21F] shadow-sm' : 'bg-white/5 text-slate-100 border-white/10 hover:bg-white/10 hover:text-white'}`}
+                >
+                  {lang === 'ku' ? (
+                    <span className="relative inline-flex w-5 h-3 rounded-[2px] overflow-hidden border border-slate-300 shadow-sm shrink-0" aria-label="Kurdistan flag">
+                      <span className="absolute top-0 left-0 right-0 h-1/3 bg-red-600" />
+                      <span className="absolute top-1/3 left-0 right-0 h-1/3 bg-white" />
+                      <span className="absolute bottom-0 left-0 right-0 h-1/3 bg-green-600" />
+                      <span className="absolute inset-0 flex items-center justify-center text-[7px] leading-none text-yellow-400">✹</span>
+                    </span>
+                  ) : (
+                    <span className="text-sm leading-none shrink-0">{lang === 'ar' ? '🇮🇶' : '🇺🇸'}</span>
+                  )}
+                  <span>{getLanguageLabel(lang)}</span>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+{/* Brand Logo and Title */}
         <div className="flex items-center gap-1.5" id="header-brand-logo">
           <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[var(--primary)] via-[var(--secondary)] to-[var(--accent)] flex items-center justify-center text-white font-bold shadow-sm shrink-0">
             <BookOpen className="w-4.5 h-4.5 text-white" />
@@ -68,24 +133,7 @@ export default function Header({
 
         {/* Action Elements: Inline Language Switcher Bar, Notifications & Profile */}
         <div className="flex items-center gap-2" id="header-actions">
-          {/* Inline Language Bar: Beautiful, pill-shaped, intuitive switcher */}
-          <div className="flex items-center bg-[#F3F1FB] border border-[#E6E1F5] rounded-lg p-0.5" id="inline-language-bar">
-            {(['en', 'ar', 'ku'] as Language[]).map(lang => (
-              <button
-                key={lang}
-                onClick={() => setLanguage(lang)}
-                className={`px-1.5 py-0.5 text-[9px] font-black rounded-md cursor-pointer transition-all duration-150 ${
-                  language === lang 
-                    ? 'bg-[#6B25C9] text-white shadow-sm' 
-                    : 'text-slate-600 hover:text-[#6B25C9]'
-                }`}
-              >
-                {getLanguageLabel(lang)}
-              </button>
-            ))}
-          </div>
-
-          {/* Notifications Trigger */}
+{/* Notifications Trigger */}
           <div className="relative">
             <button
                id="notif-bell"
@@ -122,7 +170,7 @@ export default function Header({
                     </div>
                   ) : (
                     <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
-                      {notifications.map(n => (
+                      {localizedNotifications.map(n => (
                         <div key={n.id} className="p-1.5 hover:bg-[#F7F4FF] rounded-lg transition-all border-l-2 border-[#6B25C9]">
                           <p className="font-semibold text-[10px] leading-tight text-[#161A33]">{n.text}</p>
                           <span className="text-[8px] text-slate-500 mt-0.5 block">{n.time}</span>
@@ -140,7 +188,7 @@ export default function Header({
             <button
               onClick={onChatsClick}
               className="p-1 px-1.5 text-slate-700 hover:text-[#6B25C9] hover:bg-[#F3F7FF] rounded-lg transition-colors cursor-pointer relative"
-              title="Inbox & Chats"
+              title={getTranslation('navChats', language)}
               id="header-chats-trigger"
             >
               <MessageSquare className="w-4 h-4" />

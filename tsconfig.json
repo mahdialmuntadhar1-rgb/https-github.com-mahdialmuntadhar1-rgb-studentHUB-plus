@@ -28,6 +28,7 @@
     "dist",
     "node_modules",
     "BACKUP_BEFORE_PUBLIC_SHIPPING_FIX_*",
-    "_local_backups"
+    "_local_backups",
+    "BACKUP_BEFORE_I18N_CONTRAST_FIX_*"
   ]
 }
