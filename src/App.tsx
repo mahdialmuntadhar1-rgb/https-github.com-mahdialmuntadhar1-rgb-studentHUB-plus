@@ -18,7 +18,7 @@ import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } 
 
 export default function App() {
   // Locale States
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('ar');
   const [selectedGov, setSelectedGov] = useState<string>('all');
   const [selectedUni, setSelectedUni] = useState<string>('all');
 
@@ -1130,6 +1130,7 @@ default:
     </div>
   );
 };
+
 
 
 
