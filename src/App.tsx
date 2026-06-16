@@ -244,7 +244,7 @@ export default function App() {
     const handleHash = () => {
       const hash = window.location.hash;
       if (hash === '#/outreach' || hash === '#outreach') {
-        setActiveTab('outreach');
+        setActiveTab('future');
         setSelectedSection(null);
       } else if (hash === '#/opportunities' || hash === '#opportunities') {
         setActiveTab('future');
@@ -1130,6 +1130,7 @@ default:
     </div>
   );
 };
+
 
 
 
