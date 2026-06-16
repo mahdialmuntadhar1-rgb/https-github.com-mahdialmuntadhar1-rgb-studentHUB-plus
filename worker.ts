@@ -1,4 +1,4 @@
-// Cloudflare Worker for Jamiaati / StudentHUB Plus
+﻿// Cloudflare Worker for Jamiaati / StudentHUB Plus
 // Production-ready API with D1 database, R2 storage, and JWT authentication
 
 import { Hono } from 'hono';
@@ -9,6 +9,7 @@ interface Env {
   DB: any; // D1Database
   R2: any; // R2Bucket
   JWT_SECRET: string;
+  JWT_SECRET_V2?: string;
   RESEND_API_KEY?: string;
   PASSWORD_RESET_FROM_EMAIL?: string;
 }
@@ -147,7 +148,7 @@ async function authMiddleware(c: any, next: any) {
   }
   
   const token = authHeader.substring(7);
-  const payload = await verifyJWTToken(token, c.env.JWT_SECRET);
+  const payload = await verifyJWTToken(token, (c.env.JWT_SECRET || c.env.JWT_SECRET_V2 || ""));
   
   if (!payload) {
     return c.json({ error: 'Invalid or expired token' }, 401);
@@ -213,7 +214,7 @@ app.post('/api/auth/register', async (c) => {
     `).bind(userId, email, passwordHash, full_name, governorate || 'all', institution || 'manual', university_id || 'manual', 'student').run();
     
     // Generate JWT token
-    const token = await generateJWTToken(userId, email, 'student', c.env.JWT_SECRET);
+    const token = await generateJWTToken(userId, email, 'student', (c.env.JWT_SECRET || c.env.JWT_SECRET_V2 || ""));
     
     return c.json({
       token,
@@ -270,7 +271,7 @@ app.post('/api/auth/login', async (c) => {
     ).bind(new Date().toISOString(), user.id).run();
     
     // Generate JWT token
-    const token = await generateJWTToken(user.id, user.email, user.role, c.env.JWT_SECRET);
+    const token = await generateJWTToken(user.id, user.email, user.role, (c.env.JWT_SECRET || c.env.JWT_SECRET_V2 || ""));
     
     return c.json({
       token,
@@ -1402,3 +1403,4 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
+
