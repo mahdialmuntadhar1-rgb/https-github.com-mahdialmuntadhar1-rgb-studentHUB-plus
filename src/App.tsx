@@ -232,6 +232,8 @@ export default function App() {
     } catch (err: any) {
       console.error('Failed to load institutions dynamically:', err);
       setInstitutionsError(err.message || 'Unknown network error');
+      // MUST_HAVE_INSTITUTION_FALLBACK
+      setInstitutions([...IraqiUniversities]);
     } finally {
       setInstitutionsLoading(false);
     }
@@ -666,6 +668,16 @@ export default function App() {
   };
 
   const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post', imageUrl?: string) => {
+    // MUST_HAVE_REAL_AUTH_FOR_POSTING
+    const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+    if (!token || token.startsWith('mock_token_')) {
+      showToast(
+        language === 'ar' ? 'يرجى تسجيل الدخول بحساب حقيقي قبل النشر.' : language === 'ku' ? 'تکایە بە هەژماری ڕاستەقینە بچۆ ژوورەوە پێش بڵاوکردنەوە.' : 'Please sign in with a real account before posting.',
+        'error'
+      );
+      setIsAuthModalOpen(true);
+      return;
+    }
     // Generate original and translated contents
     const originalLanguage = language;
     const titleOriginal = title;
@@ -1130,6 +1142,8 @@ default:
     </div>
   );
 };
+
+
 
 
 

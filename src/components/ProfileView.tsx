@@ -147,7 +147,7 @@ export default function ProfileView({
 
           {/* Interactive Role Toggle & Logout Options */}
           <div className="flex flex-wrap items-center justify-center gap-2 mt-3.5" id="profile-actions-row">
-            {onNavigateAdmin && (
+            {user.role === 'staff' && onNavigateAdmin && (
               <button
                 onClick={onNavigateAdmin}
                 className="text-[9px] font-black text-amber-400 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/20 rounded-xl px-3 py-1.5 cursor-pointer transition-all flex items-center gap-1.5"
@@ -157,13 +157,7 @@ export default function ProfileView({
                 <span>{language === 'ar' ? 'Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„ØªØ´ØºÙŠÙ„ ÙˆØ§Ù„Ø£ØªÙ…ØªØ©' : language === 'ku' ? 'Ø³ÛŒØ³ØªÛ•Ù…ÛŒ Ú©Û†Ù†ØªØ±Û†Úµ' : 'Admin Panel'}</span>
               </button>
             )}
-            <button
-              onClick={onToggleUserRole}
-              className="text-[9px] font-black text-cyan-400 bg-cyan-400/10 hover:bg-cyan-400/20 border border-cyan-400/20 rounded-xl px-3 py-1.5 cursor-pointer transition-all flex items-center gap-1"
-            >
-              <ArrowRightLeft className="w-3 h-3 text-cyan-400" />
-              <span>{getTranslation('switchRoleBtn', language)}</span>
-            </button>
+            {/* Role switching hidden in public MVP. Roles must come from backend auth only. */}
             <button
               onClick={onLogout}
               className="text-[9px] font-black text-red-400 bg-red-400/10 hover:bg-red-400/20 border border-red-500/10 rounded-xl px-3 py-1.5 cursor-pointer transition-colors flex items-center gap-1"
@@ -297,4 +291,6 @@ export default function ProfileView({
     </div>
   );
 }
+
+
 
