@@ -21,7 +21,7 @@ import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } 
 
 export default function App() {
   // Locale States
-  const [language, setLanguage] = useState<Language>('ar');
+  const [language, setLanguage] = useState<Language>('en');
   const [selectedGov, setSelectedGov] = useState<string>('all');
   const [selectedUni, setSelectedUni] = useState<string>('all');
 
@@ -96,14 +96,11 @@ export default function App() {
 
   // Auth States
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
-    const valid = !!token && !token.startsWith('mock_token_');
-    localStorage.setItem('jamiaati_logged_in', valid ? 'true' : 'false');
-    if (!valid) {
-      localStorage.removeItem('jamiaati_token');
-      localStorage.removeItem('admin_token');
+    const loggedIn = localStorage.getItem('jamiaati_logged_in') !== 'false';
+    if (loggedIn && !localStorage.getItem('jamiaati_token')) {
+      localStorage.setItem('jamiaati_token', 'mock_token_for_student_hub_' + Date.now());
     }
-    return valid;
+    return loggedIn;
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -365,11 +362,7 @@ export default function App() {
               commentsList: [],
               governorateId: item.governorateId || item.governorate || 'all',
               universityId: item.universityId || item.university_id || 'all',
-              tags: Array.isArray(item.tags)
-                 ? item.tags.map((tag: any) => String(tag).trim()).filter(Boolean)
-                 : typeof item.tags === 'string'
-                   ? item.tags.split(/[,،|]/).map((tag: string) => tag.trim()).filter(Boolean)
-                   : ['scraped', item.category || 'career'],
+              tags: item.tags || ['scraped', item.category || 'career'],
               company: item.organization || item.institution_name,
               companyLogo: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
               location: item.location || item.city || 'Iraq',
@@ -718,17 +711,7 @@ export default function App() {
     }));
   };
 
-  const handleAddNewPost = async (title: string, body: string, anonymous: boolean, customType = 'post', imageUrl?: string): Promise<boolean> => {
-    // MUST_HAVE_REAL_AUTH_FOR_POSTING
-    const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
-    if (!token || token.startsWith('mock_token_')) {
-      showToast(
-        language === 'ar' ? 'يرجى تسجيل الدخول بحساب حقيقي قبل النشر.' : language === 'ku' ? 'تکایە بە هەژماری ڕاستەقینە بچۆ ژوورەوە پێش بڵاوکردنەوە.' : 'Please sign in with a real account before posting.',
-        'error'
-      );
-      setIsAuthModalOpen(true);
-      return false;
-    }
+  const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post', imageUrl?: string) => {
     // Generate original and translated contents
     const originalLanguage = language;
     const titleOriginal = title;
@@ -808,102 +791,12 @@ export default function App() {
       tags: ['StudentShare', customType === 'anonymous_question' ? 'Advising' : 'Life']
     };
 
-    try {
-      const finalInstitutionId = String(
-        freshPost.universityId && freshPost.universityId !== 'all'
-          ? freshPost.universityId
-          : ((userProfile as any).institution_id || userProfile.universityId || 'manual')
-      );
-
-      const rawGovernorateForPost = String(
-        freshPost.governorateId && freshPost.governorateId !== 'all'
-          ? freshPost.governorateId
-          : ((userProfile as any).governorate || userProfile.governorateId || 'all')
-      );
-
-      const normalizedGovernorateForPost = normalizeGovernorate(rawGovernorateForPost);
-
-      const finalGovernorate =
-        normalizedGovernorateForPost !== 'all'
-          ? normalizedGovernorateForPost
-          : finalInstitutionId.toLowerCase().includes('baghdad')
-            ? 'baghdad'
-            : finalInstitutionId.toLowerCase().includes('sulay')
-              ? 'sulaymaniyah'
-              : finalInstitutionId.toLowerCase().includes('erbil')
-                ? 'erbil'
-                : 'all';
-
-      const finalInstitution =
-        finalInstitutionId === 'manual'
-          ? ((userProfile as any).institution || 'manual')
-          : finalInstitutionId;
-
-      const res = await fetch('https://rafid-api.mahdialmuntadhar1.workers.dev/api/posts', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Authorization': 'Bearer ' + token
-        },
-        body: JSON.stringify({
-          title,
-          body,
-          content: body,
-          anonymous,
-          type: customType,
-          governorate: finalGovernorate,
-          institution: finalInstitution,
-          institution_id: finalInstitutionId,
-          imageUrl,
-          image_url: imageUrl,
-          governorateId: finalGovernorate,
-          universityId: finalInstitutionId,
-          original_language: originalLanguage,
-          title_original: titleOriginal,
-          body_original: bodyOriginal,
-          title_en: titleEN,
-          body_en: contentEN,
-          title_ar: titleAR,
-          body_ar: contentAR,
-          title_ku: titleKU,
-          body_ku: contentKU
-        })
-      });
-
-      if (!res.ok) {
-        const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || errData.error || ('Backend refused the post with status ' + res.status + '.'));
-      }
-
-      const saved = await res.json().catch(() => ({}));
-      const savedPost = saved.post || saved.item || saved.data || saved;
-
-      const finalPost = {
-        ...freshPost,
-        id: String(savedPost.id || freshPost.id),
-        date: savedPost.created_at ? new Date(savedPost.created_at).toLocaleString() : freshPost.date
-      };
-
-      handleAwardPoints(40);
-      showToast(
-        language === 'ar' ? 'تم نشر مساهمتك بنجاح على ساحة الطلاب! ✨ +٤٠ نقطة' : language === 'ku' ? 'بڵاوکراوەکەت بڵاوکرایەوە لە ساحەی قوتابیان! ✨ +٤٠ خاڵ' : 'Contribution published successfully! ✨ +40 pts',
-        'success'
-      );
-      setFeedItems(prev => [finalPost, ...prev]);
-      return true;
-    } catch (err: any) {
-      const postErrorMessage = err?.message || 'Unknown error';
-      showToast(
-        language === 'ar'
-          ? ('تعذر نشر المنشور: ' + postErrorMessage)
-          : language === 'ku'
-            ? ('نەتوانرا بابەتەکە بڵاو بکرێتەوە: ' + postErrorMessage)
-            : ('Post was not published: ' + postErrorMessage),
-        'error'
-      );
-      console.error('Post publish failed:', err);
-      return false;
-    }
+    handleAwardPoints(40); // high points for sharing posts!
+    showToast(
+      language === 'ar' ? 'تم نشر مساهمتك بنجاح على ساحة الطلاب! ✨ +٤٠ نقطة' : language === 'ku' ? 'بڵاوکراوەکەت بڵاوکرایەوە لە ساحەی قوتابیان! ✨ +٤٠ خاڵ' : 'Contribution published successfully! ✨ +40 pts', 
+      'success'
+    );
+    setFeedItems(prev => [freshPost, ...prev]);
   };
 
   // Gamification engine helpers
@@ -921,7 +814,7 @@ export default function App() {
 
   // Simulating user switches Roles inside their profile
   const handleRoleToggle = () => {
-    const roles: ('student' | 'graduate' | 'teacher')[] = ['student', 'graduate', 'teacher'];
+    const roles: ('student' | 'graduate' | 'teacher' | 'staff')[] = ['student', 'graduate', 'teacher', 'staff'];
     const currentIdx = roles.indexOf(userProfile.role as any);
     const nextIdx = (currentIdx + 1) % roles.length;
     const nextRole = roles[nextIdx];
@@ -929,9 +822,11 @@ export default function App() {
     setUserProfile(prev => ({
       ...prev,
       role: nextRole,
-      name: nextRole === 'teacher' ? 'Dr. Yousif Al-Hamadani' : defaultUserProfile.name,
+      name: nextRole === 'teacher' ? 'Dr. Yousif Al-Hamadani' : nextRole === 'staff' ? 'Admin Layla' : defaultUserProfile.name,
       avatar: nextRole === 'teacher' 
-        ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200'
+        ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200' 
+        : nextRole === 'staff' 
+        ? 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'
         : defaultUserProfile.avatar
     }));
   };
@@ -1277,64 +1172,14 @@ export default function App() {
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
           language={language}
-          onAuthSuccess={(newUsername, authUser) => {
+          onAuthSuccess={(newUsername) => {
             setIsLoggedIn(true);
             localStorage.setItem('jamiaati_logged_in', 'true');
-
-            const rawRole = String(authUser?.role || authUser?.user_role || '').toLowerCase();
-            const resolvedRole =
-              rawRole === 'admin' || rawRole === 'staff'
-                ? 'staff'
-                : rawRole === 'teacher'
-                  ? 'teacher'
-                  : rawRole === 'graduate'
-                    ? 'graduate'
-                    : 'student';
-
-            setUserProfile(prev => {
-              const resolvedInstitutionId = String(
-                authUser?.institution_id ||
-                authUser?.university_id ||
-                authUser?.universityId ||
-                prev.universityId ||
-                'manual'
-              );
-
-              const rawGovernorate = String(
-                authUser?.governorate_id ||
-                authUser?.governorateId ||
-                authUser?.governorate ||
-                prev.governorateId ||
-                'all'
-              );
-
-              const normalizedGovernorate = normalizeGovernorate(rawGovernorate);
-
-              const resolvedGovernorate =
-                normalizedGovernorate !== 'all'
-                  ? normalizedGovernorate
-                  : resolvedInstitutionId.toLowerCase().includes('baghdad')
-                    ? 'baghdad'
-                    : resolvedInstitutionId.toLowerCase().includes('sulay')
-                      ? 'sulaymaniyah'
-                      : resolvedInstitutionId.toLowerCase().includes('erbil')
-                        ? 'erbil'
-                        : prev.governorateId || 'all';
-
-              return {
-                ...prev,
-                id: String(authUser?.id || authUser?.user_id || prev.id || 'me'),
-                name: newUsername || authUser?.full_name || authUser?.email || 'Jamiaati User',
-                role: resolvedRole as any,
-                avatar: authUser?.avatar || authUser?.avatar_url || prev.avatar,
-                universityId: resolvedInstitutionId,
-                governorateId: resolvedGovernorate,
-                institution_id: resolvedInstitutionId,
-                institution: authUser?.institution || authUser?.institution_name || resolvedInstitutionId,
-                governorate: resolvedGovernorate
-              } as any;
-            });
-
+            localStorage.setItem('jamiaati_token', 'mock_token_for_student_hub_' + Date.now());
+            setUserProfile(prev => ({
+              ...prev,
+              name: newUsername || 'Zara Al-Iraqi'
+            }));
             showToast(
               language === 'ar' ? `مرحباً بك مجدداً يا ${newUsername || 'زارا'}! 👋 تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'زارا'}! 👋 دابەزاندن سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Zara'}! 👋 Signed in`, 
               'success'
@@ -1409,6 +1254,3 @@ export default function App() {
     </div>
   );
 };
-
-
-

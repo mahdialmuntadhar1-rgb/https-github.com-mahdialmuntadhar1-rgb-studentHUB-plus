@@ -22,7 +22,7 @@ interface HomeFeedProps {
   onJoinGroup: (id: string) => void;
   onAddComment: (id: string, commentText: string) => void;
   onNavigateTab: (tabId: 'home' | 'life' | 'ask' | 'future' | 'profile') => void;
-  onAddNewPost: (title: string, body: string, anonymous: boolean, customType?: string, imageUrl?: string) => boolean | void | Promise<boolean | void>;
+  onAddNewPost: (title: string, body: string, anonymous: boolean, customType?: string, imageUrl?: string) => void;
   isFeedLoading?: boolean;
   onAwardPoints?: (points: number) => void;
   showToast?: (text: string, type?: 'success' | 'error' | 'info') => void;
@@ -346,13 +346,12 @@ export default function HomeFeed({
     : IraqiUniversities.filter(u => u.governorateId === selectedGov);
 
   // New post submission logic
-  const handlePostSubmit = async (e: React.FormEvent) => {
+  const handlePostSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     if (!postBody.trim()) return;
 
     const generatedTitle = postTitle.trim() || (anonymous ? 'Anonymous Question' : 'Campus Moment 🌟');
-    const published = await onAddNewPost(generatedTitle, postBody, anonymous, 'post', postImageUrl || undefined);
-    if (published === false) return;
+    onAddNewPost(generatedTitle, postBody, anonymous, 'post', postImageUrl || undefined);
     
     setPostTitle('');
     setPostBody('');
