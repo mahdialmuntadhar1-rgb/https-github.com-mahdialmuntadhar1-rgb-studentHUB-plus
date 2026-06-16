@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Language } from '../types';
+import { BACKEND_URL } from '../lib/api';
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, Lock, User, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
@@ -8,7 +9,7 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   language: Language;
-  onAuthSuccess: (username: string) => void;
+  onAuthSuccess: (username: string, authUser?: any) => void;
 }
 
 type AuthMode = 'login' | 'register' | 'forgot';
@@ -56,50 +57,107 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     return t[key][language] || t[key]['en'];
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
 
-    // Simple robust validation simulation
-    if (!email.includes('@')) {
-      setError(getLabel('validationAcademicEmail'));
-      setLoading(false);
-      return;
-    }
+    try {
+      if (!email.includes('@')) {
+        throw new Error(getLabel('validationAcademicEmail'));
+      }
 
-    if (mode === 'register' && !username.trim()) {
-      setError(getLabel('validationNameEmpty'));
-      setLoading(false);
-      return;
-    }
+      if (mode === 'register' && !username.trim()) {
+        throw new Error(getLabel('validationNameEmpty'));
+      }
 
-    if (mode !== 'forgot' && password.length < 6) {
-      setError(getLabel('validationPasswordLen'));
-      setLoading(false);
-      return;
-    }
+      if (mode !== 'forgot' && password.length < 6) {
+        throw new Error(getLabel('validationPasswordLen'));
+      }
 
-    // Simulate backend response
-    setTimeout(() => {
-      setLoading(false);
+      const endpoint =
+        mode === 'login'
+          ? '/api/auth/login'
+          : mode === 'register'
+          ? '/api/auth/register'
+          : '/api/auth/forgot-password';
+
+      const payload =
+        mode === 'login'
+          ? { email, password }
+          : mode === 'register'
+          ? { name: username, username, email, password }
+          : { email };
+
+      const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        if (mode === 'forgot' && (response.status === 404 || response.status === 405)) {
+          throw new Error(
+            language === 'ar'
+              ? 'استعادة كلمة المرور غير مفعلة حالياً. يرجى المحاولة لاحقاً.'
+              : language === 'ku'
+              ? 'گەڕاندنەوەی وشەی تێپەڕ لە ئێستادا چالاک نییە. تکایە دواتر هەوڵ بدەوە.'
+              : 'Password reset is not available yet. Please try again later.'
+          );
+        }
+
+        throw new Error(
+          data.message ||
+          data.error ||
+          (language === 'ar'
+            ? 'فشل تسجيل الدخول. تحقق من البيانات وحاول مرة أخرى.'
+            : language === 'ku'
+            ? 'چوونەژوورەوە سەرکەوتوو نەبوو. زانیارییەکان بپشکنە.'
+            : 'Authentication failed. Please check your details.')
+        );
+      }
+
       if (mode === 'forgot') {
         setSuccess(getLabel('emailSentDesc'));
-      } else if (mode === 'register') {
-        setSuccess(getLabel('registerSuccess'));
-        setTimeout(() => {
-          onAuthSuccess(username || 'Zara Al-Iraqi');
-          onClose();
-        }, 1200);
-      } else {
-        setSuccess(getLabel('loginSuccess'));
-        setTimeout(() => {
-          onAuthSuccess('Zara Al-Iraqi');
-          onClose();
-        }, 1200);
+        return;
       }
-    }, 1000);
+
+      const token = data.token || data.jwt || data.access_token || data.accessToken;
+      if (!token || typeof token !== 'string') {
+        throw new Error(
+          language === 'ar'
+            ? 'الخادم لم يرجع رمز دخول صالح.'
+            : language === 'ku'
+            ? 'سێرڤەر تۆکنی چوونەژوورەوەی دروستی نەگەڕاندەوە.'
+            : 'Server did not return a valid login token.'
+        );
+      }
+
+      localStorage.setItem('jamiaati_token', token);
+      localStorage.removeItem('admin_token');
+
+      const displayName =
+        data.user?.name ||
+        data.user?.full_name ||
+        data.user?.username ||
+        data.user?.email ||
+        username ||
+        email.split('@')[0];
+
+      setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
+
+      setTimeout(() => {
+        onAuthSuccess(displayName);
+        onClose();
+      }, 700);
+    } catch (err: any) {
+      setError(err.message || 'Authentication failed.');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -323,3 +381,4 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     </AnimatePresence>
   );
 }
+

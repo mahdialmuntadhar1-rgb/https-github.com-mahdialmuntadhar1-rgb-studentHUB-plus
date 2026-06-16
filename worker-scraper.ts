@@ -134,7 +134,7 @@ async function runMainScraper(env: Env, triggerType: string): Promise<any> {
         // D. Auto classify the category using AI or heuristics
         cleaned.category = classifyOpportunityCategory(cleaned.titleEN + " " + cleaned.contentEN, source.type);
 
-        // E. Save to D1 as "pending"
+        // E. Save to D1 as "pending_review"
         await insertOpportunityToD1(env, cleaned);
         resultsStats.itemsNew++;
       }
@@ -373,7 +373,7 @@ async function insertOpportunityToD1(env: Env, item: any): Promise<void> {
       item.original_source_url,
       item.published_date,
       item.imageUrl,
-      "pending",
+      "pending_review",
       item.workplaceType || "On-site",
       item.whoCanApply || "Open to all Iraqi undergraduates and fresh graduates.",
       item.salary || "Depends on qualification recruiter check",

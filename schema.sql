@@ -30,7 +30,7 @@ CREATE TABLE IF NOT EXISTS opportunities (
   original_source_url TEXT NOT NULL,
   published_date TEXT,
   imageUrl TEXT,
-  status TEXT DEFAULT 'pending', -- 'pending' | 'approved' | 'rejected' | 'expired'
+  status TEXT DEFAULT 'pending_review', -- 'pending' | 'approved' | 'rejected' | 'expired'
   created_at TEXT DEFAULT CURRENT_TIMESTAMP,
   workplaceType TEXT DEFAULT 'On-site', -- 'On-site' | 'Remote' | 'Hybrid'
   whoCanApply TEXT,

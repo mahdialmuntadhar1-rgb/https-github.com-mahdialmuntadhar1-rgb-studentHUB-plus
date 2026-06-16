@@ -886,13 +886,19 @@ export default function HomeFeed({
         ) : filteredFeedItems.length === 0 ? (
           <div className="text-center py-12 text-slate-500 bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-6 shadow-sm">
             <div className="text-3xl mb-2">🔭</div>
-            <h3 className="font-extrabold text-white text-xs">No active posts match these filters</h3>
+            <h3 className="font-extrabold text-white text-xs">
+              {language === 'ar'
+                ? 'لا توجد فرص منشورة حالياً'
+                : language === 'ku'
+                ? 'لە ئێستادا هیچ دەرفەتێکی بڵاوکراوە نییە'
+                : 'No published opportunities yet'}
+            </h3>
             <p className="text-[10px] text-slate-400 max-w-xs mt-1.5 mx-auto leading-relaxed">
               {language === 'ar' 
-                ? 'لا توجد منشورات للطلاب تناسب اختيارات التصفية هذه حالياً. وسّع التحديد أو غيّر المحافظة لرؤية المزيد!' 
+                ? 'لا توجد فرص منشورة حالياً. يرجى المحاولة لاحقاً.' 
                 : language === 'ku' 
-                ? 'هیچ بابەتێک نییە بەپێی ئەم پاڵاوتنە لە ئێستادا. تصفیەکەت بگۆڕە بۆ بینینی هەموو شتێک!' 
-                : 'No campus items match this selector combination. Broaden your filters to explore materials around the map!'}
+                ? 'لە ئێستادا هیچ دەرفەتێکی بڵاوکراوە نییە. تکایە دواتر هەوڵ بدەوە.' 
+                : 'No published opportunities yet. Please check again later.'}
             </p>
           </div>
         ) : (

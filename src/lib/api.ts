@@ -381,7 +381,7 @@ export const socialApi = {
   async getFriendRequests(lang: Language = 'ar'): Promise<FriendRequestsResponse> {
     try {
       const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
-      if (!token || token.startsWith('mock_token_')) {
+      if (!token) {
         return { incoming: [], outgoing: [] };
       }
       const res = await fetch(`${API_BASE}/friend-requests`, {
@@ -451,7 +451,7 @@ export const socialApi = {
   async getMessageRequests(lang: Language = 'ar'): Promise<MessageRequestsResponse> {
     try {
       const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
-      if (!token || token.startsWith('mock_token_')) {
+      if (!token) {
         return { incoming: [], outgoing: [] };
       }
       const res = await fetch(`${API_BASE}/message-requests`, {
@@ -508,7 +508,7 @@ export const socialApi = {
   async getThreads(lang: Language = 'ar'): Promise<MessageThreadsResponse> {
     try {
       const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
-      if (!token || token.startsWith('mock_token_')) {
+      if (!token) {
         return { threads: [] };
       }
       const res = await fetch(`${API_BASE}/messages/threads`, {
@@ -528,7 +528,7 @@ export const socialApi = {
   async getThreadMessages(threadId: string, lang: Language = 'ar'): Promise<ThreadMessagesResponse> {
     try {
       const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
-      if (!token || token.startsWith('mock_token_')) {
+      if (!token) {
         return { thread: {} as any, messages: [] };
       }
       const res = await fetch(`${API_BASE}/messages/threads/${threadId}/messages`, {
