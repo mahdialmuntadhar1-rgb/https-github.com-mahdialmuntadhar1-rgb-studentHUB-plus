@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Language, FeedItem, Comment, getLocalizedContent, hasAlternativeLanguages } from '../types';
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
@@ -307,6 +307,14 @@ export default function FeedCard({
   };
 
   const badge = getTypeBadge();
+
+  // MUST_HAVE_SAFE_TAGS: live API may send tags as string/null/object, never trust shape.
+  const rawTags = (item as any).tags;
+  const safeTags: string[] = Array.isArray(rawTags)
+    ? rawTags.map((tag: any) => String(tag).trim()).filter(Boolean)
+    : typeof rawTags === 'string'
+      ? rawTags.split(/[,،|]/).map((tag: string) => tag.trim()).filter(Boolean)
+      : [];
 
   // Helper for role translation
   const getRoleLabel = (role: string) => {
@@ -880,9 +888,9 @@ export default function FeedCard({
         )}
 
         {/* Tags renderer */}
-        {item.tags && item.tags.length > 0 && (
+        {safeTags.length > 0 && (
           <div className="flex flex-wrap gap-1 mb-3 bg-[#F7F4FF]/70 p-1.5 rounded-xl border border-[#E6E1F5] shadow-inner">
-            {item.tags.map(tag => (
+            {safeTags.map(tag => (
               <span key={tag} className="text-[9px] font-bold bg-white text-[#6B25C9] border border-[#6B25C9]/25 px-2 py-0.5 rounded-md flex items-center gap-0.5 leading-none shadow-sm">
                 <Hash className="w-2.5 h-2.5 text-[#6B25C9]" />
                 {tag}
@@ -1065,4 +1073,5 @@ function CommentRow({
     </div>
   );
 }
+
 

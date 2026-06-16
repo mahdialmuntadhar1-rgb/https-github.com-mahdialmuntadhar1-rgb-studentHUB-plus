@@ -365,7 +365,11 @@ export default function App() {
               commentsList: [],
               governorateId: item.governorateId || item.governorate || 'all',
               universityId: item.universityId || item.university_id || 'all',
-              tags: item.tags || ['scraped', item.category || 'career'],
+              tags: Array.isArray(item.tags)
+                 ? item.tags.map((tag: any) => String(tag).trim()).filter(Boolean)
+                 : typeof item.tags === 'string'
+                   ? item.tags.split(/[,،|]/).map((tag: string) => tag.trim()).filter(Boolean)
+                   : ['scraped', item.category || 'career'],
               company: item.organization || item.institution_name,
               companyLogo: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
               location: item.location || item.city || 'Iraq',
@@ -1264,4 +1268,6 @@ export default function App() {
     </div>
   );
 };
+
+
 
