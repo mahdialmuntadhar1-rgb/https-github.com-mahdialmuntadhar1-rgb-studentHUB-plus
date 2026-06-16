@@ -20,19 +20,19 @@ export const brandingThemes: Theme[] = [
   {
     id: 'iraq-local',
     name: 'Iraq Premium Local 🇮🇶',
-    primary: '#4F46E5', // Royal Indigo
-    secondary: '#06B6D4', // Iraqi Turquoise
+    primary: '#FF6B00', // Brand Orange
+    secondary: '#0EA5E9', // Iraqi Cyan
     accent: '#F59E0B', // Warm Amber (Main CTA)
-    background: '#070314', // Futuristic deep purple dark base
-    secondaryDark: '#11052C',
+    background: '#070314', // Futuristic deep charcoal/black base
+    secondaryDark: '#120703',
     surface: '#FFFFFF', // Clean White Card
     softCard: '#F8FAFC',
-    border: 'rgba(139, 92, 246, 0.28)', // Futuristic purple border
+    border: 'rgba(255, 107, 0, 0.28)', // Futuristic warm orange border
     text: '#F3F4F6', // Readable light color over dark navy background
     mutedText: '#94A3B8', // Muted text for dark background
-    shadow: '0 12px 30px -10px rgba(79, 70, 229, 0.14), 0 20px 42px -20px rgba(79, 70, 229, 0.06)',
-    bgGradient: 'radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.35) 0%, rgba(124, 58, 237, 0.15) 30%, rgba(13, 8, 30, 0.8) 75%, transparent 100%), radial-gradient(circle at 10% 80%, rgba(6, 182, 212, 0.12) 0%, transparent 50%), linear-gradient(180deg, #070314 0%, #11052C 35%, #0D041F 70%, #030107 100%)',
-    cardText: '#0F172A' // Dark Navy text on white cards
+    shadow: '0 12px 30px -10px rgba(255, 107, 0, 0.14), 0 20px 42px -20px rgba(255, 107, 0, 0.06)',
+    bgGradient: 'radial-gradient(circle at 50% 0%, rgba(255, 107, 0, 0.35) 0%, rgba(249, 115, 22, 0.15) 30%, rgba(13, 8, 30, 0.8) 75%, transparent 100%), radial-gradient(circle at 10% 80%, rgba(14, 165, 233, 0.12) 0%, transparent 50%), linear-gradient(180deg, #070314 0%, #120703 35%, #0B0401 70%, #030107 100%)',
+    cardText: '#2D1A04' // Dark Navy-Brown text on white cards
   },
   {
     id: 'campus-sunrise',

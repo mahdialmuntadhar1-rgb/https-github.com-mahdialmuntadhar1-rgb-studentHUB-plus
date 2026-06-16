@@ -23,19 +23,19 @@
 
 :root {
   /* Default Theme: Iraq Premium Local */
-  --primary: #4F46E5;
-  --secondary: #06B6D4;
+  --primary: #FF6B00;
+  --secondary: #0EA5E9;
   --accent: #F59E0B;
   --background: #070314;
-  --secondary-dark: #11052C;
+  --secondary-dark: #120703;
   --surface: #FFFFFF;
   --soft-card: #F8FAFC;
-  --border-custom: rgba(139, 92, 246, 0.2);
+  --border-custom: rgba(255, 107, 0, 0.2);
   --text-custom: #F3F4F6;
-  --card-text-custom: #0F172A;
+  --card-text-custom: #2D1A04;
   --muted-text: #94A3B8;
-  --shadow: 0 12px 30px -10px rgba(79, 70, 229, 0.14), 0 20px 42px -20px rgba(79, 70, 229, 0.06);
-  --bg-gradient: radial-gradient(circle at 50% 0%, rgba(79, 70, 229, 0.35) 0%, rgba(124, 58, 237, 0.15) 30%, rgba(13, 8, 30, 0.8) 75%, transparent 100%), radial-gradient(circle at 10% 80%, rgba(6, 182, 212, 0.12) 0%, transparent 50%), linear-gradient(180deg, #070314 0%, #11052C 35%, #0D041F 70%, #030107 100%);
+  --shadow: 0 12px 30px -10px rgba(255, 107, 0, 0.14), 0 20px 42px -20px rgba(255, 107, 0, 0.06);
+  --bg-gradient: radial-gradient(circle at 50% 0%, rgba(255, 107, 0, 0.35) 0%, rgba(249, 115, 22, 0.15) 30%, rgba(13, 8, 30, 0.8) 75%, transparent 100%), radial-gradient(circle at 10% 80%, rgba(14, 165, 233, 0.12) 0%, transparent 50%), linear-gradient(180deg, #070314 0%, #120703 35%, #0B0401 70%, #030107 100%);
 }
 
 body {
@@ -147,12 +147,12 @@ body .text-\[\#161A33\]:not(.bg-white *):not([id^="feed-card-"] *):not(.bg-\[\#1
 .bg-white,
 [id^="feed-card-"],
 .bg-\[\#121B2E\] {
-  background-color: #F3E8FF !important; /* Premium high-contrast light lavender purple */
-  background-image: linear-gradient(145deg, #F3E8FF 0%, #E9D5FF 100%) !important; /* Soft luxurious light purple metal gradient */
-  color: #1A103C !important; /* Ultra high contrast deep-violet text */
-  box-shadow: 0 22px 50px -12px rgba(3, 1, 15, 0.35), 0 8px 24px -8px rgba(139, 92, 246, 0.15) !important; /* Clean outer glow with soft drop shadows */
+  background-color: #FFFDF9 !important; /* Premium high-contrast light warm orange/cream */
+  background-image: linear-gradient(145deg, #FFFDF9 0%, #FFF5E6 100%) !important; /* Soft luxurious warm orange gradient */
+  color: #2D1A04 !important; /* Ultra high contrast deep-orange/brown text */
+  box-shadow: 0 22px 50px -12px rgba(3, 1, 15, 0.35), 0 8px 24px -8px rgba(255, 107, 0, 0.15) !important; /* Clean outer glow with soft drop shadows */
   border-radius: 24px !important;
-  border: 2.5px solid rgba(139, 92, 246, 0.38) !important; /* Highly-visible premium futuristic purple border framing the postcards */
+  border: 2.5px solid rgba(255, 107, 0, 0.38) !important; /* Highly-visible premium futuristic orange border framing the postcards */
 }
 
 /* Secondary cards/boxes */
@@ -245,7 +245,7 @@ select option {
   color: var(--text-custom, #F3F4F6) !important;
 }
 
-/* Force all text inside cards to remain high-contrast dark navy / purple */
+/* Force all text inside cards to remain high-contrast dark orange / brown */
 [id^="feed-card-"] h1,
 [id^="feed-card-"] h2,
 [id^="feed-card-"] h3,
@@ -253,26 +253,26 @@ select option {
 [id^="feed-card-"] h5,
 [id^="feed-card-"] h6,
 [id^="feed-card-"] strong {
-  color: #120633 !important; /* Sparkling high-contrast dark purple header texts */
+  color: #2D1A04 !important; /* Sparkling high-contrast dark orange-brown header texts */
 }
 
 [id^="feed-card-"] p,
 [id^="feed-card-"] span:not(.text-white):not([class*="bg-indigo"]):not([class*="bg-cyan"]):not([class*="bg-emerald"]):not([class*="text-[white]"]):not([class*="bg-gradient"]):not([class*="text-indigo"]):not([class*="text-emerald"]):not([class*="text-rose"]):not([class*="text-pink"]):not([class*="text-amber"]):not([class*="text-cyan"]):not([class*="text-violet"]),
 [id^="feed-card-"] label,
 [id^="feed-card-"] div:not([class*="bg-indigo"]):not([class*="bg-cyan"]):not([class*="bg-emerald"]):not([class*="bg-gradient"]):not([id^="card-header"]):not([class*="text-indigo"]):not([class*="text-emerald"]):not([class*="text-rose"]):not([class*="text-pink"]):not([class*="text-amber"]):not([class*="text-cyan"]):not([class*="text-violet"]):not([class*="text-slate-500"]) {
-  color: #2F1F58 !important; /* High contrast dark rich purple for body text */
+  color: #4C2E0B !important; /* High contrast dark rich orange-brown for body text */
 }
 
 /* Specific styling for nested text containers inside feed cards */
 [id^="feed-card-"] .text-slate-500,
 [id^="feed-card-"] .text-slate-600 {
-  color: #5D4A8E !important; /* Highly visible midtone purple lavender */
+  color: #7E5B30 !important; /* Highly visible midtone warm gold-brown */
 }
 
 [id^="feed-card-"] .text-slate-700,
 [id^="feed-card-"] .text-slate-800,
 [id^="feed-card-"] .text-slate-900 {
-  color: #1A103C !important; /* Premium dark navy-purple for primary text list lines */
+  color: #2D1A04 !important; /* Premium dark navy/brown for primary text list lines */
 }
 
 /* Inner block containers on postcards (RSVP, opportunities, study groups, etc) */
@@ -285,8 +285,8 @@ select option {
 [id^="feed-card-"] div[class*="from-["],
 [id^="feed-card-"] .bg-gradient-to-br {
   background: #FFFFFF !important; /* Pure clean white inset container */
-  border: 1.5px solid rgba(139, 92, 246, 0.22) !important;
-  box-shadow: inset 0 1px 3px rgba(139, 92, 246, 0.08), 0 2px 6px rgba(139, 92, 246, 0.04) !important;
+  border: 1.5px solid rgba(255, 107, 0, 0.22) !important;
+  box-shadow: inset 0 1px 3px rgba(255, 107, 0, 0.08), 0 2px 6px rgba(255, 107, 0, 0.04) !important;
 }
 
 /* Inner description and sub-elements mapping */
@@ -299,24 +299,24 @@ select option {
 [id^="feed-card-"] input[type="text"],
 [id^="feed-card-"] input select {
   background-color: #FFFFFF !important;
-  color: #120633 !important;
-  border: 1.5px solid rgba(139, 92, 246, 0.3) !important;
+  color: #2D1A04 !important;
+  border: 1.5px solid rgba(255, 107, 0, 0.3) !important;
 }
 
 [id^="feed-card-"] input[type="text"]::placeholder {
-  color: #8C7FA9 !important;
+  color: #A38B70 !important;
 }
 
 [id^="feed-card-"] .font-extrabold.text-\[\#161A33\] {
-  color: #1A103C !important; /* Dark comment author name text */
+  color: #2D1A04 !important; /* Dark comment author name text */
 }
 
 [id^="feed-card-"] .border-t.border-\[\#E6E1F5\] {
-  border-top: 1px solid rgba(139, 92, 246, 0.15) !important;
+  border-top: 1px solid rgba(255, 107, 0, 0.15) !important;
 }
 
 [id^="feed-card-"] .border-\[\#E6E1F5\] {
-  border-color: rgba(139, 92, 246, 0.15) !important;
+  border-color: rgba(255, 107, 0, 0.15) !important;
 }
 
 #app-header-container {
@@ -462,27 +462,27 @@ select option {
 [class*="shadow-[2px_2px_0px_0px_#161A33]"],
 [class*="shadow-[4px_4px_0px_0px_#161A33]"],
 [class*="shadow-[5px_5px_0px_0px_#161A33]"] {
-  box-shadow: 0 14px 34px -10px rgba(79, 70, 229, 0.12), 0 4px 12px -3px rgba(11, 5, 26, 0.05) !important;
+  box-shadow: 0 14px 34px -10px rgba(255, 107, 0, 0.12), 0 4px 12px -3px rgba(11, 5, 26, 0.05) !important;
   border-width: 1px !important;
-  border-color: rgba(139, 92, 246, 0.2) !important;
+  border-color: rgba(255, 107, 0, 0.2) !important;
 }
 
-/* Primary buttons style using Royal Indigo (#4F46E5) with white text */
+/* Primary buttons style using dynamic Orange with white text */
 button.bg-\[\#6B25C9\],
 button[class*="bg-[#6B25C9]"],
 button[class*="bg-indigo-600"],
 .bg-indigo-600 {
-  background-color: #4F46E5 !important; /* Royal Indigo */
+  background-color: #FF6B00 !important; /* Brand Orange */
   color: #FFFFFF !important;
-  border: 1.5px solid #4338CA !important;
-  box-shadow: 0 4px 14px rgba(79, 70, 229, 0.2) !important;
+  border: 1.5px solid #E65F00 !important;
+  box-shadow: 0 4px 14px rgba(255, 107, 0, 0.25) !important;
   border-radius: 12px !important;
   font-weight: 700 !important;
   transition: all 0.2s ease;
 }
 button.bg-\[\#6B25C9\]:hover,
 button[class*="bg-[#6B25C9]"]:hover {
-  background-color: #4338CA !important;
+  background-color: #E65F00 !important;
   transform: translateY(-1px);
 }
 
@@ -510,8 +510,8 @@ button.bg-amber-500:hover {
 .btn-secondary-outline,
 button.bg-white.text-slate-800 {
   background-color: #FFFFFF !important;
-  color: #4F46E5 !important;
-  border: 1.5px solid #4F46E5 !important;
+  color: #FF6B00 !important;
+  border: 1.5px solid #FF6B00 !important;
   border-radius: 12px !important;
   font-weight: 700 !important;
   box-shadow: none !important;
@@ -519,7 +519,7 @@ button.bg-white.text-slate-800 {
 }
 .btn-secondary-outline:hover,
 button.bg-white.text-slate-800:hover {
-  background-color: #F8FAFC !important;
+  background-color: #FFFDF9 !important;
   transform: translateY(-1px);
 }
 

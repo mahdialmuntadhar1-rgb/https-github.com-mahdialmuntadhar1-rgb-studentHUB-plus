@@ -132,43 +132,62 @@ export default function FeedCard({
         accentColor = 'text-rose-400 group-hover:scale-115';
       }
 
+      // Classify fallback category-specific image
+      let categoryImgUrl = '';
+      if (category === 'career') {
+        categoryImgUrl = 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?w=600&auto=format&fit=crop&q=80';
+      } else if (category === 'QA') {
+        categoryImgUrl = 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?w=600&auto=format&fit=crop&q=80';
+      } else if (category === 'collaboration') {
+        categoryImgUrl = 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?w=600&auto=format&fit=crop&q=80';
+      } else {
+        categoryImgUrl = 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?w=600&auto=format&fit=crop&q=80';
+      }
+
       return (
         <div className="group relative rounded-2xl overflow-hidden mb-4 border-2 border-[#161A33] bg-slate-950 h-48 sm:h-52 select-none transition-all duration-300 shadow-[3px_3px_0px_0px_#161A33] hover:shadow-[5px_5px_0px_0px_#161A33] hover:scale-[1.005] active:scale-[0.995]">
-          <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} transition-all duration-500`} />
-          <div className="absolute inset-0 opacity-[0.07] bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]" />
+          <img 
+            src={categoryImgUrl} 
+            alt={headerLabel}
+            className="absolute inset-0 w-full h-full object-cover transition-transform duration-700 group-hover:scale-108 filter contrast-125 brightness-90"
+            referrerPolicy="no-referrer"
+          />
+          <div className={`absolute inset-0 bg-gradient-to-br ${gradientClass} opacity-80 group-hover:opacity-75 transition-all duration-500 mix-blend-multiply`} />
+          <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/45 to-black/10 transition-opacity duration-300 group-hover:opacity-95" />
+          <div className="absolute inset-0 opacity-[0.05] bg-[radial-gradient(#ffffff_1px,transparent_1px)] [background-size:16px_16px]" />
           <div className="absolute -top-16 -right-16 w-36 h-36 bg-white/5 rounded-full blur-xl group-hover:bg-white/10 transition-colors" />
-          <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-black/25 rounded-full blur-xl" />
+          <div className="absolute -bottom-12 -left-12 w-44 h-44 bg-black/35 rounded-full blur-xl" />
 
           <div className="absolute inset-0 flex flex-col justify-between p-4 z-10 text-white font-sans">
             <div className="flex items-center justify-between">
-              <span className="text-[9px] font-black uppercase tracking-wider bg-white/15 backdrop-blur-md border border-white/20 px-2.5 py-1 rounded-lg">
+              <span className="text-[9px] font-black uppercase tracking-wider bg-black/40 backdrop-blur-md border border-white/10 px-2.5 py-1 rounded-lg">
                 {headerLabel}
               </span>
-              <div className="flex items-center gap-1">
+              <div className="flex items-center gap-1 bg-black/40 backdrop-blur-md px-2 py-0.5 rounded-md border border-white/5">
                 <span className="w-1.5 h-1.5 bg-green-500 rounded-full animate-pulse" />
                 <span className="text-[8px] font-mono text-white/70 uppercase tracking-widest leading-none">Live Hub</span>
               </div>
             </div>
 
             <div className="flex items-center gap-4 my-auto max-w-[95%]">
-              <div className="p-2.5 bg-white/10 backdrop-blur-lg rounded-xl border border-white/15 shadow-inner shrink-0 transition-transform duration-300">
+              <div className="p-2.5 bg-black/40 backdrop-blur-lg rounded-xl border border-white/15 shadow-inner shrink-0 transition-transform duration-300">
                 <IconComponent className={`w-7 h-7 ${accentColor} transition-transform duration-250`} />
               </div>
               <div className="flex flex-col text-left">
-                <span className="text-[8px] font-black uppercase text-white/55 tracking-wider mb-0.5">
+                <span className="text-[8px] font-black uppercase text-white/60 tracking-wider mb-0.5">
                   {item.type.replace(/_/g, ' ')}
                 </span>
-                <h3 className="text-xs sm:text-sm font-black text-white leading-snug tracking-tight line-clamp-2 drop-shadow-sm font-sans">
+                <h3 className="text-xs sm:text-sm font-black text-white leading-snug tracking-tight line-clamp-2 drop-shadow-[0_2px_4px_rgba(0,0,0,0.8)] font-sans">
                   {title}
                 </h3>
               </div>
             </div>
 
-            <div className="flex items-center justify-between border-t border-white/10 pt-2 text-[9px] text-white/60 font-bold">
-              <span className="truncate max-w-[65%]">
+            <div className="flex items-center justify-between border-t border-white/10 pt-2 text-[9px] text-white/65 font-bold">
+              <span className="truncate max-w-[65%] bg-black/30 px-1.5 py-0.5 rounded backdrop-blur-sm">
                 {resolvedUniLabel ? `🏫 ${resolvedUniLabel}` : `💡 StudentHUB Platform`}
               </span>
-              <span className="font-mono text-[8px] bg-black/10 border border-white/10 rounded px-1.5 py-0.5">
+              <span className="font-mono text-[8px] bg-black/40 border border-white/10 rounded px-1.5 py-0.5">
                 Ref: #{item.id}
               </span>
             </div>
