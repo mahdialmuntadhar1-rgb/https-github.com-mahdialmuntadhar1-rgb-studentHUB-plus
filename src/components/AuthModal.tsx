@@ -1,5 +1,6 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Language } from '../types';
+import { BACKEND_URL } from '../lib/api';
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, Lock, User, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
@@ -80,26 +81,62 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       setLoading(false);
       return;
     }
+    const endpoint =
+      mode === 'login'
+        ? `${BACKEND_URL}/api/auth/login`
+        : mode === 'register'
+          ? `${BACKEND_URL}/api/auth/register`
+          : `${BACKEND_URL}/api/auth/forgot-password`;
 
-    // Simulate backend response
-    setTimeout(() => {
-      setLoading(false);
-      if (mode === 'forgot') {
-        setSuccess(getLabel('emailSentDesc'));
-      } else if (mode === 'register') {
-        setSuccess(getLabel('registerSuccess'));
+    const payload =
+      mode === 'register'
+        ? { email, password, name: username, username }
+        : mode === 'forgot'
+          ? { email }
+          : { email, password };
+
+    fetch(endpoint, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload),
+    })
+      .then(async (res) => {
+        const data = await res.json().catch(() => ({}));
+        if (!res.ok) {
+          throw new Error(data.message || data.error || 'Authentication failed');
+        }
+        return data;
+      })
+      .then((data) => {
+        setLoading(false);
+
+        if (mode === 'forgot') {
+          setSuccess(getLabel('emailSentDesc'));
+          return;
+        }
+
+        const token = data.token || data.access_token || data.jwt;
+        if (!token) {
+          throw new Error('Login succeeded but no token was returned by backend.');
+        }
+
+        localStorage.setItem('jamiaati_token', token);
+
+        if (data.user?.role === 'admin' || data.user?.role === 'staff') {
+          localStorage.setItem('admin_token', token);
+        }
+
+        setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
+
         setTimeout(() => {
-          onAuthSuccess(username || 'Zara Al-Iraqi');
+          onAuthSuccess(data.user?.name || data.user?.full_name || username || email);
           onClose();
-        }, 1200);
-      } else {
-        setSuccess(getLabel('loginSuccess'));
-        setTimeout(() => {
-          onAuthSuccess('Zara Al-Iraqi');
-          onClose();
-        }, 1200);
-      }
-    }, 1000);
+        }, 700);
+      })
+      .catch((err) => {
+        setLoading(false);
+        setError(err.message || 'Authentication failed');
+      });
   };
 
   return (
@@ -323,3 +360,4 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     </AnimatePresence>
   );
 }
+

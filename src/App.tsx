@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Language, FeedItem, UserProfile, Comment } from './types';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from './data/mockData';
 import { getTranslation } from './data/translations';
@@ -21,7 +21,7 @@ import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } 
 
 export default function App() {
   // Locale States
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('ar');
   const [selectedGov, setSelectedGov] = useState<string>('all');
   const [selectedUni, setSelectedUni] = useState<string>('all');
 
@@ -96,11 +96,14 @@ export default function App() {
 
   // Auth States
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    const loggedIn = localStorage.getItem('jamiaati_logged_in') !== 'false';
-    if (loggedIn && !localStorage.getItem('jamiaati_token')) {
-      localStorage.setItem('jamiaati_token', 'mock_token_for_student_hub_' + Date.now());
+    const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+    const valid = !!token && !token.startsWith('mock_token_');
+    localStorage.setItem('jamiaati_logged_in', valid ? 'true' : 'false');
+    if (!valid) {
+      localStorage.removeItem('jamiaati_token');
+      localStorage.removeItem('admin_token');
     }
-    return loggedIn;
+    return valid;
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -712,6 +715,16 @@ export default function App() {
   };
 
   const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post', imageUrl?: string) => {
+    // MUST_HAVE_REAL_AUTH_FOR_POSTING
+    const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+    if (!token || token.startsWith('mock_token_')) {
+      showToast(
+        language === 'ar' ? 'يرجى تسجيل الدخول بحساب حقيقي قبل النشر.' : language === 'ku' ? 'تکایە بە هەژماری ڕاستەقینە بچۆ ژوورەوە پێش بڵاوکردنەوە.' : 'Please sign in with a real account before posting.',
+        'error'
+      );
+      setIsAuthModalOpen(true);
+      return;
+    }
     // Generate original and translated contents
     const originalLanguage = language;
     const titleOriginal = title;
@@ -814,7 +827,7 @@ export default function App() {
 
   // Simulating user switches Roles inside their profile
   const handleRoleToggle = () => {
-    const roles: ('student' | 'graduate' | 'teacher' | 'staff')[] = ['student', 'graduate', 'teacher', 'staff'];
+    const roles: ('student' | 'graduate' | 'teacher')[] = ['student', 'graduate', 'teacher'];
     const currentIdx = roles.indexOf(userProfile.role as any);
     const nextIdx = (currentIdx + 1) % roles.length;
     const nextRole = roles[nextIdx];
@@ -822,11 +835,9 @@ export default function App() {
     setUserProfile(prev => ({
       ...prev,
       role: nextRole,
-      name: nextRole === 'teacher' ? 'Dr. Yousif Al-Hamadani' : nextRole === 'staff' ? 'Admin Layla' : defaultUserProfile.name,
+      name: nextRole === 'teacher' ? 'Dr. Yousif Al-Hamadani' : defaultUserProfile.name,
       avatar: nextRole === 'teacher' 
-        ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200' 
-        : nextRole === 'staff' 
-        ? 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'
+        ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200'
         : defaultUserProfile.avatar
     }));
   };
@@ -1175,7 +1186,6 @@ export default function App() {
           onAuthSuccess={(newUsername) => {
             setIsLoggedIn(true);
             localStorage.setItem('jamiaati_logged_in', 'true');
-            localStorage.setItem('jamiaati_token', 'mock_token_for_student_hub_' + Date.now());
             setUserProfile(prev => ({
               ...prev,
               name: newUsername || 'Zara Al-Iraqi'
@@ -1254,3 +1264,4 @@ export default function App() {
     </div>
   );
 };
+
