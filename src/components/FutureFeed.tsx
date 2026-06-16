@@ -157,7 +157,7 @@ export default function FutureFeed({
       universityId: 'all',
       tags: [categoryRaw, displayCategory],
       company: orgName,
-      companyLogo: imgUrl || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+      companyLogo: 'UNI',
       location: locationStr,
       deadline: item.deadline || '',
       imageUrl: imgUrl,

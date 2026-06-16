@@ -71,8 +71,53 @@ export default function FeedCard({
 
   // Select proper localized strings
   const [showOriginal, setShowOriginal] = useState(false);
-  const title = getLocalizedContent(item, 'title', language, showOriginal);
-  const content = getLocalizedContent(item, 'content', language, showOriginal);
+  const isBadVisibleText = (value?: string) => {
+    const raw = String(value || '').trim();
+    if (!raw) return true;
+    return (
+      /^https?:\/\//i.test(raw) ||
+      /^www\./i.test(raw) ||
+      /^blob:/i.test(raw) ||
+      /^data:/i.test(raw) ||
+      raw.includes('images.unsplash.com') ||
+      raw.includes('auto=format') ||
+      raw.includes('fit=crop') ||
+      raw.includes('w=') ||
+      raw.includes('q=80')
+    );
+  };
+
+  const cleanMainText = (value?: string, fallback = '') => {
+    const raw = String(value || '').trim();
+    if (isBadVisibleText(raw)) return fallback;
+
+    const cleaned = raw
+      .replace(/https?:\/\/\S+/gi, '')
+      .replace(/www\.\S+/gi, '')
+      .replace(/\S*images\.unsplash\.com\S*/gi, '')
+      .replace(/\S*auto=format\S*/gi, '')
+      .replace(/\S*fit=crop\S*/gi, '')
+      .replace(/\S*w=\d+\S*/gi, '')
+      .replace(/\S*q=80\S*/gi, '')
+      .replace(/\s{2,}/g, ' ')
+      .trim();
+
+    return cleaned || fallback;
+  };
+
+  const safeTinyLogo = (value?: string) => {
+    const cleaned = cleanMainText(value, '');
+    if (!cleaned) return 'UNI';
+    if (isBadVisibleText(cleaned)) return 'UNI';
+    if (cleaned.length > 4) return 'UNI';
+    return cleaned;
+  };
+
+  const rawTitle = getLocalizedContent(item, 'title', language, showOriginal);
+  const rawContent = getLocalizedContent(item, 'content', language, showOriginal);
+
+  const title = cleanMainText(rawTitle, 'Student Opportunity');
+  const content = cleanMainText(rawContent, 'Open details to learn more and apply through the official source.');
 
   const cleanOverlayText = (value?: string) => {
     const raw = String(value || '').trim();
@@ -747,7 +792,7 @@ export default function FeedCard({
             <div className="flex items-start justify-between gap-2.5 relative z-10">
               <div className="flex items-center gap-2.5">
                 <div className="w-10 h-10 rounded-xl bg-white border-2 border-[#161A33]/80 text-[#6B25C9] shadow-sm font-black flex items-center justify-center text-lg select-none shrink-0 transform hover:scale-105 transition-transform">
-                  {item.companyLogo || '💼'}
+                  {safeTinyLogo(item.companyLogo)}
                 </div>
                 <div>
                   <div className="flex items-center gap-1.5 flex-wrap">
@@ -810,7 +855,7 @@ export default function FeedCard({
             {/* Saves and Badges Stats tracker */}
             <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold justify-between pt-1">
               <span className="flex items-center gap-1 bg-[#F3F7FF] text-[#161A33] border border-[#E6E1F5] px-2 py-0.5 rounded-md text-[9px] font-black uppercase">
-                🏷️ {item.opportunityCategory || 'Career'}
+                🏷️ {cleanMainText(item.opportunityCategory, 'Career')}
               </span>
               <span className="text-[#6B25C9] flex items-center gap-0.5 bg-[#6B25C9]/10 px-2 py-0.5 rounded-lg text-[9px] font-black">
                 ⭐ {item.savedByUser ? (item.savedCount || 12) + 1 : (item.savedCount || 12)} saved by peers

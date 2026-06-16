@@ -365,7 +365,7 @@ export default function App() {
                    ? item.tags.split(/[,،|]/).map((tag: string) => tag.trim()).filter(Boolean)
                    : ['scraped', item.category || 'career'],
               company: item.organization || item.institution_name,
-              companyLogo: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+              companyLogo: 'UNI',
               location: item.location || item.city || 'Iraq',
               deadline: item.deadline || 'August 2026',
               imageUrl: item.imageUrl || item.image_url,
