@@ -1,0 +1,30 @@
+﻿name = "rafid-api"
+main = "worker.ts"
+compatibility_date = "2024-01-01"
+
+# D1 Database Binding
+[[d1_databases]]
+binding = "DB"
+database_name = "rafid-db"
+database_id = "30febf83-135b-4888-8e5a-461105bb590a" # Replace with actual database_id after running: wrangler d1 create rafid-db
+
+# R2 Storage Binding
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "rafid-uploads"
+
+# Environment Variables (secrets should be set via `wrangler secret`)
+[vars]
+# No secrets here - use `wrangler secret put JWT_SECRET` etc.
+
+# Production deployment
+[env.production]
+name = "rafid-api"
+
+# Staging deployment
+[env.staging]
+name = "rafid-api-staging"
+
+# Local development
+[env.dev]
+name = "rafid-api-dev"
