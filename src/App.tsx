@@ -872,7 +872,7 @@ export default function App() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || errData.error || Backend refused the post with status .);
+        throw new Error(errData.message || errData.error || ('Backend refused the post with status ' + res.status + '.'));
       }
 
       const saved = await res.json().catch(() => ({}));
@@ -892,8 +892,13 @@ export default function App() {
       setFeedItems(prev => [finalPost, ...prev]);
       return true;
     } catch (err: any) {
+      const postErrorMessage = err?.message || 'Unknown error';
       showToast(
-        language === 'ar' ? تعذر نشر المنشور:  : language === 'ku' ? نەتوانرا بابەتەکە بڵاو بکرێتەوە:  : Post was not published: ,
+        language === 'ar'
+          ? ('تعذر نشر المنشور: ' + postErrorMessage)
+          : language === 'ku'
+            ? ('نەتوانرا بابەتەکە بڵاو بکرێتەوە: ' + postErrorMessage)
+            : ('Post was not published: ' + postErrorMessage),
         'error'
       );
       console.error('Post publish failed:', err);
