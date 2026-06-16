@@ -8,7 +8,8 @@ import {
   MessageItem 
 } from '../types';
 
-export const BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
+const configuredBackendUrl = (import.meta as any).env?.VITE_BACKEND_URL;
+export const BACKEND_URL = configuredBackendUrl || 'https://rafid-api.mahdialmuntadhar1.workers.dev';
 const API_BASE = `${BACKEND_URL}/api`;
 
 function getHeaders() {
