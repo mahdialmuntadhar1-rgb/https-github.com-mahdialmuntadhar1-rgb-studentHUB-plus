@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Language } from '../types';
 import { BACKEND_URL } from '../lib/api';
 import { getTranslation } from '../data/translations';
@@ -9,7 +9,7 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   language: Language;
-  onAuthSuccess: (username: string) => void;
+  onAuthSuccess: (username: string, authUser?: any) => void;
 }
 
 type AuthMode = 'login' | 'register' | 'forgot';
@@ -129,7 +129,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
         setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
 
         setTimeout(() => {
-          onAuthSuccess(data.user?.name || data.user?.full_name || username || email);
+          onAuthSuccess(data.user?.name || data.user?.full_name || username || email, data.user || data.profile || data);
           onClose();
         }, 700);
       })

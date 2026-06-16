@@ -8,9 +8,13 @@ import {
   MessageItem 
 } from '../types';
 
-export const BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
-const API_BASE = `${BACKEND_URL}/api`;
+const DEFAULT_BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
 
+export const BACKEND_URL =
+  ((import.meta as any).env?.VITE_BACKEND_URL as string | undefined) ||
+  localStorage.getItem('jamiaati_backend_url') ||
+  DEFAULT_BACKEND_URL;
+const API_BASE = BACKEND_URL + '/api';
 function getHeaders() {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',

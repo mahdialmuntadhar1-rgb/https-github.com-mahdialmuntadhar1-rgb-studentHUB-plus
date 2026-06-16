@@ -6,3 +6,5 @@ coverage/
 *.log
 .env*
 !.env.example
+JAMIAATI_*.txt
+_backup_*/

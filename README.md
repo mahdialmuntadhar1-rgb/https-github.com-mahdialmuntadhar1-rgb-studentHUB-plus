@@ -1,20 +1,35 @@
-<div align="center">
-<img width="1200" height="475" alt="GHBanner" src="https://ai.google.dev/static/site-assets/images/share-ais-513315318.png" />
-</div>
+﻿# Jamiaati — Iraqi Student Hub
 
-# Run and deploy your AI Studio app
+Final MVP frontend for the Iraqi university student application.
 
-This contains everything you need to run your app locally.
+## Production endpoints
 
-View your app in AI Studio: https://ai.studio/apps/deae2ed9-a6b5-4abd-a9bb-8da43c92c619
+- Frontend Worker: https://https-github.mahdialmuntadhar1.workers.dev
+- Backend Worker: https://rafid-api.mahdialmuntadhar1.workers.dev
+- D1 database: rafid-db
 
-## Run Locally
+## Local run
 
-**Prerequisites:**  Node.js
+```powershell
+cd "C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus"
+npm install
+npm run dev
+```
 
+## Final MVP checks
 
-1. Install dependencies:
-   `npm install`
-2. Set the `GEMINI_API_KEY` in [.env.local](.env.local) to your Gemini API key
-3. Run the app:
-   `npm run dev`
+```powershell
+npm run lint
+npm run build
+npm run mvp:check
+```
+
+## MVP must-have scope
+
+- Real login/register token flow
+- Admin role recognition
+- Public feed and filters
+- Backend-first post publishing
+- Opportunities and highlights from backend
+- Student social entry points: friend requests, message requests, threads
+- Arabic-first UI with Kurdish and English support

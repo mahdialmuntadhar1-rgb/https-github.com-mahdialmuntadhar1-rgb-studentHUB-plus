@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Language, FeedItem, UserProfile, Comment } from './types';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from './data/mockData';
 import { getTranslation } from './data/translations';
@@ -718,7 +718,7 @@ export default function App() {
     }));
   };
 
-  const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post', imageUrl?: string) => {
+  const handleAddNewPost = async (title: string, body: string, anonymous: boolean, customType = 'post', imageUrl?: string): Promise<boolean> => {
     // MUST_HAVE_REAL_AUTH_FOR_POSTING
     const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
     if (!token || token.startsWith('mock_token_')) {
@@ -727,7 +727,7 @@ export default function App() {
         'error'
       );
       setIsAuthModalOpen(true);
-      return;
+      return false;
     }
     // Generate original and translated contents
     const originalLanguage = language;
@@ -808,12 +808,64 @@ export default function App() {
       tags: ['StudentShare', customType === 'anonymous_question' ? 'Advising' : 'Life']
     };
 
-    handleAwardPoints(40); // high points for sharing posts!
-    showToast(
-      language === 'ar' ? 'تم نشر مساهمتك بنجاح على ساحة الطلاب! ✨ +٤٠ نقطة' : language === 'ku' ? 'بڵاوکراوەکەت بڵاوکرایەوە لە ساحەی قوتابیان! ✨ +٤٠ خاڵ' : 'Contribution published successfully! ✨ +40 pts', 
-      'success'
-    );
-    setFeedItems(prev => [freshPost, ...prev]);
+    try {
+      const res = await fetch('https://rafid-api.mahdialmuntadhar1.workers.dev/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({
+          title,
+          body,
+          content: body,
+          anonymous,
+          type: customType,
+          imageUrl,
+          image_url: imageUrl,
+          governorateId: freshPost.governorateId,
+          universityId: freshPost.universityId,
+          original_language: originalLanguage,
+          title_original: titleOriginal,
+          body_original: bodyOriginal,
+          title_en: titleEN,
+          body_en: contentEN,
+          title_ar: titleAR,
+          body_ar: contentAR,
+          title_ku: titleKU,
+          body_ku: contentKU
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || errData.error || 'Backend refused the post.');
+      }
+
+      const saved = await res.json().catch(() => ({}));
+      const savedPost = saved.post || saved.item || saved.data || saved;
+
+      const finalPost = {
+        ...freshPost,
+        id: String(savedPost.id || freshPost.id),
+        date: savedPost.created_at ? new Date(savedPost.created_at).toLocaleString() : freshPost.date
+      };
+
+      handleAwardPoints(40);
+      showToast(
+        language === 'ar' ? 'تم نشر مساهمتك بنجاح على ساحة الطلاب! ✨ +٤٠ نقطة' : language === 'ku' ? 'بڵاوکراوەکەت بڵاوکرایەوە لە ساحەی قوتابیان! ✨ +٤٠ خاڵ' : 'Contribution published successfully! ✨ +40 pts',
+        'success'
+      );
+      setFeedItems(prev => [finalPost, ...prev]);
+      return true;
+    } catch (err: any) {
+      showToast(
+        language === 'ar' ? 'تعذر نشر المنشور على الخادم. يرجى التأكد من أن backend /api/posts جاهز.' : language === 'ku' ? 'نەتوانرا بابەتەکە لە سێرڤەر بڵاو بکرێتەوە.' : 'Post was not published. Please confirm backend /api/posts is ready.',
+        'error'
+      );
+      console.error('Post publish failed:', err);
+      return false;
+    }
   };
 
   // Gamification engine helpers
@@ -1187,13 +1239,30 @@ export default function App() {
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
           language={language}
-          onAuthSuccess={(newUsername) => {
+          onAuthSuccess={(newUsername, authUser) => {
             setIsLoggedIn(true);
             localStorage.setItem('jamiaati_logged_in', 'true');
+
+            const rawRole = String(authUser?.role || authUser?.user_role || '').toLowerCase();
+            const resolvedRole =
+              rawRole === 'admin' || rawRole === 'staff'
+                ? 'staff'
+                : rawRole === 'teacher'
+                  ? 'teacher'
+                  : rawRole === 'graduate'
+                    ? 'graduate'
+                    : 'student';
+
             setUserProfile(prev => ({
               ...prev,
-              name: newUsername || 'Zara Al-Iraqi'
+              id: String(authUser?.id || authUser?.user_id || prev.id || 'me'),
+              name: newUsername || authUser?.email || 'Jamiaati User',
+              role: resolvedRole as any,
+              avatar: authUser?.avatar || authUser?.avatar_url || prev.avatar,
+              universityId: authUser?.university_id || authUser?.universityId || prev.universityId,
+              governorateId: authUser?.governorate_id || authUser?.governorateId || authUser?.governorate || prev.governorateId
             }));
+
             showToast(
               language === 'ar' ? `مرحباً بك مجدداً يا ${newUsername || 'زارا'}! 👋 تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'زارا'}! 👋 دابەزاندن سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Zara'}! 👋 Signed in`, 
               'success'
