@@ -37,6 +37,9 @@ check(app.includes("/api/posts"), "App publishes posts to backend /api/posts");
 check(app.includes("governorate: finalGovernorate"), "App sends backend post governorate");
 check(app.includes("institution: finalInstitution"), "App sends backend post institution");
 check(app.includes("institution_id: finalInstitutionId"), "App sends backend post institution_id");
+check(app.includes("authUser?.institution_id"), "App preserves backend institution_id after login");
+check(app.includes("normalizeGovernorate(rawGovernorate)"), "App normalizes login governorate");
+check(app.includes("normalizeGovernorate(rawGovernorateForPost)"), "App normalizes post governorate");
 
 if (social.includes("demoFriendRequests") || social.includes("demoMessageRequests")) {
   console.log("WARN SocialHub still contains demo fallback data. This is acceptable only for visual MVP, not real social MVP.");

@@ -809,15 +809,30 @@ export default function App() {
     };
 
     try {
-      const finalGovernorate =
-        freshPost.governorateId && freshPost.governorateId !== 'all'
-          ? freshPost.governorateId
-          : ((userProfile as any).governorate || userProfile.governorateId || 'all');
-
-      const finalInstitutionId =
+      const finalInstitutionId = String(
         freshPost.universityId && freshPost.universityId !== 'all'
           ? freshPost.universityId
-          : ((userProfile as any).institution_id || userProfile.universityId || 'manual');
+          : ((userProfile as any).institution_id || userProfile.universityId || 'manual')
+      );
+
+      const rawGovernorateForPost = String(
+        freshPost.governorateId && freshPost.governorateId !== 'all'
+          ? freshPost.governorateId
+          : ((userProfile as any).governorate || userProfile.governorateId || 'all')
+      );
+
+      const normalizedGovernorateForPost = normalizeGovernorate(rawGovernorateForPost);
+
+      const finalGovernorate =
+        normalizedGovernorateForPost !== 'all'
+          ? normalizedGovernorateForPost
+          : finalInstitutionId.toLowerCase().includes('baghdad')
+            ? 'baghdad'
+            : finalInstitutionId.toLowerCase().includes('sulay')
+              ? 'sulaymaniyah'
+              : finalInstitutionId.toLowerCase().includes('erbil')
+                ? 'erbil'
+                : 'all';
 
       const finalInstitution =
         finalInstitutionId === 'manual'
@@ -857,7 +872,7 @@ export default function App() {
 
       if (!res.ok) {
         const errData = await res.json().catch(() => ({}));
-        throw new Error(errData.message || errData.error || 'Backend refused the post.');
+        throw new Error(errData.message || errData.error || Backend refused the post with status .);
       }
 
       const saved = await res.json().catch(() => ({}));
@@ -878,7 +893,7 @@ export default function App() {
       return true;
     } catch (err: any) {
       showToast(
-        language === 'ar' ? 'تعذر نشر المنشور على الخادم. يرجى التأكد من أن backend /api/posts جاهز.' : language === 'ku' ? 'نەتوانرا بابەتەکە لە سێرڤەر بڵاو بکرێتەوە.' : 'Post was not published. Please confirm backend /api/posts is ready.',
+        language === 'ar' ? تعذر نشر المنشور:  : language === 'ku' ? نەتوانرا بابەتەکە بڵاو بکرێتەوە:  : Post was not published: ,
         'error'
       );
       console.error('Post publish failed:', err);
@@ -1271,15 +1286,49 @@ export default function App() {
                     ? 'graduate'
                     : 'student';
 
-            setUserProfile(prev => ({
-              ...prev,
-              id: String(authUser?.id || authUser?.user_id || prev.id || 'me'),
-              name: newUsername || authUser?.email || 'Jamiaati User',
-              role: resolvedRole as any,
-              avatar: authUser?.avatar || authUser?.avatar_url || prev.avatar,
-              universityId: authUser?.university_id || authUser?.universityId || prev.universityId,
-              governorateId: authUser?.governorate_id || authUser?.governorateId || authUser?.governorate || prev.governorateId
-            }));
+            setUserProfile(prev => {
+              const resolvedInstitutionId = String(
+                authUser?.institution_id ||
+                authUser?.university_id ||
+                authUser?.universityId ||
+                prev.universityId ||
+                'manual'
+              );
+
+              const rawGovernorate = String(
+                authUser?.governorate_id ||
+                authUser?.governorateId ||
+                authUser?.governorate ||
+                prev.governorateId ||
+                'all'
+              );
+
+              const normalizedGovernorate = normalizeGovernorate(rawGovernorate);
+
+              const resolvedGovernorate =
+                normalizedGovernorate !== 'all'
+                  ? normalizedGovernorate
+                  : resolvedInstitutionId.toLowerCase().includes('baghdad')
+                    ? 'baghdad'
+                    : resolvedInstitutionId.toLowerCase().includes('sulay')
+                      ? 'sulaymaniyah'
+                      : resolvedInstitutionId.toLowerCase().includes('erbil')
+                        ? 'erbil'
+                        : prev.governorateId || 'all';
+
+              return {
+                ...prev,
+                id: String(authUser?.id || authUser?.user_id || prev.id || 'me'),
+                name: newUsername || authUser?.full_name || authUser?.email || 'Jamiaati User',
+                role: resolvedRole as any,
+                avatar: authUser?.avatar || authUser?.avatar_url || prev.avatar,
+                universityId: resolvedInstitutionId,
+                governorateId: resolvedGovernorate,
+                institution_id: resolvedInstitutionId,
+                institution: authUser?.institution || authUser?.institution_name || resolvedInstitutionId,
+                governorate: resolvedGovernorate
+              } as any;
+            });
 
             showToast(
               language === 'ar' ? `مرحباً بك مجدداً يا ${newUsername || 'زارا'}! 👋 تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'زارا'}! 👋 دابەزاندن سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Zara'}! 👋 Signed in`, 
