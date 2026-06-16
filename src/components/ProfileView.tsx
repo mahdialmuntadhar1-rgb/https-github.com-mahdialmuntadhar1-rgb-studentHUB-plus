@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { FeedItem, UserProfile, Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
@@ -77,18 +77,18 @@ export default function ProfileView({
         <div className="bg-gradient-to-b from-[#121B2E] to-[#0E1726]/60 border border-[#1F2E4D] rounded-3xl p-6.5 shadow-xl text-center w-full relative overflow-hidden flex flex-col items-center">
           <div className="absolute top-0 left-0 right-0 h-1.5 bg-gradient-to-r from-cyan-500 via-[#2563EB] to-[#4F46E5]" />
           <div className="w-14 h-14 rounded-2xl bg-slate-900 border border-[#1F2E4D] flex items-center justify-center text-3xl mb-4 shadow-inner">
-            👤
+            ðŸ‘¤
           </div>
           
           <h2 className="text-base font-black text-white px-2 leading-tight">
-            {language === 'ar' ? 'بوابة الطالب الأكاديمية' : language === 'ku' ? 'دەروازەی ئەکادیمی خوێندکاران' : 'Academic Student Portal'}
+            {language === 'ar' ? 'Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ø·Ø§Ù„Ø¨ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ©' : language === 'ku' ? 'Ø¯Û•Ø±ÙˆØ§Ø²Û•ÛŒ Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±Ø§Ù†' : 'Academic Student Portal'}
           </h2>
           
           <p className="text-xs font-semibold text-slate-300 leading-relaxed mt-3 max-w-xs mx-auto">
             {language === 'ar' 
-              ? 'سجل دخولك الآن لتتبع نقاط تفاعلك لمساعدة زملائك، حفظ ومراجعة ملازم الدراسة، التقديم لوظائف الخريجين، واستشارة مساعد الذكاء الاصطناعي "المرشد"!' 
+              ? 'Ø³Ø¬Ù„ Ø¯Ø®ÙˆÙ„Ùƒ Ø§Ù„Ø¢Ù† Ù„ØªØªØ¨Ø¹ Ù†Ù‚Ø§Ø· ØªÙØ§Ø¹Ù„Ùƒ Ù„Ù…Ø³Ø§Ø¹Ø¯Ø© Ø²Ù…Ù„Ø§Ø¦ÙƒØŒ Ø­ÙØ¸ ÙˆÙ…Ø±Ø§Ø¬Ø¹Ø© Ù…Ù„Ø§Ø²Ù… Ø§Ù„Ø¯Ø±Ø§Ø³Ø©ØŒ Ø§Ù„ØªÙ‚Ø¯ÙŠÙ… Ù„ÙˆØ¸Ø§Ø¦Ù Ø§Ù„Ø®Ø±ÙŠØ¬ÙŠÙ†ØŒ ÙˆØ§Ø³ØªØ´Ø§Ø±Ø© Ù…Ø³Ø§Ø¹Ø¯ Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ "Ø§Ù„Ù…Ø±Ø´Ø¯"!' 
               : language === 'ku'
-              ? 'ئێستا بچۆ ژوورەوە بۆ پاشەکەوتکردنی بابەتەکانی خوێندن، پێشکەشکردنی داواکاری بۆ هەلی کار، و ڕاوێژکردن لەگەڵ ڕێبەری زیرەکی دەستکرد!'
+              ? 'Ø¦ÛŽØ³ØªØ§ Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ• Ø¨Û† Ù¾Ø§Ø´Û•Ú©Û•ÙˆØªÚ©Ø±Ø¯Ù†ÛŒ Ø¨Ø§Ø¨Û•ØªÛ•Ú©Ø§Ù†ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù†ØŒ Ù¾ÛŽØ´Ú©Û•Ø´Ú©Ø±Ø¯Ù†ÛŒ Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒ Ø¨Û† Ù‡Û•Ù„ÛŒ Ú©Ø§Ø±ØŒ Ùˆ Ú•Ø§ÙˆÛŽÚ˜Ú©Ø±Ø¯Ù† Ù„Û•Ú¯Û•Úµ Ú•ÛŽØ¨Û•Ø±ÛŒ Ø²ÛŒØ±Û•Ú©ÛŒ Ø¯Û•Ø³ØªÚ©Ø±Ø¯!'
               : 'Sign in to access advanced features: rack up academic interaction points by helping your peers, save and bookmark lectures, apply directly to tech opportunities, and unlock our AI advisor Al-Murshed!'}
           </p>
 
@@ -97,7 +97,7 @@ export default function ProfileView({
             className="w-full mt-6 py-3 bg-gradient-to-r from-[#4F46E5] via-[#2563EB] to-[#06B6D4] hover:scale-[1.01] active:scale-95 text-xs font-black text-white hover:shadow-glow-cyan/5 border border-white/5 cursor-pointer rounded-2xl transition-all shadow-md flex items-center justify-center gap-1.5"
             id="guest-signin-btn"
           >
-            {language === 'ar' ? 'تسجيل الدخول / إنشاء حساب' : language === 'ku' ? 'چوونەژوورەوە / دروستکردنی هەژمار' : 'Sign In / Create Account'}
+            {language === 'ar' ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ / Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨' : language === 'ku' ? 'Ú†ÙˆÙˆÙ†Û•Ú˜ÙˆÙˆØ±Û•ÙˆÛ• / Ø¯Ø±ÙˆØ³ØªÚ©Ø±Ø¯Ù†ÛŒ Ù‡Û•Ú˜Ù…Ø§Ø±' : 'Sign In / Create Account'}
           </button>
         </div>
       </div>
@@ -138,10 +138,10 @@ export default function ProfileView({
 
           <div className="flex flex-col gap-1 text-center text-slate-400 font-bold text-[10px] mt-3">
             <span className="text-slate-100 flex items-center justify-center gap-1">
-              🎓 {uniName}
+              ðŸŽ“ {uniName}
             </span>
             <span className="flex items-center justify-center gap-1">
-              📍 {govName} • {major}
+              ðŸ“ {govName} â€¢ {major}
             </span>
           </div>
 
@@ -153,8 +153,8 @@ export default function ProfileView({
                 className="text-[9px] font-black text-amber-400 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/20 rounded-xl px-3 py-1.5 cursor-pointer transition-all flex items-center gap-1.5"
                 id="navigateToAdminLink"
               >
-                <span>🕵️‍♀️</span>
-                <span>{language === 'ar' ? 'بوابة التشغيل والأتمتة' : language === 'ku' ? 'سیستەمی کۆنترۆڵ' : 'Scraper Console'}</span>
+                <span>ðŸ•µï¸â€â™€ï¸</span>
+                <span>{language === 'ar' ? 'Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„ØªØ´ØºÙŠÙ„ ÙˆØ§Ù„Ø£ØªÙ…ØªØ©' : language === 'ku' ? 'Ø³ÛŒØ³ØªÛ•Ù…ÛŒ Ú©Û†Ù†ØªØ±Û†Úµ' : 'Admin Panel'}</span>
               </button>
             )}
             <button
@@ -171,7 +171,7 @@ export default function ProfileView({
               <svg className="w-3 h-3 text-red-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2.5} d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1" />
               </svg>
-              <span>{language === 'ar' ? 'تسجيل الخروج' : language === 'ku' ? 'چوونەدەرەوە' : 'Log Out'}</span>
+              <span>{language === 'ar' ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø®Ø±ÙˆØ¬' : language === 'ku' ? 'Ú†ÙˆÙˆÙ†Û•Ø¯Û•Ø±Û•ÙˆÛ•' : 'Log Out'}</span>
             </button>
           </div>
         </div>
@@ -242,7 +242,7 @@ export default function ProfileView({
         {activeTab === 'bookmarks' ? (
           bookmarkedItems.length === 0 ? (
             <div className="text-center py-10 bg-[#121B2E] border border-[#1F2E4D] rounded-2xl p-4 text-slate-450 text-xs">
-              <div className="text-2xl mb-1.5">🔖</div>
+              <div className="text-2xl mb-1.5">ðŸ”–</div>
               <h4 className="font-extrabold text-white">{getTranslation('bookmarksEmptyTitle', language)}</h4>
               <p className="text-[10px] text-slate-450 mt-1 max-w-[200px] mx-auto leading-normal">{getTranslation('bookmarksEmptyDesc', language)}</p>
             </div>
@@ -268,7 +268,7 @@ export default function ProfileView({
         ) : (
           activeEngagements.length === 0 ? (
             <div className="text-center py-10 bg-[#121B2E] border border-[#1F2E4D] rounded-2xl p-4 text-slate-450 text-xs">
-              <div className="text-2xl mb-1.5">💼</div>
+              <div className="text-2xl mb-1.5">ðŸ’¼</div>
               <h4 className="font-extrabold text-white">{getTranslation('entriesEmptyTitle', language)}</h4>
               <p className="text-[10px] text-slate-450 mt-1 max-w-[200px] mx-auto leading-normal">{getTranslation('entriesEmptyDesc', language)}</p>
             </div>
@@ -297,3 +297,4 @@ export default function ProfileView({
     </div>
   );
 }
+

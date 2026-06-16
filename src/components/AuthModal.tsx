@@ -1,6 +1,7 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Language } from '../types';
 import { getTranslation } from '../data/translations';
+import { BACKEND_URL } from '../lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, Lock, User, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 
@@ -30,39 +31,38 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
 
   // Localized texts
   const t = {
-    login: { en: 'Sign In', ar: 'تسجيل الدخول', ku: 'چوونەژوورەوە' },
-    register: { en: 'Create Account', ar: 'إنشاء حساب جديد', ku: 'تۆمارکردنی هەژمار' },
-    forgot: { en: 'Reset Password', ar: 'استعادة الحساب', ku: 'دۆزینەوەی وشەی تێپەڕ' },
-    emailLabel: { en: 'Academic Email', ar: 'البريد الإلكتروني الجامعي', ku: 'ئیمەیڵی ئەکادیمی' },
-    passwordLabel: { en: 'Password', ar: 'كلمة المرور', ku: 'وشەی تێپەڕ' },
-    usernameLabel: { en: 'Full Name', ar: 'الاسم الكامل', ku: 'ناوی تەواو' },
-    forgotLink: { en: 'Forgot Password?', ar: 'نسيت كلمة المرور؟', ku: 'وشەی تێپەڕت لەبیرچووە؟' },
-    noAccount: { en: "Don't have an account?", ar: 'ليس لديك حساب؟', ku: 'هەژمارت نییە؟' },
-    haveAccount: { en: 'Already have an account?', ar: 'لديك حساب بالفعل؟', ku: 'خاوەنی هەژماری؟' },
-    registerNow: { en: 'Register Now', ar: 'سجل الآن', ku: 'ئێستا تۆمار بکە' },
-    loginNow: { en: 'Login Now', ar: 'سجل دخولك', ku: 'ئێستا بچۆ ژوورەوە' },
-    backToLogin: { en: 'Back to Login', ar: 'العودة لتسجيل الدخول', ku: 'گەڕانەوە بۆ چوونەژوورەوە' },
-    remember: { en: 'Remember session', ar: 'تذكرني على هذا الجهاز', ku: 'بیرهێنانەوە' },
-    validationAcademicEmail: { en: 'Please enter a valid student email.', ar: 'يرجى إدخال بريد إلكتروني جامعي صحيح.', ku: 'تکایە ئیمەیڵێکی دروست بنووسە.' },
-    validationPasswordLen: { en: 'Password must be at least 6 characters.', ar: 'كلمة المرور يجب أن لا تقل عن ٦ أحرف.', ku: 'دەبێت وشەی تێپەڕ لانی کەم ٦ پیت بێت.' },
-    validationNameEmpty: { en: 'Please enter your name.', ar: 'يرجى كتابة الاسم الكامل.', ku: 'تکایە ناوی خۆت بنووسە.' },
-    emailSentTitle: { en: 'Instruction Sent', ar: 'تم إرسال التعليمات', ku: 'ڕێنمایی نێردران' },
-    emailSentDesc: { en: 'A secure recovery code has been sent to your inbox.', ar: 'تم إرسال رمز إعادة التعيين الآمن لبريدك الإلكتروني.', ku: 'کۆدی سەرلەنوێ ڕێکخستنەوە نێردرا بۆ ئیمەیڵەکەت.' },
-    registerSuccess: { en: 'Welcome to Jamiaati!', ar: 'أهلاً بك في منصة جامعتي!', ku: 'بەخێربێیت بۆ جامەعەتی!' },
-    loginSuccess: { en: 'Welcome back!', ar: 'أهلاً بعودتك مجدداً!', ku: 'بەخێربێیتەوە!' }
+    login: { en: 'Sign In', ar: 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„', ku: 'Ú†ÙˆÙˆÙ†Û•Ú˜ÙˆÙˆØ±Û•ÙˆÛ•' },
+    register: { en: 'Create Account', ar: 'Ø¥Ù†Ø´Ø§Ø¡ Ø­Ø³Ø§Ø¨ Ø¬Ø¯ÙŠØ¯', ku: 'ØªÛ†Ù…Ø§Ø±Ú©Ø±Ø¯Ù†ÛŒ Ù‡Û•Ú˜Ù…Ø§Ø±' },
+    forgot: { en: 'Reset Password', ar: 'Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø§Ù„Ø­Ø³Ø§Ø¨', ku: 'Ø¯Û†Ø²ÛŒÙ†Û•ÙˆÛ•ÛŒ ÙˆØ´Û•ÛŒ ØªÛŽÙ¾Û•Ú•' },
+    emailLabel: { en: 'Academic Email', ar: 'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ø§Ù„Ø¬Ø§Ù…Ø¹ÙŠ', ku: 'Ø¦ÛŒÙ…Û•ÛŒÚµÛŒ Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒ' },
+    passwordLabel: { en: 'Password', ar: 'ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±', ku: 'ÙˆØ´Û•ÛŒ ØªÛŽÙ¾Û•Ú•' },
+    usernameLabel: { en: 'Full Name', ar: 'Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„', ku: 'Ù†Ø§ÙˆÛŒ ØªÛ•ÙˆØ§Ùˆ' },
+    forgotLink: { en: 'Forgot Password?', ar: 'Ù†Ø³ÙŠØª ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ±ØŸ', ku: 'ÙˆØ´Û•ÛŒ ØªÛŽÙ¾Û•Ú•Øª Ù„Û•Ø¨ÛŒØ±Ú†ÙˆÙˆÛ•ØŸ' },
+    noAccount: { en: "Don't have an account?", ar: 'Ù„ÙŠØ³ Ù„Ø¯ÙŠÙƒ Ø­Ø³Ø§Ø¨ØŸ', ku: 'Ù‡Û•Ú˜Ù…Ø§Ø±Øª Ù†ÛŒÛŒÛ•ØŸ' },
+    haveAccount: { en: 'Already have an account?', ar: 'Ù„Ø¯ÙŠÙƒ Ø­Ø³Ø§Ø¨ Ø¨Ø§Ù„ÙØ¹Ù„ØŸ', ku: 'Ø®Ø§ÙˆÛ•Ù†ÛŒ Ù‡Û•Ú˜Ù…Ø§Ø±ÛŒØŸ' },
+    registerNow: { en: 'Register Now', ar: 'Ø³Ø¬Ù„ Ø§Ù„Ø¢Ù†', ku: 'Ø¦ÛŽØ³ØªØ§ ØªÛ†Ù…Ø§Ø± Ø¨Ú©Û•' },
+    loginNow: { en: 'Login Now', ar: 'Ø³Ø¬Ù„ Ø¯Ø®ÙˆÙ„Ùƒ', ku: 'Ø¦ÛŽØ³ØªØ§ Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ•' },
+    backToLogin: { en: 'Back to Login', ar: 'Ø§Ù„Ø¹ÙˆØ¯Ø© Ù„ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„', ku: 'Ú¯Û•Ú•Ø§Ù†Û•ÙˆÛ• Ø¨Û† Ú†ÙˆÙˆÙ†Û•Ú˜ÙˆÙˆØ±Û•ÙˆÛ•' },
+    remember: { en: 'Remember session', ar: 'ØªØ°ÙƒØ±Ù†ÙŠ Ø¹Ù„Ù‰ Ù‡Ø°Ø§ Ø§Ù„Ø¬Ù‡Ø§Ø²', ku: 'Ø¨ÛŒØ±Ù‡ÛŽÙ†Ø§Ù†Û•ÙˆÛ•' },
+    validationAcademicEmail: { en: 'Please enter a valid student email.', ar: 'ÙŠØ±Ø¬Ù‰ Ø¥Ø¯Ø®Ø§Ù„ Ø¨Ø±ÙŠØ¯ Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ø¬Ø§Ù…Ø¹ÙŠ ØµØ­ÙŠØ­.', ku: 'ØªÚ©Ø§ÛŒÛ• Ø¦ÛŒÙ…Û•ÛŒÚµÛŽÚ©ÛŒ Ø¯Ø±ÙˆØ³Øª Ø¨Ù†ÙˆÙˆØ³Û•.' },
+    validationPasswordLen: { en: 'Password must be at least 6 characters.', ar: 'ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ÙŠØ¬Ø¨ Ø£Ù† Ù„Ø§ ØªÙ‚Ù„ Ø¹Ù† Ù¦ Ø£Ø­Ø±Ù.', ku: 'Ø¯Û•Ø¨ÛŽØª ÙˆØ´Û•ÛŒ ØªÛŽÙ¾Û•Ú• Ù„Ø§Ù†ÛŒ Ú©Û•Ù… Ù¦ Ù¾ÛŒØª Ø¨ÛŽØª.' },
+    validationNameEmpty: { en: 'Please enter your name.', ar: 'ÙŠØ±Ø¬Ù‰ ÙƒØªØ§Ø¨Ø© Ø§Ù„Ø§Ø³Ù… Ø§Ù„ÙƒØ§Ù…Ù„.', ku: 'ØªÚ©Ø§ÛŒÛ• Ù†Ø§ÙˆÛŒ Ø®Û†Øª Ø¨Ù†ÙˆÙˆØ³Û•.' },
+    emailSentTitle: { en: 'Instruction Sent', ar: 'ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„ØªØ¹Ù„ÙŠÙ…Ø§Øª', ku: 'Ú•ÛŽÙ†Ù…Ø§ÛŒÛŒ Ù†ÛŽØ±Ø¯Ø±Ø§Ù†' },
+    emailSentDesc: { en: 'A secure recovery code has been sent to your inbox.', ar: 'ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø±Ù…Ø² Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„ØªØ¹ÙŠÙŠÙ† Ø§Ù„Ø¢Ù…Ù† Ù„Ø¨Ø±ÙŠØ¯Ùƒ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ.', ku: 'Ú©Û†Ø¯ÛŒ Ø³Û•Ø±Ù„Û•Ù†ÙˆÛŽ Ú•ÛŽÚ©Ø®Ø³ØªÙ†Û•ÙˆÛ• Ù†ÛŽØ±Ø¯Ø±Ø§ Ø¨Û† Ø¦ÛŒÙ…Û•ÛŒÚµÛ•Ú©Û•Øª.' },
+    registerSuccess: { en: 'Welcome to Jamiaati!', ar: 'Ø£Ù‡Ù„Ø§Ù‹ Ø¨Ùƒ ÙÙŠ Ù…Ù†ØµØ© Ø¬Ø§Ù…Ø¹ØªÙŠ!', ku: 'Ø¨Û•Ø®ÛŽØ±Ø¨ÛŽÛŒØª Ø¨Û† Ø¬Ø§Ù…Û•Ø¹Û•ØªÛŒ!' },
+    loginSuccess: { en: 'Welcome back!', ar: 'Ø£Ù‡Ù„Ø§Ù‹ Ø¨Ø¹ÙˆØ¯ØªÙƒ Ù…Ø¬Ø¯Ø¯Ø§Ù‹!', ku: 'Ø¨Û•Ø®ÛŽØ±Ø¨ÛŽÛŒØªÛ•ÙˆÛ•!' }
   };
 
   const getLabel = (key: keyof typeof t) => {
     return t[key][language] || t[key]['en'];
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
 
-    // Simple robust validation simulation
     if (!email.includes('@')) {
       setError(getLabel('validationAcademicEmail'));
       setLoading(false);
@@ -81,25 +81,54 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       return;
     }
 
-    // Simulate backend response
-    setTimeout(() => {
-      setLoading(false);
+    try {
       if (mode === 'forgot') {
         setSuccess(getLabel('emailSentDesc'));
-      } else if (mode === 'register') {
+        setLoading(false);
+        return;
+      }
+
+      if (mode === 'register') {
         setSuccess(getLabel('registerSuccess'));
+        setLoading(false);
         setTimeout(() => {
           onAuthSuccess(username || 'Zara Al-Iraqi');
           onClose();
-        }, 1200);
-      } else {
-        setSuccess(getLabel('loginSuccess'));
-        setTimeout(() => {
-          onAuthSuccess('Zara Al-Iraqi');
-          onClose();
-        }, 1200);
+        }, 900);
+        return;
       }
-    }, 1000);
+
+      const res = await fetch(`${BACKEND_URL}/api/auth/login`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: email.trim(), password })
+      });
+
+      const data = await res.json().catch(() => ({}));
+
+      if (!res.ok || !data?.token) {
+        throw new Error(data?.error || data?.message || 'Login failed');
+      }
+
+      const user = data.user || {};
+      const displayName = user.full_name || user.name || email.trim();
+
+      localStorage.setItem('admin_token', data.token);
+      localStorage.setItem('jamiaati_token', data.token);
+      localStorage.setItem('jamiaati_logged_in', 'true');
+      localStorage.setItem('jamiaati_auth_user', JSON.stringify(user));
+
+      setSuccess(getLabel('loginSuccess'));
+      setLoading(false);
+
+      setTimeout(() => {
+        onAuthSuccess(displayName);
+        onClose();
+      }, 500);
+    } catch (err: any) {
+      setError(err?.message || 'Login failed');
+      setLoading(false);
+    }
   };
 
   return (
@@ -146,7 +175,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
               {getLabel(mode)}
             </h3>
             <p className="text-[10px] uppercase font-bold text-cyan-400 font-mono tracking-widest mt-1">
-              Jamiaati Portal • بَوّابَتُنا
+              Jamiaati Portal â€¢ Ø¨ÙŽÙˆÙ‘Ø§Ø¨ÙŽØªÙÙ†Ø§
             </p>
           </div>
 
@@ -204,7 +233,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder="••••••••"
+                    placeholder="â€¢â€¢â€¢â€¢â€¢â€¢â€¢â€¢"
                     className="w-full text-xs font-bold text-white bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-10 py-3 focus:outline-none transition-colors"
                   />
                   <button
@@ -323,3 +352,4 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     </AnimatePresence>
   );
 }
+
