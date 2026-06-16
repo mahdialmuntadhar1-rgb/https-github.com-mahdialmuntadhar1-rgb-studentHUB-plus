@@ -809,6 +809,21 @@ export default function App() {
     };
 
     try {
+      const finalGovernorate =
+        freshPost.governorateId && freshPost.governorateId !== 'all'
+          ? freshPost.governorateId
+          : ((userProfile as any).governorate || userProfile.governorateId || 'all');
+
+      const finalInstitutionId =
+        freshPost.universityId && freshPost.universityId !== 'all'
+          ? freshPost.universityId
+          : ((userProfile as any).institution_id || userProfile.universityId || 'manual');
+
+      const finalInstitution =
+        finalInstitutionId === 'manual'
+          ? ((userProfile as any).institution || 'manual')
+          : finalInstitutionId;
+
       const res = await fetch('https://rafid-api.mahdialmuntadhar1.workers.dev/api/posts', {
         method: 'POST',
         headers: {
@@ -821,10 +836,13 @@ export default function App() {
           content: body,
           anonymous,
           type: customType,
+          governorate: finalGovernorate,
+          institution: finalInstitution,
+          institution_id: finalInstitutionId,
           imageUrl,
           image_url: imageUrl,
-          governorateId: freshPost.governorateId,
-          universityId: freshPost.universityId,
+          governorateId: finalGovernorate,
+          universityId: finalInstitutionId,
           original_language: originalLanguage,
           title_original: titleOriginal,
           body_original: bodyOriginal,

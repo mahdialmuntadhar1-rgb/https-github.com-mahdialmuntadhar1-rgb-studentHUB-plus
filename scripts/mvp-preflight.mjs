@@ -34,6 +34,9 @@ check(auth.includes("authUser"), "AuthModal returns backend user object");
 check(home.includes("await onAddNewPost"), "HomeFeed waits for backend publishing result");
 check(app.includes("resolvedRole"), "App maps admin/staff role after login");
 check(app.includes("/api/posts"), "App publishes posts to backend /api/posts");
+check(app.includes("governorate: finalGovernorate"), "App sends backend post governorate");
+check(app.includes("institution: finalInstitution"), "App sends backend post institution");
+check(app.includes("institution_id: finalInstitutionId"), "App sends backend post institution_id");
 
 if (social.includes("demoFriendRequests") || social.includes("demoMessageRequests")) {
   console.log("WARN SocialHub still contains demo fallback data. This is acceptable only for visual MVP, not real social MVP.");
