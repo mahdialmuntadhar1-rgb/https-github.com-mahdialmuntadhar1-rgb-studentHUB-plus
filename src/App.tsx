@@ -1070,22 +1070,21 @@ export default function App() {
       {/* Centered device presentation mock */}
       <div className="w-full max-w-md mx-auto min-h-screen bg-slate-50 shadow-2xl relative flex flex-col border-x border-slate-205">
         
-        {/* Top Header Selector Component */}
-        <Header
-          language={language}
-          setLanguage={setLanguage}
-          currentUserAvatar={userProfile.avatar}
-          onProfileClick={() => setActiveTab('profile')}
-          onChatsClick={() => {
-            setSocialSubTab('threads');
-            setActiveTab('chats');
-          }}
-          incomingFriendRequestsCount={friendRequestsCount}
-          incomingMessageRequestsCount={messageRequestsCount}
-        />
-
         {/* Dynamic Inner views container */}
-        <main className="flex-1 overflow-y-auto bg-slate-50">
+        <main className="flex-1 overflow-y-auto bg-slate-50 pb-20">
+          {/* Top Header Selector Component */}
+          <Header
+            language={language}
+            setLanguage={setLanguage}
+            currentUserAvatar={userProfile.avatar}
+            onProfileClick={() => setActiveTab('profile')}
+            onChatsClick={() => {
+              setSocialSubTab('threads');
+              setActiveTab('chats');
+            }}
+            incomingFriendRequestsCount={friendRequestsCount}
+            incomingMessageRequestsCount={messageRequestsCount}
+          />
           {renderActiveView()}
         </main>
 

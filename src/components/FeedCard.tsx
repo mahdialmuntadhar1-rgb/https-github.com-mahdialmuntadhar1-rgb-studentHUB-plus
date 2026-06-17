@@ -854,36 +854,52 @@ export default function FeedCard({
           </div>
         )}
 
-        {/* D. Study Group Station */}
-        {item.type === 'study_group' && (
-          <div className="bg-indigo-50 p-3.5 rounded-2xl border-2 border-[#161A33] mb-3 flex flex-col gap-2 shadow-[2px_2px_0px_0px_#161A33]">
-            <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
-              <span className="text-[#6B25C9] uppercase text-[9px] tracking-wider font-extrabold">Subject</span>
-              <span className="text-[#161A33] bg-white border border-[#E6E1F5] px-2.5 py-0.5 rounded-md font-black">
-                {item.subject}
-              </span>
-            </div>
+        {/* D. Study Group & Student Club Station */}
+        {(() => {
+          const isClubType = item.type === 'club' || item.tags?.some(tag => tag.toLowerCase() === 'club' || tag.toLowerCase() === 'group');
+          const isStudyGroup = item.type === 'study_group';
+          if (!isClubType && !isStudyGroup) return null;
 
-            <div className="flex items-center justify-between border-t border-[#E6E1F5] pt-2 mt-1">
-              <span className="text-[10px] text-slate-700 font-bold flex items-center gap-1">
-                <Users className="w-4 h-4 text-[#6B25C9]" />
-                {item.memberCount || 1} studying inside
-              </span>
+          return (
+            <div className={`p-3.5 rounded-2xl border-2 border-[#161A33] mb-3 flex flex-col gap-2 shadow-[2px_2px_0px_0px_#161A33] ${isClubType ? 'bg-orange-50/50' : 'bg-indigo-50'}`}>
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-700">
+                <span className={`uppercase text-[9px] tracking-wider font-extrabold ${isClubType ? 'text-orange-600' : 'text-[#6B25C9]'}`}>
+                  {isClubType 
+                    ? (language === 'ar' ? 'نادي طلابي' : language === 'ku' ? 'یانە' : 'Campus Club') 
+                    : (language === 'ar' ? 'موضوع الدراسة' : language === 'ku' ? 'بابەت' : 'Subject')}
+                </span>
+                <span className="text-[#161A33] bg-white border border-[#E6E1F5] px-2.5 py-0.5 rounded-md font-black">
+                  {item.subject || (language === 'ar' ? 'نشاط طلابي' : 'Student Hub')}
+                </span>
+              </div>
 
-              <button
-                id={`join-group-btn-${item.id}`}
-                onClick={() => onJoinGroup(item.id)}
-                className={`py-1.5 px-3 rounded-xl text-[11px] font-black cursor-pointer transition-all border-2 border-[#161A33] ${
-                  item.joined
-                    ? 'bg-emerald-100 text-emerald-900 shadow-[2px_2px_0px_0px_#161A33]'
-                    : 'bg-[#FFD21F] text-[#161A33] hover:bg-[#FFE052] shadow-[2px_2px_0px_0px_#161A33]'
-                }`}
-              >
-                {item.joined ? getTranslation('joined', language) : getTranslation('joinGroup', language)}
-              </button>
+              <div className="flex items-center justify-between border-t border-[#E6E1F5] pt-2 mt-1">
+                <span className="text-[10px] text-slate-700 font-bold flex items-center gap-1">
+                  <Users className={`w-4 h-4 ${isClubType ? 'text-orange-600' : 'text-[#6B25C9]'}`} />
+                  {isClubType 
+                    ? `${item.memberCount || 14} members active` 
+                    : `${item.memberCount || 4} studying inside`}
+                </span>
+
+                <button
+                  id={`join-group-btn-${item.id}`}
+                  onClick={() => onJoinGroup(item.id)}
+                  className={`py-1.5 px-3 rounded-xl text-[11px] font-black cursor-pointer transition-all border-2 border-[#161A33] ${
+                    item.joined
+                      ? 'bg-emerald-100 text-emerald-900 shadow-[2px_2px_0px_0px_#161A33]'
+                      : 'bg-[#FFD21F] text-[#161A33] hover:bg-[#FFE052] shadow-[2px_2px_0px_0px_#161A33]'
+                  }`}
+                >
+                  {item.joined 
+                    ? (language === 'ar' ? 'تم الانضمام ✓' : 'Joined ✓') 
+                    : isClubType 
+                      ? (language === 'ar' ? 'انضم للنادي' : 'Join Club') 
+                      : getTranslation('joinGroup', language)}
+                </button>
+              </div>
             </div>
-          </div>
-        )}
+          );
+        })()}
 
         {/* E. Local Service Card */}
         {item.type === 'local_service' && (

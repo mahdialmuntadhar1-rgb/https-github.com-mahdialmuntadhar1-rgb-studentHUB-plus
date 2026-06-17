@@ -142,13 +142,13 @@ export const translations = {
     ku: 'پێشکەش کراوە',
   },
   rsvpBtn: {
-    en: 'RSVP / Join Event',
-    ar: 'تسجيل حضور / انضمام',
-    ku: 'تۆمارکردنی ئامادەبوون',
+    en: 'Interested',
+    ar: 'مهتم بالفعالية',
+    ku: 'ئامادەبوون',
   },
   rsvped: {
-    en: 'Going',
-    ar: 'سأحضر',
+    en: 'Interested ✓',
+    ar: 'تم الاهتمام ✓',
     ku: 'خەریکم دەچم',
   },
   joinGroup: {
