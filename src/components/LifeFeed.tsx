@@ -70,14 +70,20 @@ export default function LifeFeed({
     const isLifeContent = ['post', 'video', 'photo', 'story', 'poll', 'local_service'].includes(item.type);
     if (!isLifeContent) return false;
 
+    const safeTags: string[] = Array.isArray(item.tags)
+      ? item.tags
+      : (typeof item.tags === 'string' && item.tags
+          ? (item.tags as string).split(',').map(t => t.trim()).filter(Boolean)
+          : []);
+
     if (activeChip === 'all') return true;
     if (activeChip === 'video') return item.type === 'video';
     if (activeChip === 'photo') return item.type === 'photo';
     if (activeChip === 'story') return item.type === 'story';
     if (activeChip === 'poll') return item.type === 'poll';
-    if (activeChip === 'clubs') return item.tags?.some(tag => tag.toLowerCase().includes('club') || tag.toLowerCase().includes('group')) || item.type === 'study_group';
+    if (activeChip === 'clubs') return safeTags.some(tag => tag.toLowerCase().includes('club') || tag.toLowerCase().includes('group')) || item.type === 'study_group';
     if (activeChip === 'nearby') return item.type === 'local_service';
-    if (activeChip === 'trending') return item.likes > 150 || item.tags?.includes('Trending');
+    if (activeChip === 'trending') return item.likes > 150 || safeTags.includes('Trending');
     return true;
   });
 

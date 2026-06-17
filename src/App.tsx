@@ -1053,9 +1053,9 @@ export default function App() {
   };
 
   return (
-    <div id="jamiaati-portal" className="bg-[#040814] min-h-screen text-slate-900 dark:text-slate-100 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'} lang={language}>
+    <div id="jamiaati-portal" className="bg-[#FAF9FF] min-h-screen text-slate-800 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'} lang={language}>
       {/* Centered device presentation mock */}
-      <div className="w-full max-w-md mx-auto min-h-screen bg-[#0B1020] shadow-2xl shadow-black/8 w-full relative flex flex-col border-x border-[#1F2E4D]">
+      <div className="w-full max-w-md mx-auto min-h-screen bg-slate-50 shadow-2xl relative flex flex-col border-x border-slate-205">
         
         {/* Top Header Selector Component */}
         <Header
@@ -1072,97 +1072,97 @@ export default function App() {
         />
 
         {/* Dynamic Inner views container */}
-        <main className="flex-1 overflow-y-auto bg-[#0B1020]">
+        <main className="flex-1 overflow-y-auto bg-slate-50">
           {renderActiveView()}
         </main>
 
         {/* Bottom Persistent Navigation Bar: Visible at all times */}
         <nav 
           id="persistent-bottom-navbar"
-          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[#0B1020]/95 border-t border-[#1F2E4D] px-2 py-3.5 flex justify-around items-center backdrop-blur-md z-40 shadow-2xl shadow-cyan-950/20 pointer-events-auto"
+          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 border-t border-slate-200 px-2 py-3 flex justify-around items-center backdrop-blur-md z-40 shadow-lg pointer-events-auto"
         >
           {/* TAB 1: Home */}
           <button
             onClick={() => setActiveTab('home')}
-            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'home' 
-                ? 'text-cyan-400 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
+                ? 'text-orange-600 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
             }`}
           >
             <Home className="w-5 h-5 shrink-0" />
             <span className="text-[10px] leading-none font-bold">{getTranslation('navHome', language)}</span>
             {activeTab === 'home' && (
-              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
+              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
             )}
           </button>
 
           {/* TAB 2: Life (Fun/Social) */}
           <button
             onClick={() => setActiveTab('life')}
-            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'life' 
-                ? 'text-cyan-400 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
+                ? 'text-orange-600 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
             }`}
           >
             <Compass className="w-5 h-5 shrink-0" />
             <span className="text-[10px] leading-none font-bold">{getTranslation('navLife', language)}</span>
             {activeTab === 'life' && (
-              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
+              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
             )}
           </button>
 
           {/* TAB 3: Ask (AI & Discussions) */}
           <button
             onClick={() => setActiveTab('ask')}
-            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'ask' 
-                ? 'text-cyan-400 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
+                ? 'text-orange-600 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
             }`}
           >
             <HelpCircle className="w-5 h-5 shrink-0" />
             <span className="text-[10px] leading-none font-bold">{getTranslation('navAsk', language)}</span>
             {activeTab === 'ask' && (
-              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
+              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
             )}
           </button>
 
           {/* TAB 4: Future (Careers & Board) */}
           <button
             onClick={() => setActiveTab('future')}
-            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'future' 
-                ? 'text-cyan-400 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
+                ? 'text-orange-600 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
             }`}
           >
             <Briefcase className="w-5 h-5 shrink-0" />
             <span className="text-[10px] leading-none font-bold">{getTranslation('navFuture', language)}</span>
             {activeTab === 'future' && (
-              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
+              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
             )}
           </button>
 
           {/* TAB 5: Profile */}
           <button
             onClick={() => setActiveTab('profile')}
-            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'profile' 
-                ? 'text-cyan-400 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
+                ? 'text-orange-600 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
             }`}
           >
             <div className="relative">
               <User className="w-5 h-5 shrink-0" />
               {isLoggedIn && (friendRequestsCount + messageRequestsCount) > 0 && (
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full border border-[#0B1020] animate-pulse" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white animate-pulse" />
               )}
             </div>
             <span className="text-[10px] leading-none font-bold">{getTranslation('navProfile', language)}</span>
             {activeTab === 'profile' && (
-              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
+              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
             )}
           </button>
         </nav>

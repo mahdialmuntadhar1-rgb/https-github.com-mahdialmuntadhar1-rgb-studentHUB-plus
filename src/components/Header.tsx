@@ -52,17 +52,24 @@ export default function Header({
         
         {/* Brand Logo and Title */}
         <div className="flex items-center gap-1.5" id="header-brand-logo">
-          <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-[var(--primary)] via-[var(--secondary)] to-[var(--accent)] flex items-center justify-center text-white font-bold shadow-sm shrink-0">
+          <div className="w-8 h-8 rounded-lg bg-orange-500 flex items-center justify-center text-white font-bold shadow-sm shrink-0">
             <BookOpen className="w-4.5 h-4.5 text-white" />
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-1">
-              <h1 className="text-sm font-black tracking-tight leading-none bg-gradient-to-r from-[var(--primary)] via-[var(--secondary)] to-[var(--accent)] bg-clip-text text-transparent" id="header-app-name-ar">
+              <span className="text-[15px] text-orange-600 font-black tracking-tight leading-none">Jamiaati</span>
+              <span className="text-[10px] text-slate-300 font-bold leading-none">|</span>
+              <h1 className="text-xs font-black tracking-tight leading-none text-[#1E293B]" id="header-app-name-ar">
                 جامعتي
               </h1>
-              <span className="text-[10px] text-slate-400 font-bold leading-none">|</span>
-              <span className="text-[10px] text-[var(--secondary)] font-black uppercase tracking-tight leading-none">Jamiaati</span>
             </div>
+            <p className="text-[9px] text-slate-500 font-semibold leading-tight mt-0.5">
+              {language === 'ar' 
+                ? 'حياة الجامعة والفرص في مكان واحد' 
+                : language === 'ku' 
+                ? 'ژیانی زانکۆ و هەلەکان لە یەک شوێندا' 
+                : 'University life and opportunities in one place'}
+            </p>
           </div>
         </div>
 
@@ -76,8 +83,8 @@ export default function Header({
                 onClick={() => setLanguage(lang)}
                 className={`px-1.5 py-0.5 text-[9px] font-black rounded-md cursor-pointer transition-all duration-150 ${
                   language === lang 
-                    ? 'bg-[#6B25C9] text-white shadow-sm' 
-                    : 'text-slate-600 hover:text-[#6B25C9]'
+                    ? 'bg-orange-500 text-white shadow-sm' 
+                    : 'text-slate-600 hover:text-orange-600'
                 }`}
               >
                 {getLanguageLabel(lang)}
@@ -93,7 +100,7 @@ export default function Header({
                  setShowNotifications(!showNotifications);
                  setShowNotificationCount(false);
                }}
-               className="p-1 px-1.5 text-slate-700 hover:text-[#6B25C9] hover:bg-[#F3F7FF] rounded-lg transition-colors cursor-pointer"
+               className="p-1 px-1.5 text-slate-700 hover:text-orange-600 hover:bg-[#F3F7FF] rounded-lg transition-colors cursor-pointer"
             >
               <Bell className="w-4 h-4" />
               {showNotificationCount && (
@@ -123,7 +130,7 @@ export default function Header({
                   ) : (
                     <div className="flex flex-col gap-1 max-h-40 overflow-y-auto">
                       {notifications.map(n => (
-                        <div key={n.id} className="p-1.5 hover:bg-[#F7F4FF] rounded-lg transition-all border-l-2 border-[#6B25C9]">
+                        <div key={n.id} className="p-1.5 hover:bg-orange-50/10 rounded-lg transition-all border-l-2 border-orange-500">
                           <p className="font-semibold text-[10px] leading-tight text-[#161A33]">{n.text}</p>
                           <span className="text-[8px] text-slate-500 mt-0.5 block">{n.time}</span>
                         </div>
@@ -139,7 +146,7 @@ export default function Header({
           {onChatsClick && (
             <button
               onClick={onChatsClick}
-              className="p-1 px-1.5 text-slate-700 hover:text-[#6B25C9] hover:bg-[#F3F7FF] rounded-lg transition-colors cursor-pointer relative"
+              className="p-1 px-1.5 text-slate-700 hover:text-orange-600 hover:bg-[#F3F7FF] rounded-lg transition-colors cursor-pointer relative"
               title="Inbox & Chats"
               id="header-chats-trigger"
             >
@@ -158,7 +165,7 @@ export default function Header({
           <button
             id="profile-avatar-trigger"
             onClick={onProfileClick}
-            className="w-7' w-7 h-7 rounded-lg border border-[#6B25C9]/40 overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer shrink-0"
+            className="w-7' w-7 h-7 rounded-lg border border-orange-500/40 overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer shrink-0"
           >
             <img src={currentUserAvatar} alt="Zara Al-Iraqi Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           </button>

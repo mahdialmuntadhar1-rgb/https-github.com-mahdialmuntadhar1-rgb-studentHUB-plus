@@ -880,16 +880,24 @@ export default function FeedCard({
         )}
 
         {/* Tags renderer */}
-        {item.tags && item.tags.length > 0 && (
-          <div className="flex flex-wrap gap-1 mb-3 bg-[#F7F4FF]/70 p-1.5 rounded-xl border border-[#E6E1F5] shadow-inner">
-            {item.tags.map(tag => (
-              <span key={tag} className="text-[9px] font-bold bg-white text-[#6B25C9] border border-[#6B25C9]/25 px-2 py-0.5 rounded-md flex items-center gap-0.5 leading-none shadow-sm">
-                <Hash className="w-2.5 h-2.5 text-[#6B25C9]" />
-                {tag}
-              </span>
-            ))}
-          </div>
-        )}
+        {(() => {
+          const safeTags: string[] = Array.isArray(item.tags)
+            ? item.tags
+            : (typeof item.tags === 'string' && item.tags
+                ? (item.tags as string).split(',').map(t => t.trim()).filter(Boolean)
+                : []);
+          if (safeTags.length === 0) return null;
+          return (
+            <div className="flex flex-wrap gap-1 mb-3 bg-[#F7F4FF]/70 p-1.5 rounded-xl border border-[#E6E1F5] shadow-inner">
+              {safeTags.map(tag => (
+                <span key={tag} className="text-[9px] font-bold bg-white text-[#6B25C9] border border-[#6B25C9]/25 px-2 py-0.5 rounded-md flex items-center gap-0.5 leading-none shadow-sm">
+                  <Hash className="w-2.5 h-2.5 text-[#6B25C9]" />
+                  {tag}
+                </span>
+              ))}
+            </div>
+          );
+        })()}
 
       </div>
 

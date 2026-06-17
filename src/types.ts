@@ -73,7 +73,12 @@ export interface FeedItem {
     | 'competition'
     | 'graduation_project_support'
     | 'fellowship'
-    | 'exam';
+    | 'exam'
+    | 'campus_life'
+    | 'question'
+    | 'club'
+    | 'admission'
+    | 'general';
   
   // Localized Content
   titleEN: string;

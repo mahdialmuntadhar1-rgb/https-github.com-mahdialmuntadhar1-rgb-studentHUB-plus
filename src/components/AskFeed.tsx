@@ -105,7 +105,12 @@ export default function AskFeed({
 
   // Filter only student questions (anonymous questions, study help)
   const questionItems = feedItems.filter(item => {
-    return item.type === 'anonymous_question' || item.type === 'poll' || item.tags?.includes('Advising') || item.type === 'study_group';
+    const safeTags: string[] = Array.isArray(item.tags)
+      ? item.tags
+      : (typeof item.tags === 'string' && item.tags
+          ? (item.tags as string).split(',').map(t => t.trim()).filter(Boolean)
+          : []);
+    return item.type === 'anonymous_question' || item.type === 'poll' || safeTags.includes('Advising') || item.type === 'study_group';
   });
 
   return (
