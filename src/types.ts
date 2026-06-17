@@ -78,6 +78,7 @@ export interface FeedItem {
     | 'question'
     | 'club'
     | 'admission'
+    | 'news'
     | 'general';
   
   // Localized Content

@@ -15,6 +15,7 @@ import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
 import SocialHub from './components/SocialHub';
 import UserProfileModal from './components/UserProfileModal';
+import UniversitiesList from './components/UniversitiesList';
 import { BACKEND_URL, socialApi } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
@@ -72,7 +73,7 @@ export default function App() {
   };
 
   // Navigation tab state
-  const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'chats' | 'admin'>('home');
+  const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'chats' | 'admin' | 'universities'>('home');
 
   // Interactive student profile details overlay state
   const [selectedUserForProfileCard, setSelectedUserForProfileCard] = useState<any | null>(null);
@@ -1023,6 +1024,18 @@ export default function App() {
             incomingMessageRequestsCount={messageRequestsCount}
           />
         );
+      case 'universities':
+        return (
+          <UniversitiesList
+            language={language}
+            selectedUni={selectedUni}
+            setSelectedUni={setSelectedUni}
+            selectedGov={selectedGov}
+            setSelectedGov={setSelectedGov}
+            institutions={institutions}
+            onNavigateTab={(tab) => setActiveTab(tab)}
+          />
+        );
       case 'admin':
         return (
           <AdminAutomation
@@ -1084,7 +1097,7 @@ export default function App() {
           {/* TAB 1: Home */}
           <button
             onClick={() => setActiveTab('home')}
-            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'home' 
                 ? 'text-orange-600 font-extrabold scale-105' 
                 : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
@@ -1097,50 +1110,52 @@ export default function App() {
             )}
           </button>
 
-          {/* TAB 2: Life (Fun/Social) */}
-          <button
-            onClick={() => setActiveTab('life')}
-            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
-              activeTab === 'life' 
-                ? 'text-orange-600 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
-            }`}
-          >
-            <Compass className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-bold">{getTranslation('navLife', language)}</span>
-            {activeTab === 'life' && (
-              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
-            )}
-          </button>
-
-          {/* TAB 3: Ask (AI & Discussions) */}
-          <button
-            onClick={() => setActiveTab('ask')}
-            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
-              activeTab === 'ask' 
-                ? 'text-orange-600 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
-            }`}
-          >
-            <HelpCircle className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-bold">{getTranslation('navAsk', language)}</span>
-            {activeTab === 'ask' && (
-              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
-            )}
-          </button>
-
-          {/* TAB 4: Future (Careers & Board) */}
+          {/* TAB 2: Opportunities */}
           <button
             onClick={() => setActiveTab('future')}
-            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'future' 
                 ? 'text-orange-600 font-extrabold scale-105' 
                 : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
             }`}
           >
             <Briefcase className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-bold">{getTranslation('navFuture', language)}</span>
+            <span className="text-[10px] leading-none font-bold">{getTranslation('opportunitiesTabLabel', language)}</span>
             {activeTab === 'future' && (
+              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
+            )}
+          </button>
+
+          {/* TAB 3: Campus */}
+          <button
+            onClick={() => setActiveTab('life')}
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+              activeTab === 'life' 
+                ? 'text-orange-600 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
+            }`}
+          >
+            <Compass className="w-5 h-5 shrink-0" />
+            <span className="text-[10px] leading-none font-bold">{getTranslation('campusLifeTabLabel', language)}</span>
+            {activeTab === 'life' && (
+              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
+            )}
+          </button>
+
+          {/* TAB 4: Universities */}
+          <button
+            onClick={() => setActiveTab('universities')}
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+              activeTab === 'universities' 
+                ? 'text-orange-600 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
+            }`}
+          >
+            <Sparkles className="w-5 h-5 shrink-0 text-orange-500" />
+            <span className="text-[10px] leading-none font-bold">
+              {language === 'ar' ? 'الجامعات' : language === 'ku' ? 'زانکۆکان' : 'Universities'}
+            </span>
+            {activeTab === 'universities' && (
               <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
             )}
           </button>
@@ -1148,7 +1163,7 @@ export default function App() {
           {/* TAB 5: Profile */}
           <button
             onClick={() => setActiveTab('profile')}
-            className={`flex flex-col items-center gap-1 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'profile' 
                 ? 'text-orange-600 font-extrabold scale-105' 
                 : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'

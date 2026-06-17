@@ -46,7 +46,7 @@ export default function Header({
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-white border-b border-[#E6E1F5] px-3.5 py-2 shadow-sm" id="app-header-container">
+    <header className="relative z-40 bg-white border-b border-[#E6E1F5] px-3.5 py-2 shadow-sm" id="app-header-container">
       {/* Top row: Brand & Language Bar & Notif & Profile */}
       <div className="flex items-center justify-between gap-1.5 max-w-lg mx-auto" id="header-top-row">
         

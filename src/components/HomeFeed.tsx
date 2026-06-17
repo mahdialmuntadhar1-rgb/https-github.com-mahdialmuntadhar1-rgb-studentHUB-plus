@@ -103,9 +103,10 @@ export default function HomeFeed({
 }: HomeFeedProps) {
    // Custom Story-based categories filter state
   const [activeStoryFilter, setActiveStoryFilter] = useState<string | null>(null);
-  const [selectedFeedTab, setSelectedFeedTab] = useState<'for_you' | 'opportunities' | 'campus_life'>('for_you');
-  const [selectedOppFilter, setSelectedOppFilter] = useState<'all' | 'job' | 'scholarship' | 'training' | 'admission' | 'announcement'>('all');
-  const [selectedCampusFilter, setSelectedCampusFilter] = useState<'all' | 'post' | 'event' | 'club' | 'question'>('all');
+  const [selectedFeedTab, setSelectedFeedTab] = useState<'opportunities' | 'campus_life'>('opportunities');
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [selectedOppFilter, setSelectedOppFilter] = useState<'all' | 'job' | 'scholarship' | 'training' | 'admission' | 'announcement' | 'news' | 'deadline'>('all');
+  const [selectedCampusFilter, setSelectedCampusFilter] = useState<'all' | 'post' | 'event' | 'club' | 'question' | 'study_group' | 'friends'>('all');
   const [postCategory, setPostCategory] = useState<string>('campus_life');
 
   const selectShortcut = (id: string) => {
@@ -124,13 +125,28 @@ export default function HomeFeed({
     } else if (id === 'announcement') {
       setSelectedFeedTab('opportunities');
       setSelectedOppFilter('announcement');
+    } else if (id === 'news') {
+      setSelectedFeedTab('opportunities');
+      setSelectedOppFilter('news');
+    } else if (id === 'deadline') {
+      setSelectedFeedTab('opportunities');
+      setSelectedOppFilter('deadline');
     } else if (id === 'event') {
       setSelectedFeedTab('campus_life');
       setSelectedCampusFilter('event');
-    } else if (id === 'campus_life') {
+    } else if (id === 'club') {
+      setSelectedFeedTab('campus_life');
+      setSelectedCampusFilter('club');
+    } else if (id === 'study_group') {
+      setSelectedFeedTab('campus_life');
+      setSelectedCampusFilter('study_group');
+    } else if (id === 'friends') {
+      setSelectedFeedTab('campus_life');
+      setSelectedCampusFilter('friends');
+    } else if (id === 'campus_life' || id === 'post') {
       setSelectedFeedTab('campus_life');
       setSelectedCampusFilter('post');
-    } else if (id === 'questions') {
+    } else if (id === 'questions' || id === 'question') {
       setSelectedFeedTab('campus_life');
       setSelectedCampusFilter('question');
     }
@@ -176,6 +192,92 @@ export default function HomeFeed({
     window.addEventListener('jamiaati_hero_updated', handleHeroSync);
     return () => window.removeEventListener('jamiaati_hero_updated', handleHeroSync);
   }, []);
+
+  // New beautifully designed Hero Slides Carousel data
+  const heroSlides = useMemo(() => [
+    {
+      id: 'slide_1',
+      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=600',
+      tag: language === 'ar' ? 'مجتمع الحرم' : language === 'ku' ? 'کۆمەڵگەی زانکۆ' : 'Campus Community',
+      tagColor: 'bg-[#1E40AF] text-white',
+      headline: language === 'ar' ? 'اعثر على مسارك الدراسي والفرص المثمرة بكفاءة' : language === 'ku' ? 'ڕێڕەوی ئەکادیمی و گونجاوترین دەرفەت بدۆزەرەوە' : 'Find your university life and opportunities',
+      subtitle: language === 'ar' ? 'شاهد المنح التدريبية والوظائف وعش حياة الكلية مع زملائك' : language === 'ku' ? 'سکۆلەرشیپی بە فەرمی دابینکراو، باشترین برۆگرامی ڕاهێنان' : 'Scholarships, jobs, events, and campus community in one platform',
+      cta: language === 'ar' ? 'استكشف الفرص ➔' : language === 'ku' ? 'الفرص ➔' : 'Explore Now ➔',
+      action: () => {
+        setSelectedFeedTab('opportunities');
+        const el = document.getElementById('home-feed-tabs-selector');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
+    {
+      id: 'slide_2',
+      image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600',
+      tag: language === 'ar' ? 'المنح والمستقبل' : language === 'ku' ? 'سکۆلەرشیپ' : 'Scholarships',
+      tagColor: 'bg-indigo-600 text-white',
+      headline: language === 'ar' ? 'منح وتسهيلات دراسية ممولة بالكامل لطلابنا' : language === 'ku' ? 'هەلی بورس و خوێندنی باڵا بە شێوازی فەرمی' : 'Scholarships & Career Opportunities',
+      subtitle: language === 'ar' ? 'بوابة المنح الجامعية المحلية والدولية الممولة للمستويات كافة' : language === 'ku' ? 'نوێترین بورسە دراسييەکان لە ناوخۆ و دەرەوەی عێراق' : 'Apply for fully-funded local and international academic scholarships',
+      cta: language === 'ar' ? 'عرض منح الطلاب ➔' : language === 'ku' ? 'بینینی بورسەکان ➔' : 'View Scholarships ➔',
+      action: () => {
+        setSelectedFeedTab('opportunities');
+        setSelectedOppFilter('scholarship');
+        const el = document.getElementById('home-feed-tabs-selector');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
+    {
+      id: 'slide_3',
+      image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80&w=600',
+      tag: language === 'ar' ? 'وظائف التدريب والعمل' : language === 'ku' ? 'هەلی کار' : 'Job Opportunities',
+      tagColor: 'bg-emerald-600 text-white',
+      headline: language === 'ar' ? 'انطلق في مسيرتك المهنية مع شركائنا الموثوقين' : language === 'ku' ? 'سەرەتای کاروانە پیشەییەکەت لێرەوە دەستپێبکە' : 'Career & Entry-Level Job Openings',
+      subtitle: language === 'ar' ? 'قدم على وظائف صيفية، وتدريبات عمل خريجين في أفضل قطاعات العراق' : language === 'ku' ? 'مەشق و خولی هاوینە بۆ گەشەپێدانی توانای خوێندکاران' : 'Everything important for students in one place',
+      cta: language === 'ar' ? 'عرض الوظائف والتدريب ➔' : language === 'ku' ? 'بینینی کارەکان ➔' : 'View Career Openings ➔',
+      action: () => {
+        setSelectedFeedTab('opportunities');
+        setSelectedOppFilter('job');
+        const el = document.getElementById('home-feed-tabs-selector');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
+    {
+      id: 'slide_4',
+      image: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=600',
+      tag: language === 'ar' ? 'حياة الحرم' : language === 'ku' ? 'کەمپەس لایف' : 'Campus Life',
+      tagColor: 'bg-orange-600 text-white',
+      headline: language === 'ar' ? 'تفوق وتفاعل في بيئة الحرم الجامعي الحيوية' : language === 'ku' ? 'لەگەڵ هاوڕێکانت بابەت و چالاکییەکان بەش بکە' : 'Campus Life & Interactive Communities',
+      subtitle: language === 'ar' ? 'شاهد منشورات زملائك، النوادي النشطة، وشارك في النقاشات الأكاديمية' : language === 'ku' ? 'ژیانی ڕۆژانەی زانکۆ و ئاگاداری فەرمی لە نوێترین گروپی خوێندن' : 'Exchange stories, join student clubs, and find study peer groups',
+      cta: language === 'ar' ? 'تصفح حياة الكلية ➔' : language === 'ku' ? 'تێکەڵ بە کەمپەس بە ➔' : 'Join Campus Groups ➔',
+      action: () => {
+        setSelectedFeedTab('campus_life');
+        setSelectedCampusFilter('all');
+        const el = document.getElementById('home-feed-tabs-selector');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
+    {
+      id: 'slide_5',
+      image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=600',
+      tag: language === 'ar' ? 'الفعاليات الكبرى' : language === 'ku' ? 'کۆنفرانس و چالاکی' : 'Exhibits & Seminars',
+      tagColor: 'bg-purple-600 text-white',
+      headline: language === 'ar' ? 'كن شريكاً في المؤتمرات ومعارض التوظيف السنوية' : language === 'ku' ? 'ئامادەی کۆڕبەند و سیمینارە کەمپەسییەکان بە' : 'University Scientific Conferences & Events',
+      subtitle: language === 'ar' ? 'تفاصيل كاملة عن مواعيد الورش والندوات والفعاليات داخل جامعات العراق' : language === 'ku' ? 'کات و ساتی کۆبوونەوە و گفتوگۆ ئەکادیمییەکان بزانە' : 'Never miss exhibitions, academic seminars, and graduate workshops',
+      cta: language === 'ar' ? 'عرض الفعاليات والمؤتمرات ➔' : language === 'ku' ? 'بینینی چالاکییەکان ➔' : 'Browse All Events ➔',
+      action: () => {
+        setSelectedFeedTab('campus_life');
+        setSelectedCampusFilter('event');
+        const el = document.getElementById('home-feed-tabs-selector');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  ], [language]);
+
+  // Carousel auto slider interval configuration
+  useEffect(() => {
+    const slideTimer = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % heroSlides.length);
+    }, 5500);
+    return () => clearInterval(slideTimer);
+  }, [heroSlides.length]);
 
   // Admin Hero Custom editing states
   const [isEditingHero, setIsEditingHero] = useState(false);
@@ -410,7 +512,7 @@ export default function HomeFeed({
     'job', 'part_time_job', 'full_time_job', 'internship',
     'scholarship', 'fellowship',
     'training', 'graduation_project_support', 'volunteering', 'competition',
-    'admission', 'announcement'
+    'admission', 'announcement', 'news', 'deadline'
   ];
 
   // Filter by governorate & university first (keeps the university & city ownership solid)
@@ -488,6 +590,16 @@ export default function HomeFeed({
     if (selectedOppFilter === 'announcement') {
       return allSeriousItems.filter(item => item.type === 'announcement');
     }
+    if (selectedOppFilter === 'news') {
+      return allSeriousItems.filter(item => 
+        item.type === 'news' || 
+        item.tags?.some(tag => tag.toLowerCase().includes('news')) ||
+        item.type === 'announcement'
+      );
+    }
+    if (selectedOppFilter === 'deadline') {
+      return allSeriousItems.filter(item => !!item.deadline);
+    }
     return allSeriousItems;
   }, [allSeriousItems, selectedOppFilter]);
 
@@ -516,6 +628,17 @@ export default function HomeFeed({
         ['question', 'anonymous_question', 'poll'].includes(item.type)
       );
     }
+    if (selectedCampusFilter === 'study_group') {
+      return allSocialItems.filter(item => 
+        item.type === 'study_group' || item.tags?.some(tag => tag.toLowerCase().includes('study'))
+      );
+    }
+    if (selectedCampusFilter === 'friends') {
+      return allSocialItems.filter(item => 
+        item.tags?.some(tag => ['friends', 'friend', 'peer', 'connect', 'social'].includes(tag.toLowerCase())) ||
+        ['general', 'story'].includes(item.type)
+      );
+    }
     return allSocialItems;
   }, [allSocialItems, selectedCampusFilter]);
 
@@ -523,35 +646,108 @@ export default function HomeFeed({
 
   if (selectedFeedTab === 'opportunities') {
     filteredFeedItems = filteredOppsItems;
-  } else if (selectedFeedTab === 'campus_life') {
-    filteredFeedItems = filteredCampusItems;
   } else {
-    filteredFeedItems = forYouItems;
+    filteredFeedItems = filteredCampusItems;
   }
 
   return (
-    <div className="px-3.5 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-slate-50 text-slate-800" id="home-feed-container">
+    <div className="px-3.5 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-white text-slate-800" id="home-feed-container">
       
-      {/* 2. Top Governorate & Academic Institution filters */}
-      <div className="grid grid-cols-2 gap-3 mb-5 mt-1" id="home-filter-row">
+      {/* 1. Hero Slides Carousel Section */}
+      <div className="relative w-full overflow-hidden rounded-3xl mb-5 shadow-md bg-slate-950 aspect-[16/9]" id="home-hero-carousel">
+        {heroSlides.map((slide, idx) => (
+          <div 
+            key={slide.id}
+            className={`absolute inset-0 transition-all duration-700 ease-in-out flex flex-col justify-end p-5 text-white ${
+              idx === currentSlide 
+                ? 'opacity-100 scale-100 pointer-events-auto z-10' 
+                : 'opacity-0 scale-95 pointer-events-none z-0'
+            }`}
+          >
+            {/* Slide Background Image */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[5000ms] ease-linear"
+              style={{ 
+                backgroundImage: `url(${slide.image})`,
+                transform: idx === currentSlide ? 'scale(1.04)' : 'scale(1.0)'
+              }}
+              referrerPolicy="no-referrer"
+            />
+            {/* Dark contrast gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
+            
+            {/* Slide Content */}
+            <div className="relative z-10 text-left flex flex-col items-start gap-1.5">
+              <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg select-none ${slide.tagColor}`}>
+                {slide.tag}
+              </span>
+              <h2 className="text-xs sm:text-sm font-black leading-snug tracking-tight text-white max-w-sm">
+                {slide.headline}
+              </h2>
+              <p className="text-[9px] text-white/80 max-w-xs font-bold leading-normal">
+                {slide.subtitle}
+              </p>
+              <button 
+                onClick={slide.action}
+                className="mt-2 text-[9px] font-black bg-[#1E40AF] hover:bg-blue-700 text-white rounded-lg py-1.5 px-3.5 shadow-sm hover:shadow-md transition-all uppercase cursor-pointer"
+              >
+                {slide.cta}
+              </button>
+            </div>
+          </div>
+        ))}
         
-        {/* Dropdown 1: Governorate Selection */}
+        {/* Next/Prev arrow navigation controls */}
+        <button 
+          onClick={() => setCurrentSlide(prev => (prev - 1 + heroSlides.length) % heroSlides.length)}
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 active:scale-95 border border-white/10 rounded-full text-white cursor-pointer backdrop-blur-xs select-none transition-all"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <button 
+          onClick={() => setCurrentSlide(prev => (prev + 1) % heroSlides.length)}
+          className="absolute right-3.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 active:scale-95 border border-white/10 rounded-full text-white cursor-pointer backdrop-blur-xs select-none transition-all"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+
+        {/* Carousel Indicators */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+          {heroSlides.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentSlide(idx)}
+              className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                idx === currentSlide 
+                  ? 'bg-[#FFD21F] w-4.5' 
+                  : 'bg-white/35 hover:bg-white/60 w-1.5'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* 2. Stacked Governorate filter */}
+      <div className="flex flex-col gap-1.5 mb-3" id="home-gov-filter-container">
+        <label className="text-[10px] font-black text-[#1E40AF] uppercase tracking-wider px-1">
+          📍 {language === 'ar' ? 'اختر محافظتك' : language === 'ku' ? 'پارێزگاکەت هەڵبژێرە' : 'Select Governorate'}
+        </label>
         <div 
-          className={`flex items-center gap-2 px-3 py-2.5 rounded-xl bg-white border transition-all shrink-0 ${
+          className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl bg-white border-2 transition-all ${
             selectedGov !== 'all' 
-              ? 'border-blue-600 shadow-sm bg-blue-50/20' 
-              : 'border-slate-200 shadow-sm'
+              ? 'border-[#1E40AF] shadow-xs bg-blue-50/10' 
+              : 'border-slate-200 hover:border-[#1E40AF]/50'
           }`}
           id="gov-dropdown-container"
         >
-          <MapPin className={`w-4 h-4 shrink-0 ${selectedGov !== 'all' ? 'text-blue-606' : 'text-slate-400'}`} />
+          <MapPin className={`w-4 h-4 shrink-0 ${selectedGov !== 'all' ? 'text-[#1E40AF]' : 'text-slate-400'}`} />
           <select
             id="governorate-select"
             value={selectedGov}
             onChange={handleGovChange}
-            className="w-full text-xs font-bold text-slate-800 bg-transparent border-0 focus:outline-none cursor-pointer outline-none p-0 select-none"
+            className="w-full text-xs font-black text-slate-800 bg-transparent border-0 focus:outline-none cursor-pointer outline-none p-0 select-none"
           >
-            <option value="all">📍 {language === 'ar' ? 'كل المحافظات' : language === 'ku' ? 'هەموو پارێزگاکان' : 'All Governorates'}</option>
+            <option value="all">🌍 {language === 'ar' ? 'كافة المحافظات في العراق' : language === 'ku' ? 'پاککردنەوەی فلتەری پارێزگاکان' : 'All Iraqi Governorate Offices'}</option>
             {IraqiGovernorates.map(gov => (
               <option key={gov.id} value={gov.id}>
                 {language === 'ar' ? gov.nameAR : language === 'ku' ? gov.nameKU : gov.nameEN}
@@ -559,8 +755,13 @@ export default function HomeFeed({
             ))}
           </select>
         </div>
+      </div>
 
-        {/* Dropdown 2: Academic Institution Selection */}
+      {/* 3. Stacked University filter */}
+      <div className="flex flex-col gap-1.5 mb-5" id="home-uni-filter-container">
+        <label className="text-[10px] font-black text-[#1E40AF] uppercase tracking-wider px-1">
+          🏫 {language === 'ar' ? 'اختر جامعتك وبوابتك الأكاديمية' : language === 'ku' ? 'زانکۆکەت هەڵبژێرە' : 'Select Academic University'}
+        </label>
         <button 
           id="university-select-trigger"
           type="button"
@@ -571,19 +772,19 @@ export default function HomeFeed({
               setShowPicker(true);
             }
           }}
-          className={`flex items-center justify-between text-left gap-2 px-3 py-2.5 rounded-xl bg-white border transition-all shrink-0 cursor-pointer ${
+          className={`flex items-center justify-between text-left gap-3 px-3.5 py-2.5 rounded-2xl bg-white border-2 transition-all cursor-pointer ${
             selectedUni !== 'all' 
-              ? 'border-blue-600 shadow-sm bg-blue-50/20' 
-              : 'border-slate-200 shadow-sm'
+              ? 'border-[#1E40AF] shadow-xs bg-blue-50/10' 
+              : 'border-slate-200 hover:border-[#1E40AF]/50'
           }`}
         >
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <School className={`w-4 h-4 shrink-0 ${selectedUni !== 'all' ? 'text-blue-606' : 'text-slate-400'}`} />
-            <span className="text-xs font-bold text-slate-800 truncate">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <School className={`w-4 h-4 shrink-0 ${selectedUni !== 'all' ? 'text-[#1E40AF]' : 'text-slate-400'}`} />
+            <span className="text-xs font-black text-slate-800 truncate">
               {institutionsLoading ? (
                 <span>{language === 'ar' ? '⏳ تحميل...' : '⏳ Loading...'}</span>
               ) : selectedUni === 'all' ? (
-                <span>{language === 'ar' ? 'كل الجامعات' : language === 'ku' ? 'هەموو زانکۆکان' : 'All Institutions'}</span>
+                <span>{language === 'ar' ? 'عرض كافة الجامعات في العراق' : language === 'ku' ? 'پاککردنەوەی فلتەری زانکۆکان' : 'Showing all institutions across Iraq'}</span>
               ) : (
                 (() => {
                   const sourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
@@ -598,249 +799,141 @@ export default function HomeFeed({
           </div>
           {institutionsLoading && <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping shrink-0" />}
         </button>
-
       </div>
 
-      {/* 3. Divided Story Shortcut Row */}
-      <div className="w-full mb-5 bg-white border border-slate-200 rounded-2xl p-3.5 shadow-sm" id="story-shortcuts-container">
-        <div className="flex flex-col gap-3.5">
-          {/* Opportunities shortcuts */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
-              💼 {language === 'ar' ? 'الفرص والمستقبل' : language === 'ku' ? 'هەلی داهاتوو' : 'Opportunities & Future'}
-            </span>
-            <div className="flex gap-4 overflow-x-auto pb-1.5 scrollbar-none snap-x touch-pan-x">
-              {[
-                { id: 'job', emoji: '💼', labelEN: 'Jobs', labelAR: 'وظائف', labelKU: 'کارەکان' },
-                { id: 'scholarship', emoji: '🎓', labelEN: 'Scholarships', labelAR: 'منح', labelKU: 'سکۆلەرشیپ' },
-                { id: 'training', emoji: '🏫', labelEN: 'Training', labelAR: 'تدريب', labelKU: 'ڕاهێنان' },
-                { id: 'admission', emoji: '📌', labelEN: 'Admissions', labelAR: 'بوابة القبول', labelKU: 'پێشکەش' },
-              ].map((shortcut) => (
-                <div 
-                  key={shortcut.id}
-                  onClick={() => selectShortcut(shortcut.id)}
-                  className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 snap-start"
-                  id={`shortcut-btn-${shortcut.id}`}
-                >
-                  <div className="relative group">
-                    <span className="absolute inset-0 bg-gradient-to-tr from-orange-400 to-amber-300 rounded-full p-[2px]" />
-                    <span className="relative flex items-center justify-center w-11 h-11 bg-white rounded-full border border-white text-lg shadow-sm transition-transform duration-200 group-hover:scale-105">
-                      {shortcut.emoji}
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-700 text-center leading-none">
-                    {language === 'ar' ? shortcut.labelAR : language === 'ku' ? shortcut.labelKU : shortcut.labelEN}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-
-          <div className="border-t border-slate-100 my-0.5" />
-
-          {/* Campus shortcuts */}
-          <div className="flex flex-col gap-1.5">
-            <span className="text-[10px] font-black text-slate-400 uppercase tracking-widest px-1">
-              🏛️ {language === 'ar' ? 'الحرَم والأنشطة' : language === 'ku' ? 'کەمپەس و چالاکی' : 'Campus & Society'}
-            </span>
-            <div className="flex gap-4 overflow-x-auto pb-1.5 scrollbar-none snap-x touch-pan-x">
-              {[
-                { id: 'announcement', emoji: '📢', labelEN: 'Official', labelAR: 'رسمي', labelKU: 'فەرمی' },
-                { id: 'event', emoji: '📅', labelEN: 'Events', labelAR: 'فعاليات', labelKU: 'چالاکی' },
-                { id: 'campus_life', emoji: '🌸', labelEN: 'Campus Life', labelAR: 'حياة الحرم', labelKU: 'کەمپەس' },
-                { id: 'questions', emoji: '💬', labelEN: 'Questions', labelAR: 'أسئلة', labelKU: 'پرسیار' },
-              ].map((shortcut) => (
-                <div 
-                  key={shortcut.id}
-                  onClick={() => selectShortcut(shortcut.id)}
-                  className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 snap-start"
-                  id={`shortcut-btn-${shortcut.id}`}
-                >
-                  <div className="relative group">
-                    <span className="absolute inset-0 bg-gradient-to-tr from-orange-400 to-amber-300 rounded-full p-[2px]" />
-                    <span className="relative flex items-center justify-center w-11 h-11 bg-white rounded-full border border-white text-lg shadow-sm transition-transform duration-200 group-hover:scale-105">
-                      {shortcut.emoji}
-                    </span>
-                  </div>
-                  <span className="text-[10px] font-bold text-slate-700 text-center leading-none">
-                    {language === 'ar' ? shortcut.labelAR : language === 'ku' ? shortcut.labelKU : shortcut.labelEN}
-                  </span>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </div>
-
-      {/* 4. Important for Students Today section */}
-      <div className="w-full mb-5" id="important-today-section">
-        <div className="flex items-center gap-1.5 mb-2.5 px-1">
-          <span className="w-2 h-2 bg-orange-500 rounded-full animate-pulse" />
-          <h3 className="text-xs font-black text-slate-800 uppercase tracking-wider">
-            {language === 'ar' ? 'هام للطلاب اليوم ⚡' : language === 'ku' ? 'گرنگ بۆ خوێندکارانی ئەمڕۆ ⚡' : 'Important for Students Today ⚡'}
-          </h3>
-        </div>
-
-        {/* Horizontal scrollable cards list */}
-        <div className="flex gap-3 overflow-x-auto pb-1.5 scrollbar-none snap-x touch-pan-x" id="important-cards-list">
-          
-          {/* Card A: Scholarship Deadline */}
-          <div 
-            onClick={() => selectShortcut('scholarship')}
-            className="w-[240px] shrink-0 snap-start bg-gradient-to-br from-orange-50/20 via-white to-white border border-orange-200 rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[8px] font-black uppercase text-orange-700 bg-orange-100 rounded-md px-2 py-0.5 border border-orange-200 leading-none">
-                  {language === 'ar' ? 'منحة دراسية 🎓' : language === 'ku' ? 'بورس' : 'Scholarship 🎓'}
-                </span>
-                <span className="text-[9px] font-black text-red-500 bg-red-50 px-1.5 py-0.5 rounded leading-none shrink-0 border border-red-105">
-                  {language === 'ar' ? 'قريبًا' : 'Soon'}
-                </span>
-              </div>
-              <h4 className="text-xs font-extrabold text-slate-900 tracking-tight line-clamp-2 leading-snug">
-                {language === 'ar' ? 'منحة DAAD الألمانية الممولة بالكامل للماجستير' : language === 'ku' ? 'سکۆلەرشیپی بەنێوبانگی DAAD بۆ کۆمەڵەی ماستەر' : 'DAAD Germany Fully Funded Masters Program'}
-              </h4>
-            </div>
-            <div className="mt-3.5 border-t border-slate-100 pt-2 flex items-center justify-between text-[9px] text-slate-500 font-sans">
-              <span className="font-bold">📅 Deadline: Aug 31</span>
-              <span className="font-extrabold text-orange-600">Apply Now ➜</span>
-            </div>
-          </div>
-
-          {/* Card B: Job Opportunity */}
-          <div 
-            onClick={() => selectShortcut('job')}
-            className="w-[240px] shrink-0 snap-start bg-gradient-to-br from-orange-50/20 via-white to-white border border-orange-200 rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[8px] font-black uppercase text-orange-700 bg-orange-100 rounded-md px-2 py-0.5 border border-orange-200 leading-none">
-                  {language === 'ar' ? 'بوابة التوظيف 💼' : language === 'ku' ? 'هەلی کار' : 'Job Career 💼'}
-                </span>
-                <span className="text-[9px] font-black text-blue-500 bg-white px-1.5 py-0.5 rounded leading-none shrink-0 border border-blue-50">
-                  {language === 'ar' ? 'نشط' : 'Active'}
-                </span>
-              </div>
-              <h4 className="text-xs font-extrabold text-slate-900 tracking-tight line-clamp-2 leading-snug">
-                {language === 'ar' ? 'برنامج نخبة آسيا سيل لإعداد الخريجين الجدد' : language === 'ku' ? 'خولی پێگەیاندنی ئەکادیمی ئاسیاسێل بۆ دهرچووان' : 'Asiacell Graduate Elite Accelerator Program'}
-              </h4>
-            </div>
-            <div className="mt-3.5 border-t border-slate-100 pt-2 flex items-center justify-between text-[9px] text-slate-500 font-sans">
-              <span className="font-bold">💼 Telecom Sector</span>
-              <span className="font-extrabold text-orange-600">Register ➜</span>
-            </div>
-          </div>
-
-          {/* Card C: University Announcement */}
-          <div 
-            onClick={() => selectShortcut('announcement')}
-            className="w-[240px] shrink-0 snap-start bg-gradient-to-br from-orange-50/20 via-white to-white border border-orange-200 rounded-xl p-3.5 shadow-sm hover:shadow-md transition-all cursor-pointer flex flex-col justify-between"
-          >
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-[8px] font-black uppercase text-orange-700 bg-orange-100 rounded-md px-2 py-0.5 border border-orange-200 leading-none">
-                  {language === 'ar' ? 'إعلان رسمي 📢' : language === 'ku' ? 'فەرمی' : 'Official 📢'}
-                </span>
-                <span className="text-[9px] font-black text-purple-500 bg-purple-50 px-1.5 py-0.5 rounded leading-none shrink-0 border border-purple-105">
-                  {language === 'ar' ? 'عاجل' : 'Urgent'}
-                </span>
-              </div>
-              <h4 className="text-xs font-extrabold text-slate-900 tracking-tight line-clamp-2 leading-snug">
-                {language === 'ar' ? 'جدول وتعليمات الامتحانات النهائية للفصل الثاني' : language === 'ku' ? 'خشتە و ڕێنمایی نوێی تاقیکردنەوەکان' : 'Semester 2 Final Exam Guidelines & Timetable'}
-              </h4>
-            </div>
-            <div className="mt-3.5 border-t border-slate-100 pt-2 flex items-center justify-between text-[9px] text-slate-500 font-sans">
-              <span className="font-bold">🏫 Presidency Board</span>
-              <span className="font-extrabold text-orange-600">View Draft ➜</span>
-            </div>
-          </div>
-
-        </div>
-      </div>
-
-      {/* 5. Feed Tabs Selector */}
-      <div className="flex border-b border-slate-200 mb-4 bg-white rounded-xl p-1 shadow-xs font-sans" id="home-feed-tabs-selector">
-        <button
-          onClick={() => setSelectedFeedTab('for_you')}
-          className={`flex-1 py-2 text-xs font-extrabold text-center rounded-lg transition-all cursor-pointer ${
-            selectedFeedTab === 'for_you'
-              ? 'bg-orange-500 text-white shadow-sm'
-              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
-          }`}
-        >
-          {language === 'ar' ? 'لك (مخصص) ✨' : language === 'ku' ? 'بۆ تۆ ✨' : 'For You ✨'}
-        </button>
+      {/* 4. Sticky Dual Lane View: ONLY Opportunities & Campus Life */}
+      <div 
+        className="sticky top-0 z-30 bg-white/95 backdrop-blur-md border-b-2 border-slate-100 py-3.5 flex justify-between gap-1.5 mb-4 shadow-xs select-none" 
+        id="home-feed-tabs-selector"
+      >
         <button
           onClick={() => setSelectedFeedTab('opportunities')}
-          className={`flex-1 py-2 text-xs font-extrabold text-center rounded-lg transition-all cursor-pointer ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-black text-center rounded-2xl transition-all cursor-pointer ${
             selectedFeedTab === 'opportunities'
-              ? 'bg-orange-500 text-white shadow-sm'
-              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+              ? 'bg-teal-50 text-teal-700 border-2 border-teal-500 scale-102 shadow-xs'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-2 border-transparent'
           }`}
         >
-          {language === 'ar' ? 'الفرص 🎯' : language === 'ku' ? 'هەلەکان 🎯' : 'Opportunities 🎯'}
+          <span>🎯</span>
+          <span>{language === 'ar' ? 'الفرص والتطوير' : language === 'ku' ? 'هەلەکان' : 'Opportunities'}</span>
         </button>
         <button
           onClick={() => setSelectedFeedTab('campus_life')}
-          className={`flex-1 py-2 text-xs font-extrabold text-center rounded-lg transition-all cursor-pointer ${
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-black text-center rounded-2xl transition-all cursor-pointer ${
             selectedFeedTab === 'campus_life'
-              ? 'bg-orange-500 text-white shadow-sm'
-              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50'
+              ? 'bg-orange-50 text-orange-600 border-2 border-orange-500 scale-102 shadow-xs'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-2 border-transparent'
           }`}
         >
-          {language === 'ar' ? 'حياة وجامعة 🏛️' : language === 'ku' ? 'کەمپەس 🏛️' : 'Campus Life 🏛️'}
+          <span>🏛️</span>
+          <span>{language === 'ar' ? 'حياة الحرم الجامعي' : language === 'ku' ? 'کەمپەس لایف' : 'Campus Life'}</span>
         </button>
       </div>
 
-      {/* Advanced Filter Chips for Opportunities Tab */}
+      {/* Advanced Filter Chips for Opportunities Tab (using Circular Shortcut style) */}
       {selectedFeedTab === 'opportunities' && (
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1.5 scrollbar-none snap-x touch-pan-x" id="opp-filter-chips">
+        <div 
+          className="flex gap-4 mb-5 overflow-x-auto pb-3 pt-1.5 scrollbar-none snap-x touch-pan-x justify-start" 
+          id="opp-shortcuts-circles"
+        >
           {[
-            { id: 'all', labelEN: 'All', labelAR: 'الكل', labelKU: 'هەموو' },
-            { id: 'job', labelEN: 'Jobs', labelAR: 'وظائف', labelKU: 'کارەکان' },
-            { id: 'scholarship', labelEN: 'Scholarships', labelAR: 'منح دراسية', labelKU: 'سکۆلەرشیپ' },
-            { id: 'training', labelEN: 'Training', labelAR: 'تدريب', labelKU: 'ڕاهێنان' },
-            { id: 'admission', labelEN: 'Admissions', labelAR: 'القبول والتسجيل', labelKU: 'وەرگرتن' },
-            { id: 'announcement', labelEN: 'Announcements', labelAR: 'الأخبار الطلابية', labelKU: 'ئاگادارییەکان' },
-          ].map(chip => (
-            <button
-              key={chip.id}
-              onClick={() => setSelectedOppFilter(chip.id as any)}
-              className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide cursor-pointer shrink-0 border transition-all ${
-                selectedOppFilter === chip.id
-                  ? 'bg-orange-500 text-white border-orange-500 shadow-xs'
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-              }`}
-            >
-              {language === 'ar' ? chip.labelAR : language === 'ku' ? chip.labelKU : chip.labelEN}
-            </button>
-          ))}
+            { id: 'all', emoji: '🌐', labelEN: 'All', labelAR: 'الكل', labelKU: 'هەموو' },
+            { id: 'job', emoji: '💼', labelEN: 'Jobs', labelAR: 'وظائف', labelKU: 'کارەکان' },
+            { id: 'scholarship', emoji: '🎓', labelEN: 'Scholarships', labelAR: 'منح دراسية', labelKU: 'سکۆلەرشیپ' },
+            { id: 'training', emoji: '📖', labelEN: 'Training', labelAR: 'تدريب', labelKU: 'ڕاهێنان' },
+            { id: 'admission', emoji: '📌', labelEN: 'Admissions', labelAR: 'القبول والتسجيل', labelKU: 'وەرگرتن' },
+            { id: 'announcement', emoji: '📢', labelEN: 'Announcements', labelAR: 'الأخبار', labelKU: 'ئاگاداریی' },
+            { id: 'news', emoji: '📰', labelEN: 'News', labelAR: 'أخبار الطلاب', labelKU: 'هەواڵەکان' },
+            { id: 'deadline', emoji: '⏳', labelEN: 'Deadlines', labelAR: 'آجال التقديم', labelKU: 'مۆڵەتەکان' },
+          ].map(shortcut => {
+            const isActive = selectedOppFilter === shortcut.id;
+            return (
+              <button
+                key={shortcut.id}
+                onClick={() => {
+                  setSelectedOppFilter(shortcut.id as any);
+                  // Clear story category highlight matching
+                  setActiveStoryFilter(null);
+                }}
+                className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 snap-center min-w-[76px] text-center focus:outline-none select-none transition-all"
+              >
+                {/* Circle icon container */}
+                <div 
+                  className={`w-13 h-13 rounded-full flex items-center justify-center text-xl transition-all border-2 ${
+                    isActive 
+                      ? 'border-teal-500 bg-teal-50 text-teal-700 scale-105 shadow-md ring-4 ring-teal-100' 
+                      : 'border-slate-200 bg-white hover:border-slate-300 text-slate-500 shadow-xs'
+                  }`}
+                >
+                  <span>{shortcut.emoji}</span>
+                </div>
+                {/* Short label text below */}
+                <span 
+                  className={`text-[10px] font-extrabold uppercase tracking-wide leading-tight px-1 transition-colors duration-200 ${
+                    isActive 
+                      ? 'text-teal-600 font-black' 
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  {language === 'ar' ? shortcut.labelAR : language === 'ku' ? shortcut.labelKU : shortcut.labelEN}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
 
-      {/* Advanced Filter Chips for Campus Life Tab */}
+
+
+      {/* Circular Shortcut Chips for Campus Life Tab */}
       {selectedFeedTab === 'campus_life' && (
-        <div className="flex gap-2 mb-4 overflow-x-auto pb-1.5 scrollbar-none snap-x touch-pan-x" id="campus-filter-chips">
+        <div 
+          className="flex gap-4 mb-5 overflow-x-auto pb-3 pt-1.5 scrollbar-none snap-x touch-pan-x justify-start" 
+          id="campus-shortcuts-circles"
+        >
           {[
-            { id: 'all', labelEN: 'All', labelAR: 'الكل', labelKU: 'هەموو' },
-            { id: 'post', labelEN: 'Posts', labelAR: 'المنشورات', labelKU: 'پۆستەکان' },
-            { id: 'event', labelEN: 'Events', labelAR: 'الفعاليات', labelKU: 'چالاکییەکان' },
-            { id: 'club', labelEN: 'Clubs', labelAR: 'النوادي والفرق', labelKU: 'یانەکان' },
-            { id: 'question', labelEN: 'Questions', labelAR: 'الأسئلة', labelKU: 'پرسیارەکان' },
-          ].map(chip => (
-            <button
-              key={chip.id}
-              onClick={() => setSelectedCampusFilter(chip.id as any)}
-              className={`px-3 py-1.5 rounded-full text-[10px] font-extrabold uppercase tracking-wide cursor-pointer shrink-0 border transition-all ${
-                selectedCampusFilter === chip.id
-                  ? 'bg-orange-500 text-white border-orange-500 shadow-xs'
-                  : 'bg-white text-slate-600 border-slate-200 hover:border-slate-300'
-              }`}
-            >
-              {language === 'ar' ? chip.labelAR : language === 'ku' ? chip.labelKU : chip.labelEN}
-            </button>
-          ))}
+            { id: 'all', emoji: '🏛️', labelEN: 'All', labelAR: 'الكل', labelKU: 'هەموو' },
+            { id: 'post', emoji: '📝', labelEN: 'Posts', labelAR: 'منشورات الطلاب', labelKU: 'پۆستەکان' },
+            { id: 'event', emoji: '📅', labelEN: 'Events', labelAR: 'فعاليات', labelKU: 'چالاکییەکان' },
+            { id: 'club', emoji: '🤝', labelEN: 'Clubs', labelAR: 'النوادي', labelKU: 'یانەکان' },
+            { id: 'question', emoji: '❓', labelEN: 'Questions', labelAR: 'الأسئلة', labelKU: 'پرسیارەکان' },
+            { id: 'study_group', emoji: '📚', labelEN: 'Study Groups', labelAR: 'مجموعات الدراسة', labelKU: 'کۆمەڵەکانی خوێندن' },
+            { id: 'friends', emoji: '👥', labelEN: 'Friends', labelAR: 'الزملاء', labelKU: 'هاوڕێکان' },
+          ].map(shortcut => {
+            const isActive = selectedCampusFilter === shortcut.id;
+            return (
+              <button
+                key={shortcut.id}
+                onClick={() => {
+                  setSelectedCampusFilter(shortcut.id as any);
+                  // Clear story category highlight matching
+                  setActiveStoryFilter(null);
+                }}
+                className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 snap-center min-w-[76px] text-center focus:outline-none select-none transition-all"
+              >
+                {/* Circle icon container */}
+                <div 
+                  className={`w-13 h-13 rounded-full flex items-center justify-center text-xl transition-all border-2 ${
+                    isActive 
+                      ? 'border-orange-500 bg-orange-50 text-orange-700 scale-105 shadow-md ring-4 ring-orange-100' 
+                      : 'border-slate-200 bg-white hover:border-slate-300 text-slate-500 shadow-xs'
+                  }`}
+                >
+                  <span>{shortcut.emoji}</span>
+                </div>
+                {/* Short label text below */}
+                <span 
+                  className={`text-[10px] font-extrabold uppercase tracking-wide leading-tight px-1 transition-colors duration-200 ${
+                    isActive 
+                      ? 'text-orange-600 font-black' 
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  {language === 'ar' ? shortcut.labelAR : language === 'ku' ? shortcut.labelKU : shortcut.labelEN}
+                </span>
+              </button>
+            );
+          })}
         </div>
       )}
 

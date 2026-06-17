@@ -74,6 +74,12 @@ export default function FeedCard({
   const title = getLocalizedContent(item, 'title', language, showOriginal);
   const content = getLocalizedContent(item, 'content', language, showOriginal);
 
+  const isOpp = [
+    'job', 'full_time_job', 'part_time_job', 'internship', 'scholarship',
+    'fellowship', 'training', 'volunteering', 'competition', 'graduation_project_support',
+    'admission', 'announcement', 'registration', 'news'
+  ].includes(item.type) || !!item.opportunityCategory;
+
   // Resolve Governorate & University labels
   const matchedUni = IraqiUniversities.find(u => u.id === item.universityId);
   const matchedGov = IraqiGovernorates.find(g => g.id === item.governorateId);
@@ -263,46 +269,64 @@ export default function FeedCard({
 
   // Custom visual definitions based on content category
   const getTypeBadge = () => {
-    const defaultCategory = item.opportunityCategory || '';
-    
-    switch (item.type) {
-      case 'announcement':
-        return { text: language === 'ar' ? 'إعلان رسمي' : language === 'ku' ? 'ڕاگەیاندن' : 'Official', color: 'bg-red-500/10 text-red-400 border-red-500/20' };
-      case 'job':
-      case 'full_time_job':
-        return { text: language === 'ar' ? 'دوام كامل' : language === 'ku' ? 'دەوامی تەواو' : 'Full-Time Job', color: 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20' };
-      case 'part_time_job':
-        return { text: language === 'ar' ? 'دوام جزئي' : language === 'ku' ? 'دەوامی کاتی' : 'Part-Time Job', color: 'bg-teal-500/10 text-teal-400 border-teal-500/20' };
-      case 'internship':
-        return { text: language === 'ar' ? 'تدريب عملي' : language === 'ku' ? 'مەشق' : 'Internship', color: 'bg-violet-500/10 text-violet-400 border-violet-500/20' };
-      case 'scholarship':
-        return { text: language === 'ar' ? 'منحة دراسية' : language === 'ku' ? 'بورس' : 'Scholarship', color: 'bg-indigo-500/10 text-indigo-400 border-indigo-500/20' };
-      case 'training':
-        return { text: language === 'ar' ? 'دورة تدريبية' : language === 'ku' ? 'ڕاهێنان' : 'Training Course', color: 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20' };
-      case 'volunteering':
-        return { text: language === 'ar' ? 'عمل تطوعي' : language === 'ku' ? 'خۆبەخشی' : 'Volunteering', color: 'bg-lime-500/10 text-lime-400 border-lime-500/20' };
-      case 'competition':
-        return { text: language === 'ar' ? 'مسابقة' : language === 'ku' ? 'کێبڕکێ' : 'Competition', color: 'bg-amber-500/10 text-amber-400 border-amber-500/20' };
-      case 'graduation_project_support':
-        return { text: language === 'ar' ? 'دعم مشاريع' : language === 'ku' ? 'پاڵپشتی پڕۆژە' : 'Project Grant', color: 'bg-pink-500/10 text-pink-400 border-pink-500/20' };
-      case 'event':
-        return { text: language === 'ar' ? 'فعالية تواصل' : language === 'ku' ? 'چالاکی' : 'Campus Event', color: 'bg-rose-500/10 text-rose-400 border-rose-500/20' };
-      case 'study_group':
-        return { text: language === 'ar' ? 'غروب مراجعة' : language === 'ku' ? 'گروپی خوێندن' : 'Study Group', color: 'bg-sky-500/10 text-sky-400 border-sky-500/20' };
-      case 'poll':
-        return { text: language === 'ar' ? 'استطلاع رأي' : language === 'ku' ? 'ڕاپرسی' : 'Campus Poll', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' };
-      case 'anonymous_question':
-        return { text: language === 'ar' ? 'سؤال مجهول' : language === 'ku' ? 'بپرسە بێناو' : 'Anon Question', color: 'bg-slate-800 text-slate-300 border-slate-700' };
-      case 'video':
-        return { text: language === 'ar' ? 'فيديو ترفيهي' : language === 'ku' ? 'ڤیدیۆ' : 'Campus Video', color: 'bg-orange-500/10 text-orange-400 border-orange-500/20' };
-      case 'photo':
-        return { text: language === 'ar' ? 'صورة الحرم' : language === 'ku' ? 'وێنە' : 'Campus Photo', color: 'bg-blue-500/10 text-blue-400 border-blue-500/20' };
-      default:
-        // Check fallback by opportunity category
-        if (defaultCategory) {
-          return { text: defaultCategory, color: 'bg-indigo-500/10 text-indigo-450 border-indigo-550/20' };
-        }
-        return { text: language === 'ar' ? 'منشور طلابي' : language === 'ku' ? 'بڵاوکراوە' : 'Student Post', color: 'bg-slate-800 text-slate-350 border-slate-700' };
+    if (isOpp) {
+      if (['job', 'full_time_job', 'part_time_job'].includes(item.type)) {
+        return {
+          text: getTranslation('jobsFilter', language),
+          color: 'bg-teal-50 border-teal-200 text-teal-700 dark:text-teal-800'
+        };
+      }
+      if (['scholarship', 'fellowship'].includes(item.type)) {
+        return {
+          text: getTranslation('scholarshipsFilter', language),
+          color: 'bg-indigo-50 border-indigo-250 text-indigo-700 dark:text-indigo-800'
+        };
+      }
+      if (['training', 'internship', 'volunteering', 'competition', 'graduation_project_support'].includes(item.type)) {
+        return {
+          text: getTranslation('trainingFilter', language),
+          color: 'bg-emerald-50 border-emerald-250 text-emerald-700 dark:text-emerald-800'
+        };
+      }
+      if (['admission', 'registration'].includes(item.type)) {
+        return {
+          text: getTranslation('admissionsFilter', language),
+          color: 'bg-cyan-50 border-cyan-250 text-cyan-700 dark:text-cyan-800'
+        };
+      }
+      if (item.type === 'news' || item.tags?.some(tag => tag.toLowerCase().includes('news'))) {
+        return {
+          text: language === 'ar' ? 'أخبار الطلاب' : language === 'ku' ? 'هەواڵەکان' : 'News',
+          color: 'bg-rose-50 border-rose-200 text-rose-700 dark:text-rose-800'
+        };
+      }
+      return {
+        text: getTranslation('announcementsFilter', language),
+        color: 'bg-blue-50 border-blue-250 text-blue-700 dark:text-blue-800'
+      };
+    } else {
+      if (['event'].includes(item.type)) {
+        return {
+          text: getTranslation('eventsFilter', language),
+          color: 'bg-rose-50 border-rose-200 text-rose-700'
+        };
+      }
+      if (['poll', 'anonymous_question', 'question'].includes(item.type)) {
+        return {
+          text: getTranslation('questionsFilter', language),
+          color: 'bg-amber-50 border-amber-200 text-amber-700'
+        };
+      }
+      if (['study_group', 'club'].includes(item.type) || item.tags?.includes('Club') || item.tags?.includes('Group')) {
+        return {
+          text: getTranslation('clubsFilter', language),
+          color: 'bg-orange-50 border-orange-200 text-orange-700'
+        };
+      }
+      return {
+        text: getTranslation('campusLifeTabLabel', language),
+        color: 'bg-orange-50 border-orange-200 text-orange-700'
+      };
     }
   };
 
@@ -346,9 +370,9 @@ export default function FeedCard({
       viewport={{ once: true, margin: '-40px' }}
       transition={{ duration: 0.3 }}
       className={`bg-white rounded-3xl transition-all duration-300 p-5 mb-5 relative flex flex-col ${
-        item.author.verified 
-          ? 'border-3 border-[#6B25C9] shadow-md shadow-[#6B25C9]/5' 
-          : 'border-2 border-[#E6E1F5] hover:border-[#6B25C9] shadow-sm'
+        isOpp 
+          ? 'border-l-4 border-l-teal-500 border-t border-r border-b border-blue-100 shadow-sm shadow-blue-50/40 hover:border-teal-500/80 hover:shadow-md' 
+          : 'border-l-4 border-l-orange-400 border-t border-r border-b border-[#E6E1F5] shadow-xs shadow-orange-50/30 hover:border-orange-400/80 hover:shadow-md'
       }`}
     >
       {isEditingFeed ? (

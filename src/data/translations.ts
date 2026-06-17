@@ -420,6 +420,81 @@ export const translations = {
     en: 'No student shares here yet. Broaden your selectors to see the rest of Iraq!',
     ar: 'لا توجد منشورات للطلاب هنا لهذه التصفية. وسّع نطاق تحديد المحافظة أو الجامعة لترى المزيد!',
     ku: 'هیچ پۆستێک نییە بەم گەڕانەت. گەڕانەکەت فراوانتر بکە بۆ بینینی هەموو زانکۆکانی عێراق!',
+  },
+  forYouTabLabel: {
+    en: 'For You',
+    ar: 'لك (مخصص)',
+    ku: 'بۆ تۆ',
+  },
+  opportunitiesTabLabel: {
+    en: 'Opportunities',
+    ar: 'الفرص الأكاديمية والمهنية',
+    ku: 'دەرفەتەکان',
+  },
+  campusLifeTabLabel: {
+    en: 'Campus Life',
+    ar: 'حياة الحرم لزملائك',
+    ku: 'ژیانی کەمپەس',
+  },
+  importantTodayLabel: {
+    en: 'Important for Students Today',
+    ar: 'هام للطلاب اليوم ⚡',
+    ku: 'گرنگ بۆ خوێندکارانی ئەمڕۆ ⚡',
+  },
+  governorateLabel: {
+    en: 'Governorate',
+    ar: 'المحافظة',
+    ku: 'پارێزگا',
+  },
+  universityLabel: {
+    en: 'University',
+    ar: 'الجامعة',
+    ku: 'زانکۆ',
+  },
+  filterAll: {
+    en: 'All',
+    ar: 'الكل',
+    ku: 'هەموو',
+  },
+  jobsFilter: {
+    en: 'Jobs',
+    ar: 'وظائف',
+    ku: 'کارەکان',
+  },
+  scholarshipsFilter: {
+    en: 'Scholarships',
+    ar: 'منح دراسية',
+    ku: 'بورسەکان',
+  },
+  trainingFilter: {
+    en: 'Training & Internships',
+    ar: 'تدريب ومشاريع',
+    ku: 'ڕاهێنان',
+  },
+  admissionsFilter: {
+    en: 'Admissions & Entrance',
+    ar: 'بوابة القبول والتسجيل',
+    ku: 'وەرگرتن و ناونووسین',
+  },
+  announcementsFilter: {
+    en: 'Announcements',
+    ar: 'إعلانات رسمية',
+    ku: 'ئاگادارییەکان',
+  },
+  eventsFilter: {
+    en: 'Events',
+    ar: 'الفعاليات والأنشطة',
+    ku: 'چالاکییەکان',
+  },
+  questionsFilter: {
+    en: 'Questions',
+    ar: 'الأسئلة والشروحات',
+    ku: 'پرسیارەکان',
+  },
+  clubsFilter: {
+    en: 'Clubs & Groups',
+    ar: 'الفرق والنوادي الطلابية',
+    ku: 'یانە و گروپەکان',
   }
 };
 
