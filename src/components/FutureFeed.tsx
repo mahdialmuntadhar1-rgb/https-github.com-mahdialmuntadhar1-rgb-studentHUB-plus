@@ -104,9 +104,53 @@ export default function FutureFeed({
       displayCategory = 'Graduation project support';
     }
 
-    const titleEN = cleanDisplayText(item.titleEN || item.title || item.title_en, 'Public Opportunity', categoryRaw);
-    const titleAR = cleanDisplayText(item.titleAR || item.title_ar || item.title, titleEN, categoryRaw);
-    const titleKU = cleanDisplayText(item.titleKU || item.title_ku || item.title, titleEN, categoryRaw);
+    const rawPositionTitle =
+      item.position_title ||
+      item.positionTitle ||
+      item.job_title ||
+      item.jobTitle ||
+      item.vacancy_title ||
+      item.vacancyTitle ||
+      item.role_title ||
+      item.roleTitle ||
+      item.post_title ||
+      item.postTitle ||
+      item.titleEN ||
+      item.title_en ||
+      item.title ||
+      item.name ||
+      item.headline ||
+      '';
+
+    const fallbackTitle = categoryRaw.includes('scholar')
+      ? 'Scholarship opportunity'
+      : categoryRaw.includes('train')
+        ? 'Training opportunity'
+        : 'Job position';
+
+    const titleEN = cleanDisplayText(rawPositionTitle, fallbackTitle, categoryRaw);
+    const titleAR = cleanDisplayText(
+      item.titleAR ||
+      item.title_ar ||
+      item.position_title_ar ||
+      item.job_title_ar ||
+      item.vacancy_title_ar ||
+      item.title ||
+      rawPositionTitle,
+      titleEN,
+      categoryRaw
+    );
+    const titleKU = cleanDisplayText(
+      item.titleKU ||
+      item.title_ku ||
+      item.position_title_ku ||
+      item.job_title_ku ||
+      item.vacancy_title_ku ||
+      item.title ||
+      rawPositionTitle,
+      titleEN,
+      categoryRaw
+    );
 
     const contentEN = cleanDisplayText(item.contentEN || item.description || item.summary || item.description_en, 'View details of this public opportunity.', categoryRaw);
     const contentAR = cleanDisplayText(item.contentAR || item.description_ar || item.description || item.summary, contentEN, categoryRaw);
@@ -337,6 +381,65 @@ export default function FutureFeed({
     ].includes(item.type) || !!item.opportunityCategory;
   };
 
+  // Governorate alias mapping for client-side filtering
+  const getGovernorateAliases = (govId: string): string[] => {
+    const aliasMap: Record<string, string[]> = {
+      'erbil': ['erbil', 'hawler', 'هەولێر', 'أربيل'],
+      'sulaymaniyah': ['sulaymaniyah', 'sulaimani', 'slemani', 'السليمانية', 'سلێمانی'],
+      'duhok': ['duhok', 'dohuk', 'دهوك', 'دهۆک'],
+      'kirkuk': ['kirkuk', 'كركوك', 'کەرکووک'],
+      'baghdad': ['baghdad', 'بغداد'],
+      'basra': ['basra', 'البصرة'],
+      'nineveh': ['nineveh', 'mosul', 'نينوى', 'الموصل'],
+      'najaf': ['najaf', 'النجف'],
+      'karbala': ['karbala', 'كربلاء'],
+      'wasit': ['wasit', 'واسط'],
+      'diyala': ['diyala', 'ديالى'],
+      'anbar': ['anbar', 'الأنبار'],
+      'babylon': ['babylon', 'بابل'],
+      'maysan': ['maysan', 'ميسان'],
+      'dhi qar': ['dhi qar', 'ذي قار'],
+      'muthanna': ['muthanna', 'المثنى'],
+      'qadisiyah': ['qadisiyah', 'القادسية'],
+      'salah al-din': ['salah al-din', 'صلاح الدين'],
+      'halabja': ['halabja', 'حلبجة']
+    };
+    return aliasMap[govId.toLowerCase()] || [govId.toLowerCase()];
+  };
+
+  // Check if item matches governorate (with alias support)
+  const matchesGovernorate = (item: FeedItem, govId: string): boolean => {
+    if (govId === 'all') return true;
+    
+    const aliases = getGovernorateAliases(govId);
+    const itemGov = String(item.governorateId || '').toLowerCase();
+    const itemLocation = String(item.location || '').toLowerCase();
+    const itemCity = String((item as any).city || '').toLowerCase();
+    const itemProvince = String((item as any).province || '').toLowerCase();
+    
+    // Check governorateId field
+    if (aliases.some(alias => itemGov.includes(alias) || itemGov === alias)) {
+      return true;
+    }
+    
+    // Check location field with aliases
+    if (aliases.some(alias => itemLocation.includes(alias) || itemLocation === alias)) {
+      return true;
+    }
+    
+    // Check city field with aliases
+    if (aliases.some(alias => itemCity.includes(alias) || itemCity === alias)) {
+      return true;
+    }
+    
+    // Check province field with aliases
+    if (aliases.some(alias => itemProvince.includes(alias) || itemProvince === alias)) {
+      return true;
+    }
+    
+    return false;
+  };
+
   // Filter logic across Search + Governorate + Country + Deadline
   const filteredBaseOpportunities = opportunities.filter(item => {
     const isOpp = getIsOpportunity(item) || item.type === 'study_group';
@@ -351,9 +454,9 @@ export default function FutureFeed({
       if (!matchesEN && !matchesAR && !matchesKU) return false;
     }
 
-    // Governorate filter
+    // Governorate filter with alias support
     if (filterGov !== 'all') {
-      if (item.governorateId !== filterGov && item.governorateId !== 'all') {
+      if (!matchesGovernorate(item, filterGov)) {
         return false;
       }
     }
@@ -570,33 +673,35 @@ export default function FutureFeed({
           </button>
         )}
       </div>
-      {/* Clean city/governorate filter */}
-      <div className="bg-white border border-slate-200 rounded-3xl p-4 mb-4 shadow-sm" id="advanced-filters-panel">
-        <div className="flex items-center justify-between gap-3 mb-3">
-          <div>
-            <h3 className="text-sm font-black text-slate-900">Jobs by governorate</h3>
-            <p className="text-[11px] font-bold text-slate-500">Choose a city/governorate to show matching opportunities.</p>
+      {/* Clean city/governorate filter - Only show for Jobs */}
+      {activeChip === 'job' && (
+        <div className="bg-white border border-slate-200 rounded-3xl p-4 mb-4 shadow-sm" id="advanced-filters-panel">
+          <div className="flex items-center justify-between gap-3 mb-3">
+            <div>
+              <h3 className="text-sm font-black text-slate-900">Jobs by governorate</h3>
+              <p className="text-[11px] font-bold text-slate-500">Choose a city/governorate to show matching opportunities.</p>
+            </div>
+            <MapPin className="w-5 h-5 text-orange-500 shrink-0" />
           </div>
-          <MapPin className="w-5 h-5 text-orange-500 shrink-0" />
-        </div>
 
-        <select
-          value={filterGov}
-          onChange={e => {
-            setFilterGov(e.target.value);
-            setVisibleCount(12);
-            setCurrentPage(1);
-          }}
-          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-800 outline-none focus:border-orange-400"
-        >
-          <option value="all">All Iraq</option>
-          {IraqiGovernorates.map(g => (
-            <option key={g.id} value={g.id}>
-              {language === 'ar' ? g.nameAR : language === 'ku' ? g.nameKU : g.nameEN}
-            </option>
-          ))}
-        </select>
-      </div>
+          <select
+            value={filterGov}
+            onChange={e => {
+              setFilterGov(e.target.value);
+              setVisibleCount(12);
+              setCurrentPage(1);
+            }}
+            className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-800 outline-none focus:border-orange-400"
+          >
+            <option value="all">All Iraq</option>
+            {IraqiGovernorates.map(g => (
+              <option key={g.id} value={g.id}>
+                {language === 'ar' ? g.nameAR : language === 'ku' ? g.nameKU : g.nameEN}
+              </option>
+            ))}
+          </select>
+        </div>
+      )}
       {/* Deadlines Alert list (Rendered only on general view with no search) */}
       {!isCustomFiltersActive && (
         <div className="bg-white border-2 border-[#161A33] rounded-3xl p-3.5 mb-5 shadow-[3px_3px_0px_0px_#161A33]" id="deadlines-ticker-panel">
@@ -693,6 +798,22 @@ export default function FutureFeed({
         </div>
       ) : (isFeedLoading || isLoading) ? (
         <SkeletonLoader />
+      ) : activeChip === 'job' && filterGov !== 'all' && finalFilteredOpportunityItems.length === 0 ? (
+        <div className="text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-8 text-center shadow-[3px_3px_0px_0px_#161A33] mb-5">
+          <div className="text-4xl mb-3">ðŸ”­</div>
+          <h3 className="font-extrabold text-[#161A33] text-sm uppercase tracking-wide">
+            {language === 'ar' ? 'لا توجد وظائف في هذه المحافظة حالياً.' : language === 'ku' ? 'لە ئێستادا هیچ هەلی کارێک لەم پارێزگایەدا نییە.' : 'No jobs found in this governorate.'}
+          </h3>
+          <p className="text-[11px] text-slate-500 max-w-xs mt-2 mx-auto leading-relaxed">
+            {language === 'ar' ? 'جرب اختيار محافظة أخرى أو تصفح جميع الوظائف في العراق.' : language === 'ku' ? 'تکایە پارێزگایەکی دیکە هەڵبژێرە یان هەموو کارەکانی عێراق ببینە.' : 'Try selecting a different governorate or browse all jobs in Iraq.'}
+          </p>
+          <button
+            onClick={() => setFilterGov('all')}
+            className="mt-4 bg-[#6B25C9] text-white border-2 border-[#161A33] font-black text-xs px-4 py-2 rounded-xl transition-all active:scale-95 cursor-pointer shadow-[2px_2px_0px_0px_#161A33]"
+          >
+            {language === 'ar' ? 'عرض جميع الوظائف' : language === 'ku' ? 'هەموو کارەکان پیشان بدە' : 'Show All Jobs'}
+          </button>
+        </div>
       ) : opportunities.length === 0 ? (
         <div className="text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-8 text-center shadow-[3px_3px_0px_0px_#161A33] mb-5">
           <div className="text-4xl mb-3">ðŸ”­</div>
@@ -951,5 +1072,6 @@ export default function FutureFeed({
     </div>
   );
 }
+
 
 
