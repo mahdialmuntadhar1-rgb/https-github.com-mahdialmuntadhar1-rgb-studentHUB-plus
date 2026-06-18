@@ -73,6 +73,12 @@ export default function FutureFeed({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number | null>(null);
 
+  const [searchQuery, setSearchQuery] = useState('');
+  const [filterGov, setFilterGov] = useState<string>('all');
+  const [filterCountry, setFilterCountry] = useState<string>('all');
+  const [filterDeadline, setFilterDeadline] = useState<string>('all');
+
+
   // Safe mapper for backend opportunities to FeedItem shape
   const mapBackendOpportunity = (item: any): FeedItem => {
     const categoryRaw = (item.category || item.type || 'job').toLowerCase();
@@ -193,7 +199,7 @@ export default function FutureFeed({
         }
         
         // Pass the category filter to the getOpportunities API with pagination
-        const result = await getOpportunities({ category: categoryParam, page: 1, limit: 50 }, language);
+        const result = await getOpportunities({ category: categoryParam, page: 1, limit: 50, governorate: filterGov !== 'all' ? filterGov : undefined }, language);
         if (active) {
           setOpportunities(result.items.map(mapBackendOpportunity));
           setTotalCount(result.total);
@@ -212,7 +218,7 @@ export default function FutureFeed({
     return () => {
       active = false;
     };
-  }, [language, activeChip]);
+  }, [language, activeChip, filterGov]);
 
   // Action wrapper overrides to keep visual states reactive inside the loaded list
   const handleLocalLike = (id: string) => {
@@ -270,15 +276,7 @@ export default function FutureFeed({
       return item;
     }));
   };
-
-  const [searchQuery, setSearchQuery] = useState('');
-  
-  // Custom filter dropdown states
-  const [filterGov, setFilterGov] = useState<string>('all');
-  const [filterCountry, setFilterCountry] = useState<string>('all');
-  const [filterDeadline, setFilterDeadline] = useState<string>('all');
-  
-  // Pagination State
+// Pagination State
   const [visibleCount, setVisibleCount] = useState<number>(12);
 
   // Exact 11 core categories + All requested in PART 3
@@ -511,7 +509,7 @@ export default function FutureFeed({
         categoryParam = activeChip;
       }
       
-      const result = await getOpportunities({ category: categoryParam, page: nextPage, limit: 50 }, language);
+      const result = await getOpportunities({ category: categoryParam, page: nextPage, limit: 50, governorate: filterGov !== 'all' ? filterGov : undefined }, language);
       setOpportunities(prev => [...prev, ...result.items.map(mapBackendOpportunity)]);
       setCurrentPage(nextPage);
       setTotalCount(result.total);
@@ -572,68 +570,33 @@ export default function FutureFeed({
           </button>
         )}
       </div>
-
-      {/* Advanced Filters deck (Governorate, Country, Deadline) */}
-      <div className="bg-white border-2 border-[#161A33] rounded-2xl p-3.5 mb-4 shadow-[2px_2px_0px_0px_#161A33]" id="advanced-filters-panel">
-        <div className="flex items-center gap-1.5 text-[10px] font-black text-[#161A33] uppercase tracking-wider mb-2.5">
-          <Filter className="w-3.5 h-3.5 text-[#6B25C9]" />
-          <span>{language === 'ar' ? 'ØªØµÙÙŠØ© Ø°ÙƒÙŠØ© Ù„Ù„Ù…Ø³ØªÙ‚Ø¨Ù„' : language === 'ku' ? 'Ù¾Ø§ÚµØ§ÙˆØªÙ†ÛŒ Ù¾ÛŽØ´Ú©Û•ÙˆØªÙˆÙˆ' : 'Advanced Filters'}</span>
+      {/* Clean city/governorate filter */}
+      <div className="bg-white border border-slate-200 rounded-3xl p-4 mb-4 shadow-sm" id="advanced-filters-panel">
+        <div className="flex items-center justify-between gap-3 mb-3">
+          <div>
+            <h3 className="text-sm font-black text-slate-900">Jobs by governorate</h3>
+            <p className="text-[11px] font-bold text-slate-500">Choose a city/governorate to show matching opportunities.</p>
+          </div>
+          <MapPin className="w-5 h-5 text-orange-500 shrink-0" />
         </div>
-        
-        <div className="grid grid-cols-3 gap-2">
-          {/* Governorate select */}
-          <div className="flex flex-col gap-1">
-            <span className="text-[8px] font-black uppercase text-slate-400">
-              {language === 'ar' ? 'Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©' : language === 'ku' ? 'Ù¾Ø§Ø±ÛŽØ²Ú¯Ø§' : 'Governorate'}
-            </span>
-            <select
-              value={filterGov}
-              onChange={e => { setFilterGov(e.target.value); setVisibleCount(12); }}
-              className="text-[10px] font-bold text-[#161A33] bg-[#F3F7FF] border border-[#161A33]/20 rounded-lg p-1.5 focus:outline-none focus:border-[#6B25C9]"
-            >
-              <option value="all">{language === 'ar' ? 'ÙƒÙ„ Ø§Ù„Ø¹Ø±Ø§Ù‚ ðŸ‡®ðŸ‡¶' : language === 'ku' ? 'Ù‡Û•Ù…ÙˆÙˆ Ø¹ÛŽØ±Ø§Ù‚ ðŸ‡®ðŸ‡¶' : 'All Iraq ðŸ‡®ðŸ‡¶'}</option>
-              {IraqiGovernorates.map(g => (
-                <option key={g.id} value={g.id}>
-                  {language === 'ar' ? g.nameAR : language === 'ku' ? g.nameKU : g.nameEN}
-                </option>
-              ))}
-            </select>
-          </div>
 
-          {/* Country type select */}
-          <div className="flex flex-col gap-1">
-            <span className="text-[8px] font-black uppercase text-slate-400">
-              {language === 'ar' ? 'Ø§Ù„Ù†Ø·Ø§Ù‚ Ø§Ù„Ø¬ØºØ±Ø§ÙÙŠ' : language === 'ku' ? 'Ù¾Ø§Ù†ØªØ§ÛŒÛŒ' : 'Scope'}
-            </span>
-            <select
-              value={filterCountry}
-              onChange={e => { setFilterCountry(e.target.value); setVisibleCount(12); }}
-              className="text-[10px] font-bold text-[#161A33] bg-[#F3F7FF] border border-[#161A33]/20 rounded-lg p-1.5 focus:outline-none focus:border-[#6B25C9]"
-            >
-              <option value="all">{language === 'ar' ? 'Ø§Ù„ÙƒÙ„ ðŸŒ' : language === 'ku' ? 'Ù‡Û•Ù…ÙˆÙˆ ðŸŒ' : 'All ðŸŒ'}</option>
-              <option value="iraq">{language === 'ar' ? 'Ø¯Ø§Ø®Ù„ÙŠ (Ø§Ù„Ø¹Ø±Ø§Ù‚)' : language === 'ku' ? 'Ù†Ø§ÙˆØ®Û†ÛŒÛŒ (Ø¹ÛŽØ±Ø§Ù‚)' : 'Local (Iraq)'}</option>
-              <option value="international">{language === 'ar' ? 'Ø¯ÙˆÙ„ÙŠ ÙˆØ®Ø§Ø±Ø¬ÙŠ' : language === 'ku' ? 'Ù†ÛŽÙˆØ¯Û•ÙˆÚµÛ•ØªÛŒ' : 'International'}</option>
-            </select>
-          </div>
-
-          {/* Deadline select */}
-          <div className="flex flex-col gap-1">
-            <span className="text-[8px] font-black uppercase text-slate-400">
-              {language === 'ar' ? 'Ù…Ø¤Ù‚Øª Ø§Ù„ØªÙ‚Ø¯ÙŠÙ…' : language === 'ku' ? 'Ù…Û†ÚµÛ•Øª' : 'Deadline'}
-            </span>
-            <select
-              value={filterDeadline}
-              onChange={e => { setFilterDeadline(e.target.value); setVisibleCount(12); }}
-              className="text-[10px] font-bold text-[#161A33] bg-[#F3F7FF] border border-[#161A33]/20 rounded-lg p-1.5 focus:outline-none focus:border-[#6B25C9]"
-            >
-              <option value="all">{language === 'ar' ? 'Ù…ÙØªÙˆØ­ ðŸ“…' : language === 'ku' ? 'Ú©Ø±Ø§ÙˆÛ• ðŸ“…' : 'Open ðŸ“…'}</option>
-              <option value="week">{language === 'ar' ? 'Ø®Ù„Ø§Ù„ Ø£Ø³Ø¨ÙˆØ¹' : language === 'ku' ? 'Ù„Û•Ù… Ù‡Û•ÙØªÛ•ÛŒÛ•Ø¯Ø§' : 'Within Week'}</option>
-              <option value="month">{language === 'ar' ? 'Ø®Ù„Ø§Ù„ Ø´Ù‡Ø±' : language === 'ku' ? 'Ù„Û•Ù… Ù…Ø§Ù†Ú¯Û•Ø¯Ø§' : 'Within Month'}</option>
-            </select>
-          </div>
-        </div>
+        <select
+          value={filterGov}
+          onChange={e => {
+            setFilterGov(e.target.value);
+            setVisibleCount(12);
+            setCurrentPage(1);
+          }}
+          className="w-full rounded-2xl border border-slate-200 bg-slate-50 px-3 py-3 text-sm font-bold text-slate-800 outline-none focus:border-orange-400"
+        >
+          <option value="all">All Iraq</option>
+          {IraqiGovernorates.map(g => (
+            <option key={g.id} value={g.id}>
+              {language === 'ar' ? g.nameAR : language === 'ku' ? g.nameKU : g.nameEN}
+            </option>
+          ))}
+        </select>
       </div>
-
       {/* Deadlines Alert list (Rendered only on general view with no search) */}
       {!isCustomFiltersActive && (
         <div className="bg-white border-2 border-[#161A33] rounded-3xl p-3.5 mb-5 shadow-[3px_3px_0px_0px_#161A33]" id="deadlines-ticker-panel">
@@ -710,7 +673,7 @@ export default function FutureFeed({
               if (['job', 'scholarship', 'internship', 'training', 'event', 'volunteering', 'fellowship', 'competition', 'announcement', 'exam'].includes(activeChip)) {
                 categoryParam = activeChip;
               }
-              getOpportunities({ category: categoryParam, page: 1, limit: 50 }, language).then(result => {
+              getOpportunities({ category: categoryParam, page: 1, limit: 50, governorate: filterGov !== 'all' ? filterGov : undefined }, language).then(result => {
                 if (active) {
                   setOpportunities(result.items.map(mapBackendOpportunity));
                   setTotalCount(result.total);
@@ -988,4 +951,5 @@ export default function FutureFeed({
     </div>
   );
 }
+
 

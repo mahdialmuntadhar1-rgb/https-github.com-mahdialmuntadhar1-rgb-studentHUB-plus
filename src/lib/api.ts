@@ -300,12 +300,13 @@ export const opportunityAutomation = {
   }
 };
 
-export async function getOpportunities(params?: { category?: string; page?: number; limit?: number }, lang: Language = 'ar') {
-  const { category, page = 1, limit = 50 } = params || {};
+export async function getOpportunities(params?: { category?: string; page?: number; limit?: number; governorate?: string }, lang: Language = 'ar') {
+  const { category, page = 1, limit = 50, governorate } = params || {};
   let finalLang = lang;
 
   const url = new URL(`${BACKEND_URL}/api/opportunities`);
   if (category) url.searchParams.append('category', category);
+  if (governorate && governorate !== 'all') url.searchParams.append('governorate', governorate);
   url.searchParams.append('page', page.toString());
   url.searchParams.append('limit', limit.toString());
 
@@ -587,5 +588,6 @@ export const socialApi = {
     }
   }
 };
+
 
 

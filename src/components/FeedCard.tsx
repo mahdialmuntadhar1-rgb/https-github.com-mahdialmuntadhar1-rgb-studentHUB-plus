@@ -509,6 +509,14 @@ export default function FeedCard({
 
     const hasValidOpportunityUrl = /^https?:\/\//i.test(opportunityUrl);
 
+    const opportunityHost = (() => {
+      try {
+        return hasValidOpportunityUrl ? new URL(opportunityUrl).hostname.replace(/^www\./, '') : '';
+      } catch (_) {
+        return '';
+      }
+    })();
+
     const providerName = cleanOpportunityText(
       (item as any).company ||
       (item as any).institution_name ||
@@ -613,15 +621,31 @@ export default function FeedCard({
         <button
           type="button"
           onClick={openOpportunity}
-          className="w-full block bg-slate-100"
+          className="w-full block bg-slate-100 relative overflow-hidden text-left"
         >
           <img
             src={visualImageUrl}
             alt={opportunityTitle}
-            className="w-full h-[220px] object-cover"
+            className="w-full h-[240px] object-cover"
             loading="lazy"
             referrerPolicy="no-referrer"
           />
+
+          <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/45 to-transparent">
+            <div className="inline-flex rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-slate-900">
+              {opportunityKind}
+            </div>
+
+            <div className="mt-2 text-xl font-black leading-tight text-white line-clamp-2 drop-shadow">
+              {opportunityTitle}
+            </div>
+
+            {opportunityHost && (
+              <div className="mt-1 text-[11px] font-bold text-white/85 truncate">
+                Source: {opportunityHost}
+              </div>
+            )}
+          </div>
         </button>
 
         <div className="px-4 py-3">
@@ -1527,6 +1551,7 @@ function CommentRow({
     </div>
   );
 }
+
 
 
 
