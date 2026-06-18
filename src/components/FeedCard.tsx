@@ -501,11 +501,33 @@ export default function FeedCard({
     const opportunityUrl = String(
       (item as any).applyUrl ||
       (item as any).sourceUrl ||
-      (item as any).application_link ||
+      (item as any).apply_url ||
       (item as any).source_url ||
+      (item as any).details_url ||
+      (item as any).detailsUrl ||
+      (item as any).application_link ||
+      (item as any).application_url ||
+      (item as any).apply_link ||
+      (item as any).url ||
+      (item as any).link ||
+      (item as any).external_url ||
       (item as any).original_source_url ||
       ''
     ).trim();
+
+    const applyButtonText =
+      language === 'ar'
+        ? 'قدّم الآن'
+        : language === 'ku'
+          ? 'ئێستا داواکاری بکە'
+          : 'Apply Now';
+
+    const sourceUnavailableText =
+      language === 'ar'
+        ? 'المصدر غير متوفر'
+        : language === 'ku'
+          ? 'سەرچاوە بەردەست نییە'
+          : 'Source unavailable';
 
     const hasValidOpportunityUrl = /^https?:\/\//i.test(opportunityUrl);
 
@@ -526,12 +548,22 @@ export default function FeedCard({
     );
 
     const opportunityTitle = cleanOpportunityText(
-      title ||
       item.titleEN ||
       item.title_en ||
+      (item as any).position_title ||
+      (item as any).positionTitle ||
+      (item as any).job_title ||
+      (item as any).jobTitle ||
+      (item as any).vacancy_title ||
+      (item as any).vacancyTitle ||
+      (item as any).role_title ||
+      (item as any).roleTitle ||
+      (item as any).post_title ||
+      (item as any).postTitle ||
       (item as any).title ||
+      title ||
       '',
-      `${opportunityKind} opportunity`
+      opportunityKind === 'Job' ? 'Position details' : `${opportunityKind} details`
     );
 
     const opportunityCaption = cleanOpportunityText(
@@ -557,7 +589,11 @@ export default function FeedCard({
     );
 
     const rawImage = String(item.imageUrl || (item as any).image_url || '').trim();
-    const hasValidImage = /^https?:\/\//i.test(rawImage) && !rawImage.includes('images.unsplash.com');
+    const hasValidImage = /^https?:\/\//i.test(rawImage) && 
+      !rawImage.includes('images.unsplash.com') &&
+      !rawImage.includes('opportunity-job.svg') &&
+      !rawImage.includes('opportunity-scholarship.svg') &&
+      !rawImage.includes('opportunity-training.svg');
 
     const fallbackOpportunityImage =
       opportunityKind === 'Scholarship'
@@ -569,8 +605,15 @@ export default function FeedCard({
     const visualImageUrl = hasValidImage ? rawImage : fallbackOpportunityImage;
 
     const openOpportunity = () => {
-      if (hasValidOpportunityUrl) {
-        window.open(opportunityUrl, '_blank', 'noopener,noreferrer');
+      if (!hasValidOpportunityUrl) return;
+
+      try {
+        const opened = window.open(opportunityUrl, '_blank', 'noopener,noreferrer');
+        if (!opened) {
+          window.location.href = opportunityUrl;
+        }
+      } catch (_) {
+        window.location.href = opportunityUrl;
       }
     };
 
@@ -623,29 +666,61 @@ export default function FeedCard({
           onClick={openOpportunity}
           className="w-full block bg-slate-100 relative overflow-hidden text-left"
         >
-          <img
-            src={visualImageUrl}
-            alt={opportunityTitle}
-            className="w-full h-[240px] object-cover"
-            loading="lazy"
-            referrerPolicy="no-referrer"
-          />
+          {hasValidImage ? (
+            <>
+              <img
+                src={visualImageUrl}
+                alt={opportunityTitle}
+                className="w-full h-[240px] object-cover"
+                loading="lazy"
+                referrerPolicy="no-referrer"
+              />
 
-          <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/45 to-transparent">
-            <div className="inline-flex rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-slate-900">
-              {opportunityKind}
-            </div>
+              <div className="absolute inset-x-0 bottom-0 p-4 bg-gradient-to-t from-black/80 via-black/45 to-transparent">
+                <div className="inline-flex rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-black uppercase tracking-wide text-slate-900">
+                  {opportunityKind}
+                </div>
 
-            <div className="mt-2 text-xl font-black leading-tight text-white line-clamp-2 drop-shadow">
-              {opportunityTitle}
-            </div>
+                <div className="mt-2 text-xl font-black leading-tight text-white line-clamp-2 drop-shadow">
+                  {opportunityTitle}
+                </div>
 
-            {opportunityHost && (
-              <div className="mt-1 text-[11px] font-bold text-white/85 truncate">
-                Source: {opportunityHost}
+                {opportunityHost && (
+                  <div className="mt-1 text-[11px] font-bold text-white/85 truncate">
+                    Source: {opportunityHost}
+                  </div>
+                )}
               </div>
-            )}
-          </div>
+            </>
+          ) : (
+            <div className="relative h-[240px] w-full overflow-hidden bg-gradient-to-br from-orange-500 via-orange-600 to-orange-900 p-6 text-white">
+              <div className="absolute -right-10 -top-10 h-36 w-36 rounded-full bg-white/15" />
+              <div className="absolute -left-10 -bottom-12 h-40 w-40 rounded-full bg-black/20" />
+
+              <div className="relative z-10 flex h-full flex-col justify-between">
+                <div>
+                  <div className="text-sm font-black tracking-wide text-white/90">
+                    Jamiaati Opportunities
+                  </div>
+                  <div className="mt-3 inline-flex rounded-full bg-white px-3 py-1 text-[10px] font-black uppercase tracking-wide text-orange-700">
+                    {opportunityKind}
+                  </div>
+                </div>
+
+                <div>
+                  <div className="text-3xl font-black leading-tight text-white line-clamp-3 drop-shadow">
+                    {opportunityTitle}
+                  </div>
+
+                  {opportunityHost && (
+                    <div className="mt-2 text-[12px] font-bold text-white/85 truncate">
+                      Source: {opportunityHost}
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          )}
         </button>
 
         <div className="px-4 py-3">
@@ -667,15 +742,18 @@ export default function FeedCard({
             {opportunityCaption}
           </p>
 
-          {hasValidOpportunityUrl && (
-            <button
-              type="button"
-              onClick={openOpportunity}
-              className="mt-3 inline-flex items-center justify-center rounded-full bg-orange-500 px-4 py-2 text-[12px] font-black text-white shadow-sm hover:bg-orange-600 active:scale-95 transition"
-            >
-              Apply / View details
-            </button>
-          )}
+          <button
+            type="button"
+            onClick={openOpportunity}
+            disabled={!hasValidOpportunityUrl}
+            className={`mt-3 inline-flex items-center justify-center rounded-full px-4 py-2 text-[12px] font-black shadow-sm transition ${
+              hasValidOpportunityUrl
+                ? 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95'
+                : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+            }`}
+          >
+            {hasValidOpportunityUrl ? applyButtonText : sourceUnavailableText}
+          </button>
         </div>
 
         <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between">
@@ -1551,6 +1629,9 @@ function CommentRow({
     </div>
   );
 }
+
+
+
 
 
 
