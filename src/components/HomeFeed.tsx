@@ -1107,7 +1107,7 @@ export default function HomeFeed({
     if (selectedOppFilter === 'news') {
       return allSeriousItems.filter(item => 
         item.type === 'news' || 
-        item.tags?.some(tag => tag.toLowerCase().includes('news')) ||
+        getSafeTags(item.tags).some(tag => tag.toLowerCase().includes('news')) ||
         item.type === 'announcement'
       );
     }
@@ -1117,7 +1117,7 @@ export default function HomeFeed({
     if (selectedOppFilter === 'internship') {
       return allSeriousItems.filter(item => 
         item.type === 'internship' || 
-        item.tags?.some(tag => tag.toLowerCase().includes('intern'))
+        getSafeTags(item.tags).some(tag => tag.toLowerCase().includes('intern'))
       );
     }
     return allSeriousItems;
@@ -1138,13 +1138,13 @@ export default function HomeFeed({
         return item.type === 'event' || item.type === 'poll' || item.category === 'event';
       }
       if (selectedCampusFilter === 'clubs') {
-        return item.type === 'club' || item.category === 'clubs' || item.tags?.some(tag => ['club', 'clubs', 'study group'].includes(tag.toLowerCase()));
+        return item.type === 'club' || item.category === 'clubs' || getSafeTags(item.tags).some(tag => ['club', 'clubs', 'study group'].includes(tag.toLowerCase()));
       }
       if (selectedCampusFilter === 'exams') {
-        return item.category === 'exams' || item.type === 'exam' || item.tags?.some(tag => ['exams', 'exam', 'registration'].includes(tag.toLowerCase()));
+        return item.category === 'exams' || item.type === 'exam' || getSafeTags(item.tags).some(tag => ['exams', 'exam', 'registration'].includes(tag.toLowerCase()));
       }
       if (selectedCampusFilter === 'campus_guide') {
-        return item.category === 'campus_guide' || item.tags?.some(tag => ['guide', 'orientation'].includes(tag.toLowerCase()));
+        return item.category === 'campus_guide' || getSafeTags(item.tags).some(tag => ['guide', 'orientation'].includes(tag.toLowerCase()));
       }
       return false;
     });
@@ -2424,4 +2424,5 @@ export default function HomeFeed({
     </div>
   );
 }
+
 
