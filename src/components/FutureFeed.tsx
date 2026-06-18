@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
@@ -114,8 +114,8 @@ export default function FutureFeed({
     const locationParts = [city, gov !== 'all' ? gov : '', country].filter(Boolean);
     const locationStr = locationParts.length > 0 ? locationParts.join(', ') : 'Iraq';
 
-    const applyUrl = item.apply_url || item.application_link || item.original_source_url || item.source_url || '';
-    const sourceUrl = item.source_url || item.original_source_url || item.application_link || '';
+    const applyUrl = item.apply_url || item.applyUrl || item.application_link || item.application_url || item.apply_link || item.url || item.link || item.details_url || item.external_url || item.original_source_url || item.source_url || '';
+    const sourceUrl = item.source_url || item.sourceUrl || item.original_source_url || item.source_link || item.url || item.link || item.details_url || item.external_url || item.application_link || item.apply_url || '';
     const imgUrl = item.image_url || item.imageUrl || '';
 
     // Safe image URL - don't use Unsplash fallbacks
@@ -152,7 +152,7 @@ export default function FutureFeed({
         avatar: safeImageUrl || '',
         verified: true
       },
-      date: item.published_date ? `Posted on ${item.published_date}` : 'Recently posted 🔔',
+      date: item.published_date ? `Posted on ${item.published_date}` : 'Recently posted ðŸ””',
       likes: Number(item.likes || 12),
       likedByUser: false,
       savedCount: Number(item.saved_count || 15),
@@ -283,18 +283,18 @@ export default function FutureFeed({
 
   // Exact 11 core categories + All requested in PART 3
   const chips = [
-    { id: 'all', labelEN: 'All Future 🚀', labelAR: 'كل المستقبل', labelKU: 'هەموو ئامانجەکان' },
-    { id: 'job', labelEN: 'Jobs 💼', labelAR: 'وظائف خريجين', labelKU: 'هەلی کار' },
-    { id: 'scholarship', labelEN: 'Scholarships 🎓', labelAR: 'منح دراسية', labelKU: 'بۆرسەکان' },
-    { id: 'internship', labelEN: 'Internships 👔', labelAR: 'تدريب عملي', labelKU: 'مەشقەکان' },
-    { id: 'training', labelEN: 'Trainings 🌟', labelAR: 'دورات تأهيلية', labelKU: 'کۆرسەکان' },
-    { id: 'event', labelEN: 'Events 📅', labelAR: 'فعاليات تواصل', labelKU: 'چالاکییەکان' },
-    { id: 'volunteering', labelEN: 'Volunteering 🤝', labelAR: 'عمل تطوعي', labelKU: 'خۆبەخشی' },
-    { id: 'fellowship', labelEN: 'Fellowships 🎖️', labelAR: 'زمالات دراسية', labelKU: 'زەمالەکان' },
-    { id: 'competition', labelEN: 'Competitions 🏆', labelAR: 'مسابقات وبطولات', labelKU: 'پێشبڕکێکان' },
-    { id: 'announcement', labelEN: 'Announcements 📢', labelAR: 'إعلانات جامعية', labelKU: 'ڕاگەیەندراوەکان' },
-    { id: 'exam', labelEN: 'Exams 📝', labelAR: 'امتحانات واختبارات', labelKU: 'تاقیکردنەوەکان' },
-    { id: 'deadline_soon', labelEN: 'Closing Soon ⏳', labelAR: 'قريب الإغلاق', labelKU: 'نزیک لە مۆڵەت' },
+    { id: 'all', labelEN: 'All Future ðŸš€', labelAR: 'ÙƒÙ„ Ø§Ù„Ù…Ø³ØªÙ‚Ø¨Ù„', labelKU: 'Ù‡Û•Ù…ÙˆÙˆ Ø¦Ø§Ù…Ø§Ù†Ø¬Û•Ú©Ø§Ù†' },
+    { id: 'job', labelEN: 'Jobs ðŸ’¼', labelAR: 'ÙˆØ¸Ø§Ø¦Ù Ø®Ø±ÙŠØ¬ÙŠÙ†', labelKU: 'Ù‡Û•Ù„ÛŒ Ú©Ø§Ø±' },
+    { id: 'scholarship', labelEN: 'Scholarships ðŸŽ“', labelAR: 'Ù…Ù†Ø­ Ø¯Ø±Ø§Ø³ÙŠØ©', labelKU: 'Ø¨Û†Ø±Ø³Û•Ú©Ø§Ù†' },
+    { id: 'internship', labelEN: 'Internships ðŸ‘”', labelAR: 'ØªØ¯Ø±ÙŠØ¨ Ø¹Ù…Ù„ÙŠ', labelKU: 'Ù…Û•Ø´Ù‚Û•Ú©Ø§Ù†' },
+    { id: 'training', labelEN: 'Trainings ðŸŒŸ', labelAR: 'Ø¯ÙˆØ±Ø§Øª ØªØ£Ù‡ÙŠÙ„ÙŠØ©', labelKU: 'Ú©Û†Ø±Ø³Û•Ú©Ø§Ù†' },
+    { id: 'event', labelEN: 'Events ðŸ“…', labelAR: 'ÙØ¹Ø§Ù„ÙŠØ§Øª ØªÙˆØ§ØµÙ„', labelKU: 'Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ•Ú©Ø§Ù†' },
+    { id: 'volunteering', labelEN: 'Volunteering ðŸ¤', labelAR: 'Ø¹Ù…Ù„ ØªØ·ÙˆØ¹ÙŠ', labelKU: 'Ø®Û†Ø¨Û•Ø®Ø´ÛŒ' },
+    { id: 'fellowship', labelEN: 'Fellowships ðŸŽ–ï¸', labelAR: 'Ø²Ù…Ø§Ù„Ø§Øª Ø¯Ø±Ø§Ø³ÙŠØ©', labelKU: 'Ø²Û•Ù…Ø§Ù„Û•Ú©Ø§Ù†' },
+    { id: 'competition', labelEN: 'Competitions ðŸ†', labelAR: 'Ù…Ø³Ø§Ø¨Ù‚Ø§Øª ÙˆØ¨Ø·ÙˆÙ„Ø§Øª', labelKU: 'Ù¾ÛŽØ´Ø¨Ú•Ú©ÛŽÚ©Ø§Ù†' },
+    { id: 'announcement', labelEN: 'Announcements ðŸ“¢', labelAR: 'Ø¥Ø¹Ù„Ø§Ù†Ø§Øª Ø¬Ø§Ù…Ø¹ÙŠØ©', labelKU: 'Ú•Ø§Ú¯Û•ÛŒÛ•Ù†Ø¯Ø±Ø§ÙˆÛ•Ú©Ø§Ù†' },
+    { id: 'exam', labelEN: 'Exams ðŸ“', labelAR: 'Ø§Ù…ØªØ­Ø§Ù†Ø§Øª ÙˆØ§Ø®ØªØ¨Ø§Ø±Ø§Øª', labelKU: 'ØªØ§Ù‚ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•Ú©Ø§Ù†' },
+    { id: 'deadline_soon', labelEN: 'Closing Soon â³', labelAR: 'Ù‚Ø±ÙŠØ¨ Ø§Ù„Ø¥ØºÙ„Ø§Ù‚', labelKU: 'Ù†Ø²ÛŒÚ© Ù„Û• Ù…Û†ÚµÛ•Øª' },
   ];
 
   // Helper selectors matching user's selections
@@ -302,7 +302,7 @@ export default function FutureFeed({
   const currentGovernorate = IraqiGovernorates.find(g => g.id === selectedGov);
 
   const getUniLabel = () => {
-    if (!currentUniversity) return language === 'ar' ? 'جامعتك المحددة' : language === 'ku' ? 'زانکۆکەت' : 'Your University';
+    if (!currentUniversity) return language === 'ar' ? 'Ø¬Ø§Ù…Ø¹ØªÙƒ Ø§Ù„Ù…Ø­Ø¯Ø¯Ø©' : language === 'ku' ? 'Ø²Ø§Ù†Ú©Û†Ú©Û•Øª' : 'Your University';
     return language === 'ar' ? currentUniversity.nameAR : language === 'ku' ? currentUniversity.nameKU : currentUniversity.nameEN;
   };
 
@@ -315,15 +315,15 @@ export default function FutureFeed({
   const timelineReminders = [
     {
       titleEN: "Iraq Cybersecurity CTF Application",
-      titleAR: "مسابقة الأمن السيبراني الوطنية",
-      titleKU: "کۆتا مۆڵەتی کێبڕکێی سیبرانی",
+      titleAR: "Ù…Ø³Ø§Ø¨Ù‚Ø© Ø§Ù„Ø£Ù…Ù† Ø§Ù„Ø³ÙŠØ¨Ø±Ø§Ù†ÙŠ Ø§Ù„ÙˆØ·Ù†ÙŠØ©",
+      titleKU: "Ú©Û†ØªØ§ Ù…Û†ÚµÛ•ØªÛŒ Ú©ÛŽØ¨Ú•Ú©ÛŽÛŒ Ø³ÛŒØ¨Ø±Ø§Ù†ÛŒ",
       date: "July 5, 2026",
       urgent: true
     },
     {
       titleEN: "Hunar Tech Frontend Internship",
-      titleAR: "تدريب هُنر التكنولوجي للبرمجة",
-      titleKU: "مەشقی فرۆنتێند لە کۆمپانیای هۆنەر",
+      titleAR: "ØªØ¯Ø±ÙŠØ¨ Ù‡ÙÙ†Ø± Ø§Ù„ØªÙƒÙ†ÙˆÙ„ÙˆØ¬ÙŠ Ù„Ù„Ø¨Ø±Ù…Ø¬Ø©",
+      titleKU: "Ù…Û•Ø´Ù‚ÛŒ ÙØ±Û†Ù†ØªÛŽÙ†Ø¯ Ù„Û• Ú©Û†Ù…Ù¾Ø§Ù†ÛŒØ§ÛŒ Ù‡Û†Ù†Û•Ø±",
       date: "June 30, 2026",
       urgent: false
     }
@@ -491,12 +491,12 @@ export default function FutureFeed({
   );
 
   // Language titles lookups
-  const section1Title = language === 'ar' ? `المميزة في ${getUniLabel()}` : language === 'ku' ? `تایبەت بە ${getUniLabel()}` : `Featured for ${getUniLabel()}`;
-  const section2Title = language === 'ar' ? `الأكثر شعبية في ${getGovLabel()}` : language === 'ku' ? `بەناوبانگ لە ${getGovLabel()}` : `Popular in ${getGovLabel()}`;
-  const section3Title = language === 'ar' ? 'متاحة لعموم العراق' : language === 'ku' ? 'کراوە بۆ هەموو عێراق' : 'Open for All Iraq';
-  const section4Title = language === 'ar' ? 'جديد التدريب الصيفي' : language === 'ku' ? 'مەشقە نوێیەکان' : 'New Internships';
-  const section5Title = language === 'ar' ? 'المنح والدورات التدريبية' : language === 'ku' ? 'بۆرسە و ڕاهێنانەکان' : 'Scholarships & Training';
-  const section6Title = language === 'ar' ? 'حفظها زملاؤك في الصف' : language === 'ku' ? 'پاشەکەوتکراو لەلایەن هاوپۆلەکانت' : 'Saved by Your Classmates';
+  const section1Title = language === 'ar' ? `Ø§Ù„Ù…Ù…ÙŠØ²Ø© ÙÙŠ ${getUniLabel()}` : language === 'ku' ? `ØªØ§ÛŒØ¨Û•Øª Ø¨Û• ${getUniLabel()}` : `Featured for ${getUniLabel()}`;
+  const section2Title = language === 'ar' ? `Ø§Ù„Ø£ÙƒØ«Ø± Ø´Ø¹Ø¨ÙŠØ© ÙÙŠ ${getGovLabel()}` : language === 'ku' ? `Ø¨Û•Ù†Ø§ÙˆØ¨Ø§Ù†Ú¯ Ù„Û• ${getGovLabel()}` : `Popular in ${getGovLabel()}`;
+  const section3Title = language === 'ar' ? 'Ù…ØªØ§Ø­Ø© Ù„Ø¹Ù…ÙˆÙ… Ø§Ù„Ø¹Ø±Ø§Ù‚' : language === 'ku' ? 'Ú©Ø±Ø§ÙˆÛ• Ø¨Û† Ù‡Û•Ù…ÙˆÙˆ Ø¹ÛŽØ±Ø§Ù‚' : 'Open for All Iraq';
+  const section4Title = language === 'ar' ? 'Ø¬Ø¯ÙŠØ¯ Ø§Ù„ØªØ¯Ø±ÙŠØ¨ Ø§Ù„ØµÙŠÙÙŠ' : language === 'ku' ? 'Ù…Û•Ø´Ù‚Û• Ù†ÙˆÛŽÛŒÛ•Ú©Ø§Ù†' : 'New Internships';
+  const section5Title = language === 'ar' ? 'Ø§Ù„Ù…Ù†Ø­ ÙˆØ§Ù„Ø¯ÙˆØ±Ø§Øª Ø§Ù„ØªØ¯Ø±ÙŠØ¨ÙŠØ©' : language === 'ku' ? 'Ø¨Û†Ø±Ø³Û• Ùˆ Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†Û•Ú©Ø§Ù†' : 'Scholarships & Training';
+  const section6Title = language === 'ar' ? 'Ø­ÙØ¸Ù‡Ø§ Ø²Ù…Ù„Ø§Ø¤Ùƒ ÙÙŠ Ø§Ù„ØµÙ' : language === 'ku' ? 'Ù¾Ø§Ø´Û•Ú©Û•ÙˆØªÚ©Ø±Ø§Ùˆ Ù„Û•Ù„Ø§ÛŒÛ•Ù† Ù‡Ø§ÙˆÙ¾Û†Ù„Û•Ú©Ø§Ù†Øª' : 'Saved by Your Classmates';
 
   // Slice paginated items
   const paginatedItems = finalFilteredOpportunityItems.slice(0, visibleCount);
@@ -533,7 +533,7 @@ export default function FutureFeed({
       >
         <div className="flex items-center gap-3">
           <div className="w-8 h-8 rounded-xl bg-[#6B25C9]/10 border border-[#161A33]/20 text-[#6B25C9] flex items-center justify-center font-bold text-lg select-none">
-            🚀
+            ðŸš€
           </div>
           <div className="flex flex-col">
             <span className="text-[11px] font-black tracking-tight text-[#161A33] uppercase">
@@ -559,7 +559,7 @@ export default function FutureFeed({
           type="text" 
           value={searchQuery}
           onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder={language === 'ar' ? 'ابحث عن فرص عمل وتدريب...' : language === 'ku' ? 'بگەڕێ بۆ کار و مەشق...' : 'Search jobs, internships, training...'}
+          placeholder={language === 'ar' ? 'Ø§Ø¨Ø­Ø« Ø¹Ù† ÙØ±Øµ Ø¹Ù…Ù„ ÙˆØªØ¯Ø±ÙŠØ¨...' : language === 'ku' ? 'Ø¨Ú¯Û•Ú•ÛŽ Ø¨Û† Ú©Ø§Ø± Ùˆ Ù…Û•Ø´Ù‚...' : 'Search jobs, internships, training...'}
           className="w-full bg-white text-xs border-2 border-[#161A33] rounded-2xl py-3 pl-10 pr-4 text-[#161A33] font-black focus:outline-none focus:bg-[#FFFBEB]/40 shadow-inner placeholder-slate-400"
         />
         {searchQuery && (
@@ -568,7 +568,7 @@ export default function FutureFeed({
             onClick={() => setSearchQuery('')}
             className="absolute inset-y-0 right-3.5 flex items-center text-xs font-black text-[#6B25C9] active:scale-95 px-1 bg-transparent border-0 cursor-pointer"
           >
-            {language === 'ar' ? 'مسح' : language === 'ku' ? 'سڕینەوە' : 'Clear'}
+            {language === 'ar' ? 'Ù…Ø³Ø­' : language === 'ku' ? 'Ø³Ú•ÛŒÙ†Û•ÙˆÛ•' : 'Clear'}
           </button>
         )}
       </div>
@@ -577,21 +577,21 @@ export default function FutureFeed({
       <div className="bg-white border-2 border-[#161A33] rounded-2xl p-3.5 mb-4 shadow-[2px_2px_0px_0px_#161A33]" id="advanced-filters-panel">
         <div className="flex items-center gap-1.5 text-[10px] font-black text-[#161A33] uppercase tracking-wider mb-2.5">
           <Filter className="w-3.5 h-3.5 text-[#6B25C9]" />
-          <span>{language === 'ar' ? 'تصفية ذكية للمستقبل' : language === 'ku' ? 'پاڵاوتنی پێشکەوتوو' : 'Advanced Filters'}</span>
+          <span>{language === 'ar' ? 'ØªØµÙÙŠØ© Ø°ÙƒÙŠØ© Ù„Ù„Ù…Ø³ØªÙ‚Ø¨Ù„' : language === 'ku' ? 'Ù¾Ø§ÚµØ§ÙˆØªÙ†ÛŒ Ù¾ÛŽØ´Ú©Û•ÙˆØªÙˆÙˆ' : 'Advanced Filters'}</span>
         </div>
         
         <div className="grid grid-cols-3 gap-2">
           {/* Governorate select */}
           <div className="flex flex-col gap-1">
             <span className="text-[8px] font-black uppercase text-slate-400">
-              {language === 'ar' ? 'المحافظة' : language === 'ku' ? 'پارێزگا' : 'Governorate'}
+              {language === 'ar' ? 'Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©' : language === 'ku' ? 'Ù¾Ø§Ø±ÛŽØ²Ú¯Ø§' : 'Governorate'}
             </span>
             <select
               value={filterGov}
               onChange={e => { setFilterGov(e.target.value); setVisibleCount(12); }}
               className="text-[10px] font-bold text-[#161A33] bg-[#F3F7FF] border border-[#161A33]/20 rounded-lg p-1.5 focus:outline-none focus:border-[#6B25C9]"
             >
-              <option value="all">{language === 'ar' ? 'كل العراق 🇮🇶' : language === 'ku' ? 'هەموو عێراق 🇮🇶' : 'All Iraq 🇮🇶'}</option>
+              <option value="all">{language === 'ar' ? 'ÙƒÙ„ Ø§Ù„Ø¹Ø±Ø§Ù‚ ðŸ‡®ðŸ‡¶' : language === 'ku' ? 'Ù‡Û•Ù…ÙˆÙˆ Ø¹ÛŽØ±Ø§Ù‚ ðŸ‡®ðŸ‡¶' : 'All Iraq ðŸ‡®ðŸ‡¶'}</option>
               {IraqiGovernorates.map(g => (
                 <option key={g.id} value={g.id}>
                   {language === 'ar' ? g.nameAR : language === 'ku' ? g.nameKU : g.nameEN}
@@ -603,32 +603,32 @@ export default function FutureFeed({
           {/* Country type select */}
           <div className="flex flex-col gap-1">
             <span className="text-[8px] font-black uppercase text-slate-400">
-              {language === 'ar' ? 'النطاق الجغرافي' : language === 'ku' ? 'پانتایی' : 'Scope'}
+              {language === 'ar' ? 'Ø§Ù„Ù†Ø·Ø§Ù‚ Ø§Ù„Ø¬ØºØ±Ø§ÙÙŠ' : language === 'ku' ? 'Ù¾Ø§Ù†ØªØ§ÛŒÛŒ' : 'Scope'}
             </span>
             <select
               value={filterCountry}
               onChange={e => { setFilterCountry(e.target.value); setVisibleCount(12); }}
               className="text-[10px] font-bold text-[#161A33] bg-[#F3F7FF] border border-[#161A33]/20 rounded-lg p-1.5 focus:outline-none focus:border-[#6B25C9]"
             >
-              <option value="all">{language === 'ar' ? 'الكل 🌐' : language === 'ku' ? 'هەموو 🌐' : 'All 🌐'}</option>
-              <option value="iraq">{language === 'ar' ? 'داخلي (العراق)' : language === 'ku' ? 'ناوخۆیی (عێراق)' : 'Local (Iraq)'}</option>
-              <option value="international">{language === 'ar' ? 'دولي وخارجي' : language === 'ku' ? 'نێودەوڵەتی' : 'International'}</option>
+              <option value="all">{language === 'ar' ? 'Ø§Ù„ÙƒÙ„ ðŸŒ' : language === 'ku' ? 'Ù‡Û•Ù…ÙˆÙˆ ðŸŒ' : 'All ðŸŒ'}</option>
+              <option value="iraq">{language === 'ar' ? 'Ø¯Ø§Ø®Ù„ÙŠ (Ø§Ù„Ø¹Ø±Ø§Ù‚)' : language === 'ku' ? 'Ù†Ø§ÙˆØ®Û†ÛŒÛŒ (Ø¹ÛŽØ±Ø§Ù‚)' : 'Local (Iraq)'}</option>
+              <option value="international">{language === 'ar' ? 'Ø¯ÙˆÙ„ÙŠ ÙˆØ®Ø§Ø±Ø¬ÙŠ' : language === 'ku' ? 'Ù†ÛŽÙˆØ¯Û•ÙˆÚµÛ•ØªÛŒ' : 'International'}</option>
             </select>
           </div>
 
           {/* Deadline select */}
           <div className="flex flex-col gap-1">
             <span className="text-[8px] font-black uppercase text-slate-400">
-              {language === 'ar' ? 'مؤقت التقديم' : language === 'ku' ? 'مۆڵەت' : 'Deadline'}
+              {language === 'ar' ? 'Ù…Ø¤Ù‚Øª Ø§Ù„ØªÙ‚Ø¯ÙŠÙ…' : language === 'ku' ? 'Ù…Û†ÚµÛ•Øª' : 'Deadline'}
             </span>
             <select
               value={filterDeadline}
               onChange={e => { setFilterDeadline(e.target.value); setVisibleCount(12); }}
               className="text-[10px] font-bold text-[#161A33] bg-[#F3F7FF] border border-[#161A33]/20 rounded-lg p-1.5 focus:outline-none focus:border-[#6B25C9]"
             >
-              <option value="all">{language === 'ar' ? 'مفتوح 📅' : language === 'ku' ? 'کراوە 📅' : 'Open 📅'}</option>
-              <option value="week">{language === 'ar' ? 'خلال أسبوع' : language === 'ku' ? 'لەم هەفتەیەدا' : 'Within Week'}</option>
-              <option value="month">{language === 'ar' ? 'خلال شهر' : language === 'ku' ? 'لەم مانگەدا' : 'Within Month'}</option>
+              <option value="all">{language === 'ar' ? 'Ù…ÙØªÙˆØ­ ðŸ“…' : language === 'ku' ? 'Ú©Ø±Ø§ÙˆÛ• ðŸ“…' : 'Open ðŸ“…'}</option>
+              <option value="week">{language === 'ar' ? 'Ø®Ù„Ø§Ù„ Ø£Ø³Ø¨ÙˆØ¹' : language === 'ku' ? 'Ù„Û•Ù… Ù‡Û•ÙØªÛ•ÛŒÛ•Ø¯Ø§' : 'Within Week'}</option>
+              <option value="month">{language === 'ar' ? 'Ø®Ù„Ø§Ù„ Ø´Ù‡Ø±' : language === 'ku' ? 'Ù„Û•Ù… Ù…Ø§Ù†Ú¯Û•Ø¯Ø§' : 'Within Month'}</option>
             </select>
           </div>
         </div>
@@ -694,9 +694,9 @@ export default function FutureFeed({
       {/* Board Layouts: 6 Sections displayed when "all" chip is active AND no filters are selected */}
       {error ? (
         <div className="text-[#D9272E] bg-white border-2 border-[#D9272E] rounded-3xl p-8 text-center shadow-[3px_3px_0px_0px_#D9272E] mb-5">
-          <div className="text-4xl mb-3">⚠️</div>
+          <div className="text-4xl mb-3">âš ï¸</div>
           <h3 className="font-extrabold text-sm uppercase tracking-wide">
-            {language === 'ar' ? 'فشل تحميل الفرص العامة' : language === 'ku' ? 'بارکردنی دەرفەتەکان سەرکەوتوو نەبوو' : 'Failed to load opportunities'}
+            {language === 'ar' ? 'ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„ÙØ±Øµ Ø§Ù„Ø¹Ø§Ù…Ø©' : language === 'ku' ? 'Ø¨Ø§Ø±Ú©Ø±Ø¯Ù†ÛŒ Ø¯Û•Ø±ÙÛ•ØªÛ•Ú©Ø§Ù† Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ù†Û•Ø¨ÙˆÙˆ' : 'Failed to load opportunities'}
           </h3>
           <p className="text-[11px] text-slate-500 max-w-xs mt-2 mx-auto leading-relaxed">
             {error}
@@ -725,19 +725,19 @@ export default function FutureFeed({
             }}
             className="mt-4 bg-[#D9272E] text-white border-2 border-[#161A33] font-black text-xs px-4 py-2 rounded-xl transition-all active:scale-95 cursor-pointer shadow-[2px_2px_0px_0px_#161A33]"
           >
-            {language === 'ar' ? 'إعادة المحاولة 🔄' : language === 'ku' ? 'دووبارە هەوڵبدەرەوە 🔄' : 'Retry Loading 🔄'}
+            {language === 'ar' ? 'Ø¥Ø¹Ø§Ø¯Ø© Ø§Ù„Ù…Ø­Ø§ÙˆÙ„Ø© ðŸ”„' : language === 'ku' ? 'Ø¯ÙˆÙˆØ¨Ø§Ø±Û• Ù‡Û•ÙˆÚµØ¨Ø¯Û•Ø±Û•ÙˆÛ• ðŸ”„' : 'Retry Loading ðŸ”„'}
           </button>
         </div>
       ) : (isFeedLoading || isLoading) ? (
         <SkeletonLoader />
       ) : opportunities.length === 0 ? (
         <div className="text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-8 text-center shadow-[3px_3px_0px_0px_#161A33] mb-5">
-          <div className="text-4xl mb-3">🔭</div>
+          <div className="text-4xl mb-3">ðŸ”­</div>
           <h3 className="font-extrabold text-[#161A33] text-sm uppercase tracking-wide">
-            {language === 'ar' ? 'لا توجد عناصر متاحة بعد لهذه الفئة.' : language === 'ku' ? 'هیچ پۆستێک بۆ ئەم پۆلە بەردەست نییە.' : 'No items available yet for this category.'}
+            {language === 'ar' ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¹Ù†Ø§ØµØ± Ù…ØªØ§Ø­Ø© Ø¨Ø¹Ø¯ Ù„Ù‡Ø°Ù‡ Ø§Ù„ÙØ¦Ø©.' : language === 'ku' ? 'Ù‡ÛŒÚ† Ù¾Û†Ø³ØªÛŽÚ© Ø¨Û† Ø¦Û•Ù… Ù¾Û†Ù„Û• Ø¨Û•Ø±Ø¯Û•Ø³Øª Ù†ÛŒÛŒÛ•.' : 'No items available yet for this category.'}
           </h3>
           <p className="text-[11px] text-slate-500 max-w-xs mt-2 mx-auto leading-relaxed">
-            {language === 'ar' ? 'الفرص المعتمدة من قبل المسؤولين والشركاء لجامعتك ومحافظتك ستظهر هنا قريباً.' : 'Opportunities moderated by administrators and partners for your university and governorate will appear here once approved.'}
+            {language === 'ar' ? 'Ø§Ù„ÙØ±Øµ Ø§Ù„Ù…Ø¹ØªÙ…Ø¯Ø© Ù…Ù† Ù‚Ø¨Ù„ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ÙŠÙ† ÙˆØ§Ù„Ø´Ø±ÙƒØ§Ø¡ Ù„Ø¬Ø§Ù…Ø¹ØªÙƒ ÙˆÙ…Ø­Ø§ÙØ¸ØªÙƒ Ø³ØªØ¸Ù‡Ø± Ù‡Ù†Ø§ Ù‚Ø±ÙŠØ¨Ø§Ù‹.' : 'Opportunities moderated by administrators and partners for your university and governorate will appear here once approved.'}
           </p>
         </div>
       ) : (activeChip === 'all' && !isCustomFiltersActive) ? (
@@ -753,19 +753,19 @@ export default function FutureFeed({
             
             {featuredUniItems.length === 0 ? (
               <div className="rounded-3xl border-2 border-[#161A33] bg-white p-6 text-center shadow-sm flex flex-col items-center justify-center">
-                <span className="text-3xl mb-1.5 select-none animate-bounce">🎓</span>
+                <span className="text-3xl mb-1.5 select-none animate-bounce">ðŸŽ“</span>
                 <p className="text-[11px] font-black text-slate-700 uppercase tracking-wide">
                   {language === 'ar' 
-                    ? `لا توجد منشورات لجامعتك حالياً. تصفح الفرص العامة لعموم العراق!` 
+                    ? `Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ù†Ø´ÙˆØ±Ø§Øª Ù„Ø¬Ø§Ù…Ø¹ØªÙƒ Ø­Ø§Ù„ÙŠØ§Ù‹. ØªØµÙØ­ Ø§Ù„ÙØ±Øµ Ø§Ù„Ø¹Ø§Ù…Ø© Ù„Ø¹Ù…ÙˆÙ… Ø§Ù„Ø¹Ø±Ø§Ù‚!` 
                     : language === 'ku' 
-                    ? `هیچ دەرفەتێک بۆ زانکۆکەت نییە لە ئێستادا. دەرفەتە گشتییەکانی عێراق تاقیبکە بکە!` 
-                    : `No jobs yet for your university — explore All Iraq opportunities.`}
+                    ? `Ù‡ÛŒÚ† Ø¯Û•Ø±ÙÛ•ØªÛŽÚ© Ø¨Û† Ø²Ø§Ù†Ú©Û†Ú©Û•Øª Ù†ÛŒÛŒÛ• Ù„Û• Ø¦ÛŽØ³ØªØ§Ø¯Ø§. Ø¯Û•Ø±ÙÛ•ØªÛ• Ú¯Ø´ØªÛŒÛŒÛ•Ú©Ø§Ù†ÛŒ Ø¹ÛŽØ±Ø§Ù‚ ØªØ§Ù‚ÛŒØ¨Ú©Û• Ø¨Ú©Û•!` 
+                    : `No jobs yet for your university â€” explore All Iraq opportunities.`}
                 </p>
                 <div 
                   onClick={() => setActiveChip('internship')}
                   className="mt-3 bg-[#FFD21F] text-[#161A33] border-2 border-[#161A33] font-black text-[10px] px-3 py-1.5 rounded-xl transition-all hover:scale-102 cursor-pointer shadow-[2px_2px_0px_0px_#161A33]"
                 >
-                  {language === 'ar' ? 'استكشف الفرص العامة للعراق' : language === 'ku' ? 'بینینی هەلی کارە گشتییەکان' : 'Explore General Opportunities'}
+                  {language === 'ar' ? 'Ø§Ø³ØªÙƒØ´Ù Ø§Ù„ÙØ±Øµ Ø§Ù„Ø¹Ø§Ù…Ø© Ù„Ù„Ø¹Ø±Ø§Ù‚' : language === 'ku' ? 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ù‡Û•Ù„ÛŒ Ú©Ø§Ø±Û• Ú¯Ø´ØªÛŒÛŒÛ•Ú©Ø§Ù†' : 'Explore General Opportunities'}
                 </div>
               </div>
             ) : (
@@ -800,9 +800,9 @@ export default function FutureFeed({
             {popularLocalItems.length === 0 ? (
               <p className="text-[10px] font-bold text-slate-600 bg-white rounded-2xl p-4 border-2 border-[#E6E1F5] text-center leading-relaxed">
                 {language === 'ar' 
-                  ? `لا توجد منشورات مميزة حالياً في ${getGovLabel()}. معروض لك الفرص العامة في العراق!` 
+                  ? `Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ù†Ø´ÙˆØ±Ø§Øª Ù…Ù…ÙŠØ²Ø© Ø­Ø§Ù„ÙŠØ§Ù‹ ÙÙŠ ${getGovLabel()}. Ù…Ø¹Ø±ÙˆØ¶ Ù„Ùƒ Ø§Ù„ÙØ±Øµ Ø§Ù„Ø¹Ø§Ù…Ø© ÙÙŠ Ø§Ù„Ø¹Ø±Ø§Ù‚!` 
                   : language === 'ku' 
-                  ? `هیچ پۆستێکی سەرنجڕاکێش لە ${getGovLabel()} نییە. بەهای گشتی عێراقت پیشان دەدەین!` 
+                  ? `Ù‡ÛŒÚ† Ù¾Û†Ø³ØªÛŽÚ©ÛŒ Ø³Û•Ø±Ù†Ø¬Ú•Ø§Ú©ÛŽØ´ Ù„Û• ${getGovLabel()} Ù†ÛŒÛŒÛ•. Ø¨Û•Ù‡Ø§ÛŒ Ú¯Ø´ØªÛŒ Ø¹ÛŽØ±Ø§Ù‚Øª Ù¾ÛŒØ´Ø§Ù† Ø¯Û•Ø¯Û•ÛŒÙ†!` 
                   : `No active highlights in ${getGovLabel()} yet. Showing Iraqi national highlights instead!`}
               </p>
             ) : (
@@ -942,12 +942,12 @@ export default function FutureFeed({
         <div className="flex flex-col gap-1 text-left" id="linear-opportunities-feed-items">
           {paginatedItems.length === 0 ? (
             <div className="text-center py-12 text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-6 shadow-sm">
-              <div className="text-3xl mb-2">🔭</div>
+              <div className="text-3xl mb-2">ðŸ”­</div>
               <h3 className="font-extrabold text-[#161A33] text-xs">
-                {language === 'ar' ? 'لا توجد عناصر متاحة بعد لهذه الفئة.' : language === 'ku' ? 'هیچ پۆستێک بۆ ئەم پۆلە بەردەست نییە.' : 'No items available yet for this category.'}
+                {language === 'ar' ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ø¹Ù†Ø§ØµØ± Ù…ØªØ§Ø­Ø© Ø¨Ø¹Ø¯ Ù„Ù‡Ø°Ù‡ Ø§Ù„ÙØ¦Ø©.' : language === 'ku' ? 'Ù‡ÛŒÚ† Ù¾Û†Ø³ØªÛŽÚ© Ø¨Û† Ø¦Û•Ù… Ù¾Û†Ù„Û• Ø¨Û•Ø±Ø¯Û•Ø³Øª Ù†ÛŒÛŒÛ•.' : 'No items available yet for this category.'}
               </h3>
               <p className="text-[10px] text-slate-500 max-w-xs mt-1.5 mx-auto leading-relaxed">
-                {language === 'ar' ? 'جرّب كتابة كلمات أبسط أو تغيير الفلتر الذكي أو قم بمحو معيار البحث.' : 'Try broadening your governorate or scope selection or clearing the search bar.'}
+                {language === 'ar' ? 'Ø¬Ø±Ù‘Ø¨ ÙƒØªØ§Ø¨Ø© ÙƒÙ„Ù…Ø§Øª Ø£Ø¨Ø³Ø· Ø£Ùˆ ØªØºÙŠÙŠØ± Ø§Ù„ÙÙ„ØªØ± Ø§Ù„Ø°ÙƒÙŠ Ø£Ùˆ Ù‚Ù… Ø¨Ù…Ø­Ùˆ Ù…Ø¹ÙŠØ§Ø± Ø§Ù„Ø¨Ø­Ø«.' : 'Try broadening your governorate or scope selection or clearing the search bar.'}
               </p>
             </div>
           ) : (
@@ -977,7 +977,7 @@ export default function FutureFeed({
                   className="w-full mt-2 py-3 bg-white text-[#161A33] font-black border-2 border-[#161A33] hover:bg-slate-55 hover:text-[#6B25C9] rounded-2xl cursor-pointer transition-all active:scale-[0.98] shadow-[2px_2px_0px_0px_#161A33] flex items-center justify-center gap-1.5 text-xs select-none"
                   id="opportunities-load-more-btn"
                 >
-                  <span>{language === 'ar' ? 'عرض المزيد من الفرص 🔄' : language === 'ku' ? 'بینینی دەرفەتی زیاتر 🔄' : 'Load More Opportunities 🔄'}</span>
+                  <span>{language === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„Ù…Ø²ÙŠØ¯ Ù…Ù† Ø§Ù„ÙØ±Øµ ðŸ”„' : language === 'ku' ? 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ø¯Û•Ø±ÙÛ•ØªÛŒ Ø²ÛŒØ§ØªØ± ðŸ”„' : 'Load More Opportunities ðŸ”„'}</span>
                 </button>
               )}
             </>
@@ -988,3 +988,4 @@ export default function FutureFeed({
     </div>
   );
 }
+

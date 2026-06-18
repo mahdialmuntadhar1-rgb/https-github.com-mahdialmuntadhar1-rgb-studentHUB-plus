@@ -551,6 +551,15 @@ export default function FeedCard({
     const rawImage = String(item.imageUrl || (item as any).image_url || '').trim();
     const hasValidImage = /^https?:\/\//i.test(rawImage) && !rawImage.includes('images.unsplash.com');
 
+    const fallbackOpportunityImage =
+      opportunityKind === 'Scholarship'
+        ? '/opportunity-scholarship.svg'
+        : opportunityKind === 'Training'
+          ? '/opportunity-training.svg'
+          : '/opportunity-job.svg';
+
+    const visualImageUrl = hasValidImage ? rawImage : fallbackOpportunityImage;
+
     const openOpportunity = () => {
       if (hasValidOpportunityUrl) {
         window.open(opportunityUrl, '_blank', 'noopener,noreferrer');
@@ -601,22 +610,19 @@ export default function FeedCard({
             {opportunityKind}
           </span>
         </div>
-
-        {hasValidImage && (
-          <button
-            type="button"
-            onClick={openOpportunity}
-            className="w-full block bg-slate-100"
-          >
-            <img
-              src={rawImage}
-              alt={opportunityTitle}
-              className="w-full max-h-[360px] object-cover"
-              loading="lazy"
-              referrerPolicy="no-referrer"
-            />
-          </button>
-        )}
+        <button
+          type="button"
+          onClick={openOpportunity}
+          className="w-full block bg-slate-100"
+        >
+          <img
+            src={visualImageUrl}
+            alt={opportunityTitle}
+            className="w-full h-[220px] object-cover"
+            loading="lazy"
+            referrerPolicy="no-referrer"
+          />
+        </button>
 
         <div className="px-4 py-3">
           {hasValidOpportunityUrl ? (
@@ -641,9 +647,9 @@ export default function FeedCard({
             <button
               type="button"
               onClick={openOpportunity}
-              className="mt-2 text-[12px] font-black text-orange-600 hover:underline"
+              className="mt-3 inline-flex items-center justify-center rounded-full bg-orange-500 px-4 py-2 text-[12px] font-black text-white shadow-sm hover:bg-orange-600 active:scale-95 transition"
             >
-              View details
+              Apply / View details
             </button>
           )}
         </div>
@@ -1138,7 +1144,7 @@ return (
               
               {/* Short description - max 2-3 lines */}
               <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
-                {cleanDisplayText(content, 'View details for this opportunity.', item.type)}
+                {cleanDisplayText(content, 'Apply / View details for this opportunity.', item.type)}
               </p>
             </div>
 
@@ -1521,6 +1527,7 @@ function CommentRow({
     </div>
   );
 }
+
 
 
 
