@@ -300,27 +300,20 @@ export const opportunityAutomation = {
   }
 };
 
-export async function getOpportunities(categoryOrLang?: string, lang: Language = 'ar') {
-  let category: string | undefined = undefined;
+export async function getOpportunities(params?: { category?: string; page?: number; limit?: number }, lang: Language = 'ar') {
+  const { category, page = 1, limit = 50 } = params || {};
   let finalLang = lang;
 
-  if (categoryOrLang) {
-    if (['ar', 'en', 'ku'].includes(categoryOrLang)) {
-      finalLang = categoryOrLang as Language;
-    } else {
-      category = categoryOrLang;
-    }
-  }
-
-  const url = category 
-    ? `${BACKEND_URL}/api/opportunities?category=${category}` 
-    : `${BACKEND_URL}/api/opportunities`;
+  const url = new URL(`${BACKEND_URL}/api/opportunities`);
+  if (category) url.searchParams.append('category', category);
+  url.searchParams.append('page', page.toString());
+  url.searchParams.append('limit', limit.toString());
 
   const controller = new AbortController();
   const timeoutId = setTimeout(() => controller.abort(), 8000);
 
   try {
-    const res = await fetch(url, {
+    const res = await fetch(url.toString(), {
       signal: controller.signal,
       headers: getHeaders()
     });
@@ -330,21 +323,22 @@ export async function getOpportunities(categoryOrLang?: string, lang: Language =
 
     // Handle different backend response shapes
     if (Array.isArray(data)) {
-      return data;
+      return { items: data, total: null };
     }
     if (data && typeof data === 'object') {
-      if (Array.isArray(data.value)) return data.value;
-      if (Array.isArray(data.data)) return data.data;
-      if (Array.isArray(data.items)) return data.items;
-      if (Array.isArray(data.results)) return data.results;
+      if (Array.isArray(data.value)) return { items: data.value, total: data.total || data.count || data.totalCount || null };
+      if (Array.isArray(data.data)) return { items: data.data, total: data.total || data.count || data.totalCount || null };
+      if (Array.isArray(data.items)) return { items: data.items, total: data.total || data.count || data.totalCount || null };
+      if (Array.isArray(data.results)) return { items: data.results, total: data.total || data.count || data.totalCount || null };
+      if (data.pagination && Array.isArray(data.pagination.items)) return { items: data.pagination.items, total: data.pagination.total || data.pagination.count || null };
     }
 
-    return [];
+    return { items: [], total: null };
   } catch (err: any) {
     clearTimeout(timeoutId);
     console.error('Error fetching opportunities:', err);
     // Return empty array on error instead of throwing to prevent UI freeze
-    return [];
+    return { items: [], total: null };
   }
 }
 

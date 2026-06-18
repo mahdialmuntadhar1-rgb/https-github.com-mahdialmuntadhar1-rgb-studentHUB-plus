@@ -69,6 +69,8 @@ export default function FutureFeed({
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
   const [activeChip, setActiveChip] = useState<string>('all');
+  const [currentPage, setCurrentPage] = useState<number>(1);
+  const [totalCount, setTotalCount] = useState<number | null>(null);
 
   // Safe text helper to prevent URL display as text
   const safeText = (text: any, fallback: string, category?: string): string => {
@@ -220,20 +222,18 @@ export default function FutureFeed({
     const fetchOpps = async () => {
       setIsLoading(true);
       setError(null);
+      setCurrentPage(1);
       try {
         let categoryParam: string | undefined = undefined;
         if (['job', 'scholarship', 'internship', 'training', 'event', 'volunteering', 'fellowship', 'competition', 'announcement', 'exam'].includes(activeChip)) {
           categoryParam = activeChip;
         }
         
-        // Pass the category filter to the getOpportunities API
-        const data = await getOpportunities(categoryParam, language);
+        // Pass the category filter to the getOpportunities API with pagination
+        const result = await getOpportunities({ category: categoryParam, page: 1, limit: 50 }, language);
         if (active) {
-          if (Array.isArray(data)) {
-            setOpportunities(data.map(mapBackendOpportunity));
-          } else {
-            setOpportunities([]);
-          }
+          setOpportunities(result.items.map(mapBackendOpportunity));
+          setTotalCount(result.total);
         }
       } catch (err: any) {
         if (active) {
@@ -419,7 +419,7 @@ export default function FutureFeed({
     return true;
   });
 
-  // Category filter resolver helper for chips selection - EXACT category filtering
+  // Category filter resolver helper for chips selection - STRICT category filtering
   const resolveChipFilteredItems = () => {
     if (activeChip === 'all') return filteredBaseOpportunities;
 
@@ -427,22 +427,41 @@ export default function FutureFeed({
       const cat = (item.opportunityCategory || item.type || '').toLowerCase();
       
       if (activeChip === 'job') {
-        // ONLY show job items, not scholarships or training
-        return ['job', 'full_time_job', 'part_time_job'].includes(item.type) || 
-               (cat.includes('job') && !cat.includes('scholarship') && !cat.includes('train') && !cat.includes('intern'));
+        // STRICT: ONLY show job items, not scholarships, training, or fellowships
+        const isJob = ['job', 'full_time_job', 'part_time_job'].includes(item.type);
+        const isInternship = item.type === 'internship' || cat.includes('intern');
+        const isScholarship = cat.includes('scholarship') || cat.includes('fellow');
+        const isTraining = cat.includes('train');
+        const isVolunteering = cat.includes('volun');
+        const isCompetition = cat.includes('compete');
+        
+        return (isJob || isInternship) && !isScholarship && !isTraining && !isVolunteering && !isCompetition;
       }
       if (activeChip === 'scholarship') {
-        // ONLY show scholarship/fellowship items, not jobs or training
-        return item.type === 'scholarship' || item.type === 'fellowship' || 
-               (cat.includes('scholarship') || cat.includes('fellow')) && !cat.includes('job') && !cat.includes('train');
+        // STRICT: ONLY show scholarship/fellowship items, not jobs, training, volunteering, or competitions
+        const isScholarship = item.type === 'scholarship' || cat.includes('scholarship');
+        const isFellowship = item.type === 'fellowship' || cat.includes('fellow');
+        const isJob = cat.includes('job');
+        const isTraining = cat.includes('train');
+        const isVolunteering = cat.includes('volun');
+        const isCompetition = cat.includes('compete');
+        const isInternship = cat.includes('intern');
+        
+        return (isScholarship || isFellowship) && !isJob && !isTraining && !isVolunteering && !isCompetition && !isInternship;
       }
       if (activeChip === 'internship') {
         return item.type === 'internship' || cat.includes('intern');
       }
       if (activeChip === 'training') {
-        // ONLY show training items, not jobs, scholarships, volunteering, or competitions
-        return item.type === 'training' || 
-               (cat.includes('train') && !cat.includes('job') && !cat.includes('scholarship') && !cat.includes('volun') && !cat.includes('compete'));
+        // STRICT: ONLY show training items, not jobs, scholarships, fellowships, volunteering, or competitions
+        const isTraining = item.type === 'training' || cat.includes('train');
+        const isJob = cat.includes('job');
+        const isScholarship = cat.includes('scholarship') || cat.includes('fellow');
+        const isVolunteering = cat.includes('volun');
+        const isCompetition = cat.includes('compete');
+        const isInternship = cat.includes('intern');
+        
+        return isTraining && !isJob && !isScholarship && !isVolunteering && !isCompetition && !isInternship;
       }
       if (activeChip === 'event') {
         return item.type === 'event' || cat.includes('event');
@@ -518,10 +537,26 @@ export default function FutureFeed({
 
   // Slice paginated items
   const paginatedItems = finalFilteredOpportunityItems.slice(0, visibleCount);
-  const hasMore = finalFilteredOpportunityItems.length > visibleCount;
+  const hasMore = totalCount !== null ? opportunities.length < totalCount : finalFilteredOpportunityItems.length > visibleCount;
 
-  const handleLoadMore = () => {
-    setVisibleCount(prev => prev + 12);
+  const handleLoadMore = async () => {
+    const nextPage = currentPage + 1;
+    setIsLoading(true);
+    try {
+      let categoryParam: string | undefined = undefined;
+      if (['job', 'scholarship', 'internship', 'training', 'event', 'volunteering', 'fellowship', 'competition', 'announcement', 'exam'].includes(activeChip)) {
+        categoryParam = activeChip;
+      }
+      
+      const result = await getOpportunities({ category: categoryParam, page: nextPage, limit: 50 }, language);
+      setOpportunities(prev => [...prev, ...result.items.map(mapBackendOpportunity)]);
+      setCurrentPage(nextPage);
+      setTotalCount(result.total);
+    } catch (err: any) {
+      setError(err.message || 'Failed to load more opportunities');
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (
@@ -708,9 +743,14 @@ export default function FutureFeed({
               let active = true;
               setIsLoading(true);
               setError(null);
-              getOpportunities(language).then(data => {
+              let categoryParam: string | undefined = undefined;
+              if (['job', 'scholarship', 'internship', 'training', 'event', 'volunteering', 'fellowship', 'competition', 'announcement', 'exam'].includes(activeChip)) {
+                categoryParam = activeChip;
+              }
+              getOpportunities({ category: categoryParam, page: 1, limit: 50 }, language).then(result => {
                 if (active) {
-                  setOpportunities(Array.isArray(data) ? data.map(mapBackendOpportunity) : []);
+                  setOpportunities(result.items.map(mapBackendOpportunity));
+                  setTotalCount(result.total);
                   setIsLoading(false);
                 }
               }).catch(err => {

@@ -6,6 +6,7 @@ import { Sparkles, MessageSquare, Briefcase, PlusCircle, CheckCircle, Info, Imag
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
 import StudentStories from './StudentStories';
+import { getOpportunities } from '../lib/api';
 
 // Admin configuration - frontend-only editing
 const ADMIN_EMAIL = 'safaribosafar@gmail.com';
@@ -181,8 +182,182 @@ export default function HomeFeed({
   const [activeStoryViewer, setActiveStoryViewer] = useState<any | null>(null);
   const [messageRequestsSent, setMessageRequestsSent] = useState<string[]>([]);
   const [feedSearchQuery, setFeedSearchQuery] = useState('');
+  const [backendOpportunities, setBackendOpportunities] = useState<FeedItem[]>([]);
+  const [isLoadingBackend, setIsLoadingBackend] = useState(false);
+  const [backendError, setBackendError] = useState<string | null>(null);
   
   const studentsToDiscover: any[] = [];
+
+  // Safe text helper to prevent URL display as text
+  const safeText = (text: any, fallback: string, category?: string): string => {
+    if (!text || typeof text !== 'string') {
+      if (category === 'job' || category === 'full_time_job' || category === 'part_time_job') {
+        return 'Job Opportunity';
+      }
+      if (category === 'scholarship' || category === 'fellowship') {
+        return 'Scholarship Opportunity';
+      }
+      if (category === 'training') {
+        return 'Training Opportunity';
+      }
+      return fallback;
+    }
+
+    const trimmed = text.trim();
+    
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || 
+        trimmed.includes('images.unsplash.com') || trimmed.includes('auto=format') || 
+        trimmed.includes('fit=crop')) {
+      if (category === 'job' || category === 'full_time_job' || category === 'part_time_job') {
+        return 'Job Opportunity';
+      }
+      if (category === 'scholarship' || category === 'fellowship') {
+        return 'Scholarship Opportunity';
+      }
+      if (category === 'training') {
+        return 'Training Opportunity';
+      }
+      return fallback;
+    }
+
+    return trimmed;
+  };
+
+  // Safe mapper for backend opportunities to FeedItem shape
+  const mapBackendOpportunity = (item: any): FeedItem => {
+    const categoryRaw = (item.category || item.type || 'job').toLowerCase();
+    
+    let displayCategory = 'Full-time graduate job';
+    if (categoryRaw.includes('intern')) {
+      displayCategory = 'Internship';
+    } else if (categoryRaw.includes('scholar')) {
+      displayCategory = 'Scholarship';
+    } else if (categoryRaw.includes('train')) {
+      displayCategory = 'Training';
+    } else if (categoryRaw.includes('volun')) {
+      displayCategory = 'Volunteering';
+    } else if (categoryRaw.includes('compete') || categoryRaw.includes('competition')) {
+      displayCategory = 'Competition';
+    } else if (categoryRaw.includes('exam')) {
+      displayCategory = 'Exam';
+    } else if (categoryRaw.includes('announc')) {
+      displayCategory = 'Announcement';
+    } else if (categoryRaw.includes('fellow')) {
+      displayCategory = 'Fellowship';
+    } else if (categoryRaw.includes('graduation') || categoryRaw.includes('project')) {
+      displayCategory = 'Graduation project support';
+    }
+
+    const titleEN = safeText(item.titleEN || item.title || item.title_en, 'Public Opportunity', categoryRaw);
+    const titleAR = safeText(item.titleAR || item.title_ar || item.title, titleEN, categoryRaw);
+    const titleKU = safeText(item.titleKU || item.title_ku || item.title, titleEN, categoryRaw);
+
+    const contentEN = safeText(item.contentEN || item.description || item.summary || item.description_en, 'View details of this public opportunity.', categoryRaw);
+    const contentAR = safeText(item.contentAR || item.description_ar || item.description || item.summary, contentEN, categoryRaw);
+    const contentKU = safeText(item.contentKU || item.description_ku || item.description || item.summary, contentEN, categoryRaw);
+
+    const orgName = item.organization || item.institution_name || item.company || 'Recruiter/Provider';
+    const gov = item.governorateId || item.governorate || 'all';
+    const country = item.country || 'Iraq';
+    const city = item.city || '';
+    
+    const locationParts = [city, gov !== 'all' ? gov : '', country].filter(Boolean);
+    const locationStr = locationParts.length > 0 ? locationParts.join(', ') : 'Iraq';
+
+    const applyUrl = item.apply_url || item.application_link || item.original_source_url || item.source_url || '';
+    const sourceUrl = item.source_url || item.original_source_url || item.application_link || '';
+    const imgUrl = item.image_url || item.imageUrl || '';
+
+    const safeImageUrl = imgUrl && !imgUrl.includes('images.unsplash.com') ? imgUrl : '';
+
+    return {
+      id: String(item.id),
+      type: categoryRaw,
+      titleEN,
+      titleAR,
+      titleKU,
+      contentEN,
+      contentAR,
+      contentKU,
+      original_language: item.original_language || item.originalLanguage,
+      title_original: item.title_original || item.titleOriginal || item.title,
+      body_original: item.body_original || item.bodyOriginal || item.content_original || item.contentOriginal || item.description || item.summary,
+      caption_original: item.caption_original || item.captionOriginal,
+      title_ar: item.title_ar || item.titleAR || titleAR,
+      body_ar: item.body_ar || item.bodyAR || item.content_ar || item.contentAR || contentAR,
+      caption_ar: item.caption_ar || item.captionAR,
+      title_ku: item.title_ku || item.titleKU || titleKU,
+      body_ku: item.body_ku || item.bodyKU || item.content_ku || item.contentKU || contentKU,
+      caption_ku: item.caption_ku || item.captionKU,
+      title_en: item.title_en || item.titleEN || titleEN,
+      body_en: item.body_en || item.bodyEN || item.content_en || item.contentEN || contentEN,
+      caption_en: item.caption_en || item.captionEN,
+      author: {
+        name: orgName,
+        role: 'institution' as const,
+        avatar: safeImageUrl || '',
+        verified: true
+      },
+      date: item.published_date ? `Posted on ${item.published_date}` : 'Recently posted 🔔',
+      likes: Number(item.likes || 12),
+      likedByUser: false,
+      savedCount: Number(item.saved_count || 15),
+      savedByUser: false,
+      commentsCount: 0,
+      commentsList: [],
+      governorateId: gov,
+      country: country,
+      universityId: 'all',
+      tags: [categoryRaw, displayCategory],
+      company: orgName,
+      companyLogo: safeImageUrl || '',
+      location: locationStr,
+      deadline: item.deadline || '',
+      imageUrl: safeImageUrl,
+      opportunityCategory: displayCategory as any,
+      workplaceType: item.workplaceType || 'On-site',
+      whoCanApply: item.whoCanApply || 'Interested applicants',
+      salary: item.salary || 'Recruiter structured',
+      applyUrl,
+      sourceUrl,
+      universityAppliedCount: Number(item.applied_count || 5),
+      applied: false
+    };
+  };
+
+  // Fetch backend opportunities when selectedOppFilter changes
+  useEffect(() => {
+    if (selectedFeedTab === 'opportunities' && selectedOppFilter !== 'all') {
+      const categoryMap: Record<string, string> = {
+        'job': 'job',
+        'scholarship': 'scholarship',
+        'training': 'training',
+        'internship': 'internship',
+        'admission': 'admission',
+        'announcement': 'announcement',
+        'news': 'news',
+        'deadline': 'deadline'
+      };
+      
+      const category = categoryMap[selectedOppFilter];
+      if (category) {
+        setIsLoadingBackend(true);
+        setBackendError(null);
+        getOpportunities({ category, page: 1, limit: 50 }, language)
+          .then(result => {
+            setBackendOpportunities(result.items.map(mapBackendOpportunity));
+          })
+          .catch(err => {
+            setBackendError(err.message || 'Failed to load opportunities');
+          })
+          .finally(() => {
+            setIsLoadingBackend(false);
+          });
+      }
+    } else {
+      setBackendOpportunities([]);
+    }
+  }, [selectedFeedTab, selectedOppFilter, language]);
 
   const campusLifeCategories = [
     { id: 'campus_guide', labelEN: 'Campus Guide', labelAR: 'دليل الحرم', labelKU: 'ڕێبەری کەمپەس', emoji: '🏛️', color: 'bg-emerald-500', bg: 'from-emerald-400 to-teal-500' },
@@ -493,83 +668,7 @@ export default function HomeFeed({
     };
   }, []);
 
-  // New beautifully designed Hero Slides Carousel data
-  const heroSlides = useMemo(() => [
-    {
-      id: 'slide_1',
-      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=600',
-      tag: language === 'ar' ? 'مجتمع الحرم' : language === 'ku' ? 'کۆمەڵگەی زانکۆ' : 'Campus Community',
-      tagColor: 'bg-[#1E40AF] text-white',
-      headline: language === 'ar' ? 'اعثر على مسارك الدراسي والفرص المثمرة بكفاءة' : language === 'ku' ? 'ڕێڕەوی ئەکادیمی و گونجاوترین دەرفەت بدۆزەرەوە' : 'Find your university life and opportunities',
-      subtitle: language === 'ar' ? 'شاهد المنح التدريبية والوظائف وعش حياة الكلية مع زملائك' : language === 'ku' ? 'سکۆلەرشیپی بە فەرمی دابینکراو، باشترین برۆگرامی ڕاهێنان' : 'Scholarships, jobs, events, and campus community in one platform',
-      cta: language === 'ar' ? 'استكشف الفرص ➔' : language === 'ku' ? 'الفرص ➔' : 'Explore Now ➔',
-      action: () => {
-        setSelectedFeedTab('opportunities');
-        const el = document.getElementById('home-feed-tabs-selector');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    },
-    {
-      id: 'slide_2',
-      image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600',
-      tag: language === 'ar' ? 'المنح والمستقبل' : language === 'ku' ? 'سکۆلەرشیپ' : 'Scholarships',
-      tagColor: 'bg-indigo-600 text-white',
-      headline: language === 'ar' ? 'منح وتسهيلات دراسية ممولة بالكامل لطلابنا' : language === 'ku' ? 'هەلی بورس و خوێندنی باڵا بە شێوازی فەرمی' : 'Scholarships & Career Opportunities',
-      subtitle: language === 'ar' ? 'بوابة المنح الجامعية المحلية والدولية الممولة للمستويات كافة' : language === 'ku' ? 'نوێترین بورسە دراسييەکان لە ناوخۆ و دەرەوەی عێراق' : 'Apply for fully-funded local and international academic scholarships',
-      cta: language === 'ar' ? 'عرض منح الطلاب ➔' : language === 'ku' ? 'بینینی بورسەکان ➔' : 'View Scholarships ➔',
-      action: () => {
-        setSelectedFeedTab('opportunities');
-        setSelectedOppFilter('scholarship');
-        const el = document.getElementById('home-feed-tabs-selector');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    },
-    {
-      id: 'slide_3',
-      image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80&w=600',
-      tag: language === 'ar' ? 'وظائف التدريب والعمل' : language === 'ku' ? 'هەلی کار' : 'Job Opportunities',
-      tagColor: 'bg-emerald-600 text-white',
-      headline: language === 'ar' ? 'انطلق في مسيرتك المهنية مع شركائنا الموثوقين' : language === 'ku' ? 'سەرەتای کاروانە پیشەییەکەت لێرەوە دەستپێبکە' : 'Career & Entry-Level Job Openings',
-      subtitle: language === 'ar' ? 'قدم على وظائف صيفية، وتدريبات عمل خريجين في أفضل قطاعات العراق' : language === 'ku' ? 'مەشق و خولی هاوینە بۆ گەشەپێدانی توانای خوێندکاران' : 'Everything important for students in one place',
-      cta: language === 'ar' ? 'عرض الوظائف والتدريب ➔' : language === 'ku' ? 'بینینی کارەکان ➔' : 'View Career Openings ➔',
-      action: () => {
-        setSelectedFeedTab('opportunities');
-        setSelectedOppFilter('job');
-        const el = document.getElementById('home-feed-tabs-selector');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    },
-    {
-      id: 'slide_4',
-      image: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=600',
-      tag: language === 'ar' ? 'حياة الحرم' : language === 'ku' ? 'کەمپەس لایف' : 'Campus Life',
-      tagColor: 'bg-orange-600 text-white',
-      headline: language === 'ar' ? 'تفوق وتفاعل في بيئة الحرم الجامعي الحيوية' : language === 'ku' ? 'لەگەڵ هاوڕێکانت بابەت و چالاکییەکان بەش بکە' : 'Campus Life & Interactive Communities',
-      subtitle: language === 'ar' ? 'شاهد منشورات زملائك، النوادي النشطة، وشارك في النقاشات الأكاديمية' : language === 'ku' ? 'ژیانی ڕۆژانەی زانکۆ و ئاگاداری فەرمی لە نوێترین گروپی خوێندن' : 'Exchange stories, join student clubs, and find study peer groups',
-      cta: language === 'ar' ? 'تصفح حياة الكلية ➔' : language === 'ku' ? 'تێکەڵ بە کەمپەس بە ➔' : 'Join Campus Groups ➔',
-      action: () => {
-        setSelectedFeedTab('campus_life');
-        setSelectedCampusFilter('all');
-        const el = document.getElementById('home-feed-tabs-selector');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    },
-    {
-      id: 'slide_5',
-      image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=600',
-      tag: language === 'ar' ? 'الفعاليات الكبرى' : language === 'ku' ? 'کۆنفرانس و چالاکی' : 'Exhibits & Seminars',
-      tagColor: 'bg-purple-600 text-white',
-      headline: language === 'ar' ? 'كن شريكاً في المؤتمرات ومعارض التوظيف السنوية' : language === 'ku' ? 'ئامادەی کۆڕبەند و سیمینارە کەمپەسییەکان بە' : 'University Scientific Conferences & Events',
-      subtitle: language === 'ar' ? 'تفاصيل كاملة عن مواعيد الورش والندوات والفعاليات داخل جامعات العراق' : language === 'ku' ? 'کات و ساتی کۆبوونەوە و گفتوگۆ ئەکادیمییەکان بزانە' : 'Never miss exhibitions, academic seminars, and graduate workshops',
-      cta: language === 'ar' ? 'عرض الفعاليات والمؤتمرات ➔' : language === 'ku' ? 'بینینی چالاکییەکان ➔' : 'Browse All Events ➔',
-      action: () => {
-        setSelectedFeedTab('campus_life');
-        setSelectedCampusFilter('event');
-        const el = document.getElementById('home-feed-tabs-selector');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    }
-  ], [language]);
+  // New beautifully designed Hero Slides Carousel data - uses dynamic heroImages from localStorage
   const heroSlides = useMemo(() => {
     const baseSlides = [
       {
@@ -1026,6 +1125,11 @@ useEffect(() => {
 
   // Filtering for Opportunities Tab
   const filteredOppsItems = useMemo(() => {
+    // Use backend opportunities when a specific category filter is selected
+    if (selectedOppFilter !== 'all' && backendOpportunities.length > 0) {
+      return backendOpportunities;
+    }
+    
     if (selectedOppFilter === 'all') {
       return allSeriousItems;
     }
@@ -1069,7 +1173,7 @@ useEffect(() => {
       );
     }
     return allSeriousItems;
-  }, [allSeriousItems, selectedOppFilter]);
+  }, [allSeriousItems, selectedOppFilter, backendOpportunities]);
 
   // Filtering for Campus Life Tab
   const filteredCampusItems = useMemo(() => {
@@ -1898,6 +2002,23 @@ useEffect(() => {
 
       {/* 6. Content Feed/Cards Column */}
       <div className="flex flex-col gap-1.5" id="mixed-feed-items-list">
+        {/* Category Heading */}
+        {selectedFeedTab === 'opportunities' && selectedOppFilter !== 'all' && (
+          <div className="mb-3">
+            <h2 className="text-sm font-black text-[#161A33] uppercase tracking-tight">
+              {selectedOppFilter === 'job' 
+                ? (language === 'ar' ? 'فرص العمل' : language === 'ku' ? 'هەلی کار' : 'Job Opportunities')
+                : selectedOppFilter === 'scholarship'
+                ? (language === 'ar' ? 'المنح الدراسية' : language === 'ku' ? 'سکۆلەرشیپ' : 'Scholarships')
+                : selectedOppFilter === 'training'
+                ? (language === 'ar' ? 'التدريب' : language === 'ku' ? 'ڕاهێنان' : 'Trainings')
+                : selectedOppFilter === 'internship'
+                ? (language === 'ar' ? 'فرص التدريب' : language === 'ku' ? 'مەشقەکان' : 'Internships')
+                : selectedOppFilter}
+            </h2>
+          </div>
+        )}
+        
         {isFeedLoading ? (
           <SkeletonLoader />
         ) : filteredFeedItems.length === 0 ? (
