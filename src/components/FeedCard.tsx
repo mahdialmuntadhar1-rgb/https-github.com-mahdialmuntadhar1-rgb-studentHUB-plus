@@ -71,8 +71,31 @@ export default function FeedCard({
 
   // Select proper localized strings
   const [showOriginal, setShowOriginal] = useState(false);
-  const title = getLocalizedContent(item, 'title', language, showOriginal);
-  const content = getLocalizedContent(item, 'content', language, showOriginal);
+  const rawTitle = getLocalizedContent(item, 'title', language, showOriginal);
+  const rawContent = getLocalizedContent(item, 'content', language, showOriginal);
+
+  const looksLikeAssetUrl = (value: string) => {
+    const text = String(value || '').trim().toLowerCase();
+    return (
+      text.includes('images.unsplash.com/') ||
+      text.includes('unsplash.com/photo-') ||
+      text.includes('auto=format') ||
+      text.includes('fit=crop') ||
+      text.includes('w=100') ||
+      text.includes('w=200') ||
+      text.includes('w=600')
+    );
+  };
+
+  const cleanDisplayText = (value: string, fallback: string) => {
+    const text = String(value || '').trim();
+    if (!text) return fallback;
+    if (looksLikeAssetUrl(text)) return fallback;
+    return text;
+  };
+
+  const title = cleanDisplayText(rawTitle, (item as any).titleEN || (item as any).title || 'Opportunity');
+  const content = cleanDisplayText(rawContent, (item as any).contentEN || '');
 
   const isOpp = [
     'job', 'full_time_job', 'part_time_job', 'internship', 'scholarship',
@@ -1119,5 +1142,6 @@ function CommentRow({
     </div>
   );
 }
+
 
 
