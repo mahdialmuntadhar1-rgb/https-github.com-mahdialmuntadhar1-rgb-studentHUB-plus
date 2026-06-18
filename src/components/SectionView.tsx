@@ -8,7 +8,6 @@ import {
   School,
   Loader2,
   ExternalLink,
-  Globe,
   Briefcase,
   Search
 } from 'lucide-react';
@@ -65,9 +64,9 @@ const categoryConfigs: Record<string, {
     titleEN: 'Job Opportunities',
     titleAR: 'فرص العمل والتوظيف',
     titleKU: 'هەلی کار',
-    descEN: 'Browse jobs by governorate, then open the original source to apply directly.',
-    descAR: 'تصفح الوظائف حسب المحافظة ثم افتح المصدر الأصلي للتقديم المباشر.',
-    descKU: 'کارەکان بە پارێزگا ببینە و دواتر سەرچاوەی فەرمی بکەرەوە بۆ پێشکەشکردن.',
+    descEN: 'Current job cards are fetched from major Iraq career portals and linked to the original posting.',
+    descAR: 'يتم جلب بطاقات الوظائف الحالية من بوابات التوظيف المهمة في العراق مع رابط التقديم الأصلي.',
+    descKU: 'کارتی هەلی کار لە سەرچاوە فەرمییەکانی عێراق وەردەگیرێت و بەستەری پێشکەشکردنی ڕاستەوخۆی هەیە.',
     endpoint: 'opportunities',
     categoryValue: 'job',
     isOpportunity: true
@@ -230,6 +229,7 @@ type JobSource = {
 const encode = (value: string) => encodeURIComponent(value);
 
 const JOB_SOURCES: JobSource[] = [
+  { name: 'Iraq Jobs Scout', url: 'https://iqjscout.com/jobs/', group: 'Main Iraq job platforms', bestFor: 'Iraq-wide job listings with direct job detail pages', mode: 'search', buildUrl: (g) => g === 'Iraq' ? 'https://iqjscout.com/jobs/' : `https://iqjscout.com/job-location/${iqScoutSlug(g)}/` },
   { name: 'LinkedIn Iraq Jobs', url: 'https://www.linkedin.com/jobs/search/?location=Iraq', group: 'Main Iraq job platforms', bestFor: 'Private sector, banks, telecom, NGOs, international companies', mode: 'search', buildUrl: (g) => `https://www.linkedin.com/jobs/search/?location=${encode(g === 'Iraq' ? 'Iraq' : `${g}, Iraq`)}` },
   { name: 'Bayt Iraq', url: 'https://www.bayt.com/en/iraq/jobs/', group: 'Main Iraq job platforms', bestFor: 'Sales, admin, accounting, engineering, hospitality', mode: 'search', buildUrl: (g) => `https://www.bayt.com/en/iraq/jobs/?q=${encode(g)}` },
   { name: 'Tanqeeb Iraq', url: 'https://iraq.tanqeeb.com/', group: 'Main Iraq job platforms', bestFor: 'Arabic job search and local vacancies', mode: 'search', buildUrl: (g) => `https://iraq.tanqeeb.com/jobs/search?keywords=${encode(g)}` },
@@ -243,13 +243,11 @@ const JOB_SOURCES: JobSource[] = [
   { name: 'Arkadu Iraq', url: 'https://www.arkadu-iq.org/', group: 'Main Iraq job platforms', bestFor: 'Arabic local jobs with city categories', mode: 'direct' },
   { name: 'Shaghilni Iraq', url: 'https://www.shaghilni-app.com/', group: 'Main Iraq job platforms', bestFor: 'Local jobs, CVs, professions, crafts, and courses', mode: 'direct' },
   { name: 'Wadhifety Iraq', url: 'https://wadhifety.com/', group: 'Main Iraq job platforms', bestFor: 'Iraq-based job-search platform', mode: 'direct' },
-
   { name: 'Jobs.KRD', url: 'https://jobs.krd/', group: 'Kurdistan Region job platforms', bestFor: 'KRG-supported Kurdistan jobs platform', mode: 'direct' },
   { name: 'Kurdistan Jobs', url: 'https://www.kurdistan-jobs.com/', group: 'Kurdistan Region job platforms', bestFor: 'Erbil, Sulaymaniyah, Duhok, KRI private sector', mode: 'direct' },
   { name: 'mselect Jobs', url: 'https://www.mselect.com/jobs', group: 'Kurdistan Region job platforms', bestFor: 'Professional/private-sector recruitment', mode: 'direct' },
   { name: 'Shull Solutions', url: 'https://shullsolutions.com/', group: 'Kurdistan Region job platforms', bestFor: 'Recruitment, HR, staffing, EOR', mode: 'direct' },
   { name: 'Erbil Manpower', url: 'https://erbilmanpower.com/', group: 'Kurdistan Region job platforms', bestFor: 'Oil/gas, telecom, Erbil, Duhok, Sulaymaniyah, Baghdad', mode: 'direct' },
-
   { name: 'NGOs Jobs & Bids', url: 'https://ngosjobs-bids.com/index.php/jobs', group: 'NGO / UN / humanitarian jobs', bestFor: 'NGO jobs in Iraq, KRI, and Syria', mode: 'direct' },
   { name: 'ReliefWeb Iraq Jobs', url: 'https://reliefweb.int/jobs?advanced-search=%28C122%29', group: 'NGO / UN / humanitarian jobs', bestFor: 'Humanitarian and NGO jobs', mode: 'search', buildUrl: (g) => `https://reliefweb.int/jobs?advanced-search=%28C122%29&search=${encode(g)}` },
   { name: 'UN Iraq Jobs', url: 'https://iraq.un.org/en/jobs', group: 'NGO / UN / humanitarian jobs', bestFor: 'Official UN jobs in Iraq', mode: 'direct' },
@@ -262,7 +260,6 @@ const JOB_SOURCES: JobSource[] = [
   { name: 'DevelopmentAid Iraq Jobs', url: 'https://www.developmentaid.org/jobs/search?filter%5Bcountry%5D%5B0%5D=Iraq', group: 'NGO / UN / humanitarian jobs', bestFor: 'Development, NGO, donor-funded roles', mode: 'direct' },
   { name: 'Devex Iraq Jobs', url: 'https://www.devex.com/jobs/search?filter%5Bcountry_names%5D%5B%5D=Iraq', group: 'NGO / UN / humanitarian jobs', bestFor: 'Senior development and NGO roles', mode: 'direct' },
   { name: 'British Council Iraq Jobs', url: 'https://iraq.britishcouncil.org/en/about/jobs', group: 'NGO / UN / humanitarian jobs', bestFor: 'Education, culture, English programs', mode: 'direct' },
-
   { name: 'Rigzone Iraq Jobs', url: 'https://www.rigzone.com/oil/jobs/search/?sk=Iraq', group: 'Oil, gas, energy, engineering', bestFor: 'Oil and gas jobs across Iraq', mode: 'search', buildUrl: (g) => `https://www.rigzone.com/oil/jobs/search/?sk=${encode(g === 'Iraq' ? 'Iraq' : `${g} Iraq`)}` },
   { name: 'Rigzone Basra Jobs', url: 'https://www.rigzone.com/b-basrah-iraq-jobs/', group: 'Oil, gas, energy, engineering', bestFor: 'Basra oil/gas and technical roles', mode: 'direct' },
   { name: 'NES Fircroft Iraq', url: 'https://www.nesfircroft.com/regions/recruitment-in-middle-east/iraq-jobs/', group: 'Oil, gas, energy, engineering', bestFor: 'Energy and infrastructure recruitment', mode: 'direct' },
@@ -270,16 +267,214 @@ const JOB_SOURCES: JobSource[] = [
   { name: 'WRS Iraq', url: 'https://www.worldwide-rs.com/contact-us/oil-and-gas-jobs-iraq/', group: 'Oil, gas, energy, engineering', bestFor: 'Oil/gas, telecom, FMCG, renewables', mode: 'direct' },
   { name: 'Orion Iraq Jobs', url: 'https://www.orionjobs.com/contact-us/iraq-jobs/', group: 'Oil, gas, energy, engineering', bestFor: 'Onshore/offshore oil and gas roles', mode: 'direct' },
   { name: 'Eni Careers Iraq', url: 'https://jobs.eni.com/', group: 'Oil, gas, energy, engineering', bestFor: 'Direct Eni company career page', mode: 'direct' },
-
   { name: 'Korek Careers', url: 'https://careers.korektel.com/', group: 'Company career pages', bestFor: 'Telecom jobs in KRI/Iraq', mode: 'direct' },
   { name: 'Zain Iraq Careers', url: 'https://www.iq.zain.com/en/careers', group: 'Company career pages', bestFor: 'Telecom, technology, graduate recruitment', mode: 'direct' },
   { name: 'talabat Careers', url: 'https://corporate.talabat.com/careers/', group: 'Company career pages', bestFor: 'Operations, sales, logistics, food delivery', mode: 'direct' },
   { name: 'Asiacell LinkedIn Jobs', url: 'https://www.linkedin.com/company/asiacell/jobs/', group: 'Company career pages', bestFor: 'Asiacell telecom job posts through LinkedIn', mode: 'direct' }
 ];
 
+function iqScoutSlug(govName: string) {
+  const v = govName.toLowerCase();
+  if (v.includes('sulay')) return 'sulaymaniyah';
+  if (v.includes('nine') || v.includes('mosul')) return 'ninhava';
+  if (v.includes('basr')) return 'basrah';
+  if (v.includes('qadis')) return 'qadisiyah';
+  if (v.includes('muth')) return 'al-muthanna';
+  if (v.includes('thi') || v.includes('dhi')) return 'thi-qar';
+  if (v.includes('salah')) return 'salah-al-din';
+  if (v.includes('halab')) return 'halabjah';
+  return v.replace(/\s+/g, '-');
+}
+
 function buildJobSourceUrl(source: JobSource, governorateNameEN: string) {
   if (source.buildUrl) return source.buildUrl(governorateNameEN);
   return source.url;
+}
+
+const PROXIES = [
+  (url: string) => `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+  (url: string) => `https://corsproxy.io/?${encodeURIComponent(url)}`,
+  (url: string) => `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+];
+
+const JOB_KEYWORDS = [
+  'job', 'jobs', 'career', 'careers', 'vacancy', 'vacancies', 'apply', 'recruitment', 'position',
+  'officer', 'assistant', 'manager', 'engineer', 'specialist', 'coordinator', 'advisor', 'consultant',
+  'وظيفة', 'وظائف', 'تعيين', 'فرصة عمل', 'قدم', 'التقديم', 'کار', 'هەلی کار'
+];
+
+const GOV_ALIASES: Record<string, string[]> = {
+  baghdad: ['baghdad', 'بغداد'],
+  erbil: ['erbil', 'hawler', 'هەولێر', 'اربيل', 'أربيل'],
+  basra: ['basra', 'basrah', 'البصرة'],
+  sulaymaniyah: ['sulaymaniyah', 'sulaimani', 'slemani', 'سلێمانی', 'السليمانية'],
+  nineveh: ['nineveh', 'mosul', 'ninhava', 'الموصل', 'نينوى'],
+  duhok: ['duhok', 'dohuk', 'دهوك', 'دهۆک'],
+  kirkuk: ['kirkuk', 'كركوك'],
+  anbar: ['anbar', 'الانبار', 'الأنبار'],
+  diyala: ['diyala', 'ديالى'],
+  salah_al_din: ['salah', 'salah al-din', 'صلاح الدين'],
+  najaf: ['najaf', 'النجف'],
+  karbala: ['karbala', 'kerbala', 'كربلاء'],
+  babil: ['babil', 'babylon', 'بابل'],
+  wasit: ['wasit', 'واسط'],
+  maysan: ['maysan', 'missan', 'ميسان'],
+  dhi_qar: ['dhi qar', 'thi qar', 'ذي قار'],
+  muthanna: ['muthanna', 'المثنى'],
+  al_qadisiyah: ['qadisiyah', 'qadisiyyah', 'diwaniyah', 'القادسية', 'الديوانية'],
+  halabja: ['halabja', 'حلبجة', 'هەڵەبجە']
+};
+
+function htmlDecode(text: string) {
+  const textarea = document.createElement('textarea');
+  textarea.innerHTML = text;
+  return textarea.value;
+}
+
+async function fetchHtmlViaProxy(url: string) {
+  for (const proxy of PROXIES) {
+    try {
+      const response = await fetch(proxy(url), { signal: AbortSignal.timeout(8500) });
+      if (!response.ok) continue;
+      const text = await response.text();
+      if (text && text.length > 300) return text;
+    } catch (_) {
+      // Try next proxy.
+    }
+  }
+  return '';
+}
+
+function extractJobLinks(html: string, source: JobSource, sourceUrl: string, governorateId: string, governorateName: string): FeedItem[] {
+  const anchors: { href: string; text: string; context: string }[] = [];
+  const anchorRegex = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
+  let match: RegExpExecArray | null;
+  let safety = 0;
+
+  while ((match = anchorRegex.exec(html)) !== null && safety < 250) {
+    safety++;
+    const rawHref = match[1];
+    const rawText = htmlDecode(match[2].replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+    if (!rawText || rawText.length < 8 || rawText.length > 180) continue;
+
+    let absoluteHref = rawHref;
+    try {
+      absoluteHref = new URL(rawHref, sourceUrl).toString();
+    } catch (_) {
+      continue;
+    }
+
+    const contextStart = Math.max(0, match.index - 260);
+    const contextEnd = Math.min(html.length, match.index + 520);
+    const context = htmlDecode(html.slice(contextStart, contextEnd).replace(/<[^>]+>/g, ' ').replace(/\s+/g, ' ').trim());
+    anchors.push({ href: absoluteHref, text: rawText, context });
+  }
+
+  const selectedAliases = governorateId === 'all' ? [] : (GOV_ALIASES[governorateId] || [governorateName.toLowerCase()]);
+  const selectedText = [...selectedAliases, governorateName].join(' ').toLowerCase();
+  const seen = new Set<string>();
+  const jobs: FeedItem[] = [];
+
+  for (const a of anchors) {
+    const combined = `${a.text} ${a.href} ${a.context}`.toLowerCase();
+    const looksLikeJob = JOB_KEYWORDS.some((kw) => combined.includes(kw.toLowerCase()));
+    const looksLikeNavigationOnly = ['privacy', 'login', 'sign in', 'register', 'about us', 'contact us', 'terms'].some((bad) => combined.includes(bad));
+    const govMatches = governorateId === 'all' || selectedAliases.some((alias) => combined.includes(alias.toLowerCase())) || source.mode === 'search';
+
+    if (!looksLikeJob || looksLikeNavigationOnly || !govMatches || seen.has(a.href)) continue;
+    seen.add(a.href);
+
+    const inferredGov = governorateId === 'all' ? inferGovernorateFromText(combined) : governorateId;
+    const title = cleanJobTitle(a.text, source.name);
+    if (!title) continue;
+
+    jobs.push({
+      id: `live-job-${source.name.replace(/[^a-z0-9]/gi, '-').toLowerCase()}-${jobs.length}-${Math.abs(hashCode(a.href))}`,
+      type: 'job' as any,
+      titleEN: title,
+      titleAR: title,
+      titleKU: title,
+      contentEN: a.context || `Current job listing collected from ${source.name}. Open the original source to read details and apply.`,
+      contentAR: `فرصة عمل حالية من ${source.name}. افتح المصدر الأصلي لقراءة التفاصيل والتقديم.`,
+      contentKU: `هەلی کاری ئێستا لە ${source.name}. سەرچاوەی سەرەکی بکەرەوە بۆ وردەکاری و پێشکەشکردن.`,
+      author: {
+        name: source.name,
+        role: 'institution' as const,
+        avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+        verified: true
+      },
+      date: 'Fetched live from source',
+      likes: 0,
+      commentsCount: 0,
+      commentsList: [],
+      governorateId: inferredGov,
+      universityId: 'all',
+      tags: ['job', source.group, inferredGov],
+      application_link: a.href,
+      original_source_url: a.href,
+      location: inferredGov === 'all' ? 'Iraq' : governorateName,
+      company: source.name,
+      workplaceType: 'See source',
+      whoCanApply: source.bestFor,
+      salary: 'See source',
+      savedByUser: false,
+      likedByUser: false
+    } as FeedItem);
+
+    if (jobs.length >= 5) break;
+  }
+
+  return jobs;
+}
+
+function cleanJobTitle(raw: string, sourceName: string) {
+  const cleaned = raw
+    .replace(/\s+/g, ' ')
+    .replace(/^(apply|view|details|read more|learn more|submit)\s*/i, '')
+    .trim();
+  if (!cleaned || cleaned.length < 6) return '';
+  if (cleaned.toLowerCase() === sourceName.toLowerCase()) return '';
+  return cleaned;
+}
+
+function inferGovernorateFromText(text: string) {
+  for (const [govId, aliases] of Object.entries(GOV_ALIASES)) {
+    if (aliases.some((alias) => text.includes(alias.toLowerCase()))) return govId;
+  }
+  return 'all';
+}
+
+function hashCode(input: string) {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = ((hash << 5) - hash) + input.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash;
+}
+
+async function fetchLiveJobsFromSources(governorateId: string, governorateName: string) {
+  const results: FeedItem[] = [];
+  const selectedSources = JOB_SOURCES;
+  const batchSize = 4;
+
+  for (let i = 0; i < selectedSources.length; i += batchSize) {
+    const batch = selectedSources.slice(i, i + batchSize);
+    const batchJobs = await Promise.all(batch.map(async (source) => {
+      const sourceUrl = buildJobSourceUrl(source, governorateName);
+      const html = await fetchHtmlViaProxy(sourceUrl);
+      if (!html) return [] as FeedItem[];
+      return extractJobLinks(html, source, sourceUrl, governorateId, governorateName);
+    }));
+    results.push(...batchJobs.flat());
+  }
+
+  const byUrl = new Map<string, FeedItem>();
+  for (const item of results) {
+    const url = String((item as any).application_link || (item as any).original_source_url || item.id);
+    if (!byUrl.has(url)) byUrl.set(url, item);
+  }
+  return Array.from(byUrl.values()).slice(0, 120);
 }
 
 export default function SectionView({
@@ -303,7 +498,9 @@ export default function SectionView({
   onUserClick
 }: SectionViewProps) {
   const [items, setItems] = useState<FeedItem[]>([]);
+  const [liveJobItems, setLiveJobItems] = useState<FeedItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [liveLoading, setLiveLoading] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
 
   const lookupKey = sectionId.startsWith('h_') ? sectionId.substring(2) : sectionId;
@@ -320,6 +517,14 @@ export default function SectionView({
   const categoryConfig = categoryConfigs[normalizedKey] || categoryConfigs['news'];
   const isJobSection = normalizedKey === 'job';
 
+  const selectedGovMeta = IraqiGovernorates.find(g => g.id === selectedGov);
+  const selectedGovNameEN = selectedGov === 'all' ? 'Iraq' : selectedGovMeta?.nameEN || selectedGov;
+  const selectedGovLabel = selectedGov === 'all'
+    ? (language === 'ar' ? 'كل العراق' : language === 'ku' ? 'هەموو عێراق' : 'All Iraq')
+    : selectedGovMeta
+      ? (language === 'ar' ? selectedGovMeta.nameAR : language === 'ku' ? selectedGovMeta.nameKU : selectedGovMeta.nameEN)
+      : selectedGovNameEN;
+
   useEffect(() => {
     let active = true;
     const fetchData = async () => {
@@ -330,10 +535,7 @@ export default function SectionView({
         const targetVal = categoryConfig.categoryValue;
         const params = new URLSearchParams();
         params.append('category', targetVal);
-
-        if (selectedGov && selectedGov !== 'all') {
-          params.append('governorate', selectedGov);
-        }
+        if (selectedGov && selectedGov !== 'all') params.append('governorate', selectedGov);
         if (!isJobSection && selectedUni && selectedUni !== 'all') {
           params.append('university_id', selectedUni);
           params.append('institution_id', selectedUni);
@@ -343,7 +545,6 @@ export default function SectionView({
         const response = await fetch(`${BACKEND_URL}/api/${queryEndpoint}?${params.toString()}`);
         if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
         const data = await response.json();
-
         if (!active) return;
         if (!Array.isArray(data)) {
           setItems([]);
@@ -397,6 +598,7 @@ export default function SectionView({
           tags: item.tags || [categoryConfig.categoryValue, 'Iraq'],
           imageUrl: item.imageUrl || item.image_url || undefined,
           application_link: item.application_link || item.apply_url || item.source_url || item.original_source_url || undefined,
+          original_source_url: item.original_source_url || item.application_link || item.apply_url || item.source_url || undefined,
           deadline: item.deadline || undefined,
           company: item.organization || item.institution_name || undefined,
           location: item.location || item.city || 'Iraq',
@@ -423,29 +625,50 @@ export default function SectionView({
     return () => { active = false; };
   }, [normalizedKey, selectedGov, selectedUni, isJobSection, categoryConfig.endpoint, categoryConfig.categoryValue]);
 
-  const filteredItems = items.filter(item => {
+  useEffect(() => {
+    if (!isJobSection) {
+      setLiveJobItems([]);
+      setLiveLoading(false);
+      return;
+    }
+
+    let active = true;
+    const runLiveAggregator = async () => {
+      setLiveLoading(true);
+      try {
+        const liveJobs = await fetchLiveJobsFromSources(selectedGov, selectedGovNameEN);
+        if (active) setLiveJobItems(liveJobs);
+      } catch (err) {
+        console.warn('Live job aggregator failed:', err);
+        if (active) setLiveJobItems([]);
+      } finally {
+        if (active) setLiveLoading(false);
+      }
+    };
+
+    runLiveAggregator();
+    return () => { active = false; };
+  }, [isJobSection, selectedGov, selectedGovNameEN]);
+
+  const backendFilteredItems = items.filter(item => {
     const matchesGov = selectedGov === 'all' || !item.governorateId || item.governorateId === 'all' || item.governorateId === selectedGov;
     const matchesUni = isJobSection || selectedUni === 'all' || !item.universityId || item.universityId === 'all' || item.universityId === selectedUni;
     return matchesGov && matchesUni;
   });
 
+  const combinedJobItems = (() => {
+    if (!isJobSection) return backendFilteredItems;
+    const map = new Map<string, FeedItem>();
+    [...liveJobItems, ...backendFilteredItems].forEach((item) => {
+      const key = String((item as any).application_link || (item as any).original_source_url || item.id);
+      if (!map.has(key)) map.set(key, item);
+    });
+    return Array.from(map.values());
+  })();
+
   const availableUnis = selectedGov === 'all'
     ? IraqiUniversities
     : IraqiUniversities.filter(u => u.governorateId === selectedGov);
-
-  const selectedGovMeta = IraqiGovernorates.find(g => g.id === selectedGov);
-  const selectedGovNameEN = selectedGov === 'all' ? 'Iraq' : selectedGovMeta?.nameEN || selectedGov;
-  const selectedGovLabel = selectedGov === 'all'
-    ? (language === 'ar' ? 'كل العراق' : language === 'ku' ? 'هەموو عێراق' : 'All Iraq')
-    : selectedGovMeta
-      ? (language === 'ar' ? selectedGovMeta.nameAR : language === 'ku' ? selectedGovMeta.nameKU : selectedGovMeta.nameEN)
-      : selectedGovNameEN;
-
-  const groupedJobSources = JOB_SOURCES.reduce<Record<string, JobSource[]>>((acc, source) => {
-    if (!acc[source.group]) acc[source.group] = [];
-    acc[source.group].push(source);
-    return acc;
-  }, {});
 
   const isRTL = language === 'ar' || language === 'ku';
 
@@ -484,7 +707,7 @@ export default function SectionView({
                 {language === 'ar' ? 'فلتر المحافظة' : language === 'ku' ? 'فلتەری پارێزگا' : 'Governorate filter'}
               </p>
               <p className="text-[10px] font-bold opacity-75">
-                {language === 'ar' ? 'اختر محافظة لعرض وظائفها ومصادرها' : language === 'ku' ? 'پارێزگا هەڵبژێرە بۆ بینینی هەلی کار' : 'Choose a governorate to show jobs and direct source links'}
+                {language === 'ar' ? 'اختر محافظة لجلب الوظائف الحالية من المصادر' : language === 'ku' ? 'پارێزگا هەڵبژێرە بۆ هێنانی هەلی کاری ئێستا' : 'Choose a governorate to fetch current jobs from the sources'}
               </p>
             </div>
           </div>
@@ -544,92 +767,42 @@ export default function SectionView({
       )}
 
       {isJobSection && (
-        <section className="mb-6 rounded-3xl border border-[#243454] bg-[#111A2D] p-3.5 shadow-lg" id="job-source-directory">
-          <div className="flex items-start gap-3 mb-3">
-            <div className="w-10 h-10 rounded-2xl bg-cyan-500/15 border border-cyan-400/30 flex items-center justify-center shrink-0">
-              <Globe className="w-5 h-5 text-cyan-300" />
-            </div>
-            <div>
-              <h2 className="text-sm font-black text-white leading-tight">
-                {language === 'ar' ? `مصادر وظائف ${selectedGovLabel}` : language === 'ku' ? `سەرچاوەکانی کاری ${selectedGovLabel}` : `${selectedGovLabel} Job Sources`}
-              </h2>
-              <p className="text-[10px] text-slate-400 font-semibold leading-snug mt-1">
-                {language === 'ar'
-                  ? 'هذه المصادر تفتح مواقع التوظيف الأصلية مباشرة. بعض المواقع تعرض النتائج حسب المحافظة، وبعضها يفتح صفحة وظائف العراق الرسمية.'
-                  : language === 'ku'
-                  ? 'ئەم سەرچاوانە ڕاستەوخۆ ماڵپەڕە فەرمییەکانی کار دەکەنەوە.'
-                  : 'These buttons open the original career portals directly. Some search by governorate, others open the official Iraq jobs page.'}
-              </p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-2 mb-4 text-[10px] font-black text-emerald-300 bg-emerald-950/30 border border-emerald-500/20 rounded-2xl px-3 py-2">
-            <Search className="w-3.5 h-3.5" />
-            <span>{JOB_SOURCES.length} trusted sources connected as direct navigation paths</span>
-          </div>
-
-          <div className="space-y-4">
-            {Object.entries(groupedJobSources).map(([groupName, sources]) => (
-              <div key={groupName}>
-                <p className="text-[10px] font-black uppercase tracking-wider text-[#FFD21F] mb-2">{groupName}</p>
-                <div className="grid grid-cols-1 gap-2.5">
-                  {sources.map((source) => {
-                    const sourceUrl = buildJobSourceUrl(source, selectedGovNameEN);
-                    return (
-                      <a
-                        key={`${source.group}-${source.name}`}
-                        href={sourceUrl}
-                        target="_blank"
-                        rel="noreferrer"
-                        className="group rounded-2xl bg-[#0B1020] border border-[#1F2E4D] hover:border-[#FFD21F]/70 p-3 flex items-start gap-3 transition-all active:scale-[0.99]"
-                      >
-                        <div className="w-9 h-9 rounded-xl bg-[#17243E] flex items-center justify-center shrink-0 border border-[#263A62] group-hover:bg-[#FFD21F] group-hover:text-[#0B1020] text-cyan-300 transition-colors">
-                          <Briefcase className="w-4 h-4" />
-                        </div>
-                        <div className="min-w-0 flex-1">
-                          <div className="flex items-center justify-between gap-2">
-                            <h3 className="text-xs font-black text-slate-100 leading-tight group-hover:text-[#FFD21F]">{source.name}</h3>
-                            <ExternalLink className="w-3.5 h-3.5 text-slate-500 group-hover:text-[#FFD21F] shrink-0" />
-                          </div>
-                          <p className="text-[10px] text-slate-400 leading-snug mt-1">{source.bestFor}</p>
-                          <p className="text-[9px] text-cyan-300 mt-1.5 font-bold">
-                            {source.mode === 'search' ? `Search path: ${selectedGovLabel}` : 'Official source page'}
-                          </p>
-                        </div>
-                      </a>
-                    );
-                  })}
-                </div>
-              </div>
-            ))}
-          </div>
-        </section>
+        <div className="mb-4 rounded-2xl bg-[#111A2D] border border-[#243454] px-3 py-2 text-[10px] text-slate-300 font-bold flex items-center gap-2">
+          {liveLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FFD21F]" /> : <Search className="w-3.5 h-3.5 text-emerald-300" />}
+          <span>
+            {liveLoading
+              ? (language === 'ar' ? `جاري جلب وظائف ${selectedGovLabel} من ${JOB_SOURCES.length} مصدر...` : language === 'ku' ? `هێنانی هەلی کاری ${selectedGovLabel}...` : `Fetching ${selectedGovLabel} jobs from ${JOB_SOURCES.length} sources...`)
+              : (language === 'ar' ? `${combinedJobItems.length} وظيفة/رابط تقديم تم جمعها لهذا الاختيار` : language === 'ku' ? `${combinedJobItems.length} هەلی کار بۆ ئەم هەڵبژاردنە` : `${combinedJobItems.length} fetched job cards/direct apply links for this selection`)}
+          </span>
+        </div>
       )}
 
-      {loading ? (
+      {(loading || (isJobSection && liveLoading && combinedJobItems.length === 0)) ? (
         <div className="flex flex-col items-center justify-center py-16 gap-3" id="section-loading-screen">
           <Loader2 className="w-8 h-8 text-[#FFD21F] animate-spin" />
           <span className="text-xs text-slate-400 font-extrabold animate-pulse">
-            {language === 'ar' ? 'جاري تحميل الفرص والأخبار...' : language === 'ku' ? 'بارکردنی دەرفەتەکان...' : 'Fetching sector items from server...'}
+            {isJobSection
+              ? (language === 'ar' ? 'جاري جلب الوظائف الحالية من المصادر...' : language === 'ku' ? 'هێنانی هەلی کاری ئێستا...' : 'Fetching current jobs from career sources...')
+              : (language === 'ar' ? 'جاري تحميل الفرص والأخبار...' : language === 'ku' ? 'بارکردنی دەرفەتەکان...' : 'Fetching sector items from server...')}
           </span>
         </div>
-      ) : filteredItems.length === 0 ? (
+      ) : combinedJobItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 px-6 bg-[#121B2E] rounded-3xl border border-[#1F2E4D] border-dashed text-center shadow-lg" id="section-empty-container">
           <div className="w-12 h-12 rounded-full bg-slate-950/40 flex items-center justify-center text-xl mb-3.5 border border-[#1F2E4D]">
             {categoryConfig.emoji}
           </div>
           <p className="text-xs font-bold text-slate-200 uppercase tracking-wider mb-1">
             {isJobSection
-              ? (language === 'ar' ? 'لا توجد بطاقات مستوردة بعد' : language === 'ku' ? 'هێشتا کارتی هەناردەکراو نییە' : 'No imported job cards yet')
+              ? (language === 'ar' ? 'لم يتم جلب وظائف بعد' : language === 'ku' ? 'هێشتا کار نەهاتووە' : 'No fetched jobs yet')
               : (language === 'ar' ? 'القسم فارغ' : 'Section Empty')}
           </p>
           <p className="text-xs leading-relaxed text-[#94A3B8]/90 max-w-[290px]">
             {isJobSection
               ? (language === 'ar'
-                  ? 'استخدم مصادر الوظائف أعلاه للتقديم مباشرة. سيتم ملء البطاقات المستوردة عند تشغيل جامع البيانات.'
+                  ? 'بعض المواقع قد تمنع الجلب المباشر. سيتم تحسين هذا عبر جامع خلفي وقاعدة بيانات D1.'
                   : language === 'ku'
-                  ? 'سەرچاوەکانی سەرەوە بەکاربهێنە بۆ پێشکەشکردنی ڕاستەوخۆ.'
-                  : 'Use the source buttons above to apply directly. Imported cards will appear here when the backend aggregator collects them.')
+                  ? 'هەندێک ماڵپەڕ ڕێگە بە هێنانی ڕاستەوخۆ نادات. ئەمە دواتر بە D1 باشتر دەکرێت.'
+                  : 'Some websites may block live fetching. The next production step is a backend D1 importer.')
               : (language === 'ar'
                   ? 'لا توجد عناصر حالياً لهذا القسم'
                   : language === 'ku'
@@ -641,15 +814,18 @@ export default function SectionView({
       ) : (
         <div className="flex flex-col gap-5" id="section-cards-feed">
           {isJobSection && (
-            <div className="rounded-2xl bg-[#17243E] border border-[#263A62] px-3 py-2 text-[10px] text-slate-300 font-bold">
-              {language === 'ar'
-                ? `${filteredItems.length} بطاقة وظيفة مستوردة لهذا الاختيار`
-                : language === 'ku'
-                ? `${filteredItems.length} کارتی کار بۆ ئەم هەڵبژاردنە`
-                : `${filteredItems.length} imported job cards for this selection`}
+            <div className="rounded-2xl bg-[#17243E] border border-[#263A62] px-3 py-2 text-[10px] text-slate-300 font-bold flex items-center gap-2">
+              <Briefcase className="w-3.5 h-3.5 text-[#FFD21F]" />
+              <span>
+                {language === 'ar'
+                  ? `وظائف مجمعة لمحافظة: ${selectedGovLabel}`
+                  : language === 'ku'
+                  ? `هەلی کار بۆ: ${selectedGovLabel}`
+                  : `Aggregated jobs for: ${selectedGovLabel}`}
+              </span>
             </div>
           )}
-          {filteredItems.map((item) => (
+          {combinedJobItems.map((item) => (
             <FeedCard
               key={item.id}
               item={item}
