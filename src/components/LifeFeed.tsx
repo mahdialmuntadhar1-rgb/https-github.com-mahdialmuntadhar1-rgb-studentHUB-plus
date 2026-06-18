@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { initialFeedItems } from '../data/mockData';
@@ -6,7 +6,6 @@ import { X, Search, Heart, Sparkles, Filter, ChevronLeft, ChevronRight, Eye } fr
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
 import { SkeletonLoader } from './HomeFeed';
-
 interface LifeFeedProps {
   feedItems: FeedItem[];
   language: Language;
@@ -16,8 +15,6 @@ interface LifeFeedProps {
   onSave: (id: string) => void;
   onVote: (itemId: string, optionId: string) => void;
   onApply: (id: string) => void;
-  onRsvp: (id: string) => void;
-  onJoinGroup: (id: string) => void;
   onAddComment: (id: string, commentText: string) => void;
   onShowAll: () => void;
   isFeedLoading?: boolean;
@@ -36,8 +33,6 @@ export default function LifeFeed({
   onSave,
   onVote,
   onApply,
-  onRsvp,
-  onJoinGroup,
   onAddComment,
   onShowAll,
   isFeedLoading = false,
@@ -70,20 +65,14 @@ export default function LifeFeed({
     const isLifeContent = ['post', 'video', 'photo', 'story', 'poll', 'local_service'].includes(item.type);
     if (!isLifeContent) return false;
 
-    const safeTags: string[] = Array.isArray(item.tags)
-      ? item.tags
-      : (typeof item.tags === 'string' && item.tags
-          ? (item.tags as string).split(',').map(t => t.trim()).filter(Boolean)
-          : []);
-
     if (activeChip === 'all') return true;
     if (activeChip === 'video') return item.type === 'video';
     if (activeChip === 'photo') return item.type === 'photo';
     if (activeChip === 'story') return item.type === 'story';
     if (activeChip === 'poll') return item.type === 'poll';
-    if (activeChip === 'clubs') return safeTags.some(tag => tag.toLowerCase().includes('club') || tag.toLowerCase().includes('group')) || item.type === 'study_group';
+    if (activeChip === 'clubs') return item.tags?.some(tag => tag.toLowerCase().includes('club') || tag.toLowerCase().includes('group')) || item.type === 'study_group';
     if (activeChip === 'nearby') return item.type === 'local_service';
-    if (activeChip === 'trending') return item.likes > 150 || safeTags.includes('Trending');
+    if (activeChip === 'trending') return item.likes > 150 || item.tags?.includes('Trending');
     return true;
   });
 
@@ -178,9 +167,19 @@ export default function LifeFeed({
         ) : filteredItems.length === 0 ? (
           <div className="text-center py-12 text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-6 shadow-sm">
             <div className="text-3xl mb-2">🎈</div>
-            <h3 className="font-extrabold text-[#161A33] text-xs text-center">No active entries matching filter</h3>
+            <h3 className="font-extrabold text-[#161A33] text-xs text-center">
+              {language === 'ar'
+                ? 'لا توجد منشورات حالياً'
+                : language === 'ku'
+                ? 'ئێستا هیچ بابەتێک نییە'
+                : 'No posts available yet'}
+            </h3>
             <p className="text-[10px] text-slate-500 max-w-xs mt-1.5 mx-auto text-center leading-relaxed">
-              We reused details across lists to avoid empty views. Change selectors or try the "All" tab.
+              {language === 'ar'
+                ? 'لا توجد منشورات حالياً. يرجى المحاولة لاحقاً.'
+                : language === 'ku'
+                ? 'ئێستا هیچ بابەتێک نییە. تکایە دواتر هەوڵ بدەوە.'
+                : 'No posts available yet. Please check again later.'}
             </p>
           </div>
         ) : (
@@ -193,8 +192,6 @@ export default function LifeFeed({
               onSave={onSave}
               onVote={onVote}
               onApply={onApply}
-              onRsvp={onRsvp}
-              onJoinGroup={onJoinGroup}
               onAddComment={onAddComment}
               onEditFeedItem={onEditFeedItem}
               onDeleteFeedItem={onDeleteFeedItem}
@@ -270,3 +267,6 @@ export default function LifeFeed({
     </div>
   );
 }
+
+
+

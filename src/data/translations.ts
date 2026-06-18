@@ -1,4 +1,4 @@
-import { Language } from '../types';
+﻿import { Language } from '../types';
 
 export const translations = {
   slogan: {
@@ -141,25 +141,33 @@ export const translations = {
     ar: 'تم التقديم',
     ku: 'پێشکەش کراوە',
   },
+
+
   rsvpBtn: {
-    en: 'Interested',
-    ar: 'مهتم بالفعالية',
-    ku: 'ئامادەبوون',
+    en: 'View details',
+    ar: 'عرض التفاصيل',
+    ku: 'بینینی وردەکاری',
   },
+
+
   rsvped: {
-    en: 'Interested ✓',
-    ar: 'تم الاهتمام ✓',
-    ku: 'خەریکم دەچم',
+    en: 'Details',
+    ar: 'التفاصيل',
+    ku: 'وردەکاری',
   },
+
+
   joinGroup: {
-    en: 'Join Study Group',
-    ar: 'انضم لغروب الدراسة',
-    ku: 'بچۆ ناو گروپی خوێندن',
+    en: 'Read announcement',
+    ar: 'قراءة الإعلان',
+    ku: 'خوێندنەوەی ئاگاداری',
   },
+
+
   joined: {
-    en: 'Joined',
-    ar: 'تم الانضمام',
-    ku: 'چوویتە ناوەوە',
+    en: 'Announcement',
+    ar: 'إعلان',
+    ku: 'ئاگاداری',
   },
   locationLabel: {
     en: 'Location',
@@ -421,83 +429,156 @@ export const translations = {
     ar: 'لا توجد منشورات للطلاب هنا لهذه التصفية. وسّع نطاق تحديد المحافظة أو الجامعة لترى المزيد!',
     ku: 'هیچ پۆستێک نییە بەم گەڕانەت. گەڕانەکەت فراوانتر بکە بۆ بینینی هەموو زانکۆکانی عێراق!',
   },
-  forYouTabLabel: {
-    en: 'For You',
-    ar: 'لك (مخصص)',
-    ku: 'بۆ تۆ',
+  languageSwitcherLabel: {
+    en: 'Language',
+    ar: 'اللغة',
+    ku: 'زمان',
   },
-  opportunitiesTabLabel: {
-    en: 'Opportunities',
-    ar: 'الفرص الأكاديمية والمهنية',
-    ku: 'دەرفەتەکان',
+  navChats: {
+    en: 'Inbox & Chats',
+    ar: 'الرسائل والدردشة',
+    ku: 'نامە و چات',
   },
-  campusLifeTabLabel: {
-    en: 'Campus Life',
-    ar: 'حياة الحرم لزملائك',
-    ku: 'ژیانی کەمپەس',
+  overlayCampusHighlight: {
+    en: 'Campus Highlight',
+    ar: 'أبرز ما في الجامعة',
+    ku: 'گرنگترینەکانی زانکۆ',
   },
-  importantTodayLabel: {
-    en: 'Important for Students Today',
-    ar: 'هام للطلاب اليوم ⚡',
-    ku: 'گرنگ بۆ خوێندکارانی ئەمڕۆ ⚡',
+  overlayViewFullscreen: {
+    en: 'View',
+    ar: 'عرض',
+    ku: 'بینین',
   },
-  governorateLabel: {
-    en: 'Governorate',
-    ar: 'المحافظة',
-    ku: 'پارێزگا',
+  overlayLiveHub: {
+    en: 'Live',
+    ar: 'مباشر',
+    ku: 'ڕاستەوخۆ',
   },
-  universityLabel: {
-    en: 'University',
-    ar: 'الجامعة',
-    ku: 'زانکۆ',
+  overlayStudentHubPlatform: {
+    en: 'StudentHUB Platform',
+    ar: 'منصة جامعتي',
+    ku: 'پلاتفۆرمی زانکۆ',
   },
-  filterAll: {
-    en: 'All',
-    ar: 'الكل',
-    ku: 'هەموو',
+  overlayVerifiedPost: {
+    en: 'Verified post',
+    ar: 'منشور موثوق',
+    ku: 'بابەتی پشتڕاستکراو',
   },
-  jobsFilter: {
-    en: 'Jobs',
-    ar: 'وظائف',
-    ku: 'کارەکان',
+  typeAnnouncement: {
+    en: 'Announcement',
+    ar: 'إعلان',
+    ku: 'ڕاگەیاندن',
   },
-  scholarshipsFilter: {
-    en: 'Scholarships',
-    ar: 'منح دراسية',
-    ku: 'بورسەکان',
+  typeJob: {
+    en: 'Job',
+    ar: 'وظيفة',
+    ku: 'کار',
   },
-  trainingFilter: {
-    en: 'Training & Internships',
-    ar: 'تدريب ومشاريع',
+  typeInternship: {
+    en: 'Internship',
+    ar: 'تدريب عملي',
+    ku: 'مەشق',
+  },
+  typeScholarship: {
+    en: 'Scholarship',
+    ar: 'منحة دراسية',
+    ku: 'بورس',
+  },
+  typeTraining: {
+    en: 'Training',
+    ar: 'دورة تدريبية',
     ku: 'ڕاهێنان',
   },
-  admissionsFilter: {
-    en: 'Admissions & Entrance',
-    ar: 'بوابة القبول والتسجيل',
-    ku: 'وەرگرتن و ناونووسین',
+  typeEvent: {
+    en: 'Campus Event',
+    ar: 'فعالية جامعية',
+    ku: 'چالاکی زانکۆ',
   },
-  announcementsFilter: {
-    en: 'Announcements',
-    ar: 'إعلانات رسمية',
-    ku: 'ئاگادارییەکان',
+  typeQuestion: {
+    en: 'Question',
+    ar: 'سؤال',
+    ku: 'پرسیار',
   },
-  eventsFilter: {
-    en: 'Events',
-    ar: 'الفعاليات والأنشطة',
-    ku: 'چالاکییەکان',
+  typeStudyGroup: {
+    en: 'Study Group',
+    ar: 'مجموعة دراسة',
+    ku: 'گروپی خوێندن',
   },
-  questionsFilter: {
-    en: 'Questions',
-    ar: 'الأسئلة والشروحات',
-    ku: 'پرسیارەکان',
+  typePoll: {
+    en: 'Poll',
+    ar: 'استطلاع',
+    ku: 'ڕاپرسی',
   },
-  clubsFilter: {
-    en: 'Clubs & Groups',
-    ar: 'الفرق والنوادي الطلابية',
-    ku: 'یانە و گروپەکان',
-  }
+  typePhoto: {
+    en: 'Photo',
+    ar: 'صورة',
+    ku: 'وێنە',
+  },
+  typeVideo: {
+    en: 'Video',
+    ar: 'فيديو',
+    ku: 'ڤیدیۆ',
+  },
+  typeStudentPost: {
+    en: 'Student Post',
+    ar: 'منشور طلابي',
+    ku: 'بابەتی خوێندکار',
+  },
+  adminEditPostTitle: {
+    en: 'Administrative Post Editor',
+    ar: 'تعديل المنشور كمسؤول',
+    ku: 'دەستکاریکردنی بابەت وەک بەڕێوەبەر',
+  },
+  adminTitleEN: {
+    en: 'Title EN',
+    ar: 'العنوان بالإنجليزية',
+    ku: 'ناونیشان بە ئینگلیزی',
+  },
+  adminTitleAR: {
+    en: 'Title AR',
+    ar: 'العنوان بالعربية',
+    ku: 'ناونیشان بە عەرەبی',
+  },
+  adminTitleKU: {
+    en: 'Title KU',
+    ar: 'العنوان بالكردية',
+    ku: 'ناونیشان بە کوردی',
+  },
+  adminContentEN: {
+    en: 'Content EN',
+    ar: 'المحتوى بالإنجليزية',
+    ku: 'ناوەڕۆک بە ئینگلیزی',
+  },
+  adminContentAR: {
+    en: 'Content AR',
+    ar: 'المحتوى بالعربية',
+    ku: 'ناوەڕۆک بە عەرەبی',
+  },
+  adminContentKU: {
+    en: 'Content KU',
+    ar: 'المحتوى بالكردية',
+    ku: 'ناوەڕۆک بە کوردی',
+  },
+  adminImageUrl: {
+    en: 'Image URL',
+    ar: 'رابط الصورة',
+    ku: 'لینکی وێنە',
+  },
+  adminCancel: {
+    en: 'Cancel',
+    ar: 'إلغاء',
+    ku: 'هەڵوەشاندنەوە',
+  },
+  adminSave: {
+    en: 'Save changes',
+    ar: 'حفظ التغييرات',
+    ku: 'پاشەکەوتکردنی گۆڕانکاری',
+  },
 };
 
 export function getTranslation(key: keyof typeof translations, lang: Language): string {
   return translations[key]?.[lang] || translations[key]?.['en'] || '';
 }
+
+
+

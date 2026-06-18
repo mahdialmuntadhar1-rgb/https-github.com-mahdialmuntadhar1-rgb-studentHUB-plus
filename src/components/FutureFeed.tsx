@@ -1,4 +1,5 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
+import { safeOpportunityTitle, safeDescription } from '../utils/safeText';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
@@ -25,7 +26,6 @@ import {
 import { motion } from 'motion/react';
 import FeedCard from './FeedCard';
 import { SkeletonLoader } from './HomeFeed';
-
 interface FutureFeedProps {
   feedItems: FeedItem[];
   language: Language;
@@ -35,8 +35,6 @@ interface FutureFeedProps {
   onSave: (id: string) => void;
   onVote: (itemId: string, optionId: string) => void;
   onApply: (id: string) => void;
-  onRsvp: (id: string) => void;
-  onJoinGroup: (id: string) => void;
   onAddComment: (id: string, commentText: string) => void;
   onBackToHome: () => void;
   isFeedLoading?: boolean;
@@ -55,8 +53,6 @@ export default function FutureFeed({
   onSave,
   onVote,
   onApply,
-  onRsvp,
-  onJoinGroup,
   onAddComment,
   onBackToHome,
   isFeedLoading = false,
@@ -94,11 +90,11 @@ export default function FutureFeed({
       displayCategory = 'Graduation project support';
     }
 
-    const titleEN = item.titleEN || item.title || item.title_en || 'Public Opportunity';
+    const titleEN = safeOpportunityTitle(item.titleEN || item.title || item.title_en, 'Public Opportunity');
     const titleAR = item.titleAR || item.title_ar || item.title || titleEN;
     const titleKU = item.titleKU || item.title_ku || item.title || titleEN;
 
-    const contentEN = item.contentEN || item.description || item.summary || item.description_en || 'View details of this public opportunity.';
+    const contentEN = safeDescription(item.contentEN || item.description || item.summary || item.description_en, 'View details of this public opportunity.');
     const contentAR = item.contentAR || item.description_ar || item.description || item.summary || contentEN;
     const contentKU = item.contentKU || item.description_ku || item.description || item.summary || contentEN;
 
@@ -157,7 +153,7 @@ export default function FutureFeed({
       universityId: 'all',
       tags: [categoryRaw, displayCategory],
       company: orgName,
-      companyLogo: imgUrl || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+      companyLogo: 'UNI',
       location: locationStr,
       deadline: item.deadline || '',
       imageUrl: imgUrl,
@@ -723,8 +719,6 @@ export default function FutureFeed({
                      onSave={handleLocalSave}
                      onVote={onVote}
                      onApply={handleLocalApply}
-                     onRsvp={onRsvp}
-                     onJoinGroup={onJoinGroup}
                      onAddComment={onAddComment}
                      onEditFeedItem={onEditFeedItem}
                      onDeleteFeedItem={onDeleteFeedItem}
@@ -760,8 +754,6 @@ export default function FutureFeed({
                      onSave={handleLocalSave}
                      onVote={onVote}
                      onApply={handleLocalApply}
-                     onRsvp={onRsvp}
-                     onJoinGroup={onJoinGroup}
                      onAddComment={onAddComment}
                      onEditFeedItem={onEditFeedItem}
                      onDeleteFeedItem={onDeleteFeedItem}
@@ -788,8 +780,7 @@ export default function FutureFeed({
                   onSave={handleLocalSave}
                   onVote={onVote}
                   onApply={handleLocalApply}
-                  onRsvp={onRsvp}
-                  onJoinGroup={onJoinGroup}
+
                   onAddComment={onAddComment}
                   onEditFeedItem={onEditFeedItem}
                   onDeleteFeedItem={onDeleteFeedItem}
@@ -815,8 +806,7 @@ export default function FutureFeed({
                   onSave={handleLocalSave}
                   onVote={onVote}
                   onApply={handleLocalApply}
-                  onRsvp={onRsvp}
-                  onJoinGroup={onJoinGroup}
+
                   onAddComment={onAddComment}
                   onEditFeedItem={onEditFeedItem}
                   onDeleteFeedItem={onDeleteFeedItem}
@@ -842,8 +832,7 @@ export default function FutureFeed({
                   onSave={handleLocalSave}
                   onVote={onVote}
                   onApply={handleLocalApply}
-                  onRsvp={onRsvp}
-                  onJoinGroup={onJoinGroup}
+
                   onAddComment={onAddComment}
                   onEditFeedItem={onEditFeedItem}
                   onDeleteFeedItem={onDeleteFeedItem}
@@ -869,8 +858,7 @@ export default function FutureFeed({
                   onSave={handleLocalSave}
                   onVote={onVote}
                   onApply={handleLocalApply}
-                  onRsvp={onRsvp}
-                  onJoinGroup={onJoinGroup}
+
                   onAddComment={onAddComment}
                   onEditFeedItem={onEditFeedItem}
                   onDeleteFeedItem={onDeleteFeedItem}
@@ -905,8 +893,7 @@ export default function FutureFeed({
                   onSave={handleLocalSave}
                   onVote={onVote}
                   onApply={handleLocalApply}
-                  onRsvp={onRsvp}
-                  onJoinGroup={onJoinGroup}
+
                   onAddComment={onAddComment}
                   onEditFeedItem={onEditFeedItem}
                   onDeleteFeedItem={onDeleteFeedItem}
@@ -932,3 +919,9 @@ export default function FutureFeed({
     </div>
   );
 }
+
+
+
+
+
+

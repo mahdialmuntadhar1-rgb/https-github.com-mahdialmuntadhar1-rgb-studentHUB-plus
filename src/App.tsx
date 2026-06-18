@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Language, FeedItem, UserProfile, Comment } from './types';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from './data/mockData';
 import { getTranslation } from './data/translations';
@@ -15,14 +15,12 @@ import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
 import SocialHub from './components/SocialHub';
 import UserProfileModal from './components/UserProfileModal';
-import UniversitiesList from './components/UniversitiesList';
 import { BACKEND_URL, socialApi } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
-
 export default function App() {
   // Locale States
-  const [language, setLanguage] = useState<Language>('en');
+  const [language, setLanguage] = useState<Language>('ar');
   const [selectedGov, setSelectedGov] = useState<string>('all');
   const [selectedUni, setSelectedUni] = useState<string>('all');
 
@@ -72,8 +70,8 @@ export default function App() {
     }, 4000);
   };
 
-  // Navigation tab state
-  const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'chats' | 'admin' | 'universities'>('home');
+  // Navigation tab state (admin and chats hidden for MVP)
+  const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile'>('home');
 
   // Interactive student profile details overlay state
   const [selectedUserForProfileCard, setSelectedUserForProfileCard] = useState<any | null>(null);
@@ -97,11 +95,8 @@ export default function App() {
 
   // Auth States
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    const loggedIn = localStorage.getItem('jamiaati_logged_in') !== 'false';
-    if (loggedIn && !localStorage.getItem('jamiaati_token')) {
-      localStorage.setItem('jamiaati_token', 'mock_token_for_student_hub_' + Date.now());
-    }
-    return loggedIn;
+    const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+    return !!token;
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -363,9 +358,13 @@ export default function App() {
               commentsList: [],
               governorateId: item.governorateId || item.governorate || 'all',
               universityId: item.universityId || item.university_id || 'all',
-              tags: item.tags || ['scraped', item.category || 'career'],
+              tags: Array.isArray(item.tags)
+                 ? item.tags.map((tag: any) => String(tag).trim()).filter(Boolean)
+                 : typeof item.tags === 'string'
+                   ? item.tags.split(/[,،|]/).map((tag: string) => tag.trim()).filter(Boolean)
+                   : ['scraped', item.category || 'career'],
               company: item.organization || item.institution_name,
-              companyLogo: item.institution_logo || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+              companyLogo: 'UNI',
               location: item.location || item.city || 'Iraq',
               deadline: item.deadline || 'August 2026',
               imageUrl: item.imageUrl || item.image_url,
@@ -424,7 +423,7 @@ export default function App() {
             return [...customOnly, ...dbItems];
           } else {
             // Live backend listings are empty or failed, so fallback to mock details cleanly.
-            return [...customOnly, ...initialFeedItems];
+            return customOnly;
           }
         });
 
@@ -435,7 +434,7 @@ export default function App() {
           const customOnly = prev.filter(p => p.id && String(p.id).startsWith('custom-'));
           const withoutLive = prev.filter(p => p.id && !String(p.id).startsWith('custom-') && !String(p.id).startsWith('scraped-') && !String(p.id).startsWith('highlight-'));
           if (withoutLive.length === 0) {
-            return [...customOnly, ...initialFeedItems];
+            return customOnly;
           }
           return prev;
         });
@@ -450,6 +449,9 @@ export default function App() {
 
   // Adjust application alignment automatically based on language direction
   const isRTL = language === 'ar' || language === 'ku';
+  const isAdminUser =
+    (((userProfile as any).role === 'admin') || ((userProfile as any).role === 'staff')) &&
+    ((((userProfile as any).email || '').toLowerCase() === 'safaribosafar@gmail.com') || ((userProfile as any).isAdmin === true));
 
   // State modification events
   const handleLike = (id: string) => {
@@ -595,66 +597,6 @@ export default function App() {
     }));
   };
 
-  const handleRsvp = (id: string) => {
-    let triggeredToast = false;
-    setFeedItems(prev => prev.map(item => {
-      if (item.id === id) {
-        const isRsvped = !item.eventRsvped;
-        if (!triggeredToast) {
-          triggeredToast = true;
-          if (isRsvped) {
-            handleAwardPoints(30);
-            showToast(
-              language === 'ar' ? 'تم حجز تذكرتك الأكاديمية بنجاح! 🎟️ +٣٠ نقطة تفاعل' : language === 'ku' ? 'کورسیەکەت گیرا بۆ مەراسیمەکە! 🎟️ +٣٠ خاڵ' : 'Access ticket reserved! 🎟️ +30 pts', 
-              'success'
-            );
-          } else {
-            showToast(
-              language === 'ar' ? 'تم إلغاء تأكيد حضور الفعالية' : language === 'ku' ? 'هەڵوەشاندنەوەی حیجزی مەراسیمەکە' : 'Reservation cancelled', 
-              'info'
-            );
-          }
-        }
-        return {
-          ...item,
-          eventRsvped: isRsvped,
-          eventRsvpCount: isRsvped ? (item.eventRsvpCount || 0) + 1 : (item.eventRsvpCount || 1) - 1
-        };
-      }
-      return item;
-    }));
-  };
-
-  const handleJoinGroup = (id: string) => {
-    let triggeredToast = false;
-    setFeedItems(prev => prev.map(item => {
-      if (item.id === id) {
-        const isJoined = !item.joined;
-        if (!triggeredToast) {
-          triggeredToast = true;
-          if (isJoined) {
-            handleAwardPoints(30);
-            showToast(
-              language === 'ar' ? 'انضممت لمجموعة المراجعة! 👥 +٣٠ نقطة دراسية' : language === 'ku' ? 'پەیوەست بوویت بە گروپی گفتوگۆکە! 👥 +٣٠ خاڵی مراجعە' : 'Joined study circle! 👥 +30 Study pts', 
-              'success'
-            );
-          } else {
-            showToast(
-              language === 'ar' ? 'غادرت مجموعة الصداقة والمراجعة' : language === 'ku' ? 'جێهێشتنی بازنەی خوێندنەکە' : 'Left study circle', 
-              'info'
-            );
-          }
-        }
-        return {
-          ...item,
-          joined: isJoined,
-          memberCount: isJoined ? (item.memberCount || 3) + 1 : (item.memberCount || 4) - 1
-        };
-      }
-      return item;
-    }));
-  };
-
   const handleAddComment = (itemId: string, content: string) => {
     const originalLanguage = language;
     const contentOriginal = content;
@@ -712,7 +654,17 @@ export default function App() {
     }));
   };
 
-  const handleAddNewPost = (title: string, body: string, anonymous: boolean, customType = 'post', imageUrl?: string) => {
+  const handleAddNewPost = async (title: string, body: string, anonymous: boolean, customType = 'post', imageUrl?: string): Promise<boolean> => {
+    // MUST_HAVE_REAL_AUTH_FOR_POSTING
+    const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+    if (!token) {
+      showToast(
+        language === 'ar' ? 'يرجى تسجيل الدخول بحساب حقيقي قبل النشر.' : language === 'ku' ? 'تکایە بە هەژماری ڕاستەقینە بچۆ ژوورەوە پێش بڵاوکردنەوە.' : 'Please sign in with a real account before posting.',
+        'error'
+      );
+      setIsAuthModalOpen(true);
+      return false;
+    }
     // Generate original and translated contents
     const originalLanguage = language;
     const titleOriginal = title;
@@ -792,12 +744,102 @@ export default function App() {
       tags: ['StudentShare', customType === 'anonymous_question' ? 'Advising' : 'Life']
     };
 
-    handleAwardPoints(40); // high points for sharing posts!
-    showToast(
-      language === 'ar' ? 'تم نشر مساهمتك بنجاح على ساحة الطلاب! ✨ +٤٠ نقطة' : language === 'ku' ? 'بڵاوکراوەکەت بڵاوکرایەوە لە ساحەی قوتابیان! ✨ +٤٠ خاڵ' : 'Contribution published successfully! ✨ +40 pts', 
-      'success'
-    );
-    setFeedItems(prev => [freshPost, ...prev]);
+    try {
+      const finalInstitutionId = String(
+        freshPost.universityId && freshPost.universityId !== 'all'
+          ? freshPost.universityId
+          : ((userProfile as any).institution_id || userProfile.universityId || 'manual')
+      );
+
+      const rawGovernorateForPost = String(
+        freshPost.governorateId && freshPost.governorateId !== 'all'
+          ? freshPost.governorateId
+          : ((userProfile as any).governorate || userProfile.governorateId || 'all')
+      );
+
+      const normalizedGovernorateForPost = normalizeGovernorate(rawGovernorateForPost);
+
+      const finalGovernorate =
+        normalizedGovernorateForPost !== 'all'
+          ? normalizedGovernorateForPost
+          : finalInstitutionId.toLowerCase().includes('baghdad')
+            ? 'baghdad'
+            : finalInstitutionId.toLowerCase().includes('sulay')
+              ? 'sulaymaniyah'
+              : finalInstitutionId.toLowerCase().includes('erbil')
+                ? 'erbil'
+                : 'all';
+
+      const finalInstitution =
+        finalInstitutionId === 'manual'
+          ? ((userProfile as any).institution || 'manual')
+          : finalInstitutionId;
+
+      const res = await fetch('https://rafid-api.mahdialmuntadhar1.workers.dev/api/posts', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': 'Bearer ' + token
+        },
+        body: JSON.stringify({
+          title,
+          body,
+          content: body,
+          anonymous,
+          type: customType,
+          governorate: finalGovernorate,
+          institution: finalInstitution,
+          institution_id: finalInstitutionId,
+          imageUrl,
+          image_url: imageUrl,
+          governorateId: finalGovernorate,
+          universityId: finalInstitutionId,
+          original_language: originalLanguage,
+          title_original: titleOriginal,
+          body_original: bodyOriginal,
+          title_en: titleEN,
+          body_en: contentEN,
+          title_ar: titleAR,
+          body_ar: contentAR,
+          title_ku: titleKU,
+          body_ku: contentKU
+        })
+      });
+
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}));
+        throw new Error(errData.message || errData.error || ('Backend refused the post with status ' + res.status + '.'));
+      }
+
+      const saved = await res.json().catch(() => ({}));
+      const savedPost = saved.post || saved.item || saved.data || saved;
+
+      const finalPost = {
+        ...freshPost,
+        id: String(savedPost.id || freshPost.id),
+        date: savedPost.created_at ? new Date(savedPost.created_at).toLocaleString() : freshPost.date
+      };
+
+      handleAwardPoints(40);
+      showToast(
+        language === 'ar' ? 'تم نشر مساهمتك بنجاح على ساحة الطلاب! ✨ +٤٠ نقطة' : language === 'ku' ? 'بڵاوکراوەکەت بڵاوکرایەوە لە ساحەی قوتابیان! ✨ +٤٠ خاڵ' : 'Contribution published successfully! ✨ +40 pts',
+        'success'
+      );
+      setFeedItems(prev => [finalPost, ...prev]);
+      return true;
+    } catch (err: any) {
+      const postErrorMessage = err?.message || 'Unknown error';
+      showToast(
+        language === 'ar'
+          ? ('تعذر نشر المنشور: ' + postErrorMessage)
+          : language === 'ku'
+            ? ('نەتوانرا بابەتەکە بڵاو بکرێتەوە: ' + postErrorMessage)
+            : ('Post was not published: ' + postErrorMessage),
+        'error'
+      );
+      console.error('Post publish failed:', err);
+      return false;
+    }
   };
 
   // Gamification engine helpers
@@ -813,23 +855,10 @@ export default function App() {
     });
   };
 
-  // Simulating user switches Roles inside their profile
+  // Role toggle disabled for MVP - users cannot switch roles
   const handleRoleToggle = () => {
-    const roles: ('student' | 'graduate' | 'teacher' | 'staff')[] = ['student', 'graduate', 'teacher', 'staff'];
-    const currentIdx = roles.indexOf(userProfile.role as any);
-    const nextIdx = (currentIdx + 1) % roles.length;
-    const nextRole = roles[nextIdx];
-
-    setUserProfile(prev => ({
-      ...prev,
-      role: nextRole,
-      name: nextRole === 'teacher' ? 'Dr. Yousif Al-Hamadani' : nextRole === 'staff' ? 'Admin Layla' : defaultUserProfile.name,
-      avatar: nextRole === 'teacher' 
-        ? 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=200' 
-        : nextRole === 'staff' 
-        ? 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200'
-        : defaultUserProfile.avatar
-    }));
+    // No-op for MVP - role switching disabled for public users
+    return;
   };
 
   // Absolute central filtering query based on Governorate and university selections
@@ -876,12 +905,10 @@ export default function App() {
           onSave={handleSave}
           onVote={handleVote}
           onApply={handleApply}
-          onRsvp={handleRsvp}
-          onJoinGroup={handleJoinGroup}
           onAddComment={handleAddComment}
           onEditFeedItem={handleEditFeedItem}
           onDeleteFeedItem={handleDeleteFeedItem}
-          isAdminMode={userProfile.role === 'staff'}
+          isAdminMode={isAdminUser}
           onUserClick={setSelectedUserForProfileCard}
         />
       );
@@ -901,8 +928,6 @@ export default function App() {
             onSave={handleSave}
             onVote={handleVote}
             onApply={handleApply}
-            onRsvp={handleRsvp}
-            onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
             onNavigateTab={setActiveTab}
             onAddNewPost={handleAddNewPost}
@@ -915,7 +940,7 @@ export default function App() {
             onRetryInstitutions={handleRetryInstitutions}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={isAdminUser}
             onSelectSection={setSelectedSection}
             onUserClick={setSelectedUserForProfileCard}
           />
@@ -931,14 +956,13 @@ export default function App() {
             onSave={handleSave}
             onVote={handleVote}
             onApply={handleApply}
-            onRsvp={handleRsvp}
-            onJoinGroup={handleJoinGroup}
+
             onAddComment={handleAddComment}
             onShowAll={handleShowAllLife}
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={isAdminUser}
             onUserClick={setSelectedUserForProfileCard}
           />
         );
@@ -953,14 +977,13 @@ export default function App() {
             onSave={handleSave}
             onVote={handleVote}
             onApply={handleApply}
-            onRsvp={handleRsvp}
-            onJoinGroup={handleJoinGroup}
+
             onAddComment={handleAddComment}
             onAddNewPost={handleAddNewPost}
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={isAdminUser}
             onUserClick={setSelectedUserForProfileCard}
           />
         );
@@ -975,14 +998,13 @@ export default function App() {
             onSave={handleSave}
             onVote={handleVote}
             onApply={handleApply}
-            onRsvp={handleRsvp}
-            onJoinGroup={handleJoinGroup}
+
             onAddComment={handleAddComment}
             onBackToHome={handleBackToHomeFuture}
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={isAdminUser}
             onUserClick={setSelectedUserForProfileCard}
           />
         );
@@ -996,8 +1018,7 @@ export default function App() {
             onSave={handleSave}
             onVote={handleVote}
             onApply={handleApply}
-            onRsvp={handleRsvp}
-            onJoinGroup={handleJoinGroup}
+
             onAddComment={handleAddComment}
             onToggleUserRole={handleRoleToggle}
             isLoggedIn={isLoggedIn}
@@ -1006,58 +1027,21 @@ export default function App() {
               localStorage.setItem('jamiaati_logged_in', 'false');
               localStorage.removeItem('jamiaati_token');
               showToast(
-                language === 'ar' ? 'تم تسجيل خروجك بنجاح. نراك قريباً! 👋' : language === 'ku' ? 'خۆتۆمارکردنەکەت کۆتایی پێهات. بە هیوای دیدار! 👋' : 'Logged out successfully. See you! 👋', 
+                language === 'ar' ? 'تم تسجيل خروجك بنجاح. نراك قريباً! 👋' : language === 'ku' ? 'خۆتۆمارکردنەکەت کۆتایی پێهات. بە هیوای دیدار! 👋' : 'Logged out successfully. See you! 👋',
                 'info'
               );
             }}
             onTriggerAuth={() => setIsAuthModalOpen(true)}
-            onNavigateAdmin={() => setActiveTab('admin')}
+            onNavigateAdmin={() => { /* Admin navigation disabled for MVP */ }}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={isAdminUser}
             onUserClick={setSelectedUserForProfileCard}
             onNavigateToSocialTab={(tabType) => {
-              setSocialSubTab(tabType);
-              setActiveTab('chats');
+              /* Social navigation disabled for MVP */
             }}
-            incomingFriendRequestsCount={friendRequestsCount}
-            incomingMessageRequestsCount={messageRequestsCount}
-          />
-        );
-      case 'universities':
-        return (
-          <UniversitiesList
-            language={language}
-            selectedUni={selectedUni}
-            setSelectedUni={setSelectedUni}
-            selectedGov={selectedGov}
-            setSelectedGov={setSelectedGov}
-            institutions={institutions}
-            onNavigateTab={(tab) => setActiveTab(tab)}
-          />
-        );
-      case 'admin':
-        return (
-          <AdminAutomation
-            language={language}
-            onBack={() => setActiveTab('profile')}
-            showToast={showToast}
-            userRole={userProfile.role}
-          />
-        );
-      case 'chats':
-        return (
-          <SocialHub
-            language={language}
-            isLoggedIn={isLoggedIn}
-            onTriggerAuth={() => setIsAuthModalOpen(true)}
-            showToast={showToast}
-            onViewUserProfile={(usr) => {
-              setSelectedUserForProfileCard(usr);
-            }}
-            currentUserId={isLoggedIn ? userProfile.id : undefined}
-            currentUserName={isLoggedIn ? userProfile.name : undefined}
-            initialTab={socialSubTab}
+            incomingFriendRequestsCount={0}
+            incomingMessageRequestsCount={0}
           />
         );
       default:
@@ -1066,117 +1050,113 @@ export default function App() {
   };
 
   return (
-    <div id="jamiaati-portal" className="bg-[#FAF9FF] min-h-screen text-slate-800 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'} lang={language}>
+    <div id="jamiaati-portal" className="bg-[#040814] min-h-screen text-slate-900 dark:text-slate-100 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'} lang={language}>
       {/* Centered device presentation mock */}
-      <div className="w-full max-w-md mx-auto min-h-screen bg-slate-50 shadow-2xl relative flex flex-col border-x border-slate-205">
+      <div className="w-full max-w-md mx-auto min-h-screen bg-[#0B1020] shadow-2xl shadow-black/8 w-full relative flex flex-col border-x border-[#1F2E4D]">
         
+        {/* Top Header Selector Component */}
+        <Header
+          language={language}
+          setLanguage={setLanguage}
+          currentUserAvatar={userProfile.avatar}
+          onProfileClick={() => setActiveTab('profile')}
+          onChatsClick={() => { /* Chats disabled for MVP */ }}
+          incomingFriendRequestsCount={0}
+          incomingMessageRequestsCount={0}
+        />
+
         {/* Dynamic Inner views container */}
-        <main className="flex-1 overflow-y-auto bg-slate-50 pb-20">
-          {/* Top Header Selector Component */}
-          <Header
-            language={language}
-            setLanguage={setLanguage}
-            currentUserAvatar={userProfile.avatar}
-            onProfileClick={() => setActiveTab('profile')}
-            onChatsClick={() => {
-              setSocialSubTab('threads');
-              setActiveTab('chats');
-            }}
-            incomingFriendRequestsCount={friendRequestsCount}
-            incomingMessageRequestsCount={messageRequestsCount}
-          />
+        <main className="flex-1 overflow-y-auto bg-[#0B1020]">
           {renderActiveView()}
         </main>
 
         {/* Bottom Persistent Navigation Bar: Visible at all times */}
         <nav 
           id="persistent-bottom-navbar"
-          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 border-t border-slate-200 px-2 py-3 flex justify-around items-center backdrop-blur-md z-40 shadow-lg pointer-events-auto"
+          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-[#0B1020]/95 border-t border-[#1F2E4D] px-2 py-3.5 flex justify-around items-center backdrop-blur-md z-40 shadow-2xl shadow-cyan-950/20 pointer-events-auto"
         >
           {/* TAB 1: Home */}
           <button
             onClick={() => setActiveTab('home')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'home' 
-                ? 'text-orange-600 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
+                ? 'text-cyan-400 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
             }`}
           >
             <Home className="w-5 h-5 shrink-0" />
             <span className="text-[10px] leading-none font-bold">{getTranslation('navHome', language)}</span>
             {activeTab === 'home' && (
-              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
+              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
             )}
           </button>
 
-          {/* TAB 2: Opportunities */}
-          <button
-            onClick={() => setActiveTab('future')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
-              activeTab === 'future' 
-                ? 'text-orange-600 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
-            }`}
-          >
-            <Briefcase className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-bold">{getTranslation('opportunitiesTabLabel', language)}</span>
-            {activeTab === 'future' && (
-              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
-            )}
-          </button>
-
-          {/* TAB 3: Campus */}
+          {/* TAB 2: Life (Fun/Social) */}
           <button
             onClick={() => setActiveTab('life')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'life' 
-                ? 'text-orange-600 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
+                ? 'text-cyan-400 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
             }`}
           >
             <Compass className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-bold">{getTranslation('campusLifeTabLabel', language)}</span>
+            <span className="text-[10px] leading-none font-bold">{getTranslation('navLife', language)}</span>
             {activeTab === 'life' && (
-              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
+              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
             )}
           </button>
 
-          {/* TAB 4: Universities */}
+          {/* TAB 3: Ask (AI & Discussions) */}
           <button
-            onClick={() => setActiveTab('universities')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
-              activeTab === 'universities' 
-                ? 'text-orange-600 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
+            onClick={() => setActiveTab('ask')}
+            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+              activeTab === 'ask' 
+                ? 'text-cyan-400 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
             }`}
           >
-            <Sparkles className="w-5 h-5 shrink-0 text-orange-500" />
-            <span className="text-[10px] leading-none font-bold">
-              {language === 'ar' ? 'الجامعات' : language === 'ku' ? 'زانکۆکان' : 'Universities'}
-            </span>
-            {activeTab === 'universities' && (
-              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
+            <HelpCircle className="w-5 h-5 shrink-0" />
+            <span className="text-[10px] leading-none font-bold">{getTranslation('navAsk', language)}</span>
+            {activeTab === 'ask' && (
+              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
+            )}
+          </button>
+
+          {/* TAB 4: Future (Careers & Board) */}
+          <button
+            onClick={() => setActiveTab('future')}
+            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+              activeTab === 'future' 
+                ? 'text-cyan-400 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
+            }`}
+          >
+            <Briefcase className="w-5 h-5 shrink-0" />
+            <span className="text-[10px] leading-none font-bold">{getTranslation('navFuture', language)}</span>
+            {activeTab === 'future' && (
+              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
             )}
           </button>
 
           {/* TAB 5: Profile */}
           <button
             onClick={() => setActiveTab('profile')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+            className={`flex flex-col items-center gap-1.5 py-1 px-3 rounded-2xl cursor-pointer transition-all duration-200 relative ${
               activeTab === 'profile' 
-                ? 'text-orange-600 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
+                ? 'text-cyan-400 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-100 hover:bg-slate-800/10'
             }`}
           >
             <div className="relative">
               <User className="w-5 h-5 shrink-0" />
               {isLoggedIn && (friendRequestsCount + messageRequestsCount) > 0 && (
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white animate-pulse" />
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-cyan-400 rounded-full border border-[#0B1020] animate-pulse" />
               )}
             </div>
             <span className="text-[10px] leading-none font-bold">{getTranslation('navProfile', language)}</span>
             {activeTab === 'profile' && (
-              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
+              <span className="absolute -bottom-1 w-1 h-1 rounded-full bg-cyan-400 shadow-glow-cyan" />
             )}
           </button>
         </nav>
@@ -1186,14 +1166,64 @@ export default function App() {
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
           language={language}
-          onAuthSuccess={(newUsername) => {
+          onAuthSuccess={(newUsername, authUser) => {
             setIsLoggedIn(true);
             localStorage.setItem('jamiaati_logged_in', 'true');
-            localStorage.setItem('jamiaati_token', 'mock_token_for_student_hub_' + Date.now());
-            setUserProfile(prev => ({
-              ...prev,
-              name: newUsername || 'Zara Al-Iraqi'
-            }));
+
+            const rawRole = String(authUser?.role || authUser?.user_role || '').toLowerCase();
+            const resolvedRole =
+              rawRole === 'admin' || rawRole === 'staff'
+                ? 'staff'
+                : rawRole === 'teacher'
+                  ? 'teacher'
+                  : rawRole === 'graduate'
+                    ? 'graduate'
+                    : 'student';
+
+            setUserProfile(prev => {
+              const resolvedInstitutionId = String(
+                authUser?.institution_id ||
+                authUser?.university_id ||
+                authUser?.universityId ||
+                prev.universityId ||
+                'manual'
+              );
+
+              const rawGovernorate = String(
+                authUser?.governorate_id ||
+                authUser?.governorateId ||
+                authUser?.governorate ||
+                prev.governorateId ||
+                'all'
+              );
+
+              const normalizedGovernorate = normalizeGovernorate(rawGovernorate);
+
+              const resolvedGovernorate =
+                normalizedGovernorate !== 'all'
+                  ? normalizedGovernorate
+                  : resolvedInstitutionId.toLowerCase().includes('baghdad')
+                    ? 'baghdad'
+                    : resolvedInstitutionId.toLowerCase().includes('sulay')
+                      ? 'sulaymaniyah'
+                      : resolvedInstitutionId.toLowerCase().includes('erbil')
+                        ? 'erbil'
+                        : prev.governorateId || 'all';
+
+              return {
+                ...prev,
+                id: String(authUser?.id || authUser?.user_id || prev.id || 'me'),
+                name: newUsername || authUser?.full_name || authUser?.email || 'Jamiaati User',
+                role: resolvedRole as any,
+                avatar: authUser?.avatar || authUser?.avatar_url || prev.avatar,
+                universityId: resolvedInstitutionId,
+                governorateId: resolvedGovernorate,
+                institution_id: resolvedInstitutionId,
+                institution: authUser?.institution || authUser?.institution_name || resolvedInstitutionId,
+                governorate: resolvedGovernorate
+              } as any;
+            });
+
             showToast(
               language === 'ar' ? `مرحباً بك مجدداً يا ${newUsername || 'زارا'}! 👋 تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'زارا'}! 👋 دابەزاندن سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Zara'}! 👋 Signed in`, 
               'success'
@@ -1268,3 +1298,10 @@ export default function App() {
     </div>
   );
 };
+
+
+
+
+
+
+

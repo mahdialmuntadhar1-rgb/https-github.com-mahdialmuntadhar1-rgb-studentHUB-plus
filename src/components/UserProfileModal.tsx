@@ -1,8 +1,13 @@
+﻿import { safeText, safeOpportunityTitle, safeUniversityName, safeDescription } from '../utils/safeText';
 import React, { useState } from 'react';
 import { Language } from '../types';
+
 import { socialApi } from '../lib/api';
+
 import { motion, AnimatePresence } from 'motion/react';
+
 import { X, UserPlus, MessageSquare, Shield, Award, CheckCircle2, Send, Bookmark, School } from 'lucide-react';
+
 
 interface UserProfileModalProps {
   isOpen: boolean;
@@ -164,7 +169,7 @@ export default function UserProfileModal({
             <div className="relative">
               <img
                 src={user.avatar || 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200'}
-                alt={user.name}
+                alt={safeText(user.name, 'University Opportunity')}
                 referrerPolicy="no-referrer"
                 className="w-20 h-20 rounded-2xl object-cover border-4 border-[#121B2E] shadow-xl"
               />
@@ -174,7 +179,7 @@ export default function UserProfileModal({
             </div>
 
             <h3 className="text-base font-black text-white mt-3.5 flex items-center gap-1.5 leading-none">
-              {user.name}
+              {safeText(user.name, 'University Opportunity')}
               <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse shrink-0" />
             </h3>
 
@@ -314,3 +319,6 @@ export default function UserProfileModal({
     </AnimatePresence>
   );
 }
+
+
+
