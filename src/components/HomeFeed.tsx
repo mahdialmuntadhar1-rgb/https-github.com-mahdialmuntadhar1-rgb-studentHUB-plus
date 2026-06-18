@@ -1601,6 +1601,16 @@ export default function HomeFeed({
                   >
                     Add URL
                   </button>
+
+                  <label className="cursor-pointer rounded-xl bg-blue-600 px-4 py-2 text-center text-xs font-black text-white hover:bg-blue-700">
+                    Upload hero image from computer
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/webp"
+                      onChange={(e) => handleUploadHeroImageFile(e)}
+                      className="hidden"
+                    />
+                  </label>
                 </div>
               </div>
 
@@ -2677,6 +2687,7 @@ export default function HomeFeed({
     </div>
   );
 }
+
 
 
 
