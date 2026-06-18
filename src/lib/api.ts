@@ -1,4 +1,4 @@
-import { 
+﻿import { 
   Language, 
   FriendRequestsResponse, 
   SendFriendRequestResponse, 
@@ -27,21 +27,21 @@ async function handleResponse(response: Response, language: Language = 'ar') {
     const url = response.url || '';
     const isUrlAdmin = url.includes('/opportunity-automation') || url.includes('/outreach') || url.includes('/admin');
     if (isUrlAdmin) {
-      alert(language === 'ar' ? 'قم بتسجيل الدخول كمسؤول أولاً.' : language === 'ku' ? 'تکایە بچۆ ژوورەوە وەک سەرپەرشتیار.' : 'Admin login required.');
+      alert(language === 'ar' ? 'Ù‚Ù… Ø¨ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ ÙƒÙ…Ø³Ø¤ÙˆÙ„ Ø£ÙˆÙ„Ø§Ù‹.' : language === 'ku' ? 'ØªÚ©Ø§ÛŒÛ• Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ• ÙˆÛ•Ú© Ø³Û•Ø±Ù¾Û•Ø±Ø´ØªÛŒØ§Ø±.' : 'Admin login required.');
       window.location.href = '#/login';
       throw new Error('Admin login required');
     } else {
-      throw new Error(language === 'ar' ? 'جلسة غير صالحة، يرجى تسجيل الدخول.' : language === 'ku' ? 'سێشنی ناڕاست، تکایە بچۆ ژوورەوە.' : 'Unauthorized action');
+      throw new Error(language === 'ar' ? 'Ø¬Ù„Ø³Ø© ØºÙŠØ± ØµØ§Ù„Ø­Ø©ØŒ ÙŠØ±Ø¬Ù‰ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„.' : language === 'ku' ? 'Ø³ÛŽØ´Ù†ÛŒ Ù†Ø§Ú•Ø§Ø³ØªØŒ ØªÚ©Ø§ÛŒÛ• Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ•.' : 'Unauthorized action');
     }
   }
   if (response.status === 403) {
     const url = response.url || '';
     const isUrlAdmin = url.includes('/opportunity-automation') || url.includes('/outreach') || url.includes('/admin');
     if (isUrlAdmin) {
-      alert(language === 'ar' ? 'وصول للمسؤولين فقط!' : language === 'ku' ? 'تەنها بۆ بەڕێوەبەران ڕێگەپێدراوە!' : 'Admin access only');
+      alert(language === 'ar' ? 'ÙˆØµÙˆÙ„ Ù„Ù„Ù…Ø³Ø¤ÙˆÙ„ÙŠÙ† ÙÙ‚Ø·!' : language === 'ku' ? 'ØªÛ•Ù†Ù‡Ø§ Ø¨Û† Ø¨Û•Ú•ÛŽÙˆÛ•Ø¨Û•Ø±Ø§Ù† Ú•ÛŽÚ¯Û•Ù¾ÛŽØ¯Ø±Ø§ÙˆÛ•!' : 'Admin access only');
       throw new Error('Admin access only');
     } else {
-      throw new Error(language === 'ar' ? 'غير مصرح بالدخول' : language === 'ku' ? 'ڕێگەپێنەدراو' : 'Forbidden action');
+      throw new Error(language === 'ar' ? 'ØºÙŠØ± Ù…ØµØ±Ø­ Ø¨Ø§Ù„Ø¯Ø®ÙˆÙ„' : language === 'ku' ? 'Ú•ÛŽÚ¯Û•Ù¾ÛŽÙ†Û•Ø¯Ø±Ø§Ùˆ' : 'Forbidden action');
     }
   }
 
@@ -49,13 +49,13 @@ async function handleResponse(response: Response, language: Language = 'ar') {
   if (contentType && contentType.includes('application/json')) {
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.message || data.error || (language === 'ar' ? 'حدث خطأ في الخادم' : 'Server error occurred'));
+      throw new Error(data.message || data.error || (language === 'ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø®Ø§Ø¯Ù…' : 'Server error occurred'));
     }
     return data;
   } else {
     const text = await response.text();
     if (!response.ok) {
-      throw new Error(text || (language === 'ar' ? 'حدث خطأ غير معروف' : 'Unknown error occurred'));
+      throw new Error(text || (language === 'ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£ ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ' : 'Unknown error occurred'));
     }
     return text;
   }
@@ -569,4 +569,5 @@ export const socialApi = {
     }
   }
 };
+
 
