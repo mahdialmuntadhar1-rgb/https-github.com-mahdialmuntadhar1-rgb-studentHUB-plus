@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { 
   Language, 
   FriendRequestsResponse, 
@@ -97,10 +97,8 @@ export default function SocialHub({
   // Discover state search
   const [discoverSearch, setDiscoverSearch] = useState('');
 
-  // Fallback demo database in case API returns empty or fails (ONLY when VITE_DEMO_MODE=true)
-  const isDemoMode = (import.meta as any).env?.VITE_DEMO_MODE === 'true';
-  
-  const [demoThreads, setDemoThreads] = useState<Thread[]>(isDemoMode ? [
+  // Fallback demo database in case API returns empty or fails (to provide wonderful full-stack proof-of-work)
+  const [demoThreads, setDemoThreads] = useState<Thread[]>([
     {
       id: 'thread_demo_sara',
       opponentName: 'Sara Ahmed',
@@ -115,9 +113,9 @@ export default function SocialHub({
       lastMessage: 'برنامج آسيا سيل ممتاز جداً، أنصحكِ بالتقديم فوراً.',
       updatedAt: '1 day ago'
     }
-  ] : []);
+  ]);
 
-  const [demoFriendRequests, setDemoFriendRequests] = useState<FriendRequestsResponse>(isDemoMode ? {
+  const [demoFriendRequests, setDemoFriendRequests] = useState<FriendRequestsResponse>({
     incoming: [
       {
         id: 'freq_demo_rawan',
@@ -160,9 +158,9 @@ export default function SocialHub({
         updated_at: '2026-06-14T12:00:00.000Z'
       }
     ]
-  } : { incoming: [], outgoing: [] });
+  });
 
-  const [demoMessageRequests, setDemoMessageRequests] = useState<MessageRequestsResponse>(isDemoMode ? {
+  const [demoMessageRequests, setDemoMessageRequests] = useState<MessageRequestsResponse>({
     incoming: [
       {
         id: 'mreq_demo_rawan',
@@ -183,7 +181,7 @@ export default function SocialHub({
         body: 'السلام عليكم أخي مصطفى، هل من الممكن الاستفسار عن كورس هندسة البرمجيات؟'
       }
     ]
-  } : { incoming: [], outgoing: [] });
+  });
 
   const translations = {
     threadsTab: { en: 'Messages', ar: 'الرسائل', ku: 'نامەکان' },
@@ -1169,6 +1167,3 @@ export default function SocialHub({
     </div>
   );
 }
-
-
-

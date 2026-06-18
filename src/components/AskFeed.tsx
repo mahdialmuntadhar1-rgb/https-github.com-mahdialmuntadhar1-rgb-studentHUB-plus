@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { BACKEND_URL } from '../lib/api';
@@ -6,6 +6,7 @@ import { HelpCircle, Sparkles, Send, MessagesSquare, CheckCircle, EyeOff, BookOp
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
 import { SkeletonLoader } from './HomeFeed';
+
 interface AskFeedProps {
   feedItems: FeedItem[];
   language: Language;
@@ -15,6 +16,8 @@ interface AskFeedProps {
   onSave: (id: string) => void;
   onVote: (itemId: string, optionId: string) => void;
   onApply: (id: string) => void;
+  onRsvp: (id: string) => void;
+  onJoinGroup: (id: string) => void;
   onAddComment: (id: string, commentText: string) => void;
   onAddNewPost: (title: string, body: string, anonymous: boolean, customType?: string) => void;
   isFeedLoading?: boolean;
@@ -33,6 +36,8 @@ export default function AskFeed({
   onSave,
   onVote,
   onApply,
+  onRsvp,
+  onJoinGroup,
   onAddComment,
   onAddNewPost,
   isFeedLoading = false,
@@ -100,7 +105,12 @@ export default function AskFeed({
 
   // Filter only student questions (anonymous questions, study help)
   const questionItems = feedItems.filter(item => {
-    return item.type === 'anonymous_question' || item.type === 'poll' || item.tags?.includes('Advising') || item.type === 'study_group';
+    const safeTags: string[] = Array.isArray(item.tags)
+      ? item.tags
+      : (typeof item.tags === 'string' && item.tags
+          ? (item.tags as string).split(',').map(t => t.trim()).filter(Boolean)
+          : []);
+    return item.type === 'anonymous_question' || item.type === 'poll' || safeTags.includes('Advising') || item.type === 'study_group';
   });
 
   return (
@@ -274,19 +284,9 @@ export default function AskFeed({
         ) : questionItems.length === 0 ? (
           <div className="text-center py-12 text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-6 shadow-sm">
             <div className="text-3xl mb-2">🔭</div>
-            <h3 className="font-extrabold text-[#161A33] text-xs text-center">
-              {language === 'ar'
-                ? 'لا توجد منشورات حالياً'
-                : language === 'ku'
-                ? 'ئێستا هیچ بابەتێک نییە'
-                : 'No posts available yet'}
-            </h3>
+            <h3 className="font-extrabold text-[#161A33] text-xs text-center">{getTranslation('noDiscussions', language)}</h3>
             <p className="text-[10px] text-slate-500 max-w-xs mt-1.5 mx-auto leading-relaxed text-center">
-              {language === 'ar'
-                ? 'لا توجد منشورات حالياً. يرجى المحاولة لاحقاً.'
-                : language === 'ku'
-                ? 'ئێستا هیچ بابەتێک نییە. تکایە دواتر هەوڵ بدەوە.'
-                : 'No posts available yet. Please check again later.'}
+              {language === 'ar' ? 'غير عوامل التصفية واستعرض من جديد.' : language === 'ku' ? 'فلتەرەکە بگۆڕە و دووبارە بگەڕێ.' : 'Change selectors and search again.'}
             </p>
           </div>
         ) : (
@@ -299,6 +299,8 @@ export default function AskFeed({
               onSave={onSave}
               onVote={onVote}
               onApply={onApply}
+              onRsvp={onRsvp}
+              onJoinGroup={onJoinGroup}
               onAddComment={onAddComment}
               onEditFeedItem={onEditFeedItem}
               onDeleteFeedItem={onDeleteFeedItem}
@@ -312,6 +314,3 @@ export default function AskFeed({
     </div>
   );
 }
-
-
-

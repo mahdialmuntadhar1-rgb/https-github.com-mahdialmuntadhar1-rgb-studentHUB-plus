@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Language, FeedItem, Comment } from '../types';
 import { IraqiGovernorates, IraqiUniversities } from '../data/mockData';
 import { 
@@ -20,6 +20,7 @@ import {
 } from 'lucide-react';
 import FeedCard from './FeedCard';
 import { BACKEND_URL } from '../lib/api';
+
 interface SectionViewProps {
   sectionId: string;
   language: Language;
@@ -32,6 +33,8 @@ interface SectionViewProps {
   onSave: (id: string) => void;
   onVote: (itemId: string, optionId: string) => void;
   onApply: (id: string) => void;
+  onRsvp: (id: string) => void;
+  onJoinGroup: (id: string) => void;
   onAddComment: (id: string, commentText: string) => void;
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
   onDeleteFeedItem?: (id: string) => void;
@@ -233,6 +236,8 @@ export default function SectionView({
   onSave,
   onVote,
   onApply,
+  onRsvp,
+  onJoinGroup,
   onAddComment,
   onEditFeedItem,
   onDeleteFeedItem,
@@ -501,6 +506,8 @@ export default function SectionView({
               onSave={onSave}
               onVote={onVote}
               onApply={onApply}
+              onRsvp={onRsvp}
+              onJoinGroup={onJoinGroup}
               onAddComment={onAddComment}
               onEditFeedItem={onEditFeedItem}
               onDeleteFeedItem={onDeleteFeedItem}
@@ -514,6 +521,3 @@ export default function SectionView({
     </div>
   );
 }
-
-
-

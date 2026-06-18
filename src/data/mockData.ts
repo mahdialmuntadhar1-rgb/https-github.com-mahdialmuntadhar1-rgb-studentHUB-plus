@@ -1,4 +1,4 @@
-﻿import { Governorate, University, FeedItem, UserProfile } from '../types';
+import { Governorate, University, FeedItem, UserProfile } from '../types';
 
 export const IraqiGovernorates: Governorate[] = [
   { id: 'baghdad', nameEN: 'Baghdad', nameAR: 'بغداد', nameKU: 'بەغدا' },
@@ -119,7 +119,386 @@ export const defaultUserProfile: UserProfile = {
 };
 
 export const initialFeedItems: FeedItem[] = [
-  // 1. REAL OPPORTUNITY - Asiacell Elite Graduate Accelerator Program (Internship / Part-time / Job)
+  // --- USER REQUESTED MOCK OPPORTUNITIES (6 ITEMS) ---
+  
+  // 1. Scholarship - Erasmus+ Joint Master's Scholarships 2025
+  {
+    id: 'user-opp-erasmus',
+    type: 'scholarship',
+    titleEN: 'Erasmus+ Joint Master’s Scholarships 2025 🇪🇺🎓',
+    titleAR: 'منح ماجستير إيراسموس بلس المشتركة 2025 🇪🇺🎓',
+    titleKU: 'سکۆلەرشیپی هاوبەشی Erasmus+ بۆ خوێندنی ماستەر 2025 🇪🇺🎓',
+    contentEN: 'Study in top European universities with full financial support. Erasmus Mundus Joint Master Degrees (EMJMD) cover full tuition fees, travel expenses, installation costs, and a monthly lifestyle allowance of €1,000 to €1,200.',
+    contentAR: 'ادرس في أفضل الجامعات الأوروبية بدعم مالي كامل. تغطي منح ماجستير إيراسموس بلس المشتركة (EMJMD) الرسوم الدراسية بالكامل، وتكاليف السفر، وتكاليف الإقامة، وراتباً شهرياً يتراوح من 1000 إلى 1200 يورو.',
+    contentKU: 'دەرفەتی خوێندن لە باشترین زانکۆکانی ئەوروپا بە پاڵپشتی دارایی تەواو. سکۆلەرشیپی هاوبەشی Erasmus+ تێچووی خوێندن، گەشت، نیشتەجێبوون و دەرماڵەی مانگانەی ١,٠٠٠ تا ١,٢٠٠ یۆرۆ دابین دەکات.',
+    author: {
+      name: 'EU Delegation to Iraq',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=150',
+      verified: true
+    },
+    date: 'Just now',
+    likes: 245,
+    commentsCount: 19,
+    governorateId: 'all',
+    company: 'Erasmus Mundus, EU',
+    companyLogo: '🇪🇺',
+    salary: 'Fully Funded (100% Fees + €1,100/mo)',
+    location: 'Europe (Multiple Countries)',
+    deadline: 'July 10, 2025',
+    opportunityCategory: 'Scholarship',
+    workplaceType: 'On-site',
+    whoCanApply: 'Iraqi students holding a Bachelor degree with GPA > 75% and IELTS (minimum 6.0)',
+    savedCount: 382,
+    universityAppliedCount: 45,
+    companyVerified: true,
+    tags: ['Erasmus', 'Europe', 'Scholarship', 'Masters'],
+    imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=600',
+    commentsList: []
+  },
+
+  // 2. Job / Internship - Junior Data Analyst Internship
+  {
+    id: 'user-opp-data-analyst',
+    type: 'internship',
+    titleEN: 'Junior Data Analyst Internship 📊💼',
+    titleAR: 'تدريب محلل بيانات مبتدئ 📊💼',
+    titleKU: 'مەشقی یاریدەدەری شیکەرەوەی داتا 📊💼',
+    contentEN: 'An internship opportunity for computer science and engineering students. Work closely with product, software, and marketing teams to build BI dashboards, run SQL queries, clean raw data, and draw user growth insights.',
+    contentAR: 'فرصة تدريب عملي بمجال تحليل البيانات لطلبة علوم الحاسوب والهندسة. اعمل مع فرق البرمجيات والتسويق لبناء لوحات التحكم، تشغيل استعلامات SQL، وتنظيف البيانات واستخراج إحصائيات نمو المستخدمين.',
+    contentKU: 'دەرفەتێکی نایابی ڕاهێنانی کار بۆ خوێندکارانی زانستی کۆمپیوتەر و ئەندازیاری. کارکردن لەگەڵ تیمەکانی پەرەپێدان بۆ دروستکردنی Dashboard، بەکارهێنانی SQL و شیکردنەوەی داتاکانی بەکارهێنەران.',
+    author: {
+      name: 'Zain Iraq HQ',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=150',
+      verified: true
+    },
+    date: '10 mins ago',
+    likes: 120,
+    commentsCount: 8,
+    governorateId: 'baghdad',
+    company: 'Zain Telecom',
+    companyLogo: '📱',
+    salary: '600,000 IQD / month stipend',
+    location: 'Baghdad (Al-Mansour)',
+    deadline: 'May 25, 2025',
+    opportunityCategory: 'Internship',
+    workplaceType: 'Hybrid',
+    whoCanApply: '3rd and 4th year undergraduate students in CS, Information Technology, or Software Engineering with basic SQL/Python knowledge',
+    savedCount: 145,
+    universityAppliedCount: 22,
+    companyVerified: true,
+    tags: ['Zain', 'DataScience', 'SQL', 'Internship'],
+    imageUrl: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=600',
+    commentsList: []
+  },
+
+  // 3. Announcement - Important Announcement for Students
+  {
+    id: 'user-opp-announcement-exams',
+    type: 'announcement',
+    titleEN: 'Important Announcement: Final Exam Registration 📢⏳',
+    titleAR: 'إعلان مهم جداً: التسجيل للامتحانات النهائية 📢⏳',
+    titleKU: 'ئاگادارییەکی زۆر گرنگ: تۆمارکردن بۆ تاقیکردنەوە کۆتاییەکان 📢⏳',
+    contentEN: 'Important notice for all undergraduate students. Please follow final exam registration dates, clear outstanding fees, and submit the departmental clearance form through your student portal or official bulletin boards.',
+    contentAR: 'تنويه هام لجميع طلبة البكالوريوس بخصوص التسجيل للامتحانات النهائية وبراءات الذمة. يرجى مراجعة مواعيد التسجيل والامتحانات النهائية الرسمية وتقديم الاستمارات اللازمة من خلال بوابة الطالب لتفادي الغرامات.',
+    contentKU: 'ئاگاداری بۆ سەرجەم خوێندکارانی بەکالۆریۆس سەبارەت بە تۆمارکردنی ناونیشان بۆ تاقیکردنەوەی کۆتایی ساڵ. تکایە لە کاتی دیاریکراودا لە ڕێگەی پۆرتاڵی خوێندکارەوە فۆرمە پێویستەکان پێشکەش بکەن.',
+    author: {
+      name: 'UoB Registration Office',
+      role: 'staff',
+      avatar: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=150',
+      verified: true
+    },
+    date: '1 hour ago',
+    likes: 298,
+    commentsCount: 34,
+    governorateId: 'baghdad',
+    company: 'University of Baghdad',
+    companyLogo: '🏫',
+    location: 'All Campuses',
+    deadline: 'June 30, 2025',
+    opportunityCategory: 'Volunteering', // fallback
+    workplaceType: 'On-site',
+    whoCanApply: 'All active registered university students across departments',
+    savedCount: 520,
+    universityAppliedCount: 180,
+    companyVerified: true,
+    tags: ['UoB', 'Exams', 'Registration', 'Announcement'],
+    imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=600',
+    commentsList: []
+  },
+
+  // 4. Training - Summer Work Readiness Training
+  {
+    id: 'user-opp-training-summer',
+    type: 'training',
+    titleEN: 'Summer Work Readiness Training 2025 📖🚀',
+    titleAR: 'برنامج التدريب الصيفي لتطوير المهارات التنافسية 📖🚀',
+    titleKU: 'ڕاهێنانی هاوینە بۆ گەشەپێدانی کارامەییەکانی کارکردن 📖🚀',
+    contentEN: 'An intensive, interactive training program designed to prepare students for the professional job market. Specialized modules include Business Communication, CV Writing, Scrum Basics, Interview Simulations, and UX Design essentials.',
+    contentAR: 'برنامج تدريبي صيفي مكثف وتفاعلي لتأهيل الطلبة والخريجين الجدد لسوق العمل الاحترافي العراقي. يركز على مهارات كتابة السيرة الذاتية، المقابلات الشخصية، التواصل المهني، وتأسيس الشركات التقنية الناشئة.',
+    contentKU: 'خولی هاوینەی چڕوپڕ بۆ ئامادەکردنی خوێندکاران بۆ بازاڕی کاری کۆمپانیاکان. بابەتەکان بريتین لە نووسینی CV، چاوپێکەوتن، کاروباری بازرگانی و کارامەییەکانی پەیوەندیکردن.',
+    author: {
+      name: 'Rwanga Foundation',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150',
+      verified: true
+    },
+    date: '3 hours ago',
+    likes: 188,
+    commentsCount: 14,
+    governorateId: 'erbil',
+    company: 'Rwanga Foundation',
+    companyLogo: '🌟',
+    salary: 'Free Certificate + 150,000 IQD transport aid',
+    location: 'Erbil & Online (Hybrid)',
+    deadline: 'July 15, 2025',
+    opportunityCategory: 'Training',
+    workplaceType: 'Hybrid',
+    whoCanApply: 'Iraqi university students and fresh graduates under 28 seeking career readiness mentoring',
+    savedCount: 220,
+    universityAppliedCount: 89,
+    companyVerified: true,
+    tags: ['Rwanga', 'Training', 'Skills', 'Erbil'],
+    imageUrl: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&q=80&w=600',
+    commentsList: []
+  },
+
+  // 5. Scholarship - Graduate Scholarships Abroad
+  {
+    id: 'user-opp-scholarship-abroad',
+    type: 'scholarship',
+    titleEN: 'Fully Funded Graduate Scholarships Abroad 🎓🌍',
+    titleAR: 'فرص منح دراسية في الخارج للدراسات العليا 🎓🌍',
+    titleKU: 'دەرفەتی سکۆلەرشیپی دەرەوە بۆ خوێندکارانی باڵا 🎓🌍',
+    contentEN: 'Great scholarships for master and doctoral studies abroad with full financial support. Includes monthly stipends, health coverage, language preparatory courses, and airfare tickets.',
+    contentAR: 'فرص ذهبية للحصول على منح دراسية كاملة لدراسة الماجستير والدكتوراه خارج العراق. تغطي المنحة كافة المصاريف الدراسية، تكاليف السفر والمعيشة، للتخصصات العلمية والإنسانية كافة.',
+    contentKU: 'دەرفەتێکی باش بۆ خوێندنی باڵا (ماستەر و دکتۆرا) لە دەرەوەی وڵات. پڕۆگرامەکە تێچووی زانکۆ، بیمەی تەندروستی، فێربوونی زمان و خەرجی نیشتەجێبوون بە تەواوی دابین دەکات.',
+    author: {
+      name: 'Ministry of Higher Education',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1526470608268-f674ce90ebd4?auto=format&fit=crop&q=80&w=150',
+      verified: true
+    },
+    date: '5 hours ago',
+    likes: 412,
+    commentsCount: 45,
+    governorateId: 'all',
+    company: 'Ministry of Higher Education (MOHESR)',
+    companyLogo: '🇮🇶',
+    salary: 'Fully Funded (100% Tuition + Living Stipends)',
+    location: 'Multiple International Partners',
+    deadline: 'July 10, 2025',
+    opportunityCategory: 'Scholarship',
+    workplaceType: 'On-site',
+    whoCanApply: 'Graduate degree holders (BSc/MSc) with excellent grades and fluent English or German proficiency',
+    savedCount: 615,
+    universityAppliedCount: 142,
+    companyVerified: true,
+    tags: ['MOHESR', 'Scholarship', 'PhD', 'Masters'],
+    imageUrl: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=600',
+    commentsList: []
+  },
+
+  // 6. Job / Internship - Student Career Internship
+  {
+    id: 'user-opp-career-internship',
+    type: 'internship',
+    titleEN: 'Student Career Internship Opportunities 🚀💼',
+    titleAR: 'فرص تدريب عمل مميز للطلبة بالشركات التقنية 🚀💼',
+    titleKU: 'هەلی ڕاهێنانی کاری بۆ خوێندکاران لە کۆمپانیاکان 🚀💼',
+    contentEN: 'For IT, computer science, and engineering students, we are offering an intensive 3-month paid internship with potential transition to full-time roles upon graduation. Learn cloud application deployment, agile workflows, and professional engineering systems.',
+    contentAR: 'للطلبة في أقسام تكنولوجيا المعلومات وعلوم الحاسوب والهندسة، نقدم برنامج تدريب عملي مدفوع الأجر لمدة ٣ أشهر في شركات الاتصالات والتقنية المرموقة، مع فرصة للتوظيف الكامل بعد التخرج.',
+    contentKU: 'بۆ خوێندکارانی کۆمپیوتەر و ئەندازیاری، ماوەی ڕاهێنانی زۆر سەرنجڕاکێش بە بڕە کاتێکی گونجاو و مووچەی مانگانە. لەم ڕاهێنانەدا فێری دروستکردنی پرۆژەی کەمپەنی و دیزاین دەبیت.',
+    author: {
+      name: 'Korek Telecom Careers',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=150',
+      verified: true
+    },
+    date: '1 day ago',
+    likes: 194,
+    commentsCount: 11,
+    governorateId: 'sulaymaniyah',
+    company: 'Korek Telecom',
+    companyLogo: '🟡',
+    salary: '500,000 IQD / month stipend',
+    location: 'Sulaymaniyah & Erbil Offices',
+    deadline: 'May 25, 2025',
+    opportunityCategory: 'Internship',
+    workplaceType: 'On-site',
+    whoCanApply: '3rd/4th year Software/Telecom engineering undergraduates with hands-on coding experience',
+    savedCount: 204,
+    universityAppliedCount: 39,
+    companyVerified: true,
+    tags: ['Korek', 'Telecom', 'Internship', 'Software'],
+    imageUrl: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80&w=600',
+    commentsList: []
+  },
+
+
+  // --- USER REQUESTED MOCK CAMPUS LIFE (6 ITEMS) ---
+
+  // 1. Campus Life - Sarah Ahmed (Baghdad / Mosul Coffee Studying)
+  {
+    id: 'user-campus-sarah-study',
+    type: 'post',
+    titleEN: 'Pre-Finals Marathon Study Sessions 📚☕',
+    titleAR: 'ماراثون الدراسة والاستعداد للامتحانات النهائية 📚☕',
+    titleKU: 'ماراسۆنی خوێندن و ئامادەکاری بۆ تاقیکردنەوە کۆتاییەکانی ساڵ 📚☕',
+    contentEN: 'Group study and coffee before finals on campus! Nothing feels better than studying with friends, bouncing tough concepts off each other, and having immediate feedback. Wish everyone high GPAs and success!',
+    contentAR: 'جلسة دراسة جماعية وفنجان قهوة دافئ في كافيتريا الجامعة قبل بدء الامتحانات النهائية. الأجواء أجمل ومحفزة عندما ندرس يداً بيد مع الأصدقاء ونشرح المواد لبعضنا البعض. بالتوفيق والنجاح الباهر للجميع!',
+    contentKU: 'خوێندنی گرووپی پێش تاقیکردنەوەکان. بەڕاستی لەگەڵ هاوڕێکان خوێندن زۆر خۆشترە و یارمەتیدەرە بۆ فێربوونی بابەتە قورسەکانی زانست و لۆجیک.',
+    author: {
+      name: 'Sarah Ahmed',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150',
+      university: 'University of Baghdad'
+    },
+    date: 'Just now',
+    likes: 184,
+    commentsCount: 15,
+    governorateId: 'baghdad',
+    universityId: 'uob',
+    imageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=600',
+    tags: ['Studying', 'UoB', 'Finals', 'Classmates'],
+    commentsList: []
+  },
+
+  // 2. Event - Spring Festival 2025 at UoB
+  {
+    id: 'user-campus-spring-festival',
+    type: 'event',
+    titleEN: 'Annual University Spring Festival 2025 🌸🎪',
+    titleAR: 'مهرجان الربيع السنوي الكبير لجامعة بغداد 2025 🌸🎪',
+    titleKU: 'فێستیڤاڵی بەهارەی ساڵانەی زانکۆی بەغدا 2025 🌸🎪',
+    contentEN: 'Join students and faculty at the central garden for live classical music, international traditional food booths, local student art showcases, calligraphy galleries, and student startup project demos. Do not miss it!',
+    contentAR: 'انضم إلى زملائك والأساتذة الكرام في الحديقة العامة للكلية للاستمتاع بالموسيقى الفلكلورية الحية، بوفيه الأطعمة الشعبية، ومعارض الفنون والرسم، والخط العربي، وابتكارات ومشاريع التخرج الملهمة للطلبة.',
+    contentKU: 'بەشداری بکەن لە فێستیڤاڵی بەهارەی زانکۆی بەغدا لە باخچەی ناوەندی زانکۆ کە مۆسیقا، خواردنی خۆماڵی، کارە دەستییەکان و پڕۆژەی کۆمپانیا بچووکەکان نماییش دەکات.',
+    author: {
+      name: 'UoB Student Activity Center',
+      role: 'staff',
+      avatar: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=150',
+      verified: true
+    },
+    date: '3 hours ago',
+    likes: 312,
+    commentsCount: 22,
+    governorateId: 'baghdad',
+    universityId: 'uob',
+    eventDate: 'Thursday, June 18, 2025',
+    eventTime: '10:00 AM - 4:00 PM',
+    eventVenue: 'Central Parks, University of Baghdad Main Campus',
+    eventRsvpCount: 145,
+    eventRsvped: false,
+    tags: ['Festival', 'UoB', 'Spring', 'StudentLife'],
+    imageUrl: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=600',
+    commentsList: []
+  },
+
+  // 3. Campus Life - Zeynab Mohammed (Kerbala)
+  {
+    id: 'user-campus-zeynab-study',
+    type: 'post',
+    titleEN: 'Reviewing Engineering Projects in Karbala campus 📐👩‍💻',
+    titleAR: 'مناقشة مشاريع وهندسة البرمجيات في كربلاء 📐👩‍💻',
+    titleKU: 'پیاچوونەوەی پڕۆژەکانی ئەندازیاری لە کەمپەسی کەربەلا 📐👩‍💻',
+    contentEN: 'Studying with my study group at the engineering library before the final defense. The stress of project presentations dissolves when we study together and review each other’s slides. The atmosphere is awesome with my sweet friends!',
+    contentAR: 'جلسة دراسة ومراجعة جماعية حيوية بمكتبة كلية الهندسة قبل مناقشة تخرجنا الرسمي. الضغوط تختفي ونشعر بالراحة عندما نتعاون ونلخص المواد مع أعز صديقاتي. ممتنة جداً لهذه الأجواء الدافئة!',
+    contentKU: 'خوێندنی گرووپی پێش تاقیکردنەوەکان. زۆر دڵشادین بەم کاتە نایابانە لە کتێبخانەی زانکۆمان لەگەڵ هاوڕێ خۆشەویستەکانم کە هەموو بابەتێک ئاسان دەکەن.',
+    author: {
+      name: 'زينب محمد',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
+      university: 'University of Karbala'
+    },
+    date: '5 hours ago',
+    likes: 125,
+    commentsCount: 9,
+    governorateId: 'karbala',
+    universityId: 'karbala-uni',
+    imageUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=600',
+    tags: ['Karbala', 'Engineering', 'StudyGroup', 'Friends'],
+    commentsList: []
+  },
+
+  // 4. Question - Omar Ali (Basrah)
+  {
+    id: 'user-campus-omar-english',
+    type: 'question',
+    titleEN: 'Best academic English resources for TOEFL/IELTS? 🇬🇧🎓',
+    titleAR: 'ما هي أفضل المصادر الموثوقة لتعلم الإنجليزية للامتحانات؟ 🇬🇧🎓',
+    titleKU: 'باشترین سەرچاوە بۆ فێربوونی زمانی ئینگلیزی چییە؟ 🇬🇧🎓',
+    contentEN: 'Hey classmates! I am preparing for my graduate school admissions and need to score 6.5+ in IELTS. What are the best free online courses, mock test platforms, and vocabulary books that worked for you locally? Thank you!',
+    contentAR: 'السلام عليكم يا أخوان، أبحث عن أفضل المصادر والكتب للتحضير لامتحان الآيلتس (IELTS) أو التوفل الأكاديمي للتقديم على الدراسات العليا. ما هي المواقع المجانية أو بنوك الأسئلة المجربة التي تنصحون بها؟ شكراً لكم!',
+    contentKU: 'سڵاو هاوڕێیان، ئامادەکاری دەکەم بۆ تاقیکردنەوەی ئینگلیزی نێودەوڵەتی. باشترین سەرچاوە و کتێبخانە و پێگەی فێربوون چی پێشنیار دەکەن کە سوودی زۆری هەبێت؟ سوپاستان دەکەم.',
+    author: {
+      name: 'Omar Ali',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=150',
+      university: 'University of Basrah'
+    },
+    date: '8 hours ago',
+    likes: 84,
+    commentsCount: 16,
+    governorateId: 'basra',
+    universityId: 'basra-uni',
+    tags: ['IELTS', 'Language', 'Basrah', 'Advice'],
+    commentsList: []
+  },
+
+  // 5. Campus Life - Dilan Hassan (Duhok)
+  {
+    id: 'user-campus-dilan-duhok',
+    type: 'post',
+    titleEN: 'Outdoor Study Sessions in Duhok Mountains ⛰️📝',
+    titleAR: 'أجواء الدراسة في الهواء الطلق وجبال دهوك ⛰️📝',
+    titleKU: 'خوێندنی کەمپەس لە ژینگەی دەشت و چیاکانی دهۆک ⛰️📝',
+    contentEN: 'Studying under the beautiful skies of Duhok! Group study sessions before exams make everything easier, more exciting, and less stressful when surrounded by friendly peers and beautiful nature.',
+    contentAR: 'جلسة مراجعة لمشاريعنا في الهواء الطلق وتحت سحر سماء دهوك الخلابة! الدراسة والتلخيص مع الأصدقاء تجعل الدروس الصعبة غاية في البساطة وتزيل كافة الضغوطات النفسية قبل الامتحانات.',
+    contentKU: 'خوێندنی گرووپی پێش تاقیکردنەوەکان. بەڕاستی لەگەڵ هاوڕێکان خوێندن خۆشترە و مێشک ئارام دەکاتەوە لە کەمپەسی سەرنجڕاکێشی دهۆک.',
+    author: {
+      name: 'Dilan Hassan',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=150',
+      university: 'University of Duhok'
+    },
+    date: '1 day ago',
+    likes: 215,
+    commentsCount: 12,
+    governorateId: 'dahuk',
+    universityId: 'duhok-uni',
+    imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=600',
+    tags: ['Duhok', 'Nature', 'OutdoorStudy', 'Kurdistan'],
+    commentsList: []
+  },
+
+  // 6. Question - Rawa Omer (Erbil)
+  {
+    id: 'user-campus-rawa-ml',
+    type: 'question',
+    titleEN: 'Roadmap & sources to master Machine Learning step by step? 🤖🐍',
+    titleAR: 'خارطة طريق ومصادر موثوقة لتعلم تعلم الآلة خطوة بخطوة؟ 🤖🐍',
+    titleKU: 'باشترین سەرچاوە و پلان بۆ فێربوونی Machine Learning؟ 🤖🐍',
+    contentEN: 'What is the best structured and practical resource for learning Machine Learning step by step? I have good Python basics but want to build real classification models, work on neural networks, and engage in data hackathons.',
+    contentAR: 'ما هو أفضل مصدر هيكلي وعملي لدراسة تعلم الآلة والذكاء الاصطناعي؟ لدي أساسيات جيدة في البايثون (Python) وأرغب في الانتقال لبناء النماذج وخوارزميات التنبؤ والمشاركة في المسابقات البرمجية.',
+    contentKU: 'باشترین سەرچاوە بۆ فێربوونی Machine Learning چییە؟ من بنەمای باشم هەیە لە زمانی پایتۆن بەڵام دەمەوێت بە شێوەی دروست پڕۆژەی زیرەکی دەستکرد دروست بکەم.',
+    author: {
+      name: 'Rawa Omer',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150',
+      university: 'Salahaddin University'
+    },
+    date: '2 days ago',
+    likes: 95,
+    commentsCount: 23,
+    governorateId: 'erbil',
+    universityId: 'salahaddin',
+    tags: ['MachineLearning', 'Python', 'AI', 'Erbil'],
+    commentsList: []
+  },
+
+  // 7. Asiacell Elite Graduate Accelerator Program
   {
     id: 'real-opp-asiacell',
     type: 'internship',
@@ -960,4 +1339,3 @@ export const initialFeedItems: FeedItem[] = [
     commentsList: []
   }
 ];
-

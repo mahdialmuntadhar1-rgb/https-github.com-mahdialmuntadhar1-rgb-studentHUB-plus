@@ -1,6 +1,7 @@
-﻿import React from 'react';
+import React from 'react';
 import { Language } from '../types';
 import { motion } from 'motion/react';
+
 interface StoryItem {
   id: string;
   emoji: string;
@@ -166,6 +167,3 @@ export default function StoryHighlights({
     </div>
   );
 }
-
-
-

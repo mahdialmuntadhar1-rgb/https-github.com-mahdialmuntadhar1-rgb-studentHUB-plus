@@ -1,4 +1,4 @@
-﻿export type Language = 'en' | 'ar' | 'ku';
+export type Language = 'en' | 'ar' | 'ku';
 
 export interface Governorate {
   id: string;
@@ -73,7 +73,13 @@ export interface FeedItem {
     | 'competition'
     | 'graduation_project_support'
     | 'fellowship'
-    | 'exam';
+    | 'exam'
+    | 'campus_life'
+    | 'question'
+    | 'club'
+    | 'admission'
+    | 'news'
+    | 'general';
   
   // Localized Content
   titleEN: string;
@@ -419,5 +425,4 @@ export interface ThreadMessagesResponse {
   thread: MessageThread;
   messages: MessageItem[];
 }
-
 

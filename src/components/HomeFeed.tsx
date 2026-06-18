@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FeedItem, Language, University } from '../types';
 import { getTranslation } from '../data/translations';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from '../data/mockData';
@@ -6,6 +6,7 @@ import { Sparkles, MessageSquare, Briefcase, PlusCircle, CheckCircle, Info, Imag
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
 import StudentStories from './StudentStories';
+
 interface HomeFeedProps {
   feedItems: FeedItem[];
   language: Language;
@@ -17,6 +18,8 @@ interface HomeFeedProps {
   onSave: (id: string) => void;
   onVote: (itemId: string, optionId: string) => void;
   onApply: (id: string) => void;
+  onRsvp: (id: string) => void;
+  onJoinGroup: (id: string) => void;
   onAddComment: (id: string, commentText: string) => void;
   onNavigateTab: (tabId: 'home' | 'life' | 'ask' | 'future' | 'profile') => void;
   onAddNewPost: (title: string, body: string, anonymous: boolean, customType?: string, imageUrl?: string) => void;
@@ -80,6 +83,8 @@ export default function HomeFeed({
   onSave,
   onVote,
   onApply,
+  onRsvp,
+  onJoinGroup,
   onAddComment,
   onNavigateTab,
   onAddNewPost,
@@ -98,6 +103,238 @@ export default function HomeFeed({
 }: HomeFeedProps) {
    // Custom Story-based categories filter state
   const [activeStoryFilter, setActiveStoryFilter] = useState<string | null>(null);
+  const [selectedFeedTab, setSelectedFeedTab] = useState<'opportunities' | 'campus_life'>('opportunities');
+  const [currentSlide, setCurrentSlide] = useState(0);
+  const [selectedOppFilter, setSelectedOppFilter] = useState<'all' | 'job' | 'scholarship' | 'training' | 'admission' | 'announcement' | 'news' | 'deadline' | 'internship'>('all');
+  const [selectedCampusFilter, setSelectedCampusFilter] = useState<'all' | 'post' | 'event' | 'club' | 'question' | 'study_group' | 'friends'>('all');
+  const [postCategory, setPostCategory] = useState<string>('campus_life');
+  const [friendRequestsSent, setFriendRequestsSent] = useState<string[]>([]);
+  
+  const studentsToDiscover = useMemo(() => [
+    {
+      id: 'stu-sarah-ahmed',
+      nameEN: 'Sarah Ahmed',
+      nameAR: 'سارة أحمد',
+      nameKU: 'سارا ئەحمەد',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
+      universityEN: 'University of Baghdad',
+      universityAR: 'جامعة بغداد',
+      universityKU: 'زانکۆی بەغدا',
+      bioEN: 'Computer engineering undergarduate. Passionate about algorithms and software architecture.',
+      bioAR: 'طالبة هندسة حاسبات. شغوفة بالخوارزميات وهيكلة البرمجيات.',
+      bioKU: 'خوێندکاری ئەندازیاری کۆمپیوتەر. خولیای زۆرم بۆ دۆزینەوەی چارەسەری زیرەک هەیە.',
+      majorEN: 'Computer Engineering',
+      majorAR: 'هندسة حاسوب',
+      majorKU: 'ئەندازیاری کۆمپیوتەر',
+      isOnline: true,
+      statusEN: 'Online',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە'
+    },
+    {
+      id: 'stu-ali-hassan',
+      nameEN: 'Ali Hassan',
+      nameAR: 'علي حسن',
+      nameKU: 'عەلی حەسەن',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200',
+      universityEN: 'University of Mosul',
+      universityAR: 'جامعة الموصل',
+      universityKU: 'زانکۆی موسڵ',
+      bioEN: 'Civil engineering student looking to connect for joint graduation project preparation.',
+      bioAR: 'طالب هندسة مدنية، يتطلع للمشاركة وبناء مشاريع تخرج إبداعية مشتركة.',
+      bioKU: 'خوێندکاری ئەندازیاری شارستانی، بەدوای دەرفەتی هاوبەش دەگەڕێم بۆ کاری پڕۆژە.',
+      majorEN: 'Civil Engineering',
+      majorAR: 'الهندسة المدنية',
+      majorKU: 'ئەندازیاری شارستانی',
+      isOnline: true,
+      statusEN: 'Online',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە'
+    },
+    {
+      id: 'stu-sara-suli',
+      nameEN: 'Sara Ahmed',
+      nameAR: 'سارا أحمد',
+      nameKU: 'سارا ئەحمەد',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
+      universityEN: 'University of Sulaimani',
+      universityAR: 'جامعة السليمانية',
+      universityKU: 'زانکۆی سلێمانی',
+      bioEN: 'Undergraduate student in translation. Friendly peer mentor eager to assist you with linguistics.',
+      bioAR: 'طالبة ترجمة لغات. مرشدة أكاديمية مستعدة لتقديم المساعدة في اللسانيات.',
+      bioKU: 'خوێندکاری بەشی وەرگێڕان. ئامادەم بۆ یارمەتیدانی هاوڕێیان لە بواری زمانەوانی.',
+      majorEN: 'Translation & English',
+      majorAR: 'الترجمة والإنجليزية',
+      majorKU: 'وەرگێڕان و ئینگلیزی',
+      isOnline: true,
+      statusEN: 'Online',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە'
+    },
+    {
+      id: 'stu-mohammed-kareem',
+      nameEN: 'Mohammed Kareem',
+      nameAR: 'محمد كريم',
+      nameKU: 'محەمەد کەریم',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
+      universityEN: 'University of Technology',
+      universityAR: 'الجامعة التكنولوجية',
+      universityKU: 'زانکۆی تەکنەلۆجیا',
+      bioEN: 'Electrical systems engineer. Building IoT hardware prototypes and solar automation modules.',
+      bioAR: 'هندسة نظم كهربائية، شغوف بإنشاء نماذج إنترنت الأشياء والتحكم الآلي بالطاقة الشمسية.',
+      bioKU: 'ئەندازیاری سیستەمی کارەبا. کار لەسەر پرۆژەی مۆدێرنی ئۆتۆماتیک دەکەم.',
+      majorEN: 'Electrical Engineering',
+      majorAR: 'الهندسة الكهربائية',
+      majorKU: 'ئەندازیاری کارەبا',
+      isOnline: true,
+      statusEN: 'Online',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە'
+    },
+    {
+      id: 'stu-noor-ali',
+      nameEN: 'Noor Ali',
+      nameAR: 'نور علي',
+      nameKU: 'نوور عەلی',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200',
+      universityEN: 'University of Basrah',
+      universityAR: 'جامعة البصرة',
+      universityKU: 'زانکۆی بەسرە',
+      bioEN: 'Information technology enthusiast. Working on responsive mobile applications and front-end designs.',
+      bioAR: 'شغوفة بتكنولوجيا المعلومات والبرمجة. تعمل على تطبيقات الهاتف وتصميمات الواجهات.',
+      bioKU: 'خولیام بۆ تەکنەلۆجیای زانیارییە. کار لەسەر پۆلی نوێی ئەپڵیکەیشنەکان دەکەم.',
+      majorEN: 'Information Technology',
+      majorAR: 'تكنولوجيا المعلومات',
+      majorKU: 'تەکنەلۆجیای زانیاری',
+      isOnline: true,
+      statusEN: 'Online',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە'
+    },
+    {
+      id: 'stu-rawa-omer',
+      nameEN: 'Rawa Omer',
+      nameAR: 'روا عمر',
+      nameKU: 'رەوا عومەر',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
+      universityEN: 'Salahaddin University', // or Erbil University (زانکۆی هەولێر)
+      universityAR: 'جامعة أربيل',
+      universityKU: 'زانکۆی هەولێر',
+      bioEN: 'Software engineer from Erbil. Studying cloud operations and responsive full-stack dashboards.',
+      bioAR: 'مطور برمجيات من أربيل، يدرس تكنولوجيا السحاب وإدارة لوحات التحكم المتكاملة.',
+      bioKU: 'پەرەپێدەری نەرمەکاڵا لە هەولێر. خوێندکاری چالاکی کلاود و فرە-زمان.',
+      majorEN: 'Software Engineering',
+      majorAR: 'هندسة البرمجيات',
+      majorKU: 'ئەندازیاری نەرمەکاڵا',
+      isOnline: true,
+      statusEN: 'Online',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە'
+    },
+    {
+      id: 'stu-zainab-mohammed',
+      nameEN: 'Zeynab Mohammed',
+      nameAR: 'زينب محمد',
+      nameKU: 'زەینەب محەمەد',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
+      universityEN: 'University of Karbala',
+      universityAR: 'جامعة كربلاء',
+      universityKU: 'زانکۆی کەربەلا',
+      bioEN: 'Pharmacy student interested in clinical chemistry and interactive student research forums.',
+      bioAR: 'طالبة صيدلة مهتمة بالكيمياء السريرية والندوات التعليمية في الحرم الجامعي.',
+      bioKU: 'خوێندکاری دەرمانسازی کە سەرنج دەخاتە سەر پڕۆژە پزیشکییە نوێیەکان.',
+      majorEN: 'Pharmacy & Chemistry',
+      majorAR: 'الصيدلة والكيمياء',
+      majorKU: 'دەرمانسازی و کیمیا',
+      isOnline: true,
+      statusEN: 'Online',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە'
+    },
+    {
+      id: 'stu-dilan-hassan',
+      nameEN: 'Dilan Hassan',
+      nameAR: 'ديلان حسن',
+      nameKU: 'دیلان حەسەن',
+      role: 'student',
+      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=200',
+      universityEN: 'University of Duhok',
+      universityAR: 'جامعة دهوك',
+      universityKU: 'زانکۆی دهۆک',
+      bioEN: 'IT student and graphic artist looking to organize student tech bootcamps in Badinan region.',
+      bioAR: 'طالب هومات كمبيوتر ومصمم جرافيك، يعمل لتنظيم ورش تقنية لطلاب منطقة بادينان.',
+      bioKU: 'خوێندکاری بەشی تەکنەلۆجیا و هونەری دیزاین لە بەهدینان.',
+      majorEN: 'Information Systems',
+      majorAR: 'نظم المعلومات',
+      majorKU: 'سیستەمی زانیاری',
+      isOnline: true,
+      statusEN: 'Online',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە'
+    }
+  ], []);
+
+  const selectShortcut = (id: string) => {
+    if (id === 'job') {
+      setSelectedFeedTab('opportunities');
+      setSelectedOppFilter('job');
+    } else if (id === 'scholarship') {
+      setSelectedFeedTab('opportunities');
+      setSelectedOppFilter('scholarship');
+    } else if (id === 'training') {
+      setSelectedFeedTab('opportunities');
+      setSelectedOppFilter('training');
+    } else if (id === 'admission' || id === 'registration') {
+      setSelectedFeedTab('opportunities');
+      setSelectedOppFilter('admission');
+    } else if (id === 'announcement') {
+      setSelectedFeedTab('opportunities');
+      setSelectedOppFilter('announcement');
+    } else if (id === 'news') {
+      setSelectedFeedTab('opportunities');
+      setSelectedOppFilter('news');
+    } else if (id === 'deadline') {
+      setSelectedFeedTab('opportunities');
+      setSelectedOppFilter('deadline');
+    } else if (id === 'internship') {
+      setSelectedFeedTab('opportunities');
+      setSelectedOppFilter('internship');
+    } else if (id === 'event') {
+      setSelectedFeedTab('campus_life');
+      setSelectedCampusFilter('event');
+    } else if (id === 'club') {
+      setSelectedFeedTab('campus_life');
+      setSelectedCampusFilter('club');
+    } else if (id === 'study_group') {
+      setSelectedFeedTab('campus_life');
+      setSelectedCampusFilter('study_group');
+    } else if (id === 'friends') {
+      setSelectedFeedTab('campus_life');
+      setSelectedCampusFilter('friends');
+    } else if (id === 'campus_life' || id === 'post') {
+      setSelectedFeedTab('campus_life');
+      setSelectedCampusFilter('post');
+    } else if (id === 'questions' || id === 'question') {
+      setSelectedFeedTab('campus_life');
+      setSelectedCampusFilter('question');
+    }
+    
+    // Clear the active story highlight filter from before
+    setActiveStoryFilter(null);
+    
+    // Scroll window smoothly to tabs element
+    const el = document.getElementById('home-feed-tabs-selector');
+    if (el) {
+      el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }
+  };
 
   // Dynamic Hero Configuration with real-time updates support (localStorage + event listeners)
   const [heroBg, setHeroBg] = useState(() => localStorage.getItem('jamiaati_hero_bg') || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600');
@@ -130,6 +367,92 @@ export default function HomeFeed({
     window.addEventListener('jamiaati_hero_updated', handleHeroSync);
     return () => window.removeEventListener('jamiaati_hero_updated', handleHeroSync);
   }, []);
+
+  // New beautifully designed Hero Slides Carousel data
+  const heroSlides = useMemo(() => [
+    {
+      id: 'slide_1',
+      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=600',
+      tag: language === 'ar' ? 'مجتمع الحرم' : language === 'ku' ? 'کۆمەڵگەی زانکۆ' : 'Campus Community',
+      tagColor: 'bg-[#1E40AF] text-white',
+      headline: language === 'ar' ? 'اعثر على مسارك الدراسي والفرص المثمرة بكفاءة' : language === 'ku' ? 'ڕێڕەوی ئەکادیمی و گونجاوترین دەرفەت بدۆزەرەوە' : 'Find your university life and opportunities',
+      subtitle: language === 'ar' ? 'شاهد المنح التدريبية والوظائف وعش حياة الكلية مع زملائك' : language === 'ku' ? 'سکۆلەرشیپی بە فەرمی دابینکراو، باشترین برۆگرامی ڕاهێنان' : 'Scholarships, jobs, events, and campus community in one platform',
+      cta: language === 'ar' ? 'استكشف الفرص ➔' : language === 'ku' ? 'الفرص ➔' : 'Explore Now ➔',
+      action: () => {
+        setSelectedFeedTab('opportunities');
+        const el = document.getElementById('home-feed-tabs-selector');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
+    {
+      id: 'slide_2',
+      image: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600',
+      tag: language === 'ar' ? 'المنح والمستقبل' : language === 'ku' ? 'سکۆلەرشیپ' : 'Scholarships',
+      tagColor: 'bg-indigo-600 text-white',
+      headline: language === 'ar' ? 'منح وتسهيلات دراسية ممولة بالكامل لطلابنا' : language === 'ku' ? 'هەلی بورس و خوێندنی باڵا بە شێوازی فەرمی' : 'Scholarships & Career Opportunities',
+      subtitle: language === 'ar' ? 'بوابة المنح الجامعية المحلية والدولية الممولة للمستويات كافة' : language === 'ku' ? 'نوێترین بورسە دراسييەکان لە ناوخۆ و دەرەوەی عێراق' : 'Apply for fully-funded local and international academic scholarships',
+      cta: language === 'ar' ? 'عرض منح الطلاب ➔' : language === 'ku' ? 'بینینی بورسەکان ➔' : 'View Scholarships ➔',
+      action: () => {
+        setSelectedFeedTab('opportunities');
+        setSelectedOppFilter('scholarship');
+        const el = document.getElementById('home-feed-tabs-selector');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
+    {
+      id: 'slide_3',
+      image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80&w=600',
+      tag: language === 'ar' ? 'وظائف التدريب والعمل' : language === 'ku' ? 'هەلی کار' : 'Job Opportunities',
+      tagColor: 'bg-emerald-600 text-white',
+      headline: language === 'ar' ? 'انطلق في مسيرتك المهنية مع شركائنا الموثوقين' : language === 'ku' ? 'سەرەتای کاروانە پیشەییەکەت لێرەوە دەستپێبکە' : 'Career & Entry-Level Job Openings',
+      subtitle: language === 'ar' ? 'قدم على وظائف صيفية، وتدريبات عمل خريجين في أفضل قطاعات العراق' : language === 'ku' ? 'مەشق و خولی هاوینە بۆ گەشەپێدانی توانای خوێندکاران' : 'Everything important for students in one place',
+      cta: language === 'ar' ? 'عرض الوظائف والتدريب ➔' : language === 'ku' ? 'بینینی کارەکان ➔' : 'View Career Openings ➔',
+      action: () => {
+        setSelectedFeedTab('opportunities');
+        setSelectedOppFilter('job');
+        const el = document.getElementById('home-feed-tabs-selector');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
+    {
+      id: 'slide_4',
+      image: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=600',
+      tag: language === 'ar' ? 'حياة الحرم' : language === 'ku' ? 'کەمپەس لایف' : 'Campus Life',
+      tagColor: 'bg-orange-600 text-white',
+      headline: language === 'ar' ? 'تفوق وتفاعل في بيئة الحرم الجامعي الحيوية' : language === 'ku' ? 'لەگەڵ هاوڕێکانت بابەت و چالاکییەکان بەش بکە' : 'Campus Life & Interactive Communities',
+      subtitle: language === 'ar' ? 'شاهد منشورات زملائك، النوادي النشطة، وشارك في النقاشات الأكاديمية' : language === 'ku' ? 'ژیانی ڕۆژانەی زانکۆ و ئاگاداری فەرمی لە نوێترین گروپی خوێندن' : 'Exchange stories, join student clubs, and find study peer groups',
+      cta: language === 'ar' ? 'تصفح حياة الكلية ➔' : language === 'ku' ? 'تێکەڵ بە کەمپەس بە ➔' : 'Join Campus Groups ➔',
+      action: () => {
+        setSelectedFeedTab('campus_life');
+        setSelectedCampusFilter('all');
+        const el = document.getElementById('home-feed-tabs-selector');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    },
+    {
+      id: 'slide_5',
+      image: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=600',
+      tag: language === 'ar' ? 'الفعاليات الكبرى' : language === 'ku' ? 'کۆنفرانس و چالاکی' : 'Exhibits & Seminars',
+      tagColor: 'bg-purple-600 text-white',
+      headline: language === 'ar' ? 'كن شريكاً في المؤتمرات ومعارض التوظيف السنوية' : language === 'ku' ? 'ئامادەی کۆڕبەند و سیمینارە کەمپەسییەکان بە' : 'University Scientific Conferences & Events',
+      subtitle: language === 'ar' ? 'تفاصيل كاملة عن مواعيد الورش والندوات والفعاليات داخل جامعات العراق' : language === 'ku' ? 'کات و ساتی کۆبوونەوە و گفتوگۆ ئەکادیمییەکان بزانە' : 'Never miss exhibitions, academic seminars, and graduate workshops',
+      cta: language === 'ar' ? 'عرض الفعاليات والمؤتمرات ➔' : language === 'ku' ? 'بینینی چالاکییەکان ➔' : 'Browse All Events ➔',
+      action: () => {
+        setSelectedFeedTab('campus_life');
+        setSelectedCampusFilter('event');
+        const el = document.getElementById('home-feed-tabs-selector');
+        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+      }
+    }
+  ], [language]);
+
+  // Carousel auto slider interval configuration
+  useEffect(() => {
+    const slideTimer = setInterval(() => {
+      setCurrentSlide(prev => (prev + 1) % heroSlides.length);
+    }, 5500);
+    return () => clearInterval(slideTimer);
+  }, [heroSlides.length]);
 
   // Admin Hero Custom editing states
   const [isEditingHero, setIsEditingHero] = useState(false);
@@ -346,222 +669,427 @@ export default function HomeFeed({
     if (!postBody.trim()) return;
 
     const generatedTitle = postTitle.trim() || (anonymous ? 'Anonymous Question' : 'Campus Moment 🌟');
-    onAddNewPost(generatedTitle, postBody, anonymous, 'post', postImageUrl || undefined);
+    onAddNewPost(generatedTitle, postBody, anonymous, postCategory, postImageUrl || undefined);
     
     setPostTitle('');
     setPostBody('');
     setPostImageUrl('');
     setAnonymous(false);
+    setPostCategory('campus_life');
     setShowPublisher(false);
 
     setMessage(language === 'ar' ? 'تم نشر مشاركتك بنجاح! ✨' : language === 'ku' ? 'بابەتەکەت بە سەرکەوتوویی بڵاوکرایەوە! ✨' : 'Post shared successfully on Campus Today!');
     setTimeout(() => setMessage(''), 3000);
   };
 
-  // Filter out any opportunities/careers listings from the main home feed, allowing only social, campus posts, and highlights.
-  const opportunityTypes = ['job', 'scholarship', 'internship', 'training', 'fellowship', 'volunteering', 'competition', 'part_time_job', 'graduation_project_support'];
-  const filteredFeedItems = feedItems.filter(item => {
-    const isOpportunity = opportunityTypes.includes(item.type);
-    return !isOpportunity;
-  });
+  // Serious opportunity categories
+  const seriousTypes = [
+    'job', 'part_time_job', 'full_time_job', 'internship',
+    'scholarship', 'fellowship',
+    'training', 'graduation_project_support', 'volunteering', 'competition',
+    'admission', 'announcement', 'news', 'deadline'
+  ];
+
+  // Filter by governorate & university first (keeps the university & city ownership solid)
+  const matchesGovAndUni = (item: any) => {
+    const itemGov = item.governorateId;
+    const itemUni = item.universityId;
+
+    const matchesGov = selectedGov === 'all' || !itemGov || itemGov === 'all' || itemGov === selectedGov;
+    const matchesUni = selectedUni === 'all' || !itemUni || itemUni === 'all' || itemUni === selectedUni;
+    
+    return matchesGov && matchesUni;
+  };
+
+  const geoFilteredItems = useMemo(() => {
+    return feedItems.filter(matchesGovAndUni);
+  }, [feedItems, selectedGov, selectedUni]);
+
+  // Divide into serious opportunities vs campus social categories
+  const allSeriousItems = useMemo(() => {
+    return geoFilteredItems.filter(item => seriousTypes.includes(item.type));
+  }, [geoFilteredItems]);
+
+  const allSocialItems = useMemo(() => {
+    return geoFilteredItems.filter(item => !seriousTypes.includes(item.type));
+  }, [geoFilteredItems]);
+
+  // For You (Mixed & organized feed with controlled sorting)
+  const forYouItems = useMemo(() => {
+    // 1. Important official announcements first
+    const officialAnnouncements = geoFilteredItems.filter(item => 
+      item.type === 'announcement' || 
+      item.author?.role === 'institution' || 
+      item.author?.role === 'staff'
+    );
+
+    // 2. Careers, Scholarships, Training next (other serious content)
+    const officialIds = new Set(officialAnnouncements.map(x => x.id));
+    const scholarshipsJobsTraining = geoFilteredItems.filter(item => 
+      !officialIds.has(item.id) && 
+      ['job', 'part_time_job', 'full_time_job', 'internship', 'scholarship', 'fellowship', 'training', 'graduation_project_support', 'volunteering', 'competition', 'admission'].includes(item.type)
+    );
+
+    // 3. Casual Campus life posts after (neither of the above)
+    const seriousIds = new Set([...officialAnnouncements, ...scholarshipsJobsTraining].map(x => x.id));
+    const casualCampusLife = geoFilteredItems.filter(item => !seriousIds.has(item.id));
+
+    return [...officialAnnouncements, ...scholarshipsJobsTraining, ...casualCampusLife];
+  }, [geoFilteredItems]);
+
+  // Filtering for Opportunities Tab
+  const filteredOppsItems = useMemo(() => {
+    if (selectedOppFilter === 'all') {
+      return allSeriousItems;
+    }
+    if (selectedOppFilter === 'job') {
+      return allSeriousItems.filter(item => 
+        ['job', 'part_time_job', 'full_time_job', 'internship'].includes(item.type)
+      );
+    }
+    if (selectedOppFilter === 'scholarship') {
+      return allSeriousItems.filter(item => 
+        ['scholarship', 'fellowship'].includes(item.type)
+      );
+    }
+    if (selectedOppFilter === 'training') {
+      return allSeriousItems.filter(item => 
+        ['training', 'graduation_project_support', 'volunteering', 'competition'].includes(item.type)
+      );
+    }
+    if (selectedOppFilter === 'admission') {
+      return allSeriousItems.filter(item => 
+        ['admission', 'registration'].includes(item.type)
+      );
+    }
+    if (selectedOppFilter === 'announcement') {
+      return allSeriousItems.filter(item => item.type === 'announcement');
+    }
+    if (selectedOppFilter === 'news') {
+      return allSeriousItems.filter(item => 
+        item.type === 'news' || 
+        item.tags?.some(tag => tag.toLowerCase().includes('news')) ||
+        item.type === 'announcement'
+      );
+    }
+    if (selectedOppFilter === 'deadline') {
+      return allSeriousItems.filter(item => !!item.deadline);
+    }
+    if (selectedOppFilter === 'internship') {
+      return allSeriousItems.filter(item => 
+        item.type === 'internship' || 
+        item.tags?.some(tag => tag.toLowerCase().includes('intern'))
+      );
+    }
+    return allSeriousItems;
+  }, [allSeriousItems, selectedOppFilter]);
+
+  // Filtering for Campus Life Tab
+  const filteredCampusItems = useMemo(() => {
+    if (selectedCampusFilter === 'all') {
+      return allSocialItems;
+    }
+    if (selectedCampusFilter === 'post') {
+      return allSocialItems.filter(item => 
+        ['post', 'photo', 'video', 'story', 'local_service', 'campus_life', 'general'].includes(item.type)
+      );
+    }
+    if (selectedCampusFilter === 'event') {
+      return allSocialItems.filter(item => 
+        ['event', 'exam'].includes(item.type)
+      );
+    }
+    if (selectedCampusFilter === 'club') {
+      return allSocialItems.filter(item => 
+        ['club', 'study_group'].includes(item.type) || item.tags?.includes('Club')
+      );
+    }
+    if (selectedCampusFilter === 'question') {
+      return allSocialItems.filter(item => 
+        ['question', 'anonymous_question', 'poll'].includes(item.type)
+      );
+    }
+    if (selectedCampusFilter === 'study_group') {
+      return allSocialItems.filter(item => 
+        item.type === 'study_group' || item.tags?.some(tag => tag.toLowerCase().includes('study'))
+      );
+    }
+    if (selectedCampusFilter === 'friends') {
+      return allSocialItems.filter(item => 
+        item.tags?.some(tag => ['friends', 'friend', 'peer', 'connect', 'social'].includes(tag.toLowerCase())) ||
+        ['general', 'story'].includes(item.type)
+      );
+    }
+    return allSocialItems;
+  }, [allSocialItems, selectedCampusFilter]);
+
+  let filteredFeedItems: typeof feedItems = [];
+
+  if (selectedFeedTab === 'opportunities') {
+    filteredFeedItems = filteredOppsItems;
+  } else {
+    filteredFeedItems = filteredCampusItems;
+  }
 
   return (
-    <div className="px-3.5 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-[#0B1020]" id="home-feed-container">
+    <div className="px-3.5 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-white text-slate-800" id="home-feed-container">
       
-      {/* 2. Compact, Student-Friendly Modern Hero Section */}
-      {isEditingHero ? (
-        <form onSubmit={handleSaveHeroCustomization} className="mb-5 bg-[#121B2E] rounded-3xl p-5 border-2 border-[#FFD21F] shadow-[3px_3px_0px_0px_#FFD21F] text-left text-white flex flex-col gap-3" id="admin-hero-editor-form">
-          <div className="flex items-center justify-between border-b border-[#1F2E4D] pb-2">
-            <h3 className="text-xs font-black text-[#FFD21F] uppercase flex items-center gap-1.5">
-              <Palette className="w-4 h-4" />
-              <span>Customize Hero Banner</span>
-            </h3>
-            <button type="button" onClick={() => setIsEditingHero(false)} className="text-slate-400 hover:text-white font-bold text-[10px] uppercase cursor-pointer">
-              Cancel
-            </button>
-          </div>
-          
-          <div className="flex flex-col gap-1">
-            <label className="text-[9px] uppercase font-black text-slate-400">Hero BG Image URL</label>
-            <input 
-              type="text" 
-              className="bg-[#0B1020] border border-[#1F2E4D] text-xs px-2.5 py-1.5 rounded-xl text-white focus:outline-none focus:border-[#FFD21F] w-full"
-              placeholder="https://images.unsplash.com/..."
-              value={formHeroBg}
-              onChange={(e) => setFormHeroBg(e.target.value)}
-            />
-          </div>
-
-          <div className="grid grid-cols-3 gap-2">
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400">Tag (EN)</label>
-              <input 
-                type="text" 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2 py-1 rounded-lg text-white font-bold focus:outline-none focus:border-[#FFD21F]"
-                value={formTagEN} 
-                onChange={e => setFormTagEN(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Tag (AR)</label>
-              <input 
-                type="text" 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2 py-1 rounded-lg text-white font-bold text-right font-sans focus:outline-none focus:border-[#FFD21F]"
-                value={formTagAR} 
-                onChange={e => setFormTagAR(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Tag (KU)</label>
-              <input 
-                type="text" 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2 py-1 rounded-lg text-white font-bold text-right font-sans focus:outline-none focus:border-[#FFD21F]"
-                value={formTagKU} 
-                onChange={e => setFormTagKU(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2 border-t border-[#1F2E4D]/60 pt-2 pb-1">
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400">Title (EN)</label>
-              <input 
-                type="text" 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-xs px-2.5 py-1 rounded-lg text-white font-black focus:outline-none focus:border-[#FFD21F]"
-                value={formTitleEN} 
-                onChange={e => setFormTitleEN(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Title (AR)</label>
-              <input 
-                type="text" 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-xs px-2.5 py-1 rounded-lg text-white font-black text-right font-sans focus:outline-none focus:border-[#FFD21F]"
-                value={formTitleAR} 
-                onChange={e => setFormTitleAR(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Title (KU)</label>
-              <input 
-                type="text" 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-xs px-2.5 py-1 rounded-lg text-white font-black text-right font-sans focus:outline-none focus:border-[#FFD21F]"
-                value={formTitleKU} 
-                onChange={e => setFormTitleKU(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <div className="flex flex-col gap-2 border-t border-[#1F2E4D]/60 pt-2">
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400">Subtitle (EN)</label>
-              <textarea 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2.5 py-1 rounded-lg text-white h-11 resize-none font-medium focus:outline-none focus:border-[#FFD21F]"
-                value={formDescEN} 
-                onChange={e => setFormDescEN(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Subtitle (AR)</label>
-              <textarea 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2.5 py-1 rounded-lg text-white h-11 resize-none text-right font-medium font-sans focus:outline-none focus:border-[#FFD21F]"
-                value={formDescAR} 
-                onChange={e => setFormDescAR(e.target.value)}
-              />
-            </div>
-            <div className="flex flex-col gap-0.5">
-              <label className="text-[8px] uppercase font-black text-slate-400 font-sans">Subtitle (KU)</label>
-              <textarea 
-                className="bg-[#0B1020] border border-[#1F2E4D] text-[10px] px-2.5 py-1 rounded-lg text-white h-11 resize-none text-right font-medium font-sans focus:outline-none focus:border-[#FFD21F]"
-                value={formDescKU} 
-                onChange={e => setFormDescKU(e.target.value)}
-              />
-            </div>
-          </div>
-
-          <button 
-            type="submit"
-            className="w-full bg-[#FFD21F] hover:bg-[#FFD21F]/90 text-slate-950 font-black text-xs py-2 rounded-xl border border-slate-950 shadow-[2px_2px_0px_0px_#1B2E4D] cursor-pointer select-none text-center"
+      {/* 1. Hero Slides Carousel Section */}
+      <div className="relative w-full overflow-hidden rounded-3xl mb-5 shadow-md bg-slate-950 aspect-[16/9]" id="home-hero-carousel">
+        {heroSlides.map((slide, idx) => (
+          <div 
+            key={slide.id}
+            className={`absolute inset-0 transition-all duration-700 ease-in-out flex flex-col justify-end p-5 text-white ${
+              idx === currentSlide 
+                ? 'opacity-100 scale-100 pointer-events-auto z-10' 
+                : 'opacity-0 scale-95 pointer-events-none z-0'
+            }`}
           >
-            Save Customized Hero Settings ✨
-          </button>
-        </form>
-      ) : (
-        <div 
-          className="mb-5 relative rounded-3xl overflow-hidden border-2 border-[#161A33] shadow-[4px_4px_0px_0px_#161A33] min-h-[148px] flex flex-col justify-end p-4 text-white" 
-          id="homepage-academic-banner-hero"
-        >
-          <img 
-            src={heroBg} 
-            alt="Iraqi Academic Campus" 
-            className="absolute inset-0 w-full h-full object-cover select-none pointer-events-none"
-            referrerPolicy="no-referrer"
-          />
-          <div className="absolute inset-0 bg-gradient-to-t from-slate-950 via-slate-900/60 to-transparent z-0" />
-          
-          {isAdminMode && (
-            <button 
-              type="button"
-              onClick={handleStartEditingHero}
-              className="absolute top-3.5 right-3.5 z-20 bg-slate-950/80 hover:bg-slate-950 text-[#FFD21F] hover:scale-105 p-2 rounded-xl border border-white/20 cursor-pointer shadow-md transition-all flex items-center gap-1 text-[10px] font-black pointer-events-auto select-none"
-            >
-              <Palette className="w-3.5 h-3.5" />
-              <span>EDIT HERO</span>
-            </button>
-          )}
-
-          <div className="relative z-10 select-none">
-            <div className="inline-flex items-center gap-1.5 bg-[#FFD21F] text-[#161A33] text-[8.5px] font-black uppercase px-2.5 py-0.5 rounded-full mb-1.5 border border-[#161A33]/15">
-              <span>✨ {language === 'ar' ? heroTagAR : language === 'ku' ? heroTagKU : heroTagEN}</span>
-            </div>
+            {/* Slide Background Image */}
+            <div 
+              className="absolute inset-0 bg-cover bg-center bg-no-repeat transition-transform duration-[5000ms] ease-linear"
+              style={{ 
+                backgroundImage: `url(${slide.image})`,
+                transform: idx === currentSlide ? 'scale(1.04)' : 'scale(1.0)'
+              }}
+              referrerPolicy="no-referrer"
+            />
+            {/* Dark contrast gradient overlay */}
+            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
             
-            <h2 className="text-sm md:text-base font-black tracking-tight leading-tight uppercase text-white drop-shadow-md">
-              {language === 'ar' ? (
-                <>{heroTitleAR} 🚀</>
-              ) : language === 'ku' ? (
-                <>{heroTitleKU} 🚀</>
-              ) : (
-                <>{heroTitleEN} 🚀</>
-              )}
-            </h2>
-            
-            <p className="text-[10px] text-slate-200 mt-1 font-medium leading-tight max-w-[300px] drop-shadow-sm">
-              {language === 'ar' ? heroDescAR : language === 'ku' ? heroDescKU : heroDescEN}
-            </p>
-
-            <div className="mt-2.5 flex items-center justify-between">
-              <span className="text-[9px] font-black bg-white text-[#161A33] px-3 py-1 rounded-lg shadow-sm border border-[#161A33]/20 flex items-center gap-1">
-                <span>{language === 'ar' ? 'عِراقنا بلمحة 🇮🇶' : language === 'ku' ? 'عێراقی ئەکادیمی 🇮🇶' : 'Iraq Academia 🇮🇶'}</span>
+            {/* Slide Content */}
+            <div className="relative z-10 text-left flex flex-col items-start gap-1.5">
+              <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg select-none ${slide.tagColor}`}>
+                {slide.tag}
               </span>
-              <span className="text-[8px] font-mono font-bold text-[#FFD21F] bg-black/40 px-1.5 py-0.5 rounded border border-white/10 flex items-center gap-1 select-none">
-                <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                ● {language === 'ar' ? 'رسمي ومباشر' : language === 'ku' ? 'ڕاستەوخۆ' : 'OFFICIAL LIVE'}
-              </span>
+              <h2 className="text-xs sm:text-sm font-black leading-snug tracking-tight text-white max-w-sm">
+                {slide.headline}
+              </h2>
+              <p className="text-[9px] text-white/80 max-w-xs font-bold leading-normal">
+                {slide.subtitle}
+              </p>
+              <button 
+                onClick={slide.action}
+                className="mt-2 text-[9px] font-black bg-[#1E40AF] hover:bg-blue-700 text-white rounded-lg py-1.5 px-3.5 shadow-sm hover:shadow-md transition-all uppercase cursor-pointer"
+              >
+                {slide.cta}
+              </button>
             </div>
           </div>
-        </div>
-      )}
-
-      {/* 3. Filter Row: Side by Side Governorate & Academic Institution dropdowns */}
-      <div className="grid grid-cols-2 gap-3.5 mb-5" id="home-filter-row">
+        ))}
         
-        {/* Dropdown 1: Governorate Selection */}
+        {/* Next/Prev arrow navigation controls */}
+        <button 
+          onClick={() => setCurrentSlide(prev => (prev - 1 + heroSlides.length) % heroSlides.length)}
+          className="absolute left-3.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 active:scale-95 border border-white/10 rounded-full text-white cursor-pointer backdrop-blur-xs select-none transition-all"
+        >
+          <ChevronLeft className="w-4 h-4" />
+        </button>
+        <button 
+          onClick={() => setCurrentSlide(prev => (prev + 1) % heroSlides.length)}
+          className="absolute right-3.5 top-1/2 -translate-y-1/2 z-20 w-7 h-7 flex items-center justify-center bg-white/10 hover:bg-white/20 active:scale-95 border border-white/10 rounded-full text-white cursor-pointer backdrop-blur-xs select-none transition-all"
+        >
+          <ChevronRight className="w-4 h-4" />
+        </button>
+
+        {/* Carousel Indicators */}
+        <div className="absolute bottom-3 left-1/2 -translate-x-1/2 z-20 flex gap-1.5">
+          {heroSlides.map((_, idx) => (
+            <button
+              key={idx}
+              onClick={() => setCurrentSlide(idx)}
+              className={`h-1.5 rounded-full transition-all cursor-pointer ${
+                idx === currentSlide 
+                  ? 'bg-[#FFD21F] w-4.5' 
+                  : 'bg-white/35 hover:bg-white/60 w-1.5'
+              }`}
+            />
+          ))}
+        </div>
+      </div>
+
+      {/* 2. Interactive Student Stories & Peer Discovery Row */}
+      <div className="mb-5 bg-[#FAF9FF] border border-slate-200/60 rounded-3xl p-4 shadow-xs" id="home-student-stories-section">
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">✨</span>
+            <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
+              {language === 'ar' ? 'يوميات وزملائي الطلاب' : language === 'ku' ? 'هاوپۆلە چالاکەکان' : 'Active Classmates & Peers'}
+            </span>
+          </div>
+          <span className="text-[10px] text-[#1E40AF] font-bold px-2 py-0.5 bg-blue-50 rounded-full animate-pulse">
+            {language === 'ar' ? 'مباشر الآن 🟢' : language === 'ku' ? 'ئێستا چالاکە 🟢' : 'Active Now 🟢'}
+          </span>
+        </div>
+
+        <div className="flex gap-3 overflow-x-auto pb-2.5 pt-0.5 scrollbar-none snap-x touch-pan-x" id="student-discovery-row">
+          {studentsToDiscover.map((student) => {
+            const isSent = friendRequestsSent.includes(student.id);
+            const studentName = language === 'ar' ? student.nameAR : language === 'ku' ? student.nameKU : student.nameEN;
+            const studentUni = language === 'ar' ? student.universityAR : language === 'ku' ? student.universityKU : student.universityEN;
+            const studentStatus = language === 'ar' ? student.statusAR : language === 'ku' ? student.statusKU : student.statusEN;
+            
+            return (
+              <div 
+                key={student.id}
+                className="flex flex-col items-center p-3.5 rounded-2xl bg-white border border-slate-200/80 snap-start shrink-0 w-44 text-center select-none shadow-xs hover:border-[#1E40AF]/30 hover:shadow-sm transition-all"
+                id={`discover-peer-${student.id}`}
+              >
+                {/* Avatar with status indicator ring */}
+                <div className="relative mb-2 shrink-0">
+                  <div className="w-14 h-14 rounded-full overflow-hidden p-[2px] bg-gradient-to-tr from-orange-400 via-pink-500 to-[#1E40AF]">
+                    <img 
+                      src={student.avatar} 
+                      alt={studentName}
+                      referrerPolicy="no-referrer"
+                      className="w-full h-full object-cover rounded-full bg-white"
+                    />
+                  </div>
+                  {/* Small online green dot status indicator */}
+                  {student.isOnline && (
+                    <span 
+                      className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full ring-2 ring-emerald-100" 
+                    />
+                  )}
+                </div>
+                
+                {/* Active Status Badge */}
+                <span className="text-[8.5px] font-black text-emerald-600 mb-1 flex items-center gap-1 bg-emerald-50 border border-emerald-200/50 px-2 py-0.5 rounded-full">
+                  <span className="w-1 h-1 bg-emerald-500 rounded-full shrink-0" />
+                  {studentStatus}
+                </span>
+
+                {/* Name & University Label */}
+                <span className="text-xs font-black text-slate-800 truncate w-full px-1">
+                  {studentName}
+                </span>
+                <span className="text-[10px] font-bold text-slate-500 mt-0.5 truncate w-full px-0.5">
+                  {studentUni}
+                </span>
+
+                {/* Action Buttons */}
+                <div className="flex flex-col gap-1.5 w-full mt-3 shrink-0">
+                  {/* Add Request button */}
+                  <button
+                    onClick={() => {
+                      if (isSent) {
+                        setFriendRequestsSent(prev => prev.filter(id => id !== student.id));
+                        if (showToast) showToast(language === 'ar' ? 'تم إلغاء الطلب.' : 'Request cancelled.', 'info');
+                      } else {
+                        setFriendRequestsSent(prev => [...prev, student.id]);
+                        if (onAwardPoints) onAwardPoints(20);
+                        if (showToast) showToast(language === 'ar' ? `تم إرسال طلب إضافة إلى ${studentName}! ✨` : `Add request sent to ${studentName}! ✨`, 'success');
+                      }
+                    }}
+                    className={`text-[9.5px] font-black rounded-lg py-1.5 px-2 transition-all border ${
+                      isSent 
+                        ? 'bg-slate-100 text-slate-500 border-slate-200' 
+                        : 'bg-orange-500 hover:bg-orange-600 text-white border-orange-600 cursor-pointer shadow-xs'
+                    }`}
+                  >
+                    {isSent 
+                      ? (language === 'ar' ? 'تم الإرسال ✓' : language === 'ku' ? 'نێردرا ✓' : 'Sent ✓') 
+                      : (language === 'ar' ? 'إرسال طلب إضافة' : language === 'ku' ? 'داواکاری زیادکردن' : 'Add Request')}
+                  </button>
+
+                  {/* Message button */}
+                  <button
+                    onClick={() => {
+                      if (onUserClick) {
+                        // Cast or construct UserProfile equivalent
+                        onUserClick({
+                          id: student.id,
+                          name: studentName,
+                          avatar: student.avatar,
+                          role: student.role as any,
+                          universityId: 'all',
+                          governorateId: 'all',
+                          bioEN: student.bioEN,
+                          bioAR: student.bioAR,
+                          bioKU: student.bioKU,
+                          majorEN: student.majorEN,
+                          majorAR: student.majorAR,
+                          majorKU: student.majorKU,
+                          points: 100,
+                          level: 1,
+                          savedItemIds: [],
+                          appliedJobIds: [],
+                          joinedGroupIds: [],
+                          rsvpedEventIds: []
+                        });
+                      }
+                      if (showToast) {
+                        showToast(
+                          language === 'ar' 
+                            ? `طلب مراسلة مرسل إلى ${studentName}! 💬` 
+                            : `Message request sent to ${studentName}! 💬`,
+                          'success'
+                        );
+                      }
+                    }}
+                    className="text-[9.5px] font-black rounded-lg bg-blue-500 hover:bg-blue-600 text-white py-1.5 px-2 border border-blue-600 cursor-pointer shadow-xs transition-all"
+                  >
+                    {language === 'ar' ? 'إرسال طلب رسالة' : language === 'ku' ? 'داواکاری نامە' : 'Message Request'}
+                  </button>
+
+                  {/* View profile button */}
+                  <button
+                    onClick={() => {
+                      if (onUserClick) {
+                        onUserClick({
+                          id: student.id,
+                          name: studentName,
+                          avatar: student.avatar,
+                          role: student.role as any,
+                          universityId: 'all',
+                          governorateId: 'all',
+                          bioEN: student.bioEN,
+                          bioAR: student.bioAR,
+                          bioKU: student.bioKU,
+                          majorEN: student.majorEN,
+                          majorAR: student.majorAR,
+                          majorKU: student.majorKU,
+                          points: 100,
+                          level: 1,
+                          savedItemIds: [],
+                          appliedJobIds: [],
+                          joinedGroupIds: [],
+                          rsvpedEventIds: []
+                        });
+                      }
+                    }}
+                    className="text-[9px] font-extrabold text-[#1E40AF] hover:text-blue-800 border border-blue-200 bg-white hover:bg-blue-50 rounded-lg py-1 px-1 w-full transition-all cursor-pointer"
+                  >
+                    🔍 {language === 'ar' ? 'عرض الملف' : language === 'ku' ? 'بینینی پڕۆفایل' : 'View Profile'}
+                  </button>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* 3. Stacked Governorate filter */}
+      <div className="flex flex-col gap-1.5 mb-3" id="home-gov-filter-container">
+        <label className="text-[10px] font-black text-[#1E40AF] uppercase tracking-wider px-1">
+          📍 {language === 'ar' ? 'اختر محافظتك ومركز المنشورات' : language === 'ku' ? 'پارێزگاکەت هەڵبژێرە' : 'Select Governorate'}
+        </label>
         <div 
-          className={`flex items-center gap-2 px-3 py-2.5 rounded-2xl bg-white border-2 transition-all shrink-0 ${
+          className={`flex items-center gap-3 px-3.5 py-2.5 rounded-2xl bg-white border-2 transition-all ${
             selectedGov !== 'all' 
-              ? 'border-[#6B25C9] shadow-[3px_3px_0px_0px_#6B25C9]' 
-              : 'border-[#161A33] shadow-[3px_3px_0px_0px_#161A33]'
+              ? 'border-[#1E40AF] shadow-xs bg-blue-50/10' 
+              : 'border-slate-200 hover:border-[#1E40AF]/50'
           }`}
           id="gov-dropdown-container"
         >
-          <MapPin className={`w-4 h-4 shrink-0 ${selectedGov !== 'all' ? 'text-[#6B25C9]' : 'text-slate-500'}`} />
+          <MapPin className={`w-4 h-4 shrink-0 ${selectedGov !== 'all' ? 'text-[#1E40AF]' : 'text-slate-400'}`} />
           <select
             id="governorate-select"
             value={selectedGov}
             onChange={handleGovChange}
-            className="w-full text-xs font-black text-[#161A33] bg-transparent border-0 focus:outline-none cursor-pointer outline-none p-0 select-none"
+            className="w-full text-xs font-black text-slate-800 bg-transparent border-0 focus:outline-none cursor-pointer outline-none p-0 select-none"
           >
-            <option value="all">📍 {language === 'ar' ? 'كل المحافظات' : language === 'ku' ? 'هەموو پارێزگاکان' : 'All Governorates'}</option>
+            <option value="all">🌍 {language === 'ar' ? 'كافة المحافظات في العراق' : language === 'ku' ? 'پاککردنەوەی فلتەری پارێزگاکان' : 'All Iraqi Governorate Offices'}</option>
             {IraqiGovernorates.map(gov => (
               <option key={gov.id} value={gov.id}>
                 {language === 'ar' ? gov.nameAR : language === 'ku' ? gov.nameKU : gov.nameEN}
@@ -569,8 +1097,13 @@ export default function HomeFeed({
             ))}
           </select>
         </div>
+      </div>
 
-        {/* Dropdown 2: Academic Institution Selection */}
+      {/* 4. Stacked University filter */}
+      <div className="flex flex-col gap-1.5 mb-5" id="home-uni-filter-container">
+        <label className="text-[10px] font-black text-[#1E40AF] uppercase tracking-wider px-1">
+          🏫 {language === 'ar' ? 'اختر جامعتك وبوابتك الأكاديمية' : language === 'ku' ? 'زانکۆکەت هەڵبژێرە' : 'Select Academic University'}
+        </label>
         <button 
           id="university-select-trigger"
           type="button"
@@ -581,19 +1114,19 @@ export default function HomeFeed({
               setShowPicker(true);
             }
           }}
-          className={`flex items-center justify-between text-left gap-2 px-3 py-2.5 rounded-2xl bg-white border-2 transition-all shrink-0 cursor-pointer ${
+          className={`flex items-center justify-between text-left gap-3 px-3.5 py-2.5 rounded-2xl bg-white border-2 transition-all cursor-pointer ${
             selectedUni !== 'all' 
-              ? 'border-[#2F7CCB] shadow-[3px_3px_0px_0px_#2F7CCB]' 
-              : 'border-[#161A33] shadow-[3px_3px_0px_0px_#161A33]'
+              ? 'border-[#1E40AF] shadow-xs bg-blue-50/10' 
+              : 'border-slate-200 hover:border-[#1E40AF]/50'
           }`}
         >
-          <div className="flex items-center gap-2 min-w-0 flex-1">
-            <School className={`w-4 h-4 shrink-0 ${selectedUni !== 'all' ? 'text-[#2F7CCB]' : 'text-slate-500'}`} />
-            <span className="text-xs font-black text-[#161A33] truncate">
+          <div className="flex items-center gap-3 min-w-0 flex-1">
+            <School className={`w-4 h-4 shrink-0 ${selectedUni !== 'all' ? 'text-[#1E40AF]' : 'text-slate-400'}`} />
+            <span className="text-xs font-black text-slate-800 truncate">
               {institutionsLoading ? (
-                <span>{language === 'ar' ? '⏳ جاري جلب البيانات...' : '⏳ Loading...'}</span>
+                <span>{language === 'ar' ? '⏳ تحميل...' : '⏳ Loading...'}</span>
               ) : selectedUni === 'all' ? (
-                <span>🏫 {language === 'ar' ? 'كل الجامعات' : language === 'ku' ? 'هەموو زانکۆکان' : 'All Institutions'}</span>
+                <span>{language === 'ar' ? 'عرض كافة الجامعات في العراق' : language === 'ku' ? 'پاککردنەوەی فلتەری زانکۆکان' : 'Showing all institutions across Iraq'}</span>
               ) : (
                 (() => {
                   const sourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
@@ -601,88 +1134,157 @@ export default function HomeFeed({
                   if (found) {
                     return `${found.logo} ${language === 'ar' ? found.nameAR : language === 'ku' ? found.nameKU : found.nameEN}`;
                   }
-                  return `🏫 ${selectedUni}`;
+                  return `${selectedUni}`;
                 })()
               )}
             </span>
           </div>
-          {institutionsLoading && <span className="w-2 h-2 rounded-full bg-[#2F7CCB] animate-ping shrink-0" />}
+          {institutionsLoading && <span className="w-2 h-2 rounded-full bg-blue-600 animate-ping shrink-0" />}
         </button>
-
       </div>
 
-      {/* Real-time Interactive Student Stories Row */}
-      <StudentStories 
-        language={language} 
-        onAwardPoints={onAwardPoints} 
-        showToast={showToast} 
-      />
+      {/* 5. Sticky Dual Lane View: ONLY Opportunities & Campus Life */}
+      <div 
+        className="sticky top-0 z-30 bg-white border-b-2 border-slate-100 py-3.5 flex justify-between gap-1.5 mb-4 shadow-xs select-none" 
+        id="home-feed-tabs-selector"
+      >
+        <button
+          onClick={() => setSelectedFeedTab('opportunities')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-black text-center rounded-2xl transition-all cursor-pointer ${
+            selectedFeedTab === 'opportunities'
+              ? 'bg-teal-50 text-teal-700 border-2 border-teal-500 scale-102 shadow-xs'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-2 border-transparent'
+          }`}
+        >
+          <span>🎯</span>
+          <span>{language === 'ar' ? 'الفرص والتطوير' : language === 'ku' ? 'هەلەکان' : 'Opportunities'}</span>
+        </button>
+        <button
+          onClick={() => setSelectedFeedTab('campus_life')}
+          className={`flex-1 flex items-center justify-center gap-1.5 py-2 px-3 text-xs font-black text-center rounded-2xl transition-all cursor-pointer ${
+            selectedFeedTab === 'campus_life'
+              ? 'bg-orange-50 text-orange-600 border-2 border-orange-500 scale-102 shadow-xs'
+              : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-2 border-transparent'
+          }`}
+        >
+          <span>🏛️</span>
+          <span>{language === 'ar' ? 'حياة الحرم الجامعي' : language === 'ku' ? 'کەمپەس لایف' : 'Campus Life'}</span>
+        </button>
+      </div>
 
-      {/* 4. Stories Circles: social media story bubbles */}
-      <div className="w-full mb-5 bg-[#121B2E] rounded-3xl border border-[#1F2E4D] p-3.5 shadow-sm" id="story-highlights-scroller-box">
-        <div className="flex items-center justify-between mb-3 px-1">
-          <span className="text-[9px] font-black uppercase tracking-wider text-cyan-400 bg-cyan-950/40 px-2.5 py-1 rounded-md leading-none">
-            {language === 'ar' ? 'أبرز القصص والدليل الأكاديمي ⚡' : language === 'ku' ? 'چیرۆکە دیارەکانە زانکۆ ⚡' : 'CAMPUS HIGHLIGHTS ⚡'}
-          </span>
-          <span className="text-[8px] font-black text-slate-400 flex items-center gap-1 select-none animate-pulse">
-            {language === 'ar' ? 'اسحب لليمين واليسار' : language === 'ku' ? 'ڕابکێشە بۆ بینین' : 'Swipe items'}
-          </span>
-        </div>
-
-        {/* Story Scroller Row */}
-        <div className="flex gap-4 overflow-x-auto pb-1 scrollbar-none snap-x touch-pan-x" id="stories-scrollable-bar">
-          {storyHighlightsData.map((story) => {
-            const label = language === 'ar' ? story.labelAR : language === 'ku' ? story.labelKU : story.labelEN;
-            const isStoryActive = activeStoryFilter === story.filterType;
+      {/* Advanced Filter Chips for Opportunities Tab (using Circular Shortcut style) */}
+      {selectedFeedTab === 'opportunities' && (
+        <div 
+          className="flex gap-4 mb-5 overflow-x-auto pb-3 pt-1.5 scrollbar-none snap-x touch-pan-x justify-start" 
+          id="opp-shortcuts-circles"
+        >
+          {[
+            { id: 'all', emoji: '🌐', labelEN: 'All', labelAR: 'الكل', labelKU: 'هەموو' },
+            { id: 'job', emoji: '💼', labelEN: 'Jobs', labelAR: 'وظائف', labelKU: 'کارەکان' },
+            { id: 'scholarship', emoji: '🎓', labelEN: 'Scholarships', labelAR: 'منح دراسية', labelKU: 'سکۆلەرشیپ' },
+            { id: 'training', emoji: '📖', labelEN: 'Training', labelAR: 'تدريب', labelKU: 'ڕاهێنان' },
+            { id: 'admission', emoji: '📌', labelEN: 'Admissions', labelAR: 'القبول والتسجيل', labelKU: 'وەرگرتن' },
+            { id: 'announcement', emoji: '📢', labelEN: 'Announcements', labelAR: 'الأخبار', labelKU: 'ئاگاداریی' },
+            { id: 'news', emoji: '📰', labelEN: 'News', labelAR: 'أخبار الطلاب', labelKU: 'هەواڵەکان' },
+            { id: 'deadline', emoji: '⏳', labelEN: 'Deadlines', labelAR: 'آجال التقديم', labelKU: 'مۆڵەتەکان' },
+            { id: 'internship', emoji: '🚀', labelEN: 'Internships', labelAR: 'فرص تدريب العمل', labelKU: 'ڕاهێنانی کار' },
+          ].map(shortcut => {
+            const isActive = selectedOppFilter === shortcut.id;
             return (
-              <div 
-                key={story.id} 
-                className="flex flex-col items-center gap-1.5 snap-start cursor-pointer shrink-0"
+              <button
+                key={shortcut.id}
                 onClick={() => {
-                  if (onSelectSection) {
-                    onSelectSection(story.id);
-                  }
+                  setSelectedOppFilter(shortcut.id as any);
+                  // Clear story category highlight matching
+                  setActiveStoryFilter(null);
                 }}
+                className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 snap-center min-w-[76px] text-center focus:outline-none select-none transition-all"
               >
-                {/* Visual Circle Bubble */}
-                <div className="relative group">
-                  {/* Dynamic Gradient Ring indicator */}
-                  <span className={`absolute inset-0 bg-gradient-to-tr ${story.color} rounded-full p-[2.5px] transition-all duration-300 group-hover:scale-105 ${
-                    isStoryActive ? 'ring-4 ring-yellow-405 shadow-md shadow-cyan-400/20' : 'opacity-90'
-                  }`} />
-                  
-                  {/* Inner Emoji bubble */}
-                  <span className="relative flex items-center justify-center w-12 h-12 bg-white rounded-full border-2 border-[#121B2E] text-xl shadow-inner select-none transition-transform duration-300 group-hover:scale-95 group-active:rotate-6">
-                    {story.emoji}
-                  </span>
-
-                  {/* Sparkle badge */}
-                  <span className="absolute -bottom-0.5 -right-0.5 w-3.5 h-3.5 bg-[#FFD21F] border border-white rounded-full flex items-center justify-center text-[7px]" title="Quick View">
-                    ✨
-                  </span>
+                {/* Circle icon container */}
+                <div 
+                  className={`w-13 h-13 rounded-full flex items-center justify-center text-xl transition-all border-2 ${
+                    isActive 
+                      ? 'border-teal-500 bg-teal-50 text-teal-700 scale-105 shadow-md ring-4 ring-teal-100' 
+                      : 'border-slate-200 bg-white hover:border-slate-300 text-slate-500 shadow-xs'
+                  }`}
+                >
+                  <span>{shortcut.emoji}</span>
                 </div>
-
-                {/* Subtext Label */}
-                <div className="flex flex-col items-center">
-                  <span className={`text-[10px] font-bold text-center tracking-tight leading-none max-w-[76px] truncate ${
-                    isStoryActive ? 'text-cyan-400 font-black underline' : 'text-slate-300'
-                  }`}>
-                    {label}
-                  </span>
-                </div>
-              </div>
+                {/* Short label text below */}
+                <span 
+                  className={`text-[10px] font-extrabold uppercase tracking-wide leading-tight px-1 transition-colors duration-200 ${
+                    isActive 
+                      ? 'text-teal-600 font-black' 
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  {language === 'ar' ? shortcut.labelAR : language === 'ku' ? shortcut.labelKU : shortcut.labelEN}
+                </span>
+              </button>
             );
           })}
         </div>
-      </div>
+      )}
 
 
+
+      {/* Circular Shortcut Chips for Campus Life Tab */}
+      {selectedFeedTab === 'campus_life' && (
+        <div 
+          className="flex gap-4 mb-5 overflow-x-auto pb-3 pt-1.5 scrollbar-none snap-x touch-pan-x justify-start" 
+          id="campus-shortcuts-circles"
+        >
+          {[
+            { id: 'all', emoji: '🏛️', labelEN: 'All', labelAR: 'الكل', labelKU: 'هەموو' },
+            { id: 'post', emoji: '📝', labelEN: 'Posts', labelAR: 'منشورات الطلاب', labelKU: 'پۆستەکان' },
+            { id: 'event', emoji: '📅', labelEN: 'Events', labelAR: 'فعاليات', labelKU: 'چالاکییەکان' },
+            { id: 'club', emoji: '🤝', labelEN: 'Clubs', labelAR: 'النوادي', labelKU: 'یانەکان' },
+            { id: 'question', emoji: '❓', labelEN: 'Questions', labelAR: 'الأسئلة', labelKU: 'پرسیارەکان' },
+            { id: 'study_group', emoji: '📚', labelEN: 'Study Groups', labelAR: 'مجموعات الدراسة', labelKU: 'کۆمەڵەکانی خوێندن' },
+            { id: 'friends', emoji: '👥', labelEN: 'Friends', labelAR: 'الزملاء', labelKU: 'هاوڕێکان' },
+          ].map(shortcut => {
+            const isActive = selectedCampusFilter === shortcut.id;
+            return (
+              <button
+                key={shortcut.id}
+                onClick={() => {
+                  setSelectedCampusFilter(shortcut.id as any);
+                  // Clear story category highlight matching
+                  setActiveStoryFilter(null);
+                }}
+                className="flex flex-col items-center gap-1.5 cursor-pointer shrink-0 snap-center min-w-[76px] text-center focus:outline-none select-none transition-all"
+              >
+                {/* Circle icon container */}
+                <div 
+                  className={`w-13 h-13 rounded-full flex items-center justify-center text-xl transition-all border-2 ${
+                    isActive 
+                      ? 'border-orange-500 bg-orange-50 text-orange-700 scale-105 shadow-md ring-4 ring-orange-100' 
+                      : 'border-slate-200 bg-white hover:border-slate-300 text-slate-500 shadow-xs'
+                  }`}
+                >
+                  <span>{shortcut.emoji}</span>
+                </div>
+                {/* Short label text below */}
+                <span 
+                  className={`text-[10px] font-extrabold uppercase tracking-wide leading-tight px-1 transition-colors duration-200 ${
+                    isActive 
+                      ? 'text-orange-600 font-black' 
+                      : 'text-slate-500 hover:text-slate-800'
+                  }`}
+                >
+                  {language === 'ar' ? shortcut.labelAR : language === 'ku' ? shortcut.labelKU : shortcut.labelEN}
+                </span>
+              </button>
+            );
+          })}
+        </div>
+      )}
 
       {/* Feed Filter Alert & Active Stories filter indicator */}
       {activeStoryFilter && (
-        <div className="mb-4 bg-[#6B25C9]/20 border border-[#6B25C9]/35 text-[#c1a0f9] text-[10px] font-bold p-2.5 rounded-xl flex items-center justify-between gap-1">
+        <div className="mb-4 bg-blue-50 border border-blue-200 text-blue-850 text-[10px] font-bold p-2.5 rounded-xl flex items-center justify-between gap-1">
           <div className="flex items-center gap-1.5 leading-none">
-            <Sparkles className="w-4 h-4 text-cyan-400 animate-pulse shrink-0" />
+            <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
             <span>
               {language === 'ar' 
                 ? `عرض فلترة: ${storyHighlightsData.find(s => s.filterType === activeStoryFilter)?.labelAR || 'تصنيف مخصص'}` 
@@ -693,7 +1295,7 @@ export default function HomeFeed({
           </div>
           <button 
             onClick={() => setActiveStoryFilter(null)}
-            className="text-[10px] font-black hover:text-white transition-colors bg-white/10 px-1.5 py-0.5 rounded cursor-pointer"
+            className="text-[10px] font-black hover:text-slate-900 transition-colors bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded cursor-pointer"
           >
             Clear ✕
           </button>
@@ -743,8 +1345,45 @@ export default function HomeFeed({
                 required
                 rows={3}
                 placeholder={language === 'ar' ? 'اكتب ما تفكر به لمشاركته مع الكلية...' : language === 'ku' ? 'ئەمڕۆ چی لە زانکۆ ڕوودەدات؟...' : 'What is happening on campus today?'}
-                className="w-full text-xs font-semibold text-[#161A33] bg-white border border-[#E6E1F5] rounded-xl p-3.5 focus:bg-[#F3F7FF] focus:outline-none focus:border-[#6B25C9] transition-colors resize-none"
+                className="w-full text-xs font-semibold text-[#161A33] bg-white border border-[#E6E1F5] rounded-xl p-3.5 focus:bg-[#F3F7FF] focus:outline-none focus:border-orange-500 transition-colors resize-none"
               />
+
+              {/* Categorization selector */}
+              <div className="flex flex-col gap-1">
+                <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest px-1">
+                  📌 {language === 'ar' ? 'فئة المنشور' : language === 'ku' ? 'پۆلی بابەت' : 'Post Category'}
+                </label>
+                <select
+                  value={postCategory}
+                  onChange={(e) => setPostCategory(e.target.value)}
+                  className="w-full text-xs font-bold text-slate-800 bg-white border border-[#E6E1F5] rounded-xl px-3.5 py-2.5 focus:bg-[#F3F7FF] focus:outline-none focus:border-orange-500 transition-colors cursor-pointer"
+                >
+                  <option value="campus_life">
+                    {language === 'ar' ? '🌸 حياة الحرم الأكاديمي' : language === 'ku' ? '🌸 ژیانی کەمپەس' : '🌸 Campus Life / Social'}
+                  </option>
+                  <option value="question">
+                    {language === 'ar' ? '💬 سؤال أو استفسار طلابي' : language === 'ku' ? '💬 پرسیاری قوتابی' : '💬 Student Question'}
+                  </option>
+                  <option value="event">
+                    {language === 'ar' ? '📅 فعالية، نشاط، ورشة' : language === 'ku' ? '📅 چالاکی کەمپەس' : '📅 Campus Event / Activity'}
+                  </option>
+                  <option value="club">
+                    {language === 'ar' ? '👥 فريق أو نادي طلابي' : language === 'ku' ? '👥 یانەی قوتابیان' : '👥 Student Club / Group'}
+                  </option>
+                  <option value="job">
+                    {language === 'ar' ? '💼 فرصة عمل أو وظيفة' : language === 'ku' ? '💼 هەلی کار' : '💼 Job Opportunity'}
+                  </option>
+                  <option value="scholarship">
+                    {language === 'ar' ? '🎓 منحة دراسية للطلاب' : language === 'ku' ? '🎓 بورس' : '🎓 Scholarship'}
+                  </option>
+                  <option value="training">
+                    {language === 'ar' ? '🏫 برنامج تدريبي أو تأهيلي' : language === 'ku' ? '🏫 خولی ڕاهێنان' : '🏫 Training / Internship'}
+                  </option>
+                  <option value="admission">
+                    {language === 'ar' ? '📌 معلومات أو روابط القبول' : language === 'ku' ? '📌 وەرگرتن' : '📌 Admission & Entrance'}
+                  </option>
+                </select>
+              </div>
 
               {/* Photo attachment component */}
               <div 
@@ -879,21 +1518,17 @@ export default function HomeFeed({
         {isFeedLoading ? (
           <SkeletonLoader />
         ) : filteredFeedItems.length === 0 ? (
-          <div className="text-center py-12 text-slate-500 bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-6 shadow-sm">
+          <div className="text-center py-10 bg-white border border-[#E6E1F5] rounded-2xl p-6 shadow-xs" id="empty-feed-card">
             <div className="text-3xl mb-2">🔭</div>
-            <h3 className="font-extrabold text-white text-xs">
-              {language === 'ar'
-                ? 'لا توجد منشورات حالياً'
-                : language === 'ku'
-                ? 'ئێستا هیچ بابەتێک نییە'
-                : 'No posts available yet'}
+            <h3 className="font-extrabold text-slate-800 text-xs">
+              {selectedFeedTab === 'opportunities'
+                ? (language === 'ar' ? 'لا توجد فرص متاحة حالياً' : language === 'ku' ? 'هیچ دەرفەتێک نەدۆزراوەتەوە' : 'No opportunities found yet')
+                : (language === 'ar' ? 'لا توجد منشورات بعد' : language === 'ku' ? 'هیچ بابەتێک هێشتا نییە' : 'No posts yet for this category')}
             </h3>
-            <p className="text-[10px] text-slate-400 max-w-xs mt-1.5 mx-auto leading-relaxed">
-              {language === 'ar' 
-                ? 'لا توجد منشورات حالياً. يرجى المحاولة لاحقاً.' 
-                : language === 'ku' 
-                ? 'لە ئێستادا هیچ دەرفەتێکی بڵاوکراوە نییە. تکایە دواتر هەوڵ بدەوە.' 
-                : 'No published opportunities yet. Please check again later.'}
+            <p className="text-[10px] text-slate-500 max-w-xs mt-1.5 mx-auto leading-relaxed font-bold">
+              {selectedFeedTab === 'opportunities'
+                ? (language === 'ar' ? 'تحقق مرة أخرى قريباً أو قم بتغيير فلتر الجامعة.' : language === 'ku' ? 'بەم زووانە دووبارە پشکنین بکەرەوە یان فلتەری زانکۆکەت بگۆڕە.' : 'Check again soon or change your university filter.')
+                : (language === 'ar' ? 'كن أول من يشارك شيئاً من جامعتك!' : language === 'ku' ? 'یەکەم کەس بە بۆ هاوبەشکردنی شتێک لە زانکۆکەتەوە!' : 'Be the first to share something from your university.')}
             </p>
           </div>
         ) : (
@@ -906,6 +1541,8 @@ export default function HomeFeed({
               onSave={onSave}
               onVote={onVote}
               onApply={onApply}
+              onRsvp={onRsvp}
+              onJoinGroup={onJoinGroup}
               onAddComment={onAddComment}
               onEditFeedItem={onEditFeedItem}
               onDeleteFeedItem={onDeleteFeedItem}
@@ -1151,6 +1788,3 @@ export default function HomeFeed({
     </div>
   );
 }
-
-
-

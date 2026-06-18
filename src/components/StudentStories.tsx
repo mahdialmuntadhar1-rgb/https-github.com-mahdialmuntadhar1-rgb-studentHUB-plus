@@ -1,7 +1,8 @@
-﻿import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Language } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ChevronLeft, ChevronRight, Send, Heart, Sparkles, Trophy, MessageCircle } from 'lucide-react';
+
 interface StorySlide {
   textEN: string;
   textAR: string;
@@ -1179,6 +1180,3 @@ export default function StudentStories({
     </div>
   );
 }
-
-
-

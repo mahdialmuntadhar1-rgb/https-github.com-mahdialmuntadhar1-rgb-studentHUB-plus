@@ -1,4 +1,4 @@
-﻿export interface Theme {
+export interface Theme {
   id: string;
   name: string;
   primary: string;
@@ -161,4 +161,3 @@ export const brandingThemes: Theme[] = [
     shadow: '0 4px 15px rgba(22, 163, 74, 0.08)'
   }
 ];
-

@@ -1,4 +1,3 @@
-﻿import { safeText, safeOpportunityTitle, safeUniversityName, safeDescription } from '../utils/safeText';
 import React, { useState } from 'react';
 import { FeedItem, UserProfile, Language } from '../types';
 import { getTranslation } from '../data/translations';
@@ -6,6 +5,7 @@ import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
 import { Award, Bookmark, ArrowRightLeft, Briefcase, GraduationCap, Calendar, Users, Star, Grid } from 'lucide-react';
 import { motion } from 'motion/react';
 import FeedCard from './FeedCard';
+
 interface ProfileViewProps {
   user: UserProfile;
   feedItems: FeedItem[];
@@ -14,7 +14,8 @@ interface ProfileViewProps {
   onSave: (id: string) => void;
   onVote: (itemId: string, optionId: string) => void;
   onApply: (id: string) => void;
-
+  onRsvp: (id: string) => void;
+  onJoinGroup: (id: string) => void;
   onAddComment: (id: string, commentText: string) => void;
   onToggleUserRole: () => void;
   isLoggedIn: boolean;
@@ -38,7 +39,8 @@ export default function ProfileView({
   onSave,
   onVote,
   onApply,
-
+  onRsvp,
+  onJoinGroup,
   onAddComment,
   onToggleUserRole,
   isLoggedIn,
@@ -124,7 +126,7 @@ export default function ProfileView({
           <div className="relative">
             <img 
               src={user.avatar} 
-              alt={safeText(user.name, 'University Opportunity')} 
+              alt={user.name} 
               className="w-20 h-20 rounded-2xl object-cover border-4 border-[#121B2E] shadow-xl"
               referrerPolicy="no-referrer"
             />
@@ -134,7 +136,7 @@ export default function ProfileView({
           </div>
 
           <h2 className="text-base font-black text-white mt-3 flex items-center gap-1.5 leading-none">
-            {safeText(user.name, 'University Opportunity')}
+            {user.name}
             <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
           </h2>
 
@@ -151,8 +153,25 @@ export default function ProfileView({
             </span>
           </div>
 
-          {/* Interactive Logout Options (role toggle and admin hidden for MVP) */}
+          {/* Interactive Role Toggle & Logout Options */}
           <div className="flex flex-wrap items-center justify-center gap-2 mt-3.5" id="profile-actions-row">
+            {onNavigateAdmin && (
+              <button
+                onClick={onNavigateAdmin}
+                className="text-[9px] font-black text-amber-400 bg-amber-400/10 hover:bg-amber-400/20 border border-amber-400/20 rounded-xl px-3 py-1.5 cursor-pointer transition-all flex items-center gap-1.5"
+                id="navigateToAdminLink"
+              >
+                <span>🕵️‍♀️</span>
+                <span>{language === 'ar' ? 'بوابة التشغيل والأتمتة' : language === 'ku' ? 'سیستەمی کۆنترۆڵ' : 'Scraper Console'}</span>
+              </button>
+            )}
+            <button
+              onClick={onToggleUserRole}
+              className="text-[9px] font-black text-cyan-400 bg-cyan-400/10 hover:bg-cyan-400/20 border border-cyan-400/20 rounded-xl px-3 py-1.5 cursor-pointer transition-all flex items-center gap-1"
+            >
+              <ArrowRightLeft className="w-3 h-3 text-cyan-400" />
+              <span>{getTranslation('switchRoleBtn', language)}</span>
+            </button>
             <button
               onClick={onLogout}
               className="text-[9px] font-black text-red-400 bg-red-400/10 hover:bg-red-400/20 border border-red-500/10 rounded-xl px-3 py-1.5 cursor-pointer transition-colors flex items-center gap-1"
@@ -199,8 +218,63 @@ export default function ProfileView({
 
       </div>
 
-      {/* Social Messages & Connection Requests Actions - Hidden for MVP */}
-      {/* Chat and social features disabled for public MVP */}
+      {/* Social Messages & Connection Requests Actions */}
+      <div className="bg-[#121B2E] border border-[#1F2E4D] rounded-3xl p-4 flex flex-col gap-3 mb-5" id="profile-social-shortcuts-container">
+        <h3 className="text-[11px] font-black text-slate-200 tracking-wider uppercase flex items-center gap-1.5 leading-none">
+          <span>💬</span>
+          <span>
+            {language === 'ar' ? 'الرسائل والطلبات' : language === 'ku' ? 'نامەکان و داواکارییەکان' : 'Messages & Requests'}
+          </span>
+        </h3>
+        
+        <div className="grid grid-cols-2 gap-3" id="profile-social-shortcuts-grid">
+          {/* Messages Entry Button */}
+          <button
+            onClick={() => onNavigateToSocialTab?.('threads')}
+            className="bg-[#16223F] hover:bg-[#1A284B] border border-[#1F2E4D] hover:border-cyan-500/30 p-2.5 h-16 rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer relative group text-center"
+            id="profile-shortcut-messages"
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="text-base text-cyan-400 group-hover:scale-110 transition-transform">💬</span>
+              <span className="text-xs font-extrabold text-white">
+                {language === 'ar' ? 'الرسائل' : language === 'ku' ? 'نامەکان' : 'Messages'}
+              </span>
+            </div>
+            <span className="text-[8px] md:text-[9px] text-slate-400 mt-1 font-semibold leading-none">
+              {language === 'ar' ? 'الدردشات الخاصة' : language === 'ku' ? 'نامە فەرمییەکان' : 'Direct student chats'}
+            </span>
+            
+            {incomingMessageRequestsCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-cyan-500 text-slate-900 text-[10px] font-black h-5 px-1.5 rounded-full flex items-center justify-center min-w-5 shadow-md border border-[#121B2E]" id="message-badge-count">
+                {incomingMessageRequestsCount}
+              </span>
+            )}
+          </button>
+
+          {/* Requests Entry Button */}
+          <button
+            onClick={() => onNavigateToSocialTab?.('requests')}
+            className="bg-[#16223F] hover:bg-[#1A284B] border border-[#1F2E4D] hover:border-indigo-500/30 p-2.5 h-16 rounded-2xl flex flex-col items-center justify-center transition-all cursor-pointer relative group text-center"
+            id="profile-shortcut-requests"
+          >
+            <div className="flex items-center gap-1.5">
+              <span className="text-base text-indigo-400 group-hover:scale-110 transition-transform">🔔</span>
+              <span className="text-xs font-extrabold text-white">
+                {language === 'ar' ? 'الطلبات' : language === 'ku' ? 'داواکارییەکان' : 'Requests'}
+              </span>
+            </div>
+            <span className="text-[8px] md:text-[9px] text-slate-400 mt-1 font-semibold leading-none">
+              {language === 'ar' ? 'طلبات الصداقة والمراسلة' : language === 'ku' ? 'داواکاری هاوڕێیەتی' : 'Academic connects'}
+            </span>
+            
+            {incomingFriendRequestsCount > 0 && (
+              <span className="absolute -top-1.5 -right-1.5 bg-[#D9272E] text-white text-[10px] font-black h-5 px-1.5 rounded-full flex items-center justify-center min-w-5 shadow-md border border-[#121B2E]" id="requests-badge-count">
+                {incomingFriendRequestsCount}
+              </span>
+            )}
+          </button>
+        </div>
+      </div>
 
       {/* Selector Tabs: Bookmarked, Applied activities */}
       <div className="flex border-b border-[#1F2E4D] mb-4 mt-1" id="profile-saved-tabs">
@@ -248,7 +322,8 @@ export default function ProfileView({
                 onSave={onSave}
                 onVote={onVote}
                 onApply={onApply}
-
+                onRsvp={onRsvp}
+                onJoinGroup={onJoinGroup}
                 onAddComment={onAddComment}
                 onEditFeedItem={onEditFeedItem}
                 onDeleteFeedItem={onDeleteFeedItem}
@@ -274,7 +349,8 @@ export default function ProfileView({
                 onSave={onSave}
                 onVote={onVote}
                 onApply={onApply}
-
+                onRsvp={onRsvp}
+                onJoinGroup={onJoinGroup}
                 onAddComment={onAddComment}
                 onEditFeedItem={onEditFeedItem}
                 onDeleteFeedItem={onDeleteFeedItem}
@@ -289,7 +365,3 @@ export default function ProfileView({
     </div>
   );
 }
-
-
-
-

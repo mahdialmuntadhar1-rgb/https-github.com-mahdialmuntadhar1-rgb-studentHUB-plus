@@ -1,4 +1,3 @@
-﻿import { safeText, safeOpportunityTitle, safeUniversityName, safeDescription } from '../utils/safeText';
 import React, { useState, useEffect } from 'react';
 import { Language, FeedItem } from '../types';
 import { opportunityAutomation } from '../lib/api';
@@ -28,6 +27,7 @@ import {
   Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+
 interface AdminAutomationProps {
   language: Language;
   onBack: () => void;
@@ -531,7 +531,7 @@ export default function AdminAutomation({
                     type="text"
                     required
                     placeholder="Source Name (e.g. Asiacell Careers)"
-                    value={safeText(newSource.name, 'University Opportunity')}
+                    value={newSource.name}
                     onChange={e => setNewSource({...newSource, name: e.target.value})}
                     className="text-[10px] border border-[#E6E1F5] rounded-lg p-2 font-bold"
                   />
@@ -580,7 +580,7 @@ export default function AdminAutomation({
                 <div key={src.id} className="bg-white border-2 border-[#161A33] rounded-2xl p-4.5 shadow-[2px_2px_0px_0px_#161A33] flex justify-between items-center">
                   <div className="text-left">
                     <div className="flex items-center gap-2">
-                      <h4 className="text-xs font-black">{safeText(src.name, 'University Opportunity')}</h4>
+                      <h4 className="text-xs font-black">{src.name}</h4>
                       <span className="text-[8px] bg-indigo-100 text-[#6B25C9] font-black uppercase px-2 py-0.5 rounded-md">{src.type}</span>
                     </div>
                     <span className="text-[9px] font-mono text-slate-500 break-all">{src.url}</span>
@@ -1084,12 +1084,12 @@ export default function AdminAutomation({
                     <div className="flex items-center gap-3">
                       <img 
                         src={story.avatar} 
-                        alt={safeText(story.name, 'University Opportunity')} 
+                        alt={story.name} 
                         className="w-10 h-10 rounded-xl object-cover border border-[#161A33]/20" 
                         referrerPolicy="no-referrer"
                       />
                       <div>
-                        <h4 className="text-[11px] font-black text-[#161A33]">{safeText(story.name, 'University Opportunity')}</h4>
+                        <h4 className="text-[11px] font-black text-[#161A33]">{story.name}</h4>
                         <p className="text-[9px] text-slate-500 font-extrabold line-clamp-1 max-w-[190px]">{story.text}</p>
                       </div>
                     </div>
@@ -1367,6 +1367,3 @@ export default function AdminAutomation({
     </div>
   );
 }
-
-
-

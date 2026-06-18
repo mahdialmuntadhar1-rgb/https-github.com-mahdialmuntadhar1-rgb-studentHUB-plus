@@ -1,0 +1,261 @@
+{
+  "sources": [
+    {
+      "id": "asiacell-careers",
+      "name": "Asiacell Careers Office",
+      "url": "https://www.asiacell.com/en/about-us/careers",
+      "type": "jobs",
+      "enabled": true,
+      "last_checked": "2026-06-10T02:00:00Z",
+      "error_status": null
+    },
+    {
+      "id": "un-jobs-iraq",
+      "name": "United Nations Iraq Portal",
+      "url": "https://iraq.un.org/en/jobs",
+      "type": "jobs",
+      "enabled": true,
+      "last_checked": "2026-06-10T01:30:00Z",
+      "error_status": null
+    },
+    {
+      "id": "daad-iraq",
+      "name": "DAAD German Scholarships Iraq",
+      "url": "https://www.daad-iraq.org/en/",
+      "type": "scholarships",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "mhe-kurdish",
+      "name": "MHESR Kurdistan Scholarships",
+      "url": "https://mhe.gov.krd/",
+      "type": "scholarships",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "five-one-labs",
+      "name": "Five One Labs Incubator & Training",
+      "url": "https://fiveonelabs.org/",
+      "type": "trainings",
+      "enabled": true,
+      "last_checked": "2026-06-09T18:00:00Z",
+      "error_status": null
+    },
+    {
+      "id": "mohesr-iraq-scholarships",
+      "name": "Iraqi MoHESR Scholarships",
+      "url": "https://mohesr.gov.iq/ar/category/scholarships/",
+      "type": "scholarships",
+      "category_scope": "scholarships",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "iraq-internships-hub",
+      "name": "Iraq Internships & Cooperational Training Hub",
+      "url": "https://www.iraqinternships.com/listings",
+      "type": "internships",
+      "category_scope": "internships",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "reiraq-tech-academy",
+      "name": "ReIraq Tech Training Academy",
+      "url": "https://www.reiraqtech.org/trainings",
+      "type": "trainings",
+      "category_scope": "trainings",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "iraq-tech-calendar",
+      "name": "Iraq Tech & Startup Ecosystem Calendar",
+      "url": "https://iraqstartupcalendar.org/events",
+      "type": "events",
+      "category_scope": "events",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "ircs-volunteering",
+      "name": "Iraqi Red Crescent Society Volunteering",
+      "url": "https://ircs.org.iq/volunteering",
+      "type": "volunteering",
+      "category_scope": "volunteering",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "ruwwad-iraq-fellowships",
+      "name": "Ruwwad Al-Iraq Fellowship Program",
+      "url": "https://ruwwad-iraq.net/fellowship",
+      "type": "fellowships",
+      "category_scope": "fellowships",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "iraqicpc-competition",
+      "name": "Iraq National Collegiate Programming Contest",
+      "url": "https://iraqicpc.org/competition",
+      "type": "competitions",
+      "category_scope": "competitions",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "uobaghdad-student-bulletin",
+      "name": "University of Baghdad Student Affairs Bulletin",
+      "url": "https://uobaghdad.edu.iq/news/student-announcements",
+      "type": "announcements",
+      "category_scope": "announcements",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "dirasat-gate-registration",
+      "name": "Central Admissions Registration Portal Iraq",
+      "url": "https://www.dirasat-gate.org/registration",
+      "type": "registration",
+      "category_scope": "registration",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "moedu-exam-timetables",
+      "name": "Ministry of Education Exam Timetables",
+      "url": "https://moedu.gov.iq/exams",
+      "type": "exams",
+      "category_scope": "exams",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    },
+    {
+      "id": "iraqiyouth-hub-listings",
+      "name": "Iraqi Youth Hub Mixed Announcements",
+      "url": "https://iraqiyouthhub.org/listings",
+      "type": "mixed",
+      "category_scope": "mixed",
+      "enabled": true,
+      "last_checked": null,
+      "error_status": null
+    }
+  ],
+  "opportunities": [
+    {
+      "id": "scraped-pending-1",
+      "titleEN": "Zain Youth Digital Marketing Internship 2026",
+      "titleAR": "فرصة تدريب التسويق الرقمي للشباب في شركة زين العراق ٢٠٢٦",
+      "titleKU": "مەشقی هاوینەی بازاڕکاری دیجیتاڵ لە کۆمپانیای زەین عێراق ٢٠٢٦",
+      "contentEN": "Zain Iraq is accepting applications for its creative summer digital marketing track. Get certified on modern programmatic ad networks, SEO frameworks, and content management inside Zain's digital media lab.",
+      "contentAR": "تعلن شركة زين العراق عن بدء تشغيل مسار تدريب صيفي مرموق في قسم الميديا والتسويق الرقمي. يشمل البرنامج التدرب على شبكات الإعلانات، تحسين محركات البحث، وإدارة الهوية الرقمية.",
+      "contentKU": "کۆمپانیای زەین عێراق دەرگای پێشکەشکردنی داواکاری دەکاتەوە بۆ مەشقی بازاڕکاری لە سەنتەری داهێنانی نوێ.",
+      "organization": "Zain Telecom Iraq",
+      "category": "internship",
+      "country": "Iraq",
+      "governorateId": "baghdad",
+      "deadline": "2026-07-15",
+      "application_link": "https://www.zain.com/en/careers",
+      "original_source_url": "https://www.zain.com/en/careers/digital-marketing-iraq",
+      "published_date": "2026-06-09",
+      "imageUrl": "https://images.unsplash.com/photo-1542744094-3a31f103e35f?auto=format&fit=crop&q=80&w=600",
+      "status": "pending",
+      "workplaceType": "On-site",
+      "whoCanApply": "Iraqi undergraduates in Business Administration, IT, software or related fields graduating in 2026-2027.",
+      "salary": "400,000 IQD Food/Transit Stipend",
+      "location": "Baghdad - Al Mansour HQ",
+      "savedCount": 0,
+      "universityAppliedCount": 0,
+      "companyVerified": true
+    },
+    {
+      "id": "scraped-pending-2",
+      "titleEN": "Chevening Scholarship Fully-Funded Masters 🇬🇧🎓",
+      "titleAR": "منحة تشيفنينغ البريطانية للماجستير الممولة بالكامل للطلبة العراقيين 🇬🇧🎓",
+      "titleKU": "بۆرسی خوێندنی ماستەری بەریتانی چیڤنینگ بە فەرمی بۆ قوتابیانی عێراقی 🇬🇧🎓",
+      "contentEN": "The UK Government is officially opening the Chevening scholarship scheme for Iraqi postgraduates. Fully funded 1-year master program including 100% tuition, monthly allowance, visa expenses, and standard return flights.",
+      "contentAR": "تعلن الحكومة البريطانية رسمياً عن فتح باب الققديم لمنحة تشيفنينغ (Chevening) المرموقة للماجستير ممولة بالكامل للطلاب العراقيين المتميزين للدراسة في جامعات بريطانيا.",
+      "contentKU": "حکومەتی بەریتانیا بە فەرمی سکۆلەرشیپی چیڤنینگ بۆ ماستەر لە بەریتانیا ڕادەگەیەنێت بەبێ بەرامبەر و بە تەمویلی بێ مەرج.",
+      "organization": "UK Foreign Commonwealth Office",
+      "category": "scholarship",
+      "country": "Iraq",
+      "governorateId": "all",
+      "deadline": "2026-08-10",
+      "application_link": "https://www.chevening.org/apply/",
+      "original_source_url": "https://www.chevening.org/iraq/",
+      "published_date": "2026-06-08",
+      "imageUrl": "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=600",
+      "status": "pending",
+      "workplaceType": "Remote",
+      "whoCanApply": "Iraqi citizens holding a Bachelor degree with average higher than 70% and clear ambition to lead local progression.",
+      "salary": "Fully Funded (Fees + £1,200/month Allowance)",
+      "location": "United Kingdom Universities",
+      "savedCount": 0,
+      "universityAppliedCount": 0,
+      "companyVerified": true
+    },
+    {
+      "id": "scraped-pending-3",
+      "titleEN": "Iraq Energy Institute Young Scholars Program ⚡🇮🇶",
+      "titleAR": "برنامج معهد العراق للطاقة للباحثين الشباب والتأهيل البحثي ⚡🇮🇶",
+      "titleKU": "بەرنامەی پەیمانگای عێراق بۆ وزە بۆ توێژەرانی گەنج ⚡🇮🇶",
+      "contentEN": "Iraq Energy Institute IEI announces its 2026 Fellowship Program for young engineers. Participate in high-impact climate policy modeling, green hydrogen integrations, and local grid optimization workshops.",
+      "contentAR": "يعلن معهد العراق للطاقة (IEI) عن بدء استقبال الترشيحات لبرنامج زمالة الباحثين الشباب للعمل على نمذجة سياسات المناخ وإصلاح البنى التحتية لقطاع الطاقة العراقي.",
+      "contentKU": "پەیمانگای نەوت و وزەی عێراق زەمالەیەکی نوێ بۆ گەنجان ڕادەگەیەنێت بۆ گرنگیدان بە وزە و بڕوانامەی پێشکەوتوو.",
+      "organization": "Iraq Energy Institute (IEI)",
+      "category": "training",
+      "country": "Iraq",
+      "governorateId": "all",
+      "deadline": "2026-07-28",
+      "application_link": "https://iraqenergy.org/fellowship",
+      "original_source_url": "https://iraqenergy.org/careers/young-scholar-info",
+      "published_date": "2026-06-07",
+      "imageUrl": "https://images.unsplash.com/photo-1581091226825-a6a2a5aee158?auto=format&fit=crop&q=80&w=600",
+      "status": "pending",
+      "workplaceType": "Hybrid",
+      "whoCanApply": "BSc / MSc degrees in Renewable Energy, Engineering, Economics, or Environmental Sciences inside Iraq.",
+      "salary": "Research Stipend Awarded on Publication",
+      "location": "Baghdad & Erbil offices",
+      "savedCount": 0,
+      "universityAppliedCount": 0,
+      "companyVerified": true
+    }
+  ],
+  "logs": [
+    {
+      "id": "log-initial-seed",
+      "timestamp": "2026-06-10T02:00:00Z",
+      "source_id": "asiacell-careers",
+      "source_name": "Asiacell Careers Office",
+      "items_found": 12,
+      "items_new": 1,
+      "items_duplicate": 11,
+      "errors": null
+    },
+    {
+      "id": "log-un-feed",
+      "timestamp": "2026-06-10T01:30:00Z",
+      "source_id": "un-jobs-iraq",
+      "source_name": "United Nations Iraq Portal",
+      "items_found": 8,
+      "items_new": 2,
+      "items_duplicate": 6,
+      "errors": null
+    }
+  ]
+}

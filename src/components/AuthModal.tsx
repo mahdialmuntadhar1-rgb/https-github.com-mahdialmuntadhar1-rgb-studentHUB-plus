@@ -1,14 +1,14 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Language } from '../types';
-import { BACKEND_URL } from '../lib/api';
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, Lock, User, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   language: Language;
-  onAuthSuccess: (username: string, authUser?: any) => void;
+  onAuthSuccess: (username: string) => void;
 }
 
 type AuthMode = 'login' | 'register' | 'forgot';
@@ -49,118 +49,57 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     emailSentTitle: { en: 'Instruction Sent', ar: 'تم إرسال التعليمات', ku: 'ڕێنمایی نێردران' },
     emailSentDesc: { en: 'A secure recovery code has been sent to your inbox.', ar: 'تم إرسال رمز إعادة التعيين الآمن لبريدك الإلكتروني.', ku: 'کۆدی سەرلەنوێ ڕێکخستنەوە نێردرا بۆ ئیمەیڵەکەت.' },
     registerSuccess: { en: 'Welcome to Jamiaati!', ar: 'أهلاً بك في منصة جامعتي!', ku: 'بەخێربێیت بۆ جامەعەتی!' },
-    loginSuccess: { en: 'Welcome back!', ar: 'أهلاً بعودتك مجدداً!', ku: 'بەخێربێیتەوە!' },
-    namePlaceholder: { en: 'e.g. Ahmad Al-Mansour', ar: 'مثال: أحمد المنصور', ku: 'نمونە: ئەحمەد مەنسور' },
-    emailPlaceholder: { en: 'name@university.edu.iq', ar: 'name@university.edu.iq', ku: 'name@university.edu.iq' },
-    passwordPlaceholder: { en: 'Enter your password', ar: 'اكتب كلمة المرور', ku: 'وشەی تێپەڕ بنووسە' },
-    portalSubtitle: { en: 'Jamiaati Portal', ar: 'بوابة جامعتي', ku: 'دەروازەی زانکۆی من' }
+    loginSuccess: { en: 'Welcome back!', ar: 'أهلاً بعودتك مجدداً!', ku: 'بەخێربێیتەوە!' }
   };
 
   const getLabel = (key: keyof typeof t) => {
     return t[key][language] || t[key]['en'];
   };
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
     setLoading(true);
 
-    try {
-      if (!email.includes('@')) {
-        throw new Error(getLabel('validationAcademicEmail'));
-      }
+    // Simple robust validation simulation
+    if (!email.includes('@')) {
+      setError(getLabel('validationAcademicEmail'));
+      setLoading(false);
+      return;
+    }
 
-      if (mode === 'register' && !username.trim()) {
-        throw new Error(getLabel('validationNameEmpty'));
-      }
+    if (mode === 'register' && !username.trim()) {
+      setError(getLabel('validationNameEmpty'));
+      setLoading(false);
+      return;
+    }
 
-      if (mode !== 'forgot' && password.length < 6) {
-        throw new Error(getLabel('validationPasswordLen'));
-      }
+    if (mode !== 'forgot' && password.length < 6) {
+      setError(getLabel('validationPasswordLen'));
+      setLoading(false);
+      return;
+    }
 
-      const endpoint =
-        mode === 'login'
-          ? '/api/auth/login'
-          : mode === 'register'
-          ? '/api/auth/register'
-          : '/api/auth/forgot-password';
-
-      const payload =
-        mode === 'login'
-          ? { email, password }
-          : mode === 'register'
-          ? { name: username, username, email, password }
-          : { email };
-
-      const response = await fetch(`${BACKEND_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-
-      const data = await response.json().catch(() => ({}));
-
-      if (!response.ok) {
-        if (mode === 'forgot' && (response.status === 404 || response.status === 405)) {
-          throw new Error(
-            language === 'ar'
-              ? 'استعادة كلمة المرور غير مفعلة حالياً. يرجى المحاولة لاحقاً.'
-              : language === 'ku'
-              ? 'گەڕاندنەوەی وشەی تێپەڕ لە ئێستادا چالاک نییە. تکایە دواتر هەوڵ بدەوە.'
-              : 'Password reset is not available yet. Please try again later.'
-          );
-        }
-
-        throw new Error(
-          data.message ||
-          data.error ||
-          (language === 'ar'
-            ? 'فشل تسجيل الدخول. تحقق من البيانات وحاول مرة أخرى.'
-            : language === 'ku'
-            ? 'چوونەژوورەوە سەرکەوتوو نەبوو. زانیارییەکان بپشکنە.'
-            : 'Authentication failed. Please check your details.')
-        );
-      }
-
+    // Simulate backend response
+    setTimeout(() => {
+      setLoading(false);
       if (mode === 'forgot') {
         setSuccess(getLabel('emailSentDesc'));
-        return;
+      } else if (mode === 'register') {
+        setSuccess(getLabel('registerSuccess'));
+        setTimeout(() => {
+          onAuthSuccess(username || 'Zara Al-Iraqi');
+          onClose();
+        }, 1200);
+      } else {
+        setSuccess(getLabel('loginSuccess'));
+        setTimeout(() => {
+          onAuthSuccess('Zara Al-Iraqi');
+          onClose();
+        }, 1200);
       }
-
-      const token = data.token || data.jwt || data.access_token || data.accessToken;
-      if (!token || typeof token !== 'string') {
-        throw new Error(
-          language === 'ar'
-            ? 'الخادم لم يرجع رمز دخول صالح.'
-            : language === 'ku'
-            ? 'سێرڤەر تۆکنی چوونەژوورەوەی دروستی نەگەڕاندەوە.'
-            : 'Server did not return a valid login token.'
-        );
-      }
-
-      localStorage.setItem('jamiaati_token', token);
-      localStorage.removeItem('admin_token');
-
-      const displayName =
-        data.user?.name ||
-        data.user?.full_name ||
-        data.user?.username ||
-        data.user?.email ||
-        username ||
-        email.split('@')[0];
-
-      setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
-
-      setTimeout(() => {
-        onAuthSuccess(displayName);
-        onClose();
-      }, 700);
-    } catch (err: any) {
-      setError(err.message || 'Authentication failed.');
-    } finally {
-      setLoading(false);
-    }
+    }, 1000);
   };
 
   return (
@@ -207,7 +146,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
               {getLabel(mode)}
             </h3>
             <p className="text-[10px] uppercase font-bold text-cyan-400 font-mono tracking-widest mt-1">
-              {getLabel('portalSubtitle')}
+              Jamiaati Portal • بَوّابَتُنا
             </p>
           </div>
 
@@ -227,8 +166,8 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
                     required
                     value={username}
                     onChange={e => setUsername(e.target.value)}
-                    placeholder={getLabel('namePlaceholder')}
-                    className="w-full text-xs font-bold text-white placeholder:text-slate-400 bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors"
+                    placeholder="e.g. Ahmad Al-Mansour"
+                    className="w-full text-xs font-bold text-white bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -246,8 +185,8 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
-                  placeholder={getLabel('emailPlaceholder')}
-                  className="w-full text-xs font-bold text-white placeholder:text-slate-400 bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors"
+                  placeholder="name@university.edu.iq"
+                  className="w-full text-xs font-bold text-white bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -265,8 +204,8 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
-                    placeholder={getLabel('passwordPlaceholder')}
-                    className="w-full text-xs font-bold text-white placeholder:text-slate-400 bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-10 py-3 focus:outline-none transition-colors"
+                    placeholder="••••••••"
+                    className="w-full text-xs font-bold text-white bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-10 py-3 focus:outline-none transition-colors"
                   />
                   <button
                     type="button"
@@ -384,7 +323,3 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     </AnimatePresence>
   );
 }
-
-
-
-

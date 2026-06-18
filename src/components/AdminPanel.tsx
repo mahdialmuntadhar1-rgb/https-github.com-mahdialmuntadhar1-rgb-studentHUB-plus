@@ -1,4 +1,3 @@
-﻿import { safeText, safeOpportunityTitle, safeUniversityName, safeDescription } from '../utils/safeText';
 import React, { useState, useEffect } from 'react';
 import { Language } from '../types';
 import { 
@@ -767,7 +766,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
                   <label className="text-[8px] font-black text-slate-400 uppercase">Source Display Name</label>
                   <input 
                     type="text"
-                    value={safeText(newSource.name, 'University Opportunity')}
+                    value={newSource.name}
                     onChange={e => setNewSource({ ...newSource, name: e.target.value })}
                     placeholder="e.g., Asiacell Careers Team"
                     className="bg-[#0B1020] border border-[#1F2E4D] rounded-xl p-2.5 text-xs text-white focus:outline-none"
@@ -832,7 +831,7 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
                 >
                   <div className="flex items-center justify-between gap-2.5">
                     <div className="flex flex-col gap-0.5 max-w-[220px]">
-                      <h4 className="text-xs font-black text-white uppercase tracking-tight">{safeText(s.name, 'University Opportunity')}</h4>
+                      <h4 className="text-xs font-black text-white uppercase tracking-tight">{s.name}</h4>
                       <a 
                         href={s.url} 
                         target="_blank" 
@@ -968,6 +967,3 @@ export default function AdminPanel({ language, onBack, showToast }: AdminPanelPr
     </div>
   );
 }
-
-
-

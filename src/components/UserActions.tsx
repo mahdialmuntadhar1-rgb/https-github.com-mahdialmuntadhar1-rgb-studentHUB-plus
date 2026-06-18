@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Language } from '../types';
 import { socialApi } from '../lib/api';
 import { UserPlus, MessageSquare, Check, Send, X, AlertCircle } from 'lucide-react';
@@ -282,4 +282,3 @@ export default function UserActions({
     </div>
   );
 }
-
