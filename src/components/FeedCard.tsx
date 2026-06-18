@@ -87,6 +87,7 @@ export default function FeedCard({
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
   const [copied, setCopied] = useState(false);
+  const [showOpportunityDetails, setShowOpportunityDetails] = useState(false);
 
   // Helper for role translation
   const getRoleLabel = (role: string) => {
@@ -524,10 +525,10 @@ export default function FeedCard({
 
     const sourceUnavailableText =
       language === 'ar'
-        ? 'المصدر غير متوفر'
+        ? 'عرض التفاصيل'
         : language === 'ku'
-          ? 'سەرچاوە بەردەست نییە'
-          : 'Source unavailable';
+          ? 'وردەکارییەکان ببینە'
+          : 'View Details';
 
     const hasValidOpportunityUrl = /^https?:\/\//i.test(opportunityUrl);
 
@@ -605,7 +606,10 @@ export default function FeedCard({
     const visualImageUrl = hasValidImage ? rawImage : fallbackOpportunityImage;
 
     const openOpportunity = () => {
-      if (!hasValidOpportunityUrl) return;
+      if (!hasValidOpportunityUrl) {
+        setShowOpportunityDetails(true);
+        return;
+      }
 
       try {
         const opened = window.open(opportunityUrl, '_blank', 'noopener,noreferrer');
@@ -745,16 +749,78 @@ export default function FeedCard({
           <button
             type="button"
             onClick={openOpportunity}
-            disabled={!hasValidOpportunityUrl}
+            
             className={`mt-3 inline-flex items-center justify-center rounded-full px-4 py-2 text-[12px] font-black shadow-sm transition ${
               hasValidOpportunityUrl
                 ? 'bg-orange-500 text-white hover:bg-orange-600 active:scale-95'
-                : 'bg-slate-200 text-slate-500 cursor-not-allowed'
+                : 'bg-blue-600 text-white hover:bg-blue-700 active:scale-95'
             }`}
           >
             {hasValidOpportunityUrl ? applyButtonText : sourceUnavailableText}
           </button>
         </div>
+
+        {/* JAMIAATI_INTERNAL_OPPORTUNITY_DETAILS_PANEL */}
+        {showOpportunityDetails && (
+          <div
+            className="fixed inset-0 z-[9999] overflow-y-auto bg-slate-950/75 p-4 backdrop-blur-sm"
+            onClick={() => setShowOpportunityDetails(false)}
+          >
+            <div
+              className="mx-auto mt-8 max-w-2xl rounded-3xl bg-white p-5 text-left shadow-2xl"
+              onClick={(event) => event.stopPropagation()}
+            >
+              <div className="mb-4 flex items-start justify-between gap-3 border-b border-slate-100 pb-3">
+                <div>
+                  <div className="text-[10px] font-black uppercase tracking-widest text-orange-600">
+                    {opportunityKind} Details
+                  </div>
+                  <h2 className="mt-1 text-xl font-black leading-tight text-slate-950">
+                    {opportunityTitle}
+                  </h2>
+                  <p className="mt-1 text-sm font-bold text-slate-500">
+                    {providerName}
+                  </p>
+                </div>
+
+                <button
+                  type="button"
+                  onClick={() => setShowOpportunityDetails(false)}
+                  className="rounded-full bg-slate-100 px-3 py-1 text-xs font-black text-slate-700 hover:bg-slate-200"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="space-y-3 text-sm text-slate-700">
+                <p className="leading-relaxed">
+                  {opportunityCaption}
+                </p>
+
+                <div className="grid gap-2 rounded-2xl bg-slate-50 p-3 text-xs font-bold">
+                  <div><span className="text-slate-400">Provider:</span> {providerName}</div>
+                  <div><span className="text-slate-400">Category:</span> {opportunityKind}</div>
+                  {opportunityLocation && (
+                    <div><span className="text-slate-400">Location:</span> {opportunityLocation}</div>
+                  )}
+                  {item.deadline && (
+                    <div><span className="text-slate-400">Deadline:</span> {item.deadline}</div>
+                  )}
+                  {(item as any).whoCanApply && (
+                    <div><span className="text-slate-400">Who can apply:</span> {(item as any).whoCanApply}</div>
+                  )}
+                  {(item as any).salary && (
+                    <div><span className="text-slate-400">Salary/Benefit:</span> {(item as any).salary}</div>
+                  )}
+                </div>
+
+                <div className="rounded-2xl border border-amber-200 bg-amber-50 p-3 text-xs font-bold text-amber-900">
+                  The original external job-detail URL was not saved in the database for this older job. This page shows the internal Jamiaati details available for the opportunity.
+                </div>
+              </div>
+            </div>
+          </div>
+        )}
 
         <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between">
           <div className="flex items-center gap-5">
@@ -1629,6 +1695,7 @@ function CommentRow({
     </div>
   );
 }
+
 
 
 
