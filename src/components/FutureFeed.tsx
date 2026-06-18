@@ -3,6 +3,7 @@ import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
 import { getOpportunities } from '../lib/api';
+import { cleanDisplayText } from '../utils/safeText';
 import { 
   Calendar, 
   ChevronRight, 
@@ -72,44 +73,6 @@ export default function FutureFeed({
   const [currentPage, setCurrentPage] = useState<number>(1);
   const [totalCount, setTotalCount] = useState<number | null>(null);
 
-  // Safe text helper to prevent URL display as text
-  const safeText = (text: any, fallback: string, category?: string): string => {
-    if (!text || typeof text !== 'string') {
-      // Category-specific fallbacks
-      if (category === 'job' || category === 'full_time_job' || category === 'part_time_job') {
-        return 'Job Opportunity';
-      }
-      if (category === 'scholarship' || category === 'fellowship') {
-        return 'Scholarship Opportunity';
-      }
-      if (category === 'training') {
-        return 'Training Opportunity';
-      }
-      return fallback;
-    }
-
-    const trimmed = text.trim();
-    
-    // Check if text looks like a URL
-    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || 
-        trimmed.includes('images.unsplash.com') || trimmed.includes('auto=format') || 
-        trimmed.includes('fit=crop')) {
-      // Category-specific fallbacks for URLs
-      if (category === 'job' || category === 'full_time_job' || category === 'part_time_job') {
-        return 'Job Opportunity';
-      }
-      if (category === 'scholarship' || category === 'fellowship') {
-        return 'Scholarship Opportunity';
-      }
-      if (category === 'training') {
-        return 'Training Opportunity';
-      }
-      return fallback;
-    }
-
-    return trimmed;
-  };
-
   // Safe mapper for backend opportunities to FeedItem shape
   const mapBackendOpportunity = (item: any): FeedItem => {
     const categoryRaw = (item.category || item.type || 'job').toLowerCase();
@@ -135,13 +98,13 @@ export default function FutureFeed({
       displayCategory = 'Graduation project support';
     }
 
-    const titleEN = safeText(item.titleEN || item.title || item.title_en, 'Public Opportunity', categoryRaw);
-    const titleAR = safeText(item.titleAR || item.title_ar || item.title, titleEN, categoryRaw);
-    const titleKU = safeText(item.titleKU || item.title_ku || item.title, titleEN, categoryRaw);
+    const titleEN = cleanDisplayText(item.titleEN || item.title || item.title_en, 'Public Opportunity', categoryRaw);
+    const titleAR = cleanDisplayText(item.titleAR || item.title_ar || item.title, titleEN, categoryRaw);
+    const titleKU = cleanDisplayText(item.titleKU || item.title_ku || item.title, titleEN, categoryRaw);
 
-    const contentEN = safeText(item.contentEN || item.description || item.summary || item.description_en, 'View details of this public opportunity.', categoryRaw);
-    const contentAR = safeText(item.contentAR || item.description_ar || item.description || item.summary, contentEN, categoryRaw);
-    const contentKU = safeText(item.contentKU || item.description_ku || item.description || item.summary, contentEN, categoryRaw);
+    const contentEN = cleanDisplayText(item.contentEN || item.description || item.summary || item.description_en, 'View details of this public opportunity.', categoryRaw);
+    const contentAR = cleanDisplayText(item.contentAR || item.description_ar || item.description || item.summary, contentEN, categoryRaw);
+    const contentKU = cleanDisplayText(item.contentKU || item.description_ku || item.description || item.summary, contentEN, categoryRaw);
 
     const orgName = item.organization || item.institution_name || item.company || 'Recruiter/Provider';
     const gov = item.governorateId || item.governorate || 'all';

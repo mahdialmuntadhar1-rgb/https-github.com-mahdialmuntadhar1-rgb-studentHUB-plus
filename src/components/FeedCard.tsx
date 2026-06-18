@@ -3,6 +3,7 @@ import { Language, FeedItem, Comment, getLocalizedContent, hasAlternativeLanguag
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
+import { cleanDisplayText } from '../utils/safeText';
 import { 
   Heart, 
   MessageSquare, 
@@ -792,111 +793,131 @@ export default function FeedCard({
           </div>
         )}
 
-        {/* B. Job / Internship / Scholarship Board */}
+        {/* B. Job / Internship / Scholarship Board - Instagram Style */}
         {(item.type === 'job' || item.type === 'internship' || item.type === 'scholarship' || item.type === 'training' || 
           item.type === 'part_time_job' || item.type === 'full_time_job' || item.type === 'volunteering' || 
           item.type === 'competition' || item.type === 'graduation_project_support' || !!item.opportunityCategory) && (
-          <div className="bg-gradient-to-br from-[#F7F4FF] via-white to-[#F3F7FF] p-4.5 rounded-2xl border-2 border-[#161A33] flex flex-col gap-3.5 mb-4 shadow-[3px_3px_0px_0px_#161A33] relative overflow-hidden transition-all duration-300">
-            {/* Soft decorative background spot */}
-            <div className="absolute -top-12 -right-12 w-24 h-24 bg-[#FFD21F]/10 rounded-full blur-2xl pointer-events-none" />
-            <div className="absolute -bottom-10 -left-10 w-24 h-24 bg-[#6B25C9]/10 rounded-full blur-2xl pointer-events-none" />
-
-            {/* Header: Company Profile Info */}
-            <div className="flex items-start justify-between gap-2.5 relative z-10">
-              <div className="flex items-center gap-2.5">
-                <div className="w-10 h-10 rounded-xl bg-white border-2 border-[#161A33]/80 text-[#6B25C9] shadow-sm font-black flex items-center justify-center text-lg select-none shrink-0 transform hover:scale-105 transition-transform">
-                  {item.companyLogo || 'ðŸ’¼'}
-                </div>
-                <div>
-                  <div className="flex items-center gap-1.5 flex-wrap">
-                    <h4 className="text-[12px] font-black text-[#161A33] leading-tight">
-                      {item.company || 'Iraq Opportunity Provider'}
-                    </h4>
-                    {(item.companyVerified || item.author.verified) && (
-                      <span className="text-[9px] font-extrabold bg-[#FFD21F]/20 text-[#161A33] px-1.5 py-0.2 rounded border border-[#161A33]/10 flex items-center gap-0.5 leading-none shrink-0">
-                        âœ“ Verified
-                      </span>
-                    )}
-                  </div>
-                  <div className="flex items-center gap-1.5 text-[10px] text-slate-500 font-bold mt-1.5">
-                    <span className="flex items-center gap-0.5 text-[#2F7CCB]">
-                      <MapPin className="w-3 text-[#2F7CCB]" />
-                      {item.location || 'All Iraq'}
-                    </span>
-                    <span>â€¢</span>
-                    <span className="bg-[#6B25C9]/10 text-[#6B25C9] border border-[#6B25C9]/15 px-1.5 py-0.2 rounded text-[9px] font-black">
-                      {item.workplaceType || 'On-site'}
-                    </span>
-                  </div>
+          <div className="flex flex-col gap-3 mb-4">
+            {/* Top row: Provider info */}
+            <div className="flex items-center gap-3">
+              {/* Circular provider logo or gradient placeholder */}
+              <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[#6B25C9] to-[#2F7CCB] flex items-center justify-center text-white font-bold text-lg shrink-0">
+                {item.companyLogo ? (
+                  <img src={item.companyLogo} alt="" className="w-full h-full rounded-full object-cover" referrerPolicy="no-referrer" />
+                ) : (
+                  <Briefcase className="w-5 h-5" />
+                )}
+              </div>
+              
+              <div className="flex-1 min-w-0">
+                {/* Provider name */}
+                <h4 className="text-sm font-bold text-[#161A33] truncate">
+                  {cleanDisplayText(item.company || item.author.name, 'Opportunity Provider', item.type)}
+                </h4>
+                
+                {/* Category label and location */}
+                <div className="flex items-center gap-2 text-xs text-slate-500 mt-0.5">
+                  <span className="font-semibold text-[#6B25C9]">
+                    {item.type === 'scholarship' || item.type === 'fellowship' ? 'Scholarship' : 
+                     item.type === 'training' ? 'Training' : 'Job'}
+                  </span>
+                  {item.location && (
+                    <>
+                      <span>•</span>
+                      <span className="truncate">{cleanDisplayText(item.location, '', item.type)}</span>
+                    </>
+                  )}
                 </div>
               </div>
-
-              {/* Deadline Tag with youthful animation */}
-              {item.deadline && (
-                <div className="text-right shrink-0">
-                  <span className="text-[8px] font-black uppercase tracking-wider text-[#D9272E] block">Deadline</span>
-                  <span className="text-[10px] font-extrabold text-[#D9272E] bg-[#D9272E]/10 border border-[#D9272E]/20 px-2 py-0.5 rounded-lg flex items-center gap-0.5 mt-1 animate-pulse">
-                    â° {item.deadline}
-                  </span>
-                </div>
-              )}
             </div>
 
-            {/* Who Can Apply Eligibility Alert Section */}
-            {item.whoCanApply && (
-              <div className="bg-amber-50 p-2.5 rounded-lg border-2 border-[#161A33] text-[10px] text-slate-700 leading-relaxed relative z-10 font-bold flex items-start gap-1.5 shadow-[2px_2px_0px_0px_#161A33]">
-                <span className="text-sm shrink-0 leading-none">ðŸŽ¯</span>
-                <div>
-                  <span className="text-amber-700 font-black text-[9px] uppercase tracking-wider block mb-0.5">Who can apply</span>
-                  <span className="text-slate-800 font-extrabold">{getLocalizedContent(item, 'whoCanApply', language, showOriginal)}</span>
+            {/* Main visual: Image or gradient placeholder */}
+            {item.imageUrl && !item.imageUrl.includes('images.unsplash.com') ? (
+              <div className="rounded-xl overflow-hidden border border-slate-200">
+                <img src={item.imageUrl} alt="" className="w-full h-48 object-cover" referrerPolicy="no-referrer" />
+              </div>
+            ) : (
+              <div className="rounded-xl h-48 flex items-center justify-center bg-gradient-to-br from-[#6B25C9] to-[#2F7CCB] text-white">
+                <div className="text-center">
+                  {item.type === 'scholarship' || item.type === 'fellowship' ? (
+                    <GraduationCap className="w-12 h-12 mx-auto mb-2 opacity-80" />
+                  ) : (
+                    <Briefcase className="w-12 h-12 mx-auto mb-2 opacity-80" />
+                  )}
+                  <span className="text-sm font-semibold opacity-90">
+                    {item.type === 'scholarship' || item.type === 'fellowship' ? 'Scholarship' : 
+                     item.type === 'training' ? 'Training' : 'Job'}
+                  </span>
                 </div>
               </div>
             )}
 
-            {/* Campus Social Proof Block (Students who applied) */}
-            <div className="flex items-center gap-2 mt-0.5 bg-emerald-50 p-2 rounded-lg border-2 border-[#161A33] relative z-10 shadow-[2px_2px_0px_0px_#161A33]">
-              <div className="flex -space-x-1.5">
-                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#6B25C9] to-[#2F7CCB] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">ðŸ™‹â€â™‚ï¸</div>
-                <div className="w-5 h-5 rounded-full bg-gradient-to-tr from-[#FFD21F] to-[#D9272E] border border-white text-[8px] flex items-center justify-center font-bold shadow-sm">ðŸ™‹â€â™€ï¸</div>
-                <div className="w-5 h-5 rounded-full bg-white border border-[#161A33] text-[8px] flex items-center justify-center font-bold shadow-sm">âœ¨</div>
-              </div>
-              <p className="text-[10px] text-emerald-800 font-extrabold leading-tight">
-                {item.universityAppliedCount || 6} students from your university applied
+            {/* Caption area: Title and short description */}
+            <div className="flex flex-col gap-1">
+              {/* Title as bold caption - clickable if has URL */}
+              {(item.applyUrl || item.sourceUrl) ? (
+                <a 
+                  href={item.applyUrl || item.sourceUrl} 
+                  target="_blank" 
+                  rel="noopener noreferrer"
+                  className="text-sm font-bold text-[#161A33] hover:text-[#6B25C9] transition-colors"
+                >
+                  {cleanDisplayText(title, 'Opportunity', item.type)}
+                </a>
+              ) : (
+                <h3 className="text-sm font-bold text-[#161A33]">
+                  {cleanDisplayText(title, 'Opportunity', item.type)}
+                </h3>
+              )}
+              
+              {/* Short description - max 2-3 lines */}
+              <p className="text-xs text-slate-600 line-clamp-3 leading-relaxed">
+                {cleanDisplayText(content, 'View details for this opportunity.', item.type)}
               </p>
             </div>
 
-            {/* Saves and Badges Stats tracker */}
-            <div className="flex items-center gap-2 text-[10px] text-slate-500 font-bold justify-between pt-1">
-              <span className="flex items-center gap-1 bg-[#F3F7FF] text-[#161A33] border border-[#E6E1F5] px-2 py-0.5 rounded-md text-[9px] font-black uppercase">
-                ðŸ·ï¸ {item.opportunityCategory || 'Career'}
-              </span>
-              <span className="text-[#6B25C9] flex items-center gap-0.5 bg-[#6B25C9]/10 px-2 py-0.5 rounded-lg text-[9px] font-black">
-                â­ {item.savedByUser ? (item.savedCount || 12) + 1 : (item.savedCount || 12)} saved by peers
-              </span>
-            </div>
-
-            {/* Quick Interactive Button Deck */}
-            <div className="flex gap-1.5 mt-1 pt-2 border-t border-[#E6E1F5] relative z-10 font-sans">
+            {/* Actions row: Like, Comment, Share, Save */}
+            <div className="flex items-center justify-between pt-2 border-t border-slate-100">
+              <div className="flex items-center gap-4">
+                {/* Like */}
+                <button
+                  onClick={() => onLike(item.id)}
+                  className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${
+                    item.likedByUser ? 'text-red-500' : 'text-slate-500 hover:text-red-500'
+                  }`}
+                >
+                  <Heart className={`w-5 h-5 ${item.likedByUser ? 'fill-current' : ''}`} />
+                  <span>{item.likes || 0}</span>
+                </button>
+                
+                {/* Comment */}
+                <button
+                  onClick={() => setShowComments(!showComments)}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#6B25C9] transition-colors"
+                >
+                  <MessageSquare className="w-5 h-5" />
+                  <span>{item.commentsCount || 0}</span>
+                </button>
+                
+                {/* Share */}
+                <button
+                  onClick={handleShareClick}
+                  className="flex items-center gap-1.5 text-xs font-semibold text-slate-500 hover:text-[#6B25C9] transition-colors"
+                >
+                  <Share2 className="w-5 h-5" />
+                  <span>{copied ? 'Copied!' : 'Share'}</span>
+                </button>
+              </div>
+              
+              {/* Save */}
               <button
-                id={`apply-btn-${item.id}`}
-                onClick={() => onApply(item.id)}
-                className={`flex-1 py-2.5 rounded-xl text-xs font-black tracking-tight cursor-pointer transition-all flex items-center justify-center gap-1.5 transform active:scale-95 border-2 border-[#161A33] ${
-                  item.applied
-                    ? 'bg-emerald-100 text-emerald-900 shadow-[2px_2px_0px_0px_#161A33]'
-                    : 'bg-[#FFD21F] text-[#161A33] hover:bg-[#FFE052] shadow-[3px_3px_0px_0px_#161A33]'
+                onClick={() => onSave(item.id)}
+                className={`flex items-center gap-1.5 text-xs font-semibold transition-colors ${
+                  item.savedByUser ? 'text-[#6B25C9]' : 'text-slate-500 hover:text-[#6B25C9]'
                 }`}
               >
-                {item.applied ? (
-                  <>
-                    <UserCheck className="w-4 h-4 text-emerald-950" />
-                    <span>Applied Successfully!</span>
-                  </>
-                ) : (
-                  <>
-                    <Briefcase className="w-4 h-4 text-[#161A33]" />
-                    <span>{getTranslation('applyNow', language)}</span>
-                  </>
-                )}
+                <Bookmark className={`w-5 h-5 ${item.savedByUser ? 'fill-current' : ''}`} />
+                <span>Save</span>
               </button>
             </div>
           </div>
