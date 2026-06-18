@@ -72,7 +72,12 @@ function readStoredHeroImages(): string[] {
 // Helper function to get logged-in admin email
 function getLoggedInEmail(): string | null {
   if (typeof window === 'undefined') return null;
-  return localStorage.getItem('jamiaati_user_email')?.toLowerCase() || null;
+  try {
+    return localStorage.getItem('jamiaati_user_email')?.toLowerCase() || null;
+  } catch (error) {
+    console.error('Error reading user email from localStorage:', error);
+    return null;
+  }
 }
 
 interface HomeFeedProps {
@@ -761,63 +766,6 @@ export default function HomeFeed({
     }, 5500);
     return () => clearInterval(slideTimer);
   }, [heroSlides.length]);
-
-  // Admin Hero Custom editing states
-  const [isEditingHero, setIsEditingHero] = useState(false);
-
-// EMERGENCY SAFETY:
-// Hero inline editing is disabled because an overlay was trapping clicks on the live app.
-// Keep this disabled until backend-safe editing is implemented.
-useEffect(() => {
-  if (isEditingHero) {
-    setIsEditingHero(false);
-  }
-}, [isEditingHero]);
-
-  const [formHeroBg, setFormHeroBg] = useState(heroBg);
-  const [formTitleEN, setFormTitleEN] = useState(heroTitleEN);
-  const [formTitleAR, setFormTitleAR] = useState(heroTitleAR);
-  const [formTitleKU, setFormTitleKU] = useState(heroTitleKU);
-  const [formDescEN, setFormDescEN] = useState(heroDescEN);
-  const [formDescAR, setFormDescAR] = useState(heroDescAR);
-  const [formDescKU, setFormDescKU] = useState(heroDescKU);
-  const [formTagEN, setFormTagEN] = useState(heroTagEN);
-  const [formTagAR, setFormTagAR] = useState(heroTagAR);
-  const [formTagKU, setFormTagKU] = useState(heroTagKU);
-
-  const handleStartEditingHero = () => {
-    setFormHeroBg(heroBg);
-    setFormTitleEN(heroTitleEN);
-    setFormTitleAR(heroTitleAR);
-    setFormTitleKU(heroTitleKU);
-    setFormDescEN(heroDescEN);
-    setFormDescAR(heroDescAR);
-    setFormDescKU(heroDescKU);
-    setFormTagEN(heroTagEN);
-    setFormTagAR(heroTagAR);
-    setFormTagKU(heroTagKU);
-    setIsEditingHero(false);
-  };
-
-  const handleSaveHeroCustomization = (e: React.FormEvent) => {
-    e.preventDefault();
-    localStorage.setItem('jamiaati_hero_bg', formHeroBg);
-    localStorage.setItem('jamiaati_hero_title_en', formTitleEN);
-    localStorage.setItem('jamiaati_hero_title_ar', formTitleAR);
-    localStorage.setItem('jamiaati_hero_title_ku', formTitleKU);
-    localStorage.setItem('jamiaati_hero_desc_en', formDescEN);
-    localStorage.setItem('jamiaati_hero_desc_ar', formDescAR);
-    localStorage.setItem('jamiaati_hero_desc_ku', formDescKU);
-    localStorage.setItem('jamiaati_hero_tag_en', formTagEN);
-    localStorage.setItem('jamiaati_hero_tag_ar', formTagAR);
-    localStorage.setItem('jamiaati_hero_tag_ku', formTagKU);
-
-    window.dispatchEvent(new Event('jamiaati_hero_updated'));
-    setIsEditingHero(false);
-    if (showToast) {
-      showToast(language === 'ar' ? 'تم حفظ التغييرات على الغلاف والبطاقة بنجاح! 💫' : 'Hero settings saved successfully! 💫', 'success');
-    }
-  };
 
   // Hero Images editing handlers
   const handleStartEditingHeroImages = () => {
