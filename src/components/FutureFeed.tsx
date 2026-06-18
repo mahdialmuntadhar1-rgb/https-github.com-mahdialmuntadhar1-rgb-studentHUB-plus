@@ -68,6 +68,7 @@ export default function FutureFeed({
   const [opportunities, setOpportunities] = useState<FeedItem[]>([]);
   const [isLoading, setIsLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [activeChip, setActiveChip] = useState<string>('all');
 
   // Safe mapper for backend opportunities to FeedItem shape
   const mapBackendOpportunity = (item: any): FeedItem => {
@@ -172,14 +173,20 @@ export default function FutureFeed({
     };
   };
 
-  // Fetch opportunities from backend
+  // Fetch opportunities from backend based on language and activeChip (category filter)
   useEffect(() => {
     let active = true;
     const fetchOpps = async () => {
       setIsLoading(true);
       setError(null);
       try {
-        const data = await getOpportunities(language);
+        let categoryParam: string | undefined = undefined;
+        if (['job', 'scholarship', 'internship', 'training', 'event', 'volunteering', 'fellowship', 'competition', 'announcement', 'exam'].includes(activeChip)) {
+          categoryParam = activeChip;
+        }
+        
+        // Pass the category filter to the getOpportunities API
+        const data = await getOpportunities(categoryParam, language);
         if (active) {
           if (Array.isArray(data)) {
             setOpportunities(data.map(mapBackendOpportunity));
@@ -201,7 +208,7 @@ export default function FutureFeed({
     return () => {
       active = false;
     };
-  }, [language]);
+  }, [language, activeChip]);
 
   // Action wrapper overrides to keep visual states reactive inside the loaded list
   const handleLocalLike = (id: string) => {
@@ -260,7 +267,6 @@ export default function FutureFeed({
     }));
   };
 
-  const [activeChip, setActiveChip] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   
   // Custom filter dropdown states
@@ -678,10 +684,10 @@ export default function FutureFeed({
         <div className="text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-8 text-center shadow-[3px_3px_0px_0px_#161A33] mb-5">
           <div className="text-4xl mb-3">🔭</div>
           <h3 className="font-extrabold text-[#161A33] text-sm uppercase tracking-wide">
-            {language === 'ar' ? 'لا توجد فرص معتمدة بعد' : language === 'ku' ? 'هیچ دەرفەتێکی پەسەندکراو نییە لە ئێستادا' : 'No approved opportunities yet'}
+            {language === 'ar' ? 'لا توجد عناصر متاحة بعد لهذه الفئة.' : language === 'ku' ? 'هیچ پۆستێک بۆ ئەم پۆلە بەردەست نییە.' : 'No items available yet for this category.'}
           </h3>
           <p className="text-[11px] text-slate-500 max-w-xs mt-2 mx-auto leading-relaxed">
-            {language === 'ar' ? 'الفرص المعتمدة من قبل المسؤولين ومحرك البحث الذكي ستظهر هنا فور نشرها.' : 'Opportunities moderated by administrators and our auto-crawlers will appear here once approved.'}
+            {language === 'ar' ? 'الفرص المعتمدة من قبل المسؤولين والشركاء لجامعتك ومحافظتك ستظهر هنا قريباً.' : 'Opportunities moderated by administrators and partners for your university and governorate will appear here once approved.'}
           </p>
         </div>
       ) : (activeChip === 'all' && !isCustomFiltersActive) ? (
@@ -888,7 +894,7 @@ export default function FutureFeed({
             <div className="text-center py-12 text-slate-500 bg-white border-2 border-[#161A33] rounded-3xl p-6 shadow-sm">
               <div className="text-3xl mb-2">🔭</div>
               <h3 className="font-extrabold text-[#161A33] text-xs">
-                {language === 'ar' ? 'لا توجد فرص مطابقة للتصفية المحسنة' : language === 'ku' ? 'هیچ دەرفەتێک نەدۆزرایەوە بەم مەرجانە' : 'No opportunities matches this filter'}
+                {language === 'ar' ? 'لا توجد عناصر متاحة بعد لهذه الفئة.' : language === 'ku' ? 'هیچ پۆستێک بۆ ئەم پۆلە بەردەست نییە.' : 'No items available yet for this category.'}
               </h3>
               <p className="text-[10px] text-slate-500 max-w-xs mt-1.5 mx-auto leading-relaxed">
                 {language === 'ar' ? 'جرّب كتابة كلمات أبسط أو تغيير الفلتر الذكي أو قم بمحو معيار البحث.' : 'Try broadening your governorate or scope selection or clearing the search bar.'}

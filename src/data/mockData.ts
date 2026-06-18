@@ -337,165 +337,296 @@ export const initialFeedItems: FeedItem[] = [
   },
 
 
-  // --- USER REQUESTED MOCK CAMPUS LIFE (6 ITEMS) ---
+  // --- CURATED CAMPUS LIFE ACADEMIC RESOURCES (10 ITEMS) ---
 
-  // 1. Campus Life - Sarah Ahmed (Baghdad / Mosul Coffee Studying)
+  // 1. Campus Guide - General First Week Tips
   {
-    id: 'user-campus-sarah-study',
-    type: 'post',
-    titleEN: 'Pre-Finals Marathon Study Sessions 📚☕',
-    titleAR: 'ماراثون الدراسة والاستعداد للامتحانات النهائية 📚☕',
-    titleKU: 'ماراسۆنی خوێندن و ئامادەکاری بۆ تاقیکردنەوە کۆتاییەکانی ساڵ 📚☕',
-    contentEN: 'Group study and coffee before finals on campus! Nothing feels better than studying with friends, bouncing tough concepts off each other, and having immediate feedback. Wish everyone high GPAs and success!',
-    contentAR: 'جلسة دراسة جماعية وفنجان قهوة دافئ في كافيتريا الجامعة قبل بدء الامتحانات النهائية. الأجواء أجمل ومحفزة عندما ندرس يداً بيد مع الأصدقاء ونشرح المواد لبعضنا البعض. بالتوفيق والنجاح الباهر للجميع!',
-    contentKU: 'خوێندنی گرووپی پێش تاقیکردنەوەکان. بەڕاستی لەگەڵ هاوڕێکان خوێندن زۆر خۆشترە و یارمەتیدەرە بۆ فێربوونی بابەتە قورسەکانی زانست و لۆجیک.',
+    id: 'user-campus-first-week',
+    type: 'campus_life',
+    category: 'campus_guide',
+    sourceType: 'general_guide',
+    titleEN: 'First Week Academic Prep: Quick Checklist 📖🏫',
+    titleAR: 'الاستعداد الأكاديمي للأسبوع الأول: مرجع سريع 📖🏫',
+    titleKU: 'ئامادەکاری ئەکادیمی بۆ هەفتەی یەکەم: خاڵە سەرەکییەکان 📖🏫',
+    contentEN: 'Your guide to starting successfully: locate classrooms early, request your official university smart registration card, attend orientation sessions, and familiarize yourself with the central libraries.',
+    contentAR: 'دليلك لبداية جامعية ناجحة ومكتملة: حدد مواقع قاعات الدروس مبكراً، وقدم بطلب للحصول على بطاقة الطالب الذكية الموحدة، واحرص على زيارة المكتبة المركزية.',
+    contentKU: 'ڕێبەری تۆ بۆ دەستپێکێکی سەرکەوتوو: شوێنی هۆڵەکانی خوێندن دابین بکە، داوای کارتی زیرەکی زانکۆت بکە، و ئاشنا بە بەشی کتێبخانەی مۆدێرن.',
     author: {
-      name: 'Sarah Ahmed',
-      role: 'student',
-      avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=150',
-      university: 'University of Baghdad'
+      name: 'Academic Guidance Portal',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=150',
+      verified: false
     },
-    date: 'Just now',
-    likes: 184,
-    commentsCount: 15,
-    governorateId: 'baghdad',
-    universityId: 'uob',
-    imageUrl: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=600',
-    tags: ['Studying', 'UoB', 'Finals', 'Classmates'],
-    commentsList: []
+    date: 'Academic Resource',
+    likes: 245,
+    commentsCount: 0,
+    governorateId: 'all',
+    universityId: 'all',
+    imageUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600',
+    tags: ['Campus Guide', 'Orientation', 'Checklist'],
+    commentsList: [],
+    verified: false
   },
 
-  // 2. Event - Spring Festival 2025 at UoB
+  // 2. Exam Reminder - Registration & Prep
   {
-    id: 'user-campus-spring-festival',
-    type: 'event',
-    titleEN: 'Annual University Spring Festival 2025 🌸🎪',
-    titleAR: 'مهرجان الربيع السنوي الكبير لجامعة بغداد 2025 🌸🎪',
-    titleKU: 'فێستیڤاڵی بەهارەی ساڵانەی زانکۆی بەغدا 2025 🌸🎪',
-    contentEN: 'Join students and faculty at the central garden for live classical music, international traditional food booths, local student art showcases, calligraphy galleries, and student startup project demos. Do not miss it!',
-    contentAR: 'انضم إلى زملائك والأساتذة الكرام في الحديقة العامة للكلية للاستمتاع بالموسيقى الفلكلورية الحية، بوفيه الأطعمة الشعبية، ومعارض الفنون والرسم، والخط العربي، وابتكارات ومشاريع التخرج الملهمة للطلبة.',
-    contentKU: 'بەشداری بکەن لە فێستیڤاڵی بەهارەی زانکۆی بەغدا لە باخچەی ناوەندی زانکۆ کە مۆسیقا، خواردنی خۆماڵی، کارە دەستییەکان و پڕۆژەی کۆمپانیا بچووکەکان نماییش دەکات.',
+    id: 'user-campus-reg-docs',
+    type: 'campus_life',
+    category: 'exams',
+    sourceType: 'official_update',
+    titleEN: 'Official Verification Checklist for Registration 📑✒️',
+    titleAR: 'الوثائق الأكاديمية المطلوبة لإتمام وتحقيق التسجيل 📑✒️',
+    titleKU: 'بەڵگەنامە پێویستەکان بۆ جێگیرکردنی تۆمارکردنی کەمپەس 📑✒️',
+    contentEN: 'Important notice for all departments: Please ensure you bring your preparatory school graduation certificate verified by the Directorate of Education, unified national identification card, and medical clearance details.',
+    contentAR: 'تنبيه للتسجيل: تأكد من جلب شهادة الدراسة الإعدادية الأصلية المصدقة من مديرية التربية المختصة، البطاقة الوطنية الموحدة، واستمارة الفحص الطبي المعتمدة.',
+    contentKU: 'ئاگاداری بۆ تۆمارکردن: دڵنیابە لە هێنانی بڕوانامەی ئامادەیی پەسەندکراو لە بەڕێوەبەرایەتی پەروەردە، کارتی نیشتمانی، و دەرئەنجامی پشکنینی پزیشکی.',
     author: {
-      name: 'UoB Student Activity Center',
+      name: 'Verified University Source',
       role: 'staff',
       avatar: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=150',
       verified: true
     },
-    date: '3 hours ago',
-    likes: 312,
-    commentsCount: 22,
-    governorateId: 'baghdad',
-    universityId: 'uob',
-    eventDate: 'Thursday, June 18, 2025',
-    eventTime: '10:00 AM - 4:00 PM',
-    eventVenue: 'Central Parks, University of Baghdad Main Campus',
-    eventRsvpCount: 145,
-    eventRsvped: false,
-    tags: ['Festival', 'UoB', 'Spring', 'StudentLife'],
-    imageUrl: 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=600',
-    commentsList: []
+    date: 'Official Notice',
+    likes: 412,
+    commentsCount: 0,
+    governorateId: 'all',
+    universityId: 'all',
+    imageUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&q=80&w=600',
+    tags: ['Admissions', 'Registration', 'Official'],
+    commentsList: [],
+    verified: true
   },
 
-  // 3. Campus Life - Zeynab Mohammed (Kerbala)
+  // 3. Student Tips - Exam Readiness
   {
-    id: 'user-campus-zeynab-study',
-    type: 'post',
-    titleEN: 'Reviewing Engineering Projects in Karbala campus 📐👩‍💻',
-    titleAR: 'مناقشة مشاريع وهندسة البرمجيات في كربلاء 📐👩‍💻',
-    titleKU: 'پیاچوونەوەی پڕۆژەکانی ئەندازیاری لە کەمپەسی کەربەلا 📐👩‍💻',
-    contentEN: 'Studying with my study group at the engineering library before the final defense. The stress of project presentations dissolves when we study together and review each other’s slides. The atmosphere is awesome with my sweet friends!',
-    contentAR: 'جلسة دراسة ومراجعة جماعية حيوية بمكتبة كلية الهندسة قبل مناقشة تخرجنا الرسمي. الضغوط تختفي ونشعر بالراحة عندما نتعاون ونلخص المواد مع أعز صديقاتي. ممتنة جداً لهذه الأجواء الدافئة!',
-    contentKU: 'خوێندنی گرووپی پێش تاقیکردنەوەکان. زۆر دڵشادین بەم کاتە نایابانە لە کتێبخانەی زانکۆمان لەگەڵ هاوڕێ خۆشەویستەکانم کە هەموو بابەتێک ئاسان دەکەن.',
+    id: 'user-campus-stress-free',
+    type: 'campus_life',
+    category: 'student_tip',
+    sourceType: 'student_tip',
+    titleEN: 'Maximizing Focus: Stress-Free Exam Strategies ☕📝',
+    titleAR: 'سبل تعزيز التركيز: ستراتيجيات الدراسة للامتحانات دون ضغوطات ☕📝',
+    titleKU: 'باشترین کارامەیی: پلانی خوێندن بۆ تاقیکردنەوەکان بێ دڵەڕاوکێ ☕📝',
+    contentEN: 'Study effectively: divide dense syllabi into manageable topics, practice the 25-minute study block technique, ensure adequate sleep, and clarify questions with tutors during open hours.',
+    contentAR: 'راجع بذكاء: قسم المناهج الدراسية الكثيفة إلى أجزاء صغيرة ومحددة، استخدم فترات مراجعة بطاقة ٢٥ دقيقة للدراسة و٥ دقائق راحة، نم جيداً، واستعن بأساتذة مادتك.',
+    contentKU: 'پلانی زیرەکانە داڕێژە: وانە چڕەکان بکە بە چەند بەشێکی بچووکەوە، سوود لە ٢٥ خولەک خوێندن و ٥ خولەک پشوو وەربگرە، و مێشکت ئارام بکەرەوە پێش تاقیکردنەوە.',
     author: {
-      name: 'زينب محمد',
-      role: 'student',
-      avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=150',
-      university: 'University of Karbala'
+      name: 'Academic Guidance Portal',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=150',
+      verified: false
     },
-    date: '5 hours ago',
-    likes: 125,
-    commentsCount: 9,
-    governorateId: 'karbala',
-    universityId: 'karbala-uni',
-    imageUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=600',
-    tags: ['Karbala', 'Engineering', 'StudyGroup', 'Friends'],
-    commentsList: []
+    date: 'Strategic Tips',
+    likes: 310,
+    commentsCount: 0,
+    governorateId: 'all',
+    universityId: 'all',
+    imageUrl: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=600',
+    tags: ['Student Tips', 'Study Habits', 'Exams'],
+    commentsList: [],
+    verified: false
   },
 
-  // 4. Question - Omar Ali (Basrah)
+  // 4. Clubs - Study Groups Guidance
   {
-    id: 'user-campus-omar-english',
-    type: 'question',
-    titleEN: 'Best academic English resources for TOEFL/IELTS? 🇬🇧🎓',
-    titleAR: 'ما هي أفضل المصادر الموثوقة لتعلم الإنجليزية للامتحانات؟ 🇬🇧🎓',
-    titleKU: 'باشترین سەرچاوە بۆ فێربوونی زمانی ئینگلیزی چییە؟ 🇬🇧🎓',
-    contentEN: 'Hey classmates! I am preparing for my graduate school admissions and need to score 6.5+ in IELTS. What are the best free online courses, mock test platforms, and vocabulary books that worked for you locally? Thank you!',
-    contentAR: 'السلام عليكم يا أخوان، أبحث عن أفضل المصادر والكتب للتحضير لامتحان الآيلتس (IELTS) أو التوفل الأكاديمي للتقديم على الدراسات العليا. ما هي المواقع المجانية أو بنوك الأسئلة المجربة التي تنصحون بها؟ شكراً لكم!',
-    contentKU: 'سڵاو هاوڕێیان، ئامادەکاری دەکەم بۆ تاقیکردنەوەی ئینگلیزی نێودەوڵەتی. باشترین سەرچاوە و کتێبخانە و پێگەی فێربوون چی پێشنیار دەکەن کە سوودی زۆری هەبێت؟ سوپاستان دەکەم.',
+    id: 'user-campus-study-groups',
+    type: 'campus_life',
+    category: 'clubs',
+    sourceType: 'club',
+    titleEN: 'Guidance on Establishing Productive Study Circles 🤝📚',
+    titleAR: 'دليل تأسيس وإدارة حلقات المذاكرة والمجموعات الطلابية المشتركة 🤝📚',
+    titleKU: 'ڕێبەری دامەزراندنی گرووپ و ئەڵقەکانی خوێندنی هاوبەش 🤝📚',
+    contentEN: 'Academic collaborative study circles: select members committed to academic growth, utilize library collaborative group halls, set concrete goals beforehand, and divide responsibilities.',
+    contentAR: 'إرشاد لتأسيس حلقات المذاكرة: اختر زملاء يشاركونك الرغبة بالمنفعة والنجاح، اتخذ من قاعات المناقشة الجماعية بالمكتبة مكاناً ثابتاً، وحدد أهدافاً واضحة لكل مراجعة.',
+    contentKU: 'ئەڵقەی خوێندنی سەرکەوتوو دروست بکە: قوتابیانی پێشەنگ دابین بکە، ژوورەکانی گفتوگۆ لە کتێبخانەکان بەکاربهێنە، و کاتەکان ڕێکبخە.',
     author: {
-      name: 'Omar Ali',
-      role: 'student',
-      avatar: 'https://images.unsplash.com/photo-1539571696357-5a69c17a67c6?auto=format&fit=crop&q=80&w=150',
-      university: 'University of Basrah'
+      name: 'Curated Campus Life Group',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&q=80&w=150',
+      verified: false
     },
-    date: '8 hours ago',
-    likes: 84,
-    commentsCount: 16,
-    governorateId: 'basra',
-    universityId: 'basra-uni',
-    tags: ['IELTS', 'Language', 'Basrah', 'Advice'],
-    commentsList: []
+    date: 'Collaborative Tip',
+    likes: 184,
+    commentsCount: 0,
+    governorateId: 'all',
+    universityId: 'all',
+    imageUrl: 'https://images.unsplash.com/photo-1515187029135-18ee286d815b?auto=format&fit=crop&q=80&w=600',
+    tags: ['Study Circles', 'Clubs', 'Education'],
+    commentsList: [],
+    verified: false
   },
 
-  // 5. Campus Life - Dilan Hassan (Duhok)
+  // 5. Volunteering - Community Pathways
   {
-    id: 'user-campus-dilan-duhok',
-    type: 'post',
-    titleEN: 'Outdoor Study Sessions in Duhok Mountains ⛰️📝',
-    titleAR: 'أجواء الدراسة في الهواء الطلق وجبال دهوك ⛰️📝',
-    titleKU: 'خوێندنی کەمپەس لە ژینگەی دەشت و چیاکانی دهۆک ⛰️📝',
-    contentEN: 'Studying under the beautiful skies of Duhok! Group study sessions before exams make everything easier, more exciting, and less stressful when surrounded by friendly peers and beautiful nature.',
-    contentAR: 'جلسة مراجعة لمشاريعنا في الهواء الطلق وتحت سحر سماء دهوك الخلابة! الدراسة والتلخيص مع الأصدقاء تجعل الدروس الصعبة غاية في البساطة وتزيل كافة الضغوطات النفسية قبل الامتحانات.',
-    contentKU: 'خوێندنی گرووپی پێش تاقیکردنەوەکان. بەڕاستی لەگەڵ هاوڕێکان خوێندن خۆشترە و مێشک ئارام دەکاتەوە لە کەمپەسی سەرنجڕاکێشی دهۆک.',
+    id: 'user-campus-volunteer-paths',
+    type: 'campus_life',
+    category: 'volunteering',
+    sourceType: 'volunteering',
+    titleEN: 'Safe Pathways for Community Volunteering on Campus 🌱🤝',
+    titleAR: 'مسارات آمنة ومنظمة للعمل والخدمة التطوعية داخل الجامعة 🌱🤝',
+    titleKU: 'شێواز و ڕێگەی گونجاو بۆ کاری خۆبەخشی یارمەتیدەر 🌱🤝',
+    contentEN: 'Active volunteering pathways: sign up for official university orientation guide teams raising awareness for freshers, support digital literacy classes, or organize campus books recycling programs.',
+    contentAR: 'مسارات التطوع المعتمدة: سجل للانضمام لفرق الإرشاد الجامعي السنوية لتوجيه الطلاب الجدد، تفاعل مع حملات محو أمية تكنولوجيا المعلومات، أو تبرع بالكتب وتدويرها.',
+    contentKU: 'خۆبەخشی ئەکادیمی بەهێز بکە: بەشداری لە ڕێبەریکردنی قوتابیانی نوێ بکە، یاخود یارمەتیدەربە بۆ بەرەوپێشبردنی ئاستی خوێندەواری دیجیتاڵی لە زانکۆتدا.',
     author: {
-      name: 'Dilan Hassan',
-      role: 'student',
-      avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=150',
-      university: 'University of Duhok'
+      name: 'Verified University Source',
+      role: 'staff',
+      avatar: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=150',
+      verified: true
     },
-    date: '1 day ago',
-    likes: 215,
-    commentsCount: 12,
-    governorateId: 'dahuk',
-    universityId: 'duhok-uni',
+    date: 'Community Service',
+    likes: 156,
+    commentsCount: 0,
+    governorateId: 'sulaymaniyah',
+    universityId: 'u_sulaymaniyah',
     imageUrl: 'https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=600',
-    tags: ['Duhok', 'Nature', 'OutdoorStudy', 'Kurdistan'],
-    commentsList: []
+    tags: ['Volunteering', 'Student Engagement', 'Sulaymaniyah'],
+    commentsList: [],
+    verified: true
   },
 
-  // 6. Question - Rawa Omer (Erbil)
+  // 6. Career Prep - CV & Interview Preparation
   {
-    id: 'user-campus-rawa-ml',
-    type: 'question',
-    titleEN: 'Roadmap & sources to master Machine Learning step by step? 🤖🐍',
-    titleAR: 'خارطة طريق ومصادر موثوقة لتعلم تعلم الآلة خطوة بخطوة؟ 🤖🐍',
-    titleKU: 'باشترین سەرچاوە و پلان بۆ فێربوونی Machine Learning؟ 🤖🐍',
-    contentEN: 'What is the best structured and practical resource for learning Machine Learning step by step? I have good Python basics but want to build real classification models, work on neural networks, and engage in data hackathons.',
-    contentAR: 'ما هو أفضل مصدر هيكلي وعملي لدراسة تعلم الآلة والذكاء الاصطناعي؟ لدي أساسيات جيدة في البايثون (Python) وأرغب في الانتقال لبناء النماذج وخوارزميات التنبؤ والمشاركة في المسابقات البرمجية.',
-    contentKU: 'باشترین سەرچاوە بۆ فێربوونی Machine Learning چییە؟ من بنەمای باشم هەیە لە زمانی پایتۆن بەڵام دەمەوێت بە شێوەی دروست پڕۆژەی زیرەکی دەستکرد دروست بکەم.',
+    id: 'user-campus-career-build',
+    type: 'campus_life',
+    category: 'career_prep',
+    sourceType: 'career_prep',
+    titleEN: 'Building a Stellar Academic Resume & CV 💼🚀',
+    titleAR: 'بناء سيرة ذاتية أكاديمية احترافية ومهنية متميزة 💼🚀',
+    titleKU: 'دروستکردنی سێرتیفیکەیت و CVی ئەکادیمی بە شێوەیەکی پرۆفیشناڵ 💼🚀',
+    contentEN: 'Prepare your CV: spotlight your core engineering/scientific projects, mention university laboratory research roles, focus on practical programming/linguistic skills, and attend campus job fairs.',
+    contentAR: 'أعد سيرتك الذاتية بذكاء: ركز على مشاريع التخرج المميزة ومشاريعك الأكاديمية والمختبرية، وصقل المهارات العملية البرمجية أو اللغوية التي يحتاجها السوق العراقي.',
+    contentKU: 'سێرتیفیکەیت و CVەکەت بەهێز بکە: گرنگی بدە بە پڕۆژەکانی تاقیگە و ئەندازیاری، خولەکانی زمان و فێربوونی پرۆگرامسازی، و بەشداری پێشانگای کار بکە.',
     author: {
-      name: 'Rawa Omer',
-      role: 'student',
-      avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=150',
-      university: 'Salahaddin University'
+      name: 'National Career Service',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1573497019940-1c28c88b4f3e?auto=format&fit=crop&q=80&w=150',
+      verified: true
     },
-    date: '2 days ago',
-    likes: 95,
-    commentsCount: 23,
-    governorateId: 'erbil',
-    universityId: 'salahaddin',
-    tags: ['MachineLearning', 'Python', 'AI', 'Erbil'],
-    commentsList: []
+    date: 'Professional Guidance',
+    likes: 212,
+    commentsCount: 0,
+    governorateId: 'all',
+    universityId: 'all',
+    imageUrl: 'https://images.unsplash.com/photo-1516321318423-f06f85e504b3?auto=format&fit=crop&q=80&w=600',
+    tags: ['Career Prep', 'CV Writing', 'Guidance'],
+    commentsList: [],
+    verified: true
+  },
+
+  // 7. University Services - Library Exploration
+  {
+    id: 'user-campus-lib-explore',
+    type: 'campus_life',
+    category: 'university_services',
+    sourceType: 'university_service',
+    titleEN: 'Accessing Digital Academic Services at Central Library 📚🏛️',
+    titleAR: 'الاستفادة من الخدمات الرقمية والأكاديمية في المكتبة المركزية 📚🏛️',
+    titleKU: 'چۆنیەتی سوودوەرگرتن لە سەرچاوە مۆدێرنەکانی کتێبخانەی زانکۆ 📚🏛️',
+    contentEN: 'The university central library provides access to scientific journal databases, quiet discussion rooms, academic archives, fast research Wi-Fi, and printing/copying services.',
+    contentAR: 'تتيح لك المكتبة المركزية بالجامعة خدمات متكاملة: مستوعبات بحثية وقواعد بيانات، قاعات مناقشة مشتركة هادئة، إنترنت مخصص للأبحاث، ومراكز استنساخ وتصوير.',
+    contentKU: 'کتێبخانەی سەرەکی زانکۆ خزمەتگوزاری گرنگ دابین دەکات: ژووری بێدەنگ بۆ خوێندنەوە، سەرچاوە و کتێبی ئەکادیمی، هێڵی ئینتەرنێتی خێرا و سەنتەری کۆپیکردن.',
+    author: {
+      name: 'Verified University Source',
+      role: 'staff',
+      avatar: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=150',
+      verified: true
+    },
+    date: 'University Service',
+    likes: 198,
+    commentsCount: 0,
+    governorateId: 'nineveh',
+    universityId: 'u_mosul',
+    imageUrl: 'https://images.unsplash.com/photo-1521587760476-6c12a4b040da?auto=format&fit=crop&q=80&w=600',
+    tags: ['Library', 'Research Databases', 'Mosul'],
+    commentsList: [],
+    verified: true
+  },
+
+  // 8. Events - Academic Workshops
+  {
+    id: 'user-campus-tech-event',
+    type: 'campus_life',
+    category: 'event',
+    sourceType: 'event',
+    titleEN: 'Interactive Workshops and Annual Science Symposia 🔬📐',
+    titleAR: 'حلقات النقاش السنوية ومعارض الابتكار العلمي والتكنولوجي 🔬📐',
+    titleKU: 'ۆرک شۆپەکان و پێشانگای داهێنانی زانستی ساڵانە 🔬📐',
+    contentEN: 'Join curated scientific exhibitions: explore student software/hardware prototypes, listen to specialized professors, and engage in constructive scholastic panels.',
+    contentAR: 'شارك في معارض الابتكارات الطلابية: استعرض مشاريع التخرج وهندسة النظم لزملائك، وقابل أساتذة الجامعة المختصين بقطاعات الطاقة والبرمجيات والمقاولات.',
+    contentKU: 'بەشداری پێشانگای زانستی بکە: پڕۆژە نایابەکانی زانکۆ ببینە، لەگەڵ پسپۆڕانی بوار جیاوازەکان گفتوگۆ بکە، و بیرۆکەکانت دەوڵەمەند بکە.',
+    author: {
+      name: 'Verified University Source',
+      role: 'staff',
+      avatar: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=150',
+      verified: true
+    },
+    date: 'Academic Event',
+    likes: 276,
+    commentsCount: 0,
+    governorateId: 'baghdad',
+    universityId: 'u_baghdad',
+    imageUrl: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=600',
+    tags: ['Symposia', 'Technology Exhibits', 'Baghdad'],
+    commentsList: [],
+    verified: true
+  },
+
+  // 9. Student Success Stories
+  {
+    id: 'user-campus-success-story',
+    type: 'campus_life',
+    category: 'campus_guide',
+    sourceType: 'general_guide',
+    titleEN: 'Structuring Outstanding Final Graduation Research Papers 📝🎓',
+    titleAR: 'إرشادات منهجية لكتابة بحوث التخرج الأكاديمية بنجاح 📝🎓',
+    titleKU: 'پلانی مێتۆدۆلۆژی بۆ نووسینی باشترین توێژینەوەی دەرچوون 📝🎓',
+    contentEN: 'A comprehensive academic walkthrough: refine your scientific methodologies, properly document and write citations, leverage libraries, and practice structured slides presentation.',
+    contentAR: 'خطوات منهجية لإعداد بحوث تخرج جامعية متميزة: حدد الأسئلة البحثية بدقة، وثّق مراجعك بشكل مبرهن، استعن بأرشيف المكتبات الكبرى، وتدرب مسبقاً على التقديم.',
+    contentKU: 'فێربە چۆن توێژینەوەیەکی زانستی بەرز دەنوسیت: شیواز و مێتۆد دەستنیشان بکە، سەرچاوە فەرمییەکان بەکاربهێنە، و کورتە و پێشکەشکردنەکەت ڕێکبخە.',
+    author: {
+      name: 'Academic Guidance Portal',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1497633762265-9d179a990aa6?auto=format&fit=crop&q=80&w=150',
+      verified: false
+    },
+    date: 'Academic Resource',
+    likes: 189,
+    commentsCount: 0,
+    governorateId: 'all',
+    universityId: 'all',
+    imageUrl: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=600',
+    tags: ['Success Stories', 'Research Methodologies', 'Success'],
+    commentsList: [],
+    verified: false
+  },
+
+  // 10. City Guide - University Area Study Spot
+  {
+    id: 'user-campus-city-guide',
+    type: 'campus_life',
+    category: 'campus_guide',
+    sourceType: 'general_guide',
+    titleEN: 'Study Spot Sunset: Beautiful Campus Gardens 🌅📖',
+    titleAR: 'ساعة الغروب الذهبية في حدائق وصروح الجامعة الهادئة 🌅📖',
+    titleKU: 'دیمەنی دڵفڕێنی کاتژمێری زێڕین لە باخچەی زانکۆکاندا 🌅📖',
+    contentEN: 'For students seeking peaceful and relaxed environments for self-paced reading and reviewing between class schedules on campus gardens.',
+    contentAR: 'لأجل المذاكرة والاطلاع المستقل في بيئات هادئة وطبيعية خلابة بين أوقات المحاضرات الأكاديمية بداخل أروقة حدائق الحرم.',
+    contentKU: 'بۆ ئەو قوتابییانەی بەدوای ژینگەیەکی هێمن و ئارامدا دەگەڕێن بۆ خوێندنەوە و پیاچوونەوە لە نێوان کاتژمێرەکانی وانەکاند لە باخچەکاندا.',
+    author: {
+      name: 'Verified University Source',
+      role: 'staff',
+      avatar: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=150',
+      verified: true
+    },
+    date: 'Campus Landscape',
+    likes: 211,
+    commentsCount: 0,
+    governorateId: 'sulaymaniyah',
+    universityId: 'u_sulaymaniyah',
+    imageUrl: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600',
+    tags: ['Campus Guide', 'Sunset Study', 'Landscape'],
+    commentsList: [],
+    verified: true
   },
 
   // 7. Asiacell Elite Graduate Accelerator Program
@@ -1107,84 +1238,65 @@ export const initialFeedItems: FeedItem[] = [
     ]
   },
 
-  // 4. POLL (Life)
+  // 4. OFFICIAL ADVISOR QUERY (Life)
   {
     id: 'poll-1',
     type: 'poll',
-    titleEN: 'Where is the absolute best study spot near Mosul University?',
-    titleAR: 'أين هو أفضل مكان للمذاكرة والدراسة قرب جامعة الموصل؟',
-    titleKU: 'باشترین شوێنی خوێندن لە نزیک زانکۆی مووسڵ لەکوێیە؟',
-    contentEN: 'Exam season is intense. Where are we pulling our all-nighter group studies?',
-    contentAR: 'موسم الامتحانات مكثف جداً. أين نقضي ليالي المذاكرة الجماعية؟',
-    contentKU: 'وەرزی تاقیکردنەوەکان چڕە. لەکوێ شەونخونی دەکەین بۆ خوێندنی بەکۆمەڵ؟',
+    category: 'campus_guide',
+    sourceType: 'general_guide',
+    titleEN: 'Student Survey: Preferred Studying & Research Spots near Campus? 🏛️📚',
+    titleAR: 'استفتاء الطلاب: ما هي أفضل الأماكن للمذاكرة والبحث العلمي؟ 🏛️📚',
+    titleKU: 'ڕاپرسی قوتابیان: باشترین شوێنی کۆبوونەوە و خوێندن لە کەمپەس؟ 🏛️📚',
+    contentEN: 'In our efforts to optimize study corridors, which facilities do you utilize most frequently for group research and revisions?',
+    contentAR: 'في إطار جهودنا لتطوير المرافق الدراسية المشتركة، ما هي الأماكن التي تفضلون استخدامها للمراجعات والبحوث الجماعية؟',
+    contentKU: 'لەپێناو باشترکردنی شوێنی خوێندن بۆ خوێندکاران، دەتەوێت چ شوێنێک زیاتر بەکاربهێنیت بۆ خوێندن و فێربوون؟',
     author: {
-      name: 'Sara Mosuli',
-      role: 'student',
-      avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=100'
+      name: 'University Library Services',
+      role: 'staff',
+      avatar: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=100',
+      verified: true
     },
-    date: '6 hours ago',
+    date: 'Official Inquiry',
     likes: 120,
-    commentsCount: 34,
+    commentsCount: 0,
     universityId: 'u_mosul',
     governorateId: 'nineveh',
     pollOptions: [
-      { id: 'p1-1', textEN: 'The Central Library (Quiet but crowded)', textAR: 'المكتبة المركزية (هادئة لكن مزدحمة)', textKU: 'کتێبخانەی ناوەندی (بێدەنگ بەڵام قەرەباڵغ)', votes: 145 },
-      { id: 'p1-2', textEN: 'Caprice Cafe (Incredible coffee, good Wi-Fi)', textAR: 'مقهى كابريس (قهوة مذهلة وإنترنت رائع)', textKU: 'کافێی کاپریس (قاوەی ناوازە و ئینتەرنێتی باش)', votes: 204 },
-      { id: 'p1-3', textEN: 'Engineering College gardens (Best breeze)', textAR: 'حدائق كلية الهندسة (أفضل هواء نقي)', textKU: 'باخچەکانی کۆلێژی ئەندازیاری (باشترین هەوا)', votes: 98 },
-      { id: 'p1-4', textEN: 'My room, under the split AC ❄️', textAR: 'غرفتي الشخصية، تحت السبلت ❄️', textKU: 'ژوورەکەی خۆم، لەژێر سپلیتەکەدا ❄️', votes: 412 }
+      { id: 'p1-1', textEN: 'The Central Library Study Hall (Quiet setting)', textAR: 'قاعة المطالعة بالمكتبة المركزية (هدوء تام)', textKU: 'کتێبخانەی ناوەندی (هێمن)', votes: 245 },
+      { id: 'p1-2', textEN: 'College Gardens & Outdoor Pavilions', textAR: 'حدائق الكلية والمظلات الخارجية', textKU: 'باخچەکانی لای دەرەوە', votes: 198 },
+      { id: 'p1-3', textEN: 'Self-paced Reading Rooms within Departments', textAR: 'قاعات المراجعة المخصصة بالأقسام العلمية', textKU: 'ژوورەکانی گفوگۆ لە بەشەکەت', votes: 142 }
     ],
-    tags: ['Mosul', 'Poll', 'StudySpots'],
-    commentsList: [
-      {
-        id: 'cp-1',
-        authorName: 'Mustafa Al-Hadithi',
-        authorRole: 'student',
-        authorAvatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?auto=format&fit=crop&q=80&w=100',
-        content: 'Nothing beats the Split AC in 45°C June weather, subhanAllah!',
-        date: '5 hours ago'
-      }
-    ]
+    tags: ['Mosul', 'Academic Facilities', 'Survey'],
+    commentsList: [],
+    verified: true
   },
 
-  // 5. ANONYMOUS QUESTION (Ask)
+  // 5. ACADEMIC ADVISORY ENTRY (Ask)
   {
     id: 'ask-1',
-    type: 'anonymous_question',
-    titleEN: 'Urgent: How rigid is Salahaddin University attendance warning policy?',
-    titleAR: 'عاجل: ما مدى صرامة سياسة إنذار غيابات جامعة صلاح الدين؟',
-    titleKU: 'بەپەلە: سیاسەتی ئاگادارکردنەوەی نەهاتنی زانکۆی سەڵاحەدین تا چەند توندە؟',
-    contentEN: 'I missed 8 hours of Control Systems because of a medical emergency and got a second warning (إنذار ثاني). Will I actually get excluded from taking the exam, or is there a petition form?',
-    contentAR: 'تغيبت ٨ ساعات عن مادة أنظمة التحكم بسبب ظرف طبي طارئ واستلمت إنذاراً ثانياً. هل سيتم حرماني فعلياً من الامتحان أم هناك استمارة تقديم عذر طبي؟',
-    contentKU: '٨ کاتژمێر لە وانەی سیستەمی کۆنترۆڵ نەهاتووم بەهۆی فریاکەوتنی پزیشکی و ئاگادارکردنەوەی دووەمم پێگەیشت. ئایا بە ڕاستی بێبەش دەکرێم لە تاقیکردنەوە یان فۆرمی داواکاری هەیە؟',
+    type: 'campus_life',
+    category: 'exams',
+    sourceType: 'official_update',
+    titleEN: 'Advisory FAQ: Attendance & Absence Excuse Policies 📑🩺',
+    titleAR: 'الاستشارات الأكاديمية: سياسات الغيابات والأعذار الطبية المعتمدة 📑🩺',
+    titleKU: 'ڕێنمایی ئەکادیمی: کاروباری نەهاتن و مۆڵەتی پزیشکی فەرمی 📑🩺',
+    contentEN: 'Official Policy: Academic warnings are triggered automatically upon reaching the absence thresholds. If you have documentable medical justification, please present your official hospital/clinic report verified by the health department directly to the Assistant Dean of Student Affairs within 5 days.',
+    contentAR: 'السياسة الرسمية: يتم إصدار إنذارات الغيابات تلقائياً عند تجاوز المدد المسموحة بها. للاعتداد بالأعذار الطبية، يرجى تقديم تقرير المستشفى الرسمي المصدق من الجهات الصحية مباشرة إلى معاون العميد لشؤون الطلبة خلال ٥ أيام من تاريخ الغياب.',
+    contentKU: 'سیاسەتی فەرمی: ئاگادارکردنەوەی نەهاتن بە شێوازی ئۆتۆماتیکی پێشکەش دەکرێت. ئەگەر بەڵگەنامەی فەرمی پزیشکیتان هەیە، پێویستە لە ماوەی ٥ ڕۆژدا پێشکەشی بکەن بۆ ئەوەی تۆمار بکرێت بە نەهاتنی ڕێگەپێدراو.',
     author: {
-      name: 'Anonymous Student',
-      role: 'student',
-      avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100',
+      name: 'Office of Student Advising',
+      role: 'institution',
+      avatar: 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=100',
+      verified: true
     },
-    date: '2 hours ago',
-    likes: 42,
-    commentsCount: 9,
+    date: 'Official Advisor',
+    likes: 85,
+    commentsCount: 0,
     universityId: 'u_salahaddin',
     governorateId: 'erbil',
-    tags: ['Advising', 'Erbil', 'Anonymous'],
-    commentsList: [
-      {
-        id: 'ca-1',
-        authorName: 'Karwan Sleman',
-        authorRole: 'student',
-        authorAvatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?auto=format&fit=crop&q=80&w=100',
-        content: 'Go immediately to the Dean assistant for student affairs (معاون العميد لشؤون الطلبة). Since you have a medical report, they will help you drop the hours and convert it into excused.',
-        date: '1 hour ago'
-      },
-      {
-        id: 'ca-2',
-        authorName: 'Dr. Hersh Ahmed',
-        authorRole: 'teacher',
-        authorAvatar: 'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?auto=format&fit=crop&q=80&w=100',
-        content: 'Yes, Karwan is correct. Do not delay. Bring the original stomatologist/hospital report to your head of department by tomorrow morning.',
-        date: '45 mins ago'
-      }
-    ]
+    tags: ['Advising', 'Erbil', 'Policies'],
+    commentsList: [],
+    verified: true
   },
 
   // 6. SCHOLARSHIP (Future)

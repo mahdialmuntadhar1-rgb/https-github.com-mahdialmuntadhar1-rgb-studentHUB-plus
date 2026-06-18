@@ -8,7 +8,7 @@ import {
   MessageItem 
 } from '../types';
 
-export const BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
+export const BACKEND_URL = '';
 const API_BASE = `${BACKEND_URL}/api`;
 
 function getHeaders() {
@@ -300,10 +300,24 @@ export const opportunityAutomation = {
   }
 };
 
-export async function getOpportunities(lang: Language = 'ar') {
+export async function getOpportunities(categoryOrLang?: string, lang: Language = 'ar') {
   try {
-    const res = await fetch(`${BACKEND_URL}/api/opportunities`);
-    return await handleResponse(res, lang);
+    let category: string | undefined = undefined;
+    let finalLang = lang;
+
+    if (categoryOrLang) {
+      if (['ar', 'en', 'ku'].includes(categoryOrLang)) {
+        finalLang = categoryOrLang as Language;
+      } else {
+        category = categoryOrLang;
+      }
+    }
+
+    const url = category 
+      ? `${BACKEND_URL}/api/opportunities?category=${category}` 
+      : `${BACKEND_URL}/api/opportunities`;
+    const res = await fetch(url);
+    return await handleResponse(res, finalLang);
   } catch (err: any) {
     console.error('Error fetching opportunities:', err);
     throw err;

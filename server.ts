@@ -4,6 +4,7 @@ import fs from "fs";
 import { createServer as createViteServer } from "vite";
 import { GoogleGenAI } from "@google/genai";
 import dotenv from "dotenv";
+import multer from "multer";
 
 dotenv.config();
 
@@ -339,59 +340,109 @@ app.get("/api/health", (req, res) => {
 });
 
 // Dynamic Opportunities feed (Returns Approved opportunities to standard search with query filtering)
-app.get("/api/opportunities", (req, res) => {
-  const db = readDB();
-  
-  // 1. Core Filtering: Filter for approved/expired opportunities
-  let list = db.opportunities || [];
-  
-  // Enforce approved or expired status for search feed
-  list = list.filter((o: any) => o.status === "approved" || o.status === "expired" || !o.status);
-  
-  // Map category constraint
-  const allowedCategories = ["job", "scholarship", "internship", "training", "fellowship", "volunteering", "competition"];
-  list = list.filter((o: any) => allowedCategories.includes(o.category));
+app.get("/api/opportunities", async (req, res) => {
+  try {
+    const { category, governorate, university_id, limit, offset } = req.query;
 
-  // 2. Query Parameters Filters
-  const { type, category, governorate, university_id, institution_id, limit, offset } = req.query;
+    // Build the remote target url
+    const targetUrl = new URL("https://rafid-api.mahdialmuntadhar1.workers.dev/api/opportunities");
+    if (category) targetUrl.searchParams.set("category", String(category));
+    if (governorate) targetUrl.searchParams.set("governorate", String(governorate));
+    if (university_id) targetUrl.searchParams.set("university_id", String(university_id));
 
-  // Filter by category or type specifically
-  const catFilter = category || type;
-  if (catFilter) {
-    list = list.filter((o: any) => o.category?.toLowerCase() === String(catFilter).toLowerCase());
+    console.log(`[API Proxy] Fetching opportunities from ${targetUrl.toString()}`);
+    const response = await fetch(targetUrl.toString());
+    let list: any[] = [];
+    if (response.ok) {
+      list = await response.json();
+    } else {
+      console.error(`Backend returned status ${response.status}`);
+    }
+
+    // Merge any locally approved items in database.json too
+    try {
+      const db = readDB();
+      const localOpps = db.opportunities || [];
+      const approvedLocal = localOpps.filter((o: any) => o.status === "approved" || !o.status);
+      list = [...list, ...approvedLocal];
+    } catch (e) {
+      console.error("Failed to read local DB for merging:", e);
+    }
+
+    // De-duplicate by id
+    const uniqueMap = new Map();
+    for (const item of list) {
+      if (item && item.id) {
+        uniqueMap.set(String(item.id), item);
+      }
+    }
+    let combinedList = Array.from(uniqueMap.values());
+
+    // 1. Enforce strict filter rules:
+    // "Only show public rows where: status = approved"
+    // "Do not show: pending, pending_review, rejected, duplicate, expired"
+    combinedList = combinedList.filter((o: any) => o && o.status === "approved");
+
+    // "9. Do not mix Campus Life cards into Opportunities."
+    // Let's filter out any categories that belong strictly to campus life
+    const campusLifeCategories = ["event", "news", "announcement", "exam", "registration", "student_club", "activity"];
+    combinedList = combinedList.filter((o: any) => {
+      const cat = String(o.category || o.type || "").toLowerCase();
+      return !campusLifeCategories.includes(cat);
+    });
+
+    // 2. Extra Category filtering in Express if requested
+    if (category) {
+      const catVal = String(category).toLowerCase();
+      combinedList = combinedList.filter((o: any) => {
+        const cat = String(o.category || o.type || "").toLowerCase();
+        if (catVal === "job") {
+          return ["job", "full_time_job", "part_time_job"].includes(cat) || cat.includes("job");
+        }
+        if (catVal === "scholarship") {
+          return cat === "scholarship" || cat.includes("scholarship");
+        }
+        if (catVal === "internship") {
+          return cat === "internship" || cat.includes("intern");
+        }
+        if (catVal === "training") {
+          return cat === "training" || cat.includes("train");
+        }
+        return cat === catVal || cat.includes(catVal);
+      });
+    }
+
+    // Governorate filtering as fallback
+    if (governorate && governorate !== "all") {
+      const govVal = String(governorate).toLowerCase();
+      combinedList = combinedList.filter((o: any) => {
+        const govId = String(o.governorateId || o.governorate || "").toLowerCase();
+        return govId === govVal || govId === "all" || govId.includes("all iraq");
+      });
+    }
+
+    // University filtering as fallback
+    if (university_id && university_id !== "all") {
+      const uniVal = String(university_id).toLowerCase();
+      combinedList = combinedList.filter((o: any) => {
+        const uniId = String(o.universityId || o.university_id || "").toLowerCase();
+        return uniId === uniVal || uniId === "all";
+      });
+    }
+
+    // 3. Pagination Support (offset/limit)
+    const start = offset ? parseInt(String(offset), 10) : 0;
+    const size = limit ? parseInt(String(limit), 10) : combinedList.length;
+    let paginated = combinedList;
+    if (!isNaN(start) && !isNaN(size)) {
+      paginated = combinedList.slice(start, start + size);
+    }
+
+    res.json(paginated);
+  } catch (err: any) {
+    console.error("Error in /api/opportunities proxy:", err);
+    res.status(502).json({ error: "Failed to fetch or process opportunities: " + err.message });
   }
-
-  // Filter by governorate (handles "all" nicely)
-  if (governorate && governorate !== "all") {
-    list = list.filter((o: any) => 
-      o.governorateId?.toLowerCase() === String(governorate).toLowerCase() || 
-      o.governorate?.toLowerCase() === String(governorate).toLowerCase() ||
-      o.governorateId === "all" ||
-      o.governorate === "All Iraq"
-    );
-  }
-
-  // Filter by university_id or institution_id
-  const uniFilter = university_id || institution_id;
-  if (uniFilter && uniFilter !== "all") {
-    list = list.filter((o: any) => 
-      o.universityId?.toLowerCase() === String(uniFilter).toLowerCase() ||
-      o.university_id?.toLowerCase() === String(uniFilter).toLowerCase() ||
-      o.universityId === "all" ||
-      o.university_id === "all"
-    );
-  }
-
-  // 3. Pagination Support (offset/limit)
-  let result = list;
-  const start = offset ? parseInt(String(offset), 10) : 0;
-  const size = limit ? parseInt(String(limit), 10) : result.length;
-  
-  if (!isNaN(start) && !isNaN(size)) {
-    result = result.slice(start, start + size);
-  }
-
-  res.json(result);
 });
 
 // Dynamic Highlights feed (Returns academic newsletters and notifications)
@@ -699,18 +750,431 @@ Here is my initial guidance for you:
   }
 });
 
+// CSV parser helper that correctly handles quotes and commas inside fields
+function parseCSV(text: string): string[][] {
+  const result: string[][] = [];
+  let row: string[] = [];
+  let inQuotes = false;
+  let currentVal = "";
+  
+  for (let i = 0; i < text.length; i++) {
+    const char = text[i];
+    const nextChar = text[i + 1];
+    
+    if (char === '"') {
+      if (inQuotes && nextChar === '"') {
+        currentVal += '"';
+        i++; // skip next quote
+      } else {
+        inQuotes = !inQuotes;
+      }
+    } else if (char === ',' && !inQuotes) {
+      row.push(currentVal.trim());
+      currentVal = "";
+    } else if ((char === '\r' || char === '\n') && !inQuotes) {
+      row.push(currentVal.trim());
+      currentVal = "";
+      if (row.length > 0 || row.some(cell => cell !== "")) {
+        result.push(row);
+      }
+      row = [];
+      if (char === '\r' && nextChar === '\n') {
+        i++; // skip next char
+      }
+    } else {
+      currentVal += char;
+    }
+  }
+  
+  if (currentVal || row.length > 0) {
+    row.push(currentVal.trim());
+    if (row.some(cell => cell !== "")) {
+      result.push(row);
+    }
+  }
+  
+  return result;
+}
+
+// CSV formatter helper that correctly wraps commas and quotes
+function toCSVLine(cells: string[]): string {
+  return cells.map(cell => {
+    let s = cell ? String(cell) : "";
+    if (s.includes('"') || s.includes(',') || s.includes('\n') || s.includes('\r')) {
+      s = s.replace(/"/g, '""');
+      return `"${s}"`;
+    }
+    return s;
+  }).join(",");
+}
+
+const storage = multer.memoryStorage();
+const uploadCsvMiddleware = multer({ storage }).single("file");
+
+// Real Manual Opportunities Importer Endpoint
+app.post("/api/opportunity-automation/import-csv", uploadCsvMiddleware, (req, res) => {
+  try {
+    const file = req.file;
+    if (!file) {
+      return res.status(400).json({ success: false, error: "Missing file payload in form-data field 'file'" });
+    }
+
+    const fileContent = file.buffer.toString("utf-8");
+    const parsed = parseCSV(fileContent);
+
+    if (parsed.length === 0) {
+      return res.status(400).json({ success: false, error: "Uploaded CSV file is empty" });
+    }
+
+    // Capture headers and normalize them
+    const headers = parsed[0].map(h => h.toLowerCase().trim().replace(/['"_-]+/g, " "));
+    console.log("[Importer] Normalizing headers for columns:", headers);
+
+    const isTestMode = req.query.testMode === "true" || req.query.test === "true" || req.body?.testMode === "true";
+
+    // Auto classify import design
+    let fileType: "job" | "scholarship" = "job";
+    const isScholarship = headers.some(h => 
+      h.includes("scholarship name") || 
+      h.includes("sponsoring institution") || 
+      h.includes("degree level") ||
+      h.includes("eligibility requirement") ||
+      h.includes("official scholarship")
+    );
+
+    const isJobFile = headers.some(h => 
+      h.includes("job id") || 
+      h.includes("employer company") || 
+      h.includes("industry sector") || 
+      h.includes("experience required") ||
+      h.includes("job title")
+    );
+
+    if (isScholarship) {
+      fileType = "scholarship";
+    } else if (isJobFile) {
+      fileType = "job";
+    } else {
+      // Fallback
+      if (headers.join(" ").includes("scholarship") || headers.join(" ").includes("degree")) {
+        fileType = "scholarship";
+      } else {
+        fileType = "job";
+      }
+    }
+
+    console.log(`[Importer] Classified file type as: ${fileType} (isTestMode: ${isTestMode})`);
+
+    // Load local DB
+    let db: any = { opportunities: [], sources: [], logs: [] };
+    const dbPath = path.join(process.cwd(), "database.json");
+    if (fs.existsSync(dbPath)) {
+      try {
+        db = JSON.parse(fs.readFileSync(dbPath, "utf-8"));
+      } catch (err) {
+        console.error("Failed to parse database.json, starting with empty:", err);
+      }
+    }
+    if (!db.opportunities) db.opportunities = [];
+
+    // Map existing entries to prevent duplicates
+    const existingIds = new Set<string>();
+    const existingTitlesAndOrgs = new Set<string>();
+    const existingUrls = new Set<string>();
+
+    for (const opp of db.opportunities) {
+      if (opp.id) existingIds.add(String(opp.id).toLowerCase());
+      if (opp.titleEN && opp.organization) {
+        existingTitlesAndOrgs.add(`${opp.titleEN.toLowerCase().trim()}::${opp.organization.toLowerCase().trim()}`);
+      }
+      if (opp.original_source_url) {
+        existingUrls.add(opp.original_source_url.toLowerCase().trim());
+      }
+    }
+
+    const cleanRows: any[] = [];
+    const rejectedRows: { rowIndex: number; reason: string; row: string[] }[] = [];
+    const duplicateRows: { rowIndex: number; id?: string; title?: string; row: string[] }[] = [];
+
+    // All data lines in CSV
+    let dataRows = parsed.slice(1);
+    
+    // Test mode limit: around 30 rows
+    if (isTestMode) {
+      dataRows = dataRows.slice(0, 30);
+    }
+
+    const getVal = (row: string[], idx: number) => {
+      if (idx === -1 || idx >= row.length) return "";
+      return row[idx] ? row[idx].trim() : "";
+    };
+
+    if (fileType === "scholarship") {
+      // Index headers matching Scholarship Excel structure
+      const titleIdx = headers.findIndex(h => h.includes("scholarship name") || h.includes("title"));
+      const orgIdx = headers.findIndex(h => h.includes("country") || h.includes("institution") || h.includes("organization") || h.includes("sponsor"));
+      const urlIdx = headers.findIndex(h => h.includes("website url") || h.includes("url") || h.includes("link"));
+      const degIdx = headers.findIndex(h => h.includes("degree") || h.includes("level"));
+      const deadlineIdx = headers.findIndex(h => h.includes("deadline"));
+      const eligIdx = headers.findIndex(h => h.includes("eligibility") || h.includes("requirement") || h.includes("description"));
+
+      dataRows.forEach((row, rawIdx) => {
+        const rowIndex = rawIdx + 2;
+        const rawTitle = getVal(row, titleIdx);
+
+        // Validation: Only reject row if title is empty or duplicate
+        if (!rawTitle) {
+          rejectedRows.push({ rowIndex, reason: "Empty scholarship title", row });
+          return;
+        }
+
+        const org = getVal(row, orgIdx) || "Sponsoring Institution";
+        const url = getVal(row, urlIdx);
+        const degree = getVal(row, degIdx);
+        const deadlineVal = getVal(row, deadlineIdx);
+        const eligibility = getVal(row, eligIdx) || `Scholarship opportunity for Iraqi students in ${degree || "academic fields"}.`;
+
+        // Check duplicate
+        const titleOrgKey = `${rawTitle.toLowerCase().trim()}::${org.toLowerCase().trim()}`;
+        const normalizedUrl = url ? url.toLowerCase().trim() : "";
+        const isDuplicate = 
+          (normalizedUrl && existingUrls.has(normalizedUrl)) || 
+          existingTitlesAndOrgs.has(titleOrgKey);
+
+        if (isDuplicate) {
+          duplicateRows.push({ rowIndex, title: rawTitle, row });
+          return;
+        }
+
+        // Add to matching caches
+        if (normalizedUrl) existingUrls.add(normalizedUrl);
+        existingTitlesAndOrgs.add(titleOrgKey);
+
+        const newId = `scholarship-import-${Date.now()}-${rawIdx}-${Math.random().toString(36).substr(2, 4)}`;
+
+        const item = {
+          id: newId,
+          titleEN: rawTitle,
+          titleAR: `[منحة] ${rawTitle}`,
+          titleKU: `[سکۆلەرشیپی] ${rawTitle}`,
+          contentEN: eligibility,
+          contentAR: `متطلبات وشروط منحة دراسية: ${eligibility}`,
+          contentKU: `مەرجەکانی سکۆلەرشیپ: ${eligibility}`,
+          organization: org,
+          category: "scholarship", // Scholarship rows must be category = scholarship
+          country: "Iraq",
+          governorateId: "all",
+          deadline: deadlineVal || "2027-12-31", // future date to keep active, deadline missing ok
+          application_link: url,
+          original_source_url: url,
+          published_date: "2026-06-18",
+          imageUrl: "https://images.unsplash.com/photo-1522202176988-66273c2fd55f?auto=format&fit=crop&q=80&w=600",
+          status: "approved", // All rows must have status = approved
+          workplaceType: "Remote",
+          whoCanApply: degree || "Undergraduates and Fresh Graduates",
+          salary: degree || "Fully Funded / Tuition covered",
+          location: org === "Sponsoring Institution" ? "Global" : org,
+          savedCount: 0,
+          universityAppliedCount: 0,
+          companyVerified: true
+        };
+
+        cleanRows.push(item);
+      });
+
+    } else {
+      // job file type
+      const idIdx = headers.findIndex(h => h.includes("job id") || h.includes("job_id"));
+      const govIdx = headers.findIndex(h => h.includes("governorate") || h.includes("gov"));
+      const locIdx = headers.findIndex(h => h.includes("city center") || h.includes("city_center") || h.includes("location"));
+      const orgIdx = headers.findIndex(h => h.includes("employer company") || h.includes("employer_company") || h.includes("organization") || h.includes("company"));
+      const titleIdx = headers.findIndex(h => h.includes("job title") || h.includes("job_title") || h.includes("title"));
+      const descIdx = headers.findIndex(h => h.includes("industry sector") || h.includes("industry_sector") || h.includes("description"));
+      const sourceIdx = headers.findIndex(h => h.includes("primary source platform") || h.includes("primary_source_platform") || h.includes("source"));
+      const expIdx = headers.findIndex(h => h.includes("experience required") || h.includes("experience_required") || h.includes("experience"));
+      const typeIdx = headers.findIndex(h => h.includes("employment type") || h.includes("employment_type") || h.includes("type"));
+      const verifyIdx = headers.findIndex(h => h.includes("verification status") || h.includes("verification_status"));
+
+      dataRows.forEach((row, rawIdx) => {
+        const rowIndex = rawIdx + 2;
+        const rawTitle = getVal(row, titleIdx);
+
+        // Validation: Only reject row if title is empty or duplicate
+        if (!rawTitle) {
+          rejectedRows.push({ rowIndex, reason: "Empty job title", row });
+          return;
+        }
+
+        const jobId = getVal(row, idIdx) || `job-import-${Date.now()}-${rawIdx}`;
+        const governorate = getVal(row, govIdx);
+        const cityCenter = getVal(row, locIdx);
+        const company = getVal(row, orgIdx) || "Recruiter Company";
+        const sector = getVal(row, descIdx) || "Employment opportunities in various services.";
+        const exp = getVal(row, expIdx) || "Graduates & undergraduates welcome.";
+        const verify = getVal(row, verifyIdx);
+        const empType = getVal(row, typeIdx) || "On-site";
+
+        // Check duplicate
+        const normalizedJobId = jobId.toLowerCase().trim();
+        const titleOrgKey = `${rawTitle.toLowerCase().trim()}::${company.toLowerCase().trim()}`;
+        
+        const isDuplicate = 
+          existingIds.has(normalizedJobId) || 
+          existingTitlesAndOrgs.has(titleOrgKey);
+
+        if (isDuplicate) {
+          duplicateRows.push({ rowIndex, id: jobId, title: rawTitle, row });
+          return;
+        }
+
+        // Add to matching caches
+        existingIds.add(normalizedJobId);
+        existingTitlesAndOrgs.add(titleOrgKey);
+
+        // governorate mapping
+        let govId = "all";
+        const govLower = governorate.toLowerCase();
+        if (govLower.includes("baghdad") || govLower.includes("بغداد")) {
+          govId = "baghdad";
+        } else if (govLower.includes("sulay") || govLower.includes("سليمانية") || govLower.includes("slemani")) {
+          govId = "sulaymaniyah";
+        } else if (govLower.includes("erbil") || govLower.includes("اربيل") || govLower.includes("hawler")) {
+          govId = "erbil";
+        } else if (govLower.includes("basra") || govLower.includes("بصرة")) {
+          govId = "basra";
+        } else if (govLower.includes("nin") || govLower.includes("نينوى") || govLower.includes("mosul")) {
+          govId = "nineveh";
+        } else if (govLower.includes("duh") || govLower.includes("دهوك")) {
+          govId = "duhok";
+        } else if (govLower.includes("kirk") || govLower.includes("كركوك")) {
+          govId = "kirkuk";
+        } else {
+          govId = "all"; // If governorate is unclear, use governorateId = all
+        }
+
+        const item = {
+          id: jobId,
+          titleEN: rawTitle,
+          titleAR: `[وظيفة] ${rawTitle}`,
+          titleKU: `[کار] ${rawTitle}`,
+          contentEN: sector,
+          contentAR: `تفاصيل الصناعة والقطاع: ${sector}`,
+          contentKU: `کەرتی پیشەسازی و گەشەپێدان: ${sector}`,
+          organization: company,
+          category: "job", // Job rows must be category = job
+          country: "Iraq",
+          governorateId: govId,
+          deadline: "2027-12-31", // do not reject if deadline is missing, default to future
+          application_link: "", // Jobs file has no real direct URL, so set application_link = empty string
+          original_source_url: "",
+          published_date: "2026-06-18",
+          imageUrl: "https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=600",
+          status: "approved", // All rows must have status = approved
+          workplaceType: empType || "On-site",
+          whoCanApply: exp,
+          salary: "Competitive Salaries inside Iraq",
+          location: cityCenter ? `${cityCenter}, ${governorate}` : governorate || "Iraq (Multi-center)",
+          savedCount: 0,
+          universityAppliedCount: 0,
+          companyVerified: true,
+          verificationNote: verify
+        };
+
+        cleanRows.push(item);
+      });
+    }
+
+    // append new rows to database
+    db.opportunities = [...db.opportunities, ...cleanRows];
+    fs.writeFileSync(dbPath, JSON.stringify(db, null, 2), "utf-8");
+
+    // Generate output CSV files
+    const outDir = path.join(process.cwd(), "out");
+    if (!fs.existsSync(outDir)) {
+      fs.mkdirSync(outDir, { recursive: true });
+    }
+
+    const cleanHeader = "id,category,status,titleEN,organization,application_link,original_source_url,deadline,description,governorateId,location,workplaceType,whoCanApply,salary\n";
+    const cleanCSVContent = cleanHeader + cleanRows.map(o => 
+      toCSVLine([
+        o.id,
+        o.category,
+        o.status,
+        o.titleEN,
+        o.organization,
+        o.application_link,
+        o.original_source_url,
+        o.deadline,
+        o.contentEN,
+        o.governorateId,
+        o.location,
+        o.workplaceType,
+        o.whoCanApply,
+        o.salary
+      ])
+    ).join("\n");
+    fs.writeFileSync(path.join(outDir, "manual_import_clean.csv"), cleanCSVContent, "utf-8");
+
+    const rejectHeader = "row_index,reason,raw_values\n";
+    const rejectCSVContent = rejectHeader + rejectedRows.map(r => 
+      toCSVLine([String(r.rowIndex), r.reason, r.row.join(" | ")])
+    ).join("\n");
+    fs.writeFileSync(path.join(outDir, "manual_import_rejected.csv"), rejectCSVContent, "utf-8");
+
+    const dupHeader = "row_index,id_or_title,raw_values\n";
+    const dupCSVContent = dupHeader + duplicateRows.map(d => 
+      toCSVLine([String(d.rowIndex), d.id || d.title || "", d.row.join(" | ")])
+    ).join("\n");
+    fs.writeFileSync(path.join(outDir, "manual_import_duplicates.csv"), dupCSVContent, "utf-8");
+
+    const summary = {
+      importedCount: cleanRows.length,
+      rejectedCount: rejectedRows.length,
+      duplicateCount: duplicateRows.length,
+      totalProcessed: dataRows.length,
+      fileType,
+      isTestMode,
+      timestamp: new Date().toISOString()
+    };
+    fs.writeFileSync(path.join(outDir, "manual_import_summary.json"), JSON.stringify(summary, null, 2), "utf-8");
+
+    console.log(`[Importer SUCCESS] ${cleanRows.length} clean entries written!`);
+
+    res.json({
+      success: true,
+      file_type: fileType,
+      is_test_mode: isTestMode,
+      imported: cleanRows.length,
+      rejected: rejectedRows.length,
+      duplicates: duplicateRows.length,
+      total: dataRows.length,
+      summary
+    });
+
+  } catch (err: any) {
+    console.error("Manual Importer Failed:", err);
+    res.status(500).json({ success: false, error: "Importer failed internally: " + err.message });
+  }
+});
+
+function cleanProxyHeaders(sourceHeaders: any): Record<string, string> {
+  const headers: Record<string, string> = {};
+  const forbidden = ["host", "connection", "keep-alive", "transfer-encoding", "content-length"];
+  for (const [key, value] of Object.entries(sourceHeaders)) {
+    if (value !== undefined && value !== null && !forbidden.includes(key.toLowerCase())) {
+      headers[key] = String(value);
+    }
+  }
+  return headers;
+}
+
 // -------------------------------------------------------------
 // Proximity Routing & Live Workers Proxying (Outreach & Automation)
 // -------------------------------------------------------------
 app.all("/api/opportunity-automation*", async (req, res) => {
   try {
     const targetUrl = `https://rafid-api.mahdialmuntadhar1.workers.dev${req.originalUrl}`;
-    const headers: Record<string, string> = {};
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (key.toLowerCase() !== "host") {
-        headers[key] = value as string;
-      }
-    }
+    const headers = cleanProxyHeaders(req.headers);
 
     const isMultipart = req.headers["content-type"]?.startsWith("multipart/form-data");
     const method = req.method;
@@ -751,12 +1215,7 @@ app.all("/api/opportunity-automation*", async (req, res) => {
 app.all("/api/outreach*", async (req, res) => {
   try {
     const targetUrl = `https://rafid-api.mahdialmuntadhar1.workers.dev${req.originalUrl}`;
-    const headers: Record<string, string> = {};
-    for (const [key, value] of Object.entries(req.headers)) {
-      if (key.toLowerCase() !== "host") {
-        headers[key] = value as string;
-      }
-    }
+    const headers = cleanProxyHeaders(req.headers);
 
     const isMultipart = req.headers["content-type"]?.startsWith("multipart/form-data");
     const method = req.method;
@@ -790,6 +1249,48 @@ app.all("/api/outreach*", async (req, res) => {
   } catch (err: any) {
     console.error("Proxy error for outreach:", err);
     res.status(502).json({ success: false, error: "بوابة الرسائل للتواصل غير متصلة: " + err.message });
+  }
+});
+
+// Wildcard Fallback Proxy to Workers for all other /api/ unhandled endpoints
+app.all("/api/*", async (req, res) => {
+  try {
+    const targetUrl = `https://rafid-api.mahdialmuntadhar1.workers.dev${req.originalUrl}`;
+    console.log(`[Wildcard Proxy] Forwarding ${req.method} ${req.originalUrl} -> ${targetUrl}`);
+    
+    const headers = cleanProxyHeaders(req.headers);
+
+    const isMultipart = req.headers["content-type"]?.startsWith("multipart/form-data");
+    const method = req.method;
+
+    let body: any = undefined;
+    if (["POST", "PUT", "PATCH", "DELETE"].includes(method)) {
+      if (isMultipart) {
+        body = req;
+      } else {
+        body = JSON.stringify(req.body);
+      }
+    }
+
+    const response = await fetch(targetUrl, {
+      method,
+      headers,
+      body,
+      ...(isMultipart ? { duplex: "half" } : {})
+    } as any);
+
+    const contentType = response.headers.get("content-type") || "";
+    res.status(response.status);
+    if (contentType.includes("application/json")) {
+      const data = await response.json();
+      res.json(data);
+    } else {
+      const text = await response.text();
+      res.send(text);
+    }
+  } catch (err: any) {
+    console.error(`[Wildcard Proxy Error] Fail for ${req.originalUrl}:`, err);
+    res.status(502).json({ success: false, error: "Network gateway error: " + err.message });
   }
 });
 

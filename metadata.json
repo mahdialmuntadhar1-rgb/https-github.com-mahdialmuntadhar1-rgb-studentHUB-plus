@@ -1,6 +1,6 @@
 {
   "name": "Remix: Iraqi Campus Social App-ai-adviser",
-  "description": "A vibrant, mobile-first social and professional hub for Iraqi university students, graduates, and staff to connect, learn, and launch their careers.",
+  "description": "StudentHUB / Jamiaati: An academic engagement and career launcher for university students, featuring curated campus guides, advisory tips, and verified opportunities.",
   "requestFramePermissions": [
     "geolocation"
   ],

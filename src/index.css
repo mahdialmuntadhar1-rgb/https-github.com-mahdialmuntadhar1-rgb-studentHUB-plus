@@ -2,7 +2,7 @@
 @import "tailwindcss";
 
 @theme {
-  --font-sans: "Readex Pro", "Vazirmatn", "Noto Sans Arabic", "Cairo", "Outfit", system-ui, -apple-system, sans-serif;
+  --font-sans: "Vazirmatn", "Cairo", "Noto Sans Arabic", "Readex Pro", "Outfit", system-ui, -apple-system, sans-serif;
   --font-mono: "JetBrains Mono", monospace;
 
   --color-primary-dark: var(--background);
@@ -613,7 +613,7 @@ span[id^="live-time-ticker"] {
 /* Highly readable and beautiful Kurdish typography optimization */
 [lang="ku"],
 [lang="ku"] * {
-  font-family: "Readex Pro", "Vazirmatn", "Noto Sans Arabic", "Cairo", system-ui, -apple-system, sans-serif !important;
+  font-family: "Vazirmatn", "Cairo", "Noto Sans Arabic", "Readex Pro", system-ui, -apple-system, sans-serif !important;
   line-height: 1.7 !important;
   letter-spacing: 0px !important;
   word-spacing: 1.2px !important;

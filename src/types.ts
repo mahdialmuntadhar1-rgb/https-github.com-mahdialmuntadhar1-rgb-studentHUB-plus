@@ -124,6 +124,12 @@ export interface FeedItem {
   universityId?: string; // 'all' or specific
   governorateId?: string; // 'all' or specific
   
+  // Safe Campus Life Model Extensions
+  category?: string;
+  sourceType?: 'general_guide' | 'student_tip' | 'event' | 'club' | 'volunteering' | 'career_prep' | 'university_service' | 'official_update';
+  verified?: boolean;
+  createdAt?: string;
+
   // Specific Type Data
   videoUrl?: string; // Placeholder ratio string or actual link
   videoThumbnail?: string;
@@ -425,4 +431,22 @@ export interface ThreadMessagesResponse {
   thread: MessageThread;
   messages: MessageItem[];
 }
+
+export interface CampusLifeItem {
+  id: string;
+  category: string;
+  titleEN: string;
+  titleAR: string;
+  titleKU: string;
+  contentEN: string;
+  contentAR: string;
+  contentKU: string;
+  governorateId: string;
+  universityId: string;
+  imageUrl?: string;
+  sourceType: 'general_guide' | 'student_tip' | 'event' | 'club' | 'volunteering' | 'career_prep' | 'university_service' | 'official_update';
+  verified: boolean;
+  createdAt: string;
+}
+
 
