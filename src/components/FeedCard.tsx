@@ -445,7 +445,273 @@ export default function FeedCard({
   // Calculate percentages for poll
   const totalVotes = item.pollOptions?.reduce((acc, curr) => acc + curr.votes, 0) || 1;
 
-  return (
+  // JAMIAATI_SIMPLE_OPPORTUNITY_CARD_START
+  const simpleOpportunityTypes = [
+    'job',
+    'full_time_job',
+    'part_time_job',
+    'internship',
+    'scholarship',
+    'fellowship',
+    'training'
+  ];
+
+  const isSimpleOpportunity = simpleOpportunityTypes.includes(item.type);
+
+  const cleanOpportunityText = (raw: any, fallback: string): string => {
+    const value = String(raw ?? '').trim();
+
+    if (!value) return fallback;
+
+    const lower = value.toLowerCase();
+    if (
+      lower.startsWith('http://') ||
+      lower.startsWith('https://') ||
+      lower.includes('images.unsplash.com') ||
+      lower.includes('auto=format')
+    ) {
+      return fallback;
+    }
+
+    const cleaned = value
+      .replace(/ðŸ\S*/g, '')
+      .replace(/â€œ/g, '"')
+      .replace(/â€/g, '"')
+      .replace(/â€™/g, "'")
+      .replace(/â€˜/g, "'")
+      .replace(/â€¢/g, '')
+      .replace(/â€“/g, '-')
+      .replace(/â€”/g, '-')
+      .replace(/â€/g, '')
+      .replace(/ï¿½/g, '')
+      .replace(/�/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    return cleaned || fallback;
+  };
+
+  if (isSimpleOpportunity) {
+    const opportunityKind = ['scholarship', 'fellowship'].includes(item.type)
+      ? 'Scholarship'
+      : item.type === 'training'
+        ? 'Training'
+        : 'Job';
+
+    const opportunityUrl = String(
+      (item as any).applyUrl ||
+      (item as any).sourceUrl ||
+      (item as any).application_link ||
+      (item as any).source_url ||
+      (item as any).original_source_url ||
+      ''
+    ).trim();
+
+    const hasValidOpportunityUrl = /^https?:\/\//i.test(opportunityUrl);
+
+    const providerName = cleanOpportunityText(
+      (item as any).company ||
+      (item as any).institution_name ||
+      item.author?.name ||
+      'StudentHUB',
+      'StudentHUB'
+    );
+
+    const opportunityTitle = cleanOpportunityText(
+      title ||
+      item.titleEN ||
+      item.title_en ||
+      (item as any).title ||
+      '',
+      `${opportunityKind} opportunity`
+    );
+
+    const opportunityCaption = cleanOpportunityText(
+      content ||
+      item.contentEN ||
+      item.body_en ||
+      (item as any).description ||
+      (item as any).summary ||
+      '',
+      opportunityKind === 'Scholarship'
+        ? 'Review eligibility, requirements, and official scholarship details.'
+        : opportunityKind === 'Training'
+          ? 'Review training details, eligibility, and official source.'
+          : 'Review job details, requirements, and official application source.'
+    );
+
+    const opportunityLocation = cleanOpportunityText(
+      item.location ||
+      (item as any).governorate ||
+      (item as any).city ||
+      '',
+      ''
+    );
+
+    const rawImage = String(item.imageUrl || (item as any).image_url || '').trim();
+    const hasValidImage = /^https?:\/\//i.test(rawImage) && !rawImage.includes('images.unsplash.com');
+
+    const openOpportunity = () => {
+      if (hasValidOpportunityUrl) {
+        window.open(opportunityUrl, '_blank', 'noopener,noreferrer');
+      }
+    };
+
+    const shareOpportunity = () => {
+      const shareUrl = hasValidOpportunityUrl ? opportunityUrl : `${window.location.origin}/item/${item.id}`;
+      try {
+        navigator.clipboard.writeText(shareUrl);
+        setCopied(true);
+        setTimeout(() => setCopied(false), 1800);
+      } catch (_) {
+        handleShareClick();
+      }
+    };
+
+    return (
+      <motion.article
+        id={`feed-card-${item.id}`}
+        initial={{ opacity: 0, y: 12 }}
+        whileInView={{ opacity: 1, y: 0 }}
+        viewport={{ once: true, margin: '-40px' }}
+        transition={{ duration: 0.25 }}
+        className="bg-white rounded-3xl border border-slate-200 shadow-sm mb-5 overflow-hidden"
+      >
+        <div className="flex items-center gap-3 px-4 pt-4 pb-3">
+          <div className="w-11 h-11 rounded-full bg-gradient-to-br from-orange-400 to-amber-500 text-white flex items-center justify-center font-black text-sm shrink-0">
+            {providerName.slice(0, 1).toUpperCase()}
+          </div>
+
+          <div className="min-w-0 flex-1">
+            <div className="font-black text-sm text-slate-900 truncate">
+              {providerName}
+            </div>
+            <div className="flex items-center gap-2 text-[11px] text-slate-500 font-bold">
+              <span>{opportunityKind}</span>
+              {opportunityLocation && (
+                <>
+                  <span>•</span>
+                  <span className="truncate">{opportunityLocation}</span>
+                </>
+              )}
+            </div>
+          </div>
+
+          <span className="text-[10px] font-black uppercase tracking-wide px-2.5 py-1 rounded-full bg-slate-100 text-slate-700">
+            {opportunityKind}
+          </span>
+        </div>
+
+        {hasValidImage && (
+          <button
+            type="button"
+            onClick={openOpportunity}
+            className="w-full block bg-slate-100"
+          >
+            <img
+              src={rawImage}
+              alt={opportunityTitle}
+              className="w-full max-h-[360px] object-cover"
+              loading="lazy"
+              referrerPolicy="no-referrer"
+            />
+          </button>
+        )}
+
+        <div className="px-4 py-3">
+          {hasValidOpportunityUrl ? (
+            <button
+              type="button"
+              onClick={openOpportunity}
+              className="block text-left font-black text-[15px] leading-snug text-slate-950 hover:underline"
+            >
+              {opportunityTitle}
+            </button>
+          ) : (
+            <h3 className="font-black text-[15px] leading-snug text-slate-950">
+              {opportunityTitle}
+            </h3>
+          )}
+
+          <p className="mt-1.5 text-[13px] leading-relaxed text-slate-700 line-clamp-3">
+            {opportunityCaption}
+          </p>
+
+          {hasValidOpportunityUrl && (
+            <button
+              type="button"
+              onClick={openOpportunity}
+              className="mt-2 text-[12px] font-black text-orange-600 hover:underline"
+            >
+              View details
+            </button>
+          )}
+        </div>
+
+        <div className="px-4 py-3 border-t border-slate-100 flex items-center justify-between">
+          <div className="flex items-center gap-5">
+            <button
+              type="button"
+              onClick={() => onLike(item.id)}
+              className="flex items-center gap-1 text-slate-700"
+              aria-label="Like"
+            >
+              <Heart className={`w-5 h-5 ${item.likedByUser ? 'fill-red-500 text-red-500' : ''}`} />
+              <span className="text-xs font-bold">{item.likes || 0}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowComments(!showComments)}
+              className="flex items-center gap-1 text-slate-700"
+              aria-label="Comment"
+            >
+              <MessageSquare className="w-5 h-5" />
+              <span className="text-xs font-bold">{item.commentsCount || 0}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={shareOpportunity}
+              className="flex items-center gap-1 text-slate-700"
+              aria-label="Share"
+            >
+              <Share2 className="w-5 h-5" />
+              <span className="text-xs font-bold">{copied ? 'Copied' : 'Share'}</span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onSave(item.id)}
+            className="text-slate-700"
+            aria-label="Save"
+          >
+            <Bookmark className={`w-5 h-5 ${item.savedByUser ? 'fill-orange-400 text-orange-500' : ''}`} />
+          </button>
+        </div>
+
+        {showComments && (
+          <form onSubmit={handleCommentSubmit} className="px-4 pb-4 flex gap-2">
+            <input
+              value={commentText}
+              onChange={e => setCommentText(e.target.value)}
+              placeholder="Add a comment..."
+              className="flex-1 rounded-full border border-slate-200 px-3 py-2 text-sm outline-none focus:border-orange-400"
+            />
+            <button
+              type="submit"
+              className="text-sm font-black text-orange-600 px-2"
+            >
+              Post
+            </button>
+          </form>
+        )}
+      </motion.article>
+    );
+  }
+  // JAMIAATI_SIMPLE_OPPORTUNITY_CARD_END
+return (
     <motion.div
       id={`feed-card-${item.id}`}
       initial={{ opacity: 0, y: 12 }}
@@ -1255,5 +1521,6 @@ function CommentRow({
     </div>
   );
 }
+
 
 
