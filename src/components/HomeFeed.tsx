@@ -11,7 +11,11 @@ import { cleanDisplayText } from '../utils/safeText';
 
 // Admin configuration - frontend-only editing
 const ADMIN_EMAIL = 'safaribosafar@gmail.com';
-const HERO_IMAGES_STORAGE_KEY = 'jamiaati_hero_images_v1';
+const HERO_IMAGES_STORAGE_KEY = 'jamiaati_hero_images_v2';
+const HERO_STORAGE_MAX_LENGTH = 1800000;
+const HERO_UPLOAD_MAX_FILE_BYTES = 5 * 1024 * 1024;
+const HERO_UPLOAD_MAX_DATA_URL_LENGTH = 350000;
+const HERO_UPLOAD_MAX_DIMENSION = 1600;
 
 const DEFAULT_HERO_IMAGES: string[] = [
   'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=1920',
@@ -21,15 +25,30 @@ const DEFAULT_HERO_IMAGES: string[] = [
   'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?auto=format&fit=crop&q=80&w=1920'
 ];
 
+// Helper function to validate hero image values from URL or safe compressed upload
+function isSafeHeroImageValue(value: string): boolean {
+  const url = String(value || '').trim();
+  if (!url) return false;
+
+  if (url.startsWith('https://')) {
+    return url.length <= 500;
+  }
+
+  if (/^data:image\/(webp|jpeg|jpg|png);base64,/i.test(url)) {
+    return url.length <= HERO_UPLOAD_MAX_DATA_URL_LENGTH;
+  }
+
+  return false;
+}
+
 // Helper function to read hero images from localStorage with safety checks
 function readStoredHeroImages(): string[] {
   if (typeof window === 'undefined') return DEFAULT_HERO_IMAGES;
 
   try {
     const raw = window.localStorage.getItem(HERO_IMAGES_STORAGE_KEY);
-    
-    // Safety check: if raw data is too large (> 1MB), remove it to prevent freeze
-    if (raw && raw.length > 1000000) {
+
+    if (raw && raw.length > HERO_STORAGE_MAX_LENGTH) {
       console.warn('Hero images data too large, clearing to prevent freeze');
       window.localStorage.removeItem(HERO_IMAGES_STORAGE_KEY);
       return DEFAULT_HERO_IMAGES;
@@ -37,44 +56,181 @@ function readStoredHeroImages(): string[] {
 
     const parsed = raw ? JSON.parse(raw) : null;
 
-    if (Array.isArray(parsed)) {
-      const cleaned = parsed
-        .map((item) => String(item || '').trim())
-        .filter((url) => {
-          // Reject base64 images (data:image/...)
-          if (url.startsWith('data:image')) {
-            console.warn('Base64 image detected, rejecting');
-            return false;
-          }
-          // Validate URL length (max 500 chars)
-          if (url.length > 500) {
-            console.warn('URL too long, rejecting');
-            return false;
-          }
-          return Boolean(url);
-        });
+    if (!parsed) return DEFAULT_HERO_IMAGES;
 
-      // Enforce max 5 images
-      if (cleaned.length > 0) {
-        return cleaned.slice(0, 5);
-      }
+    if (!Array.isArray(parsed)) {
+      window.localStorage.removeItem(HERO_IMAGES_STORAGE_KEY);
+      return DEFAULT_HERO_IMAGES;
     }
+
+    const cleaned = parsed
+      .map((item) => String(item || '').trim())
+      .filter(isSafeHeroImageValue)
+      .slice(0, 5);
+
+    return cleaned.length > 0 ? cleaned : DEFAULT_HERO_IMAGES;
   } catch (error) {
     console.error('Error reading hero images from localStorage:', error);
-    // Clear corrupted data
     try {
       window.localStorage.removeItem(HERO_IMAGES_STORAGE_KEY);
     } catch {}
+    return DEFAULT_HERO_IMAGES;
   }
-
-  return DEFAULT_HERO_IMAGES;
 }
 
+// Compress uploaded hero image before putting it in localStorage
+function optimizeHeroImageFile(file: File): Promise<string> {
+  return new Promise((resolve, reject) => {
+    if (!file) {
+      reject(new Error('No image selected.'));
+      return;
+    }
+
+    if (!file.type.startsWith('image/')) {
+      reject(new Error('Please choose an image file.'));
+      return;
+    }
+
+    if (file.size > HERO_UPLOAD_MAX_FILE_BYTES) {
+      reject(new Error('Image is too large. Please use an image under 5 MB.'));
+      return;
+    }
+
+    const reader = new FileReader();
+
+    reader.onerror = () => reject(new Error('Could not read image file.'));
+
+    reader.onload = () => {
+      const img = new Image();
+
+      img.onerror = () => reject(new Error('Could not load image. Try another file.'));
+
+      img.onload = () => {
+        try {
+          const maxOriginalSide = Math.max(img.width, img.height);
+          const scale = Math.min(1, HERO_UPLOAD_MAX_DIMENSION / maxOriginalSide);
+
+          const canvas = document.createElement('canvas');
+          canvas.width = Math.max(1, Math.round(img.width * scale));
+          canvas.height = Math.max(1, Math.round(img.height * scale));
+
+          const ctx = canvas.getContext('2d');
+          if (!ctx) {
+            reject(new Error('Could not prepare image.'));
+            return;
+          }
+
+          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
+
+          canvas.toBlob(
+            (blob) => {
+              if (!blob) {
+                reject(new Error('Could not compress image.'));
+                return;
+              }
+
+              const outputReader = new FileReader();
+              outputReader.onerror = () => reject(new Error('Could not finalize image.'));
+              outputReader.onload = () => {
+                const dataUrl = String(outputReader.result || '');
+
+                if (!isSafeHeroImageValue(dataUrl)) {
+                  reject(new Error('Image is still too large after compression. Try a smaller image.'));
+                  return;
+                }
+
+                resolve(dataUrl);
+              };
+
+              outputReader.readAsDataURL(blob);
+            },
+            'image/webp',
+            0.72
+          );
+        } catch {
+          reject(new Error('Image upload failed. Try another image.'));
+        }
+      };
+
+      img.src = String(reader.result || '');
+    };
+
+    reader.readAsDataURL(file);
+  });
+}
 // Helper function to get logged-in admin email
 function getLoggedInEmail(): string | null {
   if (typeof window === 'undefined') return null;
+
   try {
-    return localStorage.getItem('jamiaati_user_email')?.toLowerCase() || null;
+    const directKeys = [
+      'jamiaati_user_email',
+      'user_email',
+      'email',
+      'current_email'
+    ];
+
+    for (const key of directKeys) {
+      const value = localStorage.getItem(key);
+      if (value && value.includes('@')) {
+        return value.trim().toLowerCase();
+      }
+    }
+
+    const objectKeys = [
+      'jamiaati_user',
+      'jamiaati_auth_user',
+      'jamiaati_current_user',
+      'jamiaati_auth',
+      'auth_user',
+      'currentUser',
+      'user',
+      'profile'
+    ];
+
+    const findEmail = (value: any): string | null => {
+      if (!value) return null;
+
+      if (typeof value === 'string') {
+        if (value.includes('@')) return value.trim().toLowerCase();
+
+        try {
+          return findEmail(JSON.parse(value));
+        } catch {
+          return null;
+        }
+      }
+
+      if (typeof value === 'object') {
+        const direct =
+          value.email ||
+          value.userEmail ||
+          value.user_email ||
+          value.username ||
+          value?.user?.email ||
+          value?.profile?.email ||
+          value?.account?.email;
+
+        if (direct && String(direct).includes('@')) {
+          return String(direct).trim().toLowerCase();
+        }
+
+        for (const nestedValue of Object.values(value)) {
+          const nestedEmail = findEmail(nestedValue);
+          if (nestedEmail) return nestedEmail;
+        }
+      }
+
+      return null;
+    };
+
+    for (const key of objectKeys) {
+      const raw = localStorage.getItem(key);
+      const email = findEmail(raw);
+      if (email) return email;
+    }
+
+    return null;
   } catch (error) {
     console.error('Error reading user email from localStorage:', error);
     return null;
@@ -235,8 +391,79 @@ export default function HomeFeed({
     const locationParts = [city, gov !== 'all' ? gov : '', country].filter(Boolean);
     const locationStr = locationParts.length > 0 ? locationParts.join(', ') : 'Iraq';
 
-    const applyUrl = item.apply_url || item.application_link || item.original_source_url || item.source_url || '';
-    const sourceUrl = item.source_url || item.original_source_url || item.application_link || '';
+    const resolvedOpportunityUrl = (() => {
+      const stringifyValue = (value: any): string => {
+        if (!value) return '';
+        if (typeof value === 'string') return value;
+        try {
+          return JSON.stringify(value);
+        } catch {
+          return String(value || '');
+        }
+      };
+
+      const cleanUrlCandidate = (value: any): string => {
+        return String(value || '')
+          .trim()
+          .replace(/[)\].,;]+$/g, '');
+      };
+
+      const directCandidates = [
+        item.applyUrl,
+        item.sourceUrl,
+        item.apply_url,
+        item.source_url,
+        item.details_url,
+        item.detailsUrl,
+        item.application_link,
+        item.application_url,
+        item.apply_link,
+        item.url,
+        item.link,
+        item.external_url,
+        item.original_source_url,
+        item.original_url,
+        item.raw_url,
+        item.raw_item_url,
+        item.candidate_url,
+        item.source_link,
+        item.source?.url,
+        item.raw?.url,
+        item.metadata?.url,
+        item.metadata?.source_url,
+        item.metadata?.application_link
+      ];
+
+      const textBlob = [
+        item.description,
+        item.summary,
+        item.content,
+        item.contentEN,
+        item.contentAR,
+        item.contentKU,
+        item.body,
+        item.body_original,
+        item.raw_text,
+        item.notes,
+        item.metadata,
+        item.raw
+      ].map(stringifyValue).join('\n');
+
+      const extractedMatch = textBlob.match(/https?:\/\/[^\s<>"')\]]+/i);
+      if (extractedMatch) directCandidates.push(extractedMatch[0]);
+
+      for (const candidate of directCandidates) {
+        const cleaned = cleanUrlCandidate(candidate);
+        if (/^https?:\/\//i.test(cleaned)) {
+          return cleaned;
+        }
+      }
+
+      return '';
+    })();
+
+    const applyUrl = resolvedOpportunityUrl;
+    const sourceUrl = resolvedOpportunityUrl;
     const imgUrl = item.image_url || item.imageUrl || '';
 
     const safeImageUrl = imgUrl && !imgUrl.includes('images.unsplash.com') ? imgUrl : '';
@@ -763,30 +990,75 @@ export default function HomeFeed({
 
   const handleAddHeroImageUrl = () => {
     const cleanUrl = newHeroImageUrl.trim();
+
     if (!cleanUrl) {
       setHeroImageMessage('Please paste an image URL first.');
       return;
     }
-    setDraftHeroImages(prev => [...prev, cleanUrl]);
+
+    if (!cleanUrl.startsWith('https://')) {
+      setHeroImageMessage('Only https:// image URLs are allowed.');
+      return;
+    }
+
+    if (cleanUrl.length > 500) {
+      setHeroImageMessage('Image URL is too long. Please use a shorter URL.');
+      return;
+    }
+
+    if (draftHeroImages.length >= 5) {
+      setHeroImageMessage('Maximum 5 hero images allowed.');
+      return;
+    }
+
+    setDraftHeroImages(prev => [...prev, cleanUrl].slice(0, 5));
     setNewHeroImageUrl('');
     setHeroImageMessage('Image added. Click Save to apply.');
   };
 
 
+
+  const handleUploadHeroImageFile = async (
+    event: React.ChangeEvent<HTMLInputElement>,
+    replaceIndex?: number
+  ) => {
+    const file = event.target.files?.[0];
+    event.target.value = '';
+
+    if (!file) return;
+
+    try {
+      setHeroImageMessage('Optimizing uploaded image...');
+
+      const dataUrl = await optimizeHeroImageFile(file);
+
+      setDraftHeroImages(prev => {
+        if (typeof replaceIndex === 'number') {
+          return prev.map((item, idx) => (idx === replaceIndex ? dataUrl : item)).slice(0, 5);
+        }
+
+        if (prev.length >= 5) {
+          setHeroImageMessage('Maximum 5 hero images allowed.');
+          return prev;
+        }
+
+        return [...prev, dataUrl].slice(0, 5);
+      });
+
+      setHeroImageMessage(
+        typeof replaceIndex === 'number'
+          ? 'Image replaced. Click Save to apply.'
+          : 'Image uploaded. Click Save to apply.'
+      );
+    } catch (error: any) {
+      setHeroImageMessage(error?.message || 'Image upload failed.');
+    }
+  };
   const handleSaveHeroImages = () => {
     const cleaned = draftHeroImages
       .map(item => item.trim())
-      .filter((url) => {
-        // Reject base64 images
-        if (url.startsWith('data:image')) {
-          return false;
-        }
-        // Validate URL length
-        if (url.length > 500) {
-          return false;
-        }
-        return Boolean(url);
-      });
+      .filter(isSafeHeroImageValue)
+      .slice(0, 5);
 
     if (cleaned.length === 0) {
       setHeroImageMessage('Please keep at least one hero image.');
@@ -797,7 +1069,12 @@ export default function HomeFeed({
     const limitedImages = cleaned.slice(0, 5);
 
     try {
-      localStorage.setItem(HERO_IMAGES_STORAGE_KEY, JSON.stringify(limitedImages));
+      const heroStorageValue = JSON.stringify(limitedImages);
+      if (heroStorageValue.length > HERO_STORAGE_MAX_LENGTH) {
+        setHeroImageMessage('Too many uploaded images. Remove one image or use smaller images.');
+        return;
+      }
+      localStorage.setItem(HERO_IMAGES_STORAGE_KEY, heroStorageValue);
       window.dispatchEvent(new Event('jamiaati_hero_images_updated'));
       setHeroImages(limitedImages);
       setDraftHeroImages(limitedImages);
@@ -1246,7 +1523,7 @@ export default function HomeFeed({
                 <div>
                   <h3 className="text-base font-black">Edit Hero Images</h3>
                   <p className="text-xs text-slate-500">
-                    Frontend-only editing for {ADMIN_EMAIL}. Use image URLs for best stability.
+                    Frontend-only editing for {ADMIN_EMAIL}. Upload images or paste safe image URLs.
                   </p>
                 </div>
                 <button
@@ -1288,6 +1565,16 @@ export default function HomeFeed({
                       >
                         Remove
                       </button>
+
+                      <label className="cursor-pointer rounded-full bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100">
+                        Replace with upload
+                        <input
+                          type="file"
+                          accept="image/png,image/jpeg,image/webp"
+                          onChange={(e) => handleUploadHeroImageFile(e, index)}
+                          className="hidden"
+                        />
+                      </label>
                     </div>
                   </div>
                 ))}
@@ -2390,5 +2677,7 @@ export default function HomeFeed({
     </div>
   );
 }
+
+
 
 
