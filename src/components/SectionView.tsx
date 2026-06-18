@@ -7,9 +7,9 @@ import {
   MapPin,
   School,
   Loader2,
-  ExternalLink,
   Briefcase,
-  Search
+  Search,
+  Filter
 } from 'lucide-react';
 import FeedCard from './FeedCard';
 import { BACKEND_URL } from '../lib/api';
@@ -64,9 +64,9 @@ const categoryConfigs: Record<string, {
     titleEN: 'Job Opportunities',
     titleAR: 'فرص العمل والتوظيف',
     titleKU: 'هەلی کار',
-    descEN: 'Current job cards are fetched from major Iraq career portals and linked to the original posting.',
-    descAR: 'يتم جلب بطاقات الوظائف الحالية من بوابات التوظيف المهمة في العراق مع رابط التقديم الأصلي.',
-    descKU: 'کارتی هەلی کار لە سەرچاوە فەرمییەکانی عێراق وەردەگیرێت و بەستەری پێشکەشکردنی ڕاستەوخۆی هەیە.',
+    descEN: 'Use the filters below to fetch current job cards by governorate and source, then apply on the original portal.',
+    descAR: 'استخدم الفلاتر أدناه لجلب الوظائف الحالية حسب المحافظة والمصدر ثم قدّم من الموقع الأصلي.',
+    descKU: 'فلتەرەکانی خوارەوە بەکاربهێنە بۆ هێنانی هەلی کار بە پارێزگا و سەرچاوە.',
     endpoint: 'opportunities',
     categoryValue: 'job',
     isOpportunity: true
@@ -345,6 +345,32 @@ async function fetchHtmlViaProxy(url: string) {
   return '';
 }
 
+function cleanJobTitle(raw: string, sourceName: string) {
+  const cleaned = raw
+    .replace(/\s+/g, ' ')
+    .replace(/^(apply|view|details|read more|learn more|submit)\s*/i, '')
+    .trim();
+  if (!cleaned || cleaned.length < 6) return '';
+  if (cleaned.toLowerCase() === sourceName.toLowerCase()) return '';
+  return cleaned;
+}
+
+function inferGovernorateFromText(text: string) {
+  for (const [govId, aliases] of Object.entries(GOV_ALIASES)) {
+    if (aliases.some((alias) => text.includes(alias.toLowerCase()))) return govId;
+  }
+  return 'all';
+}
+
+function hashCode(input: string) {
+  let hash = 0;
+  for (let i = 0; i < input.length; i++) {
+    hash = ((hash << 5) - hash) + input.charCodeAt(i);
+    hash |= 0;
+  }
+  return hash;
+}
+
 function extractJobLinks(html: string, source: JobSource, sourceUrl: string, governorateId: string, governorateName: string): FeedItem[] {
   const anchors: { href: string; text: string; context: string }[] = [];
   const anchorRegex = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
@@ -371,7 +397,6 @@ function extractJobLinks(html: string, source: JobSource, sourceUrl: string, gov
   }
 
   const selectedAliases = governorateId === 'all' ? [] : (GOV_ALIASES[governorateId] || [governorateName.toLowerCase()]);
-  const selectedText = [...selectedAliases, governorateName].join(' ').toLowerCase();
   const seen = new Set<string>();
   const jobs: FeedItem[] = [];
 
@@ -427,35 +452,11 @@ function extractJobLinks(html: string, source: JobSource, sourceUrl: string, gov
   return jobs;
 }
 
-function cleanJobTitle(raw: string, sourceName: string) {
-  const cleaned = raw
-    .replace(/\s+/g, ' ')
-    .replace(/^(apply|view|details|read more|learn more|submit)\s*/i, '')
-    .trim();
-  if (!cleaned || cleaned.length < 6) return '';
-  if (cleaned.toLowerCase() === sourceName.toLowerCase()) return '';
-  return cleaned;
-}
-
-function inferGovernorateFromText(text: string) {
-  for (const [govId, aliases] of Object.entries(GOV_ALIASES)) {
-    if (aliases.some((alias) => text.includes(alias.toLowerCase()))) return govId;
-  }
-  return 'all';
-}
-
-function hashCode(input: string) {
-  let hash = 0;
-  for (let i = 0; i < input.length; i++) {
-    hash = ((hash << 5) - hash) + input.charCodeAt(i);
-    hash |= 0;
-  }
-  return hash;
-}
-
-async function fetchLiveJobsFromSources(governorateId: string, governorateName: string) {
+async function fetchLiveJobsFromSources(governorateId: string, governorateName: string, sourceName: string) {
   const results: FeedItem[] = [];
-  const selectedSources = JOB_SOURCES;
+  const selectedSources = sourceName === 'all'
+    ? JOB_SOURCES
+    : JOB_SOURCES.filter((source) => source.name === sourceName);
   const batchSize = 4;
 
   for (let i = 0; i < selectedSources.length; i += batchSize) {
@@ -499,6 +500,7 @@ export default function SectionView({
 }: SectionViewProps) {
   const [items, setItems] = useState<FeedItem[]>([]);
   const [liveJobItems, setLiveJobItems] = useState<FeedItem[]>([]);
+  const [selectedJobSource, setSelectedJobSource] = useState<string>('all');
   const [loading, setLoading] = useState(true);
   const [liveLoading, setLiveLoading] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
@@ -570,19 +572,6 @@ export default function SectionView({
           contentEN: item.contentEN || item.content || 'Check original portal for instructions.',
           contentAR: item.contentAR || item.content || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
           contentKU: item.contentKU || item.content || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
-          original_language: item.original_language || item.originalLanguage,
-          title_original: item.title_original || item.titleOriginal,
-          body_original: item.body_original || item.bodyOriginal || item.content_original || item.contentOriginal,
-          caption_original: item.caption_original || item.captionOriginal,
-          title_ar: item.title_ar || item.titleAR,
-          body_ar: item.body_ar || item.bodyAR || item.content_ar || item.contentAR,
-          caption_ar: item.caption_ar || item.captionAR,
-          title_ku: item.title_ku || item.titleKU,
-          body_ku: item.body_ku || item.bodyKU || item.content_ku || item.contentKU,
-          caption_ku: item.caption_ku || item.captionKU,
-          title_en: item.title_en || item.titleEN,
-          body_en: item.body_en || item.bodyEN || item.content_en || item.contentEN,
-          caption_en: item.caption_en || item.captionEN,
           author: {
             name: item.organization || item.institution_name || item.author?.name || (isJobSection ? 'Career Source' : 'Academic Center'),
             role: 'institution' as const,
@@ -636,7 +625,7 @@ export default function SectionView({
     const runLiveAggregator = async () => {
       setLiveLoading(true);
       try {
-        const liveJobs = await fetchLiveJobsFromSources(selectedGov, selectedGovNameEN);
+        const liveJobs = await fetchLiveJobsFromSources(selectedGov, selectedGovNameEN, selectedJobSource);
         if (active) setLiveJobItems(liveJobs);
       } catch (err) {
         console.warn('Live job aggregator failed:', err);
@@ -648,7 +637,7 @@ export default function SectionView({
 
     runLiveAggregator();
     return () => { active = false; };
-  }, [isJobSection, selectedGov, selectedGovNameEN]);
+  }, [isJobSection, selectedGov, selectedGovNameEN, selectedJobSource]);
 
   const backendFilteredItems = items.filter(item => {
     const matchesGov = selectedGov === 'all' || !item.governorateId || item.governorateId === 'all' || item.governorateId === selectedGov;
@@ -656,7 +645,7 @@ export default function SectionView({
     return matchesGov && matchesUni;
   });
 
-  const combinedJobItems = (() => {
+  const combinedItems = (() => {
     if (!isJobSection) return backendFilteredItems;
     const map = new Map<string, FeedItem>();
     [...liveJobItems, ...backendFilteredItems].forEach((item) => {
@@ -699,33 +688,53 @@ export default function SectionView({
       </div>
 
       {isJobSection ? (
-        <div className="mb-5 rounded-3xl bg-[#FFD21F] p-3.5 shadow-xl border border-yellow-300" id="job-governorate-filter-panel">
-          <div className="flex items-center gap-2 mb-2 text-[#0B1020]">
-            <MapPin className="w-5 h-5" />
+        <div className="mb-5 rounded-3xl bg-[#FFD21F] p-3.5 shadow-xl border border-yellow-300" id="job-top-filter-panel">
+          <div className="flex items-center gap-2 mb-3 text-[#0B1020]">
+            <Filter className="w-5 h-5" />
             <div>
               <p className="text-[11px] uppercase tracking-wide font-black">
-                {language === 'ar' ? 'فلتر المحافظة' : language === 'ku' ? 'فلتەری پارێزگا' : 'Governorate filter'}
+                {language === 'ar' ? 'فلاتر الوظائف' : language === 'ku' ? 'فلتەرەکانی کار' : 'Job filters'}
               </p>
               <p className="text-[10px] font-bold opacity-75">
-                {language === 'ar' ? 'اختر محافظة لجلب الوظائف الحالية من المصادر' : language === 'ku' ? 'پارێزگا هەڵبژێرە بۆ هێنانی هەلی کاری ئێستا' : 'Choose a governorate to fetch current jobs from the sources'}
+                {language === 'ar' ? 'اختر المحافظة والمصدر لجلب الوظائف الحالية' : language === 'ku' ? 'پارێزگا و سەرچاوە هەڵبژێرە' : 'Choose governorate and source to fetch current jobs'}
               </p>
             </div>
           </div>
-          <select
-            value={selectedGov}
-            onChange={(e) => {
-              setSelectedGov(e.target.value);
-              setSelectedUni('all');
-            }}
-            className="w-full rounded-2xl bg-white text-[#0B1020] px-3 py-3 text-sm font-black border-2 border-[#0B1020]/20 focus:outline-none cursor-pointer shadow-inner"
-          >
-            <option value="all">📍 {language === 'ar' ? 'كل المحافظات' : language === 'ku' ? 'هەموو پارێزگاکان' : 'All Governorates'}</option>
-            {IraqiGovernorates.map((gov) => (
-              <option key={gov.id} value={gov.id}>
-                {language === 'ar' ? gov.nameAR : language === 'ku' ? gov.nameKU : gov.nameEN}
-              </option>
-            ))}
-          </select>
+
+          <div className="grid grid-cols-1 gap-2.5">
+            <label className="block">
+              <span className="mb-1 block text-[10px] font-black uppercase text-[#0B1020]">Governorate</span>
+              <select
+                value={selectedGov}
+                onChange={(e) => {
+                  setSelectedGov(e.target.value);
+                  setSelectedUni('all');
+                }}
+                className="w-full rounded-2xl bg-white text-[#0B1020] px-3 py-3 text-sm font-black border-2 border-[#0B1020]/20 focus:outline-none cursor-pointer shadow-inner"
+              >
+                <option value="all">📍 {language === 'ar' ? 'كل المحافظات' : language === 'ku' ? 'هەموو پارێزگاکان' : 'All Governorates'}</option>
+                {IraqiGovernorates.map((gov) => (
+                  <option key={gov.id} value={gov.id}>
+                    {language === 'ar' ? gov.nameAR : language === 'ku' ? gov.nameKU : gov.nameEN}
+                  </option>
+                ))}
+              </select>
+            </label>
+
+            <label className="block">
+              <span className="mb-1 block text-[10px] font-black uppercase text-[#0B1020]">Source</span>
+              <select
+                value={selectedJobSource}
+                onChange={(e) => setSelectedJobSource(e.target.value)}
+                className="w-full rounded-2xl bg-white text-[#0B1020] px-3 py-3 text-sm font-black border-2 border-[#0B1020]/20 focus:outline-none cursor-pointer shadow-inner"
+              >
+                <option value="all">🌐 {language === 'ar' ? 'كل المصادر' : language === 'ku' ? 'هەموو سەرچاوەکان' : 'All Sources'}</option>
+                {JOB_SOURCES.map((source) => (
+                  <option key={source.name} value={source.name}>{source.name}</option>
+                ))}
+              </select>
+            </label>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-2 gap-3.5 mb-5 select-none animate-fadeIn" id="section-filter-row">
@@ -771,13 +780,13 @@ export default function SectionView({
           {liveLoading ? <Loader2 className="w-3.5 h-3.5 animate-spin text-[#FFD21F]" /> : <Search className="w-3.5 h-3.5 text-emerald-300" />}
           <span>
             {liveLoading
-              ? (language === 'ar' ? `جاري جلب وظائف ${selectedGovLabel} من ${JOB_SOURCES.length} مصدر...` : language === 'ku' ? `هێنانی هەلی کاری ${selectedGovLabel}...` : `Fetching ${selectedGovLabel} jobs from ${JOB_SOURCES.length} sources...`)
-              : (language === 'ar' ? `${combinedJobItems.length} وظيفة/رابط تقديم تم جمعها لهذا الاختيار` : language === 'ku' ? `${combinedJobItems.length} هەلی کار بۆ ئەم هەڵبژاردنە` : `${combinedJobItems.length} fetched job cards/direct apply links for this selection`)}
+              ? (language === 'ar' ? `جاري جلب وظائف ${selectedGovLabel}...` : language === 'ku' ? `هێنانی هەلی کاری ${selectedGovLabel}...` : `Fetching ${selectedGovLabel} jobs...`)
+              : (language === 'ar' ? `${combinedItems.length} وظيفة/رابط تقديم لهذا الاختيار` : language === 'ku' ? `${combinedItems.length} هەلی کار بۆ ئەم هەڵبژاردنە` : `${combinedItems.length} job cards/direct apply links for this selection`)}
           </span>
         </div>
       )}
 
-      {(loading || (isJobSection && liveLoading && combinedJobItems.length === 0)) ? (
+      {(loading || (isJobSection && liveLoading && combinedItems.length === 0)) ? (
         <div className="flex flex-col items-center justify-center py-16 gap-3" id="section-loading-screen">
           <Loader2 className="w-8 h-8 text-[#FFD21F] animate-spin" />
           <span className="text-xs text-slate-400 font-extrabold animate-pulse">
@@ -786,7 +795,7 @@ export default function SectionView({
               : (language === 'ar' ? 'جاري تحميل الفرص والأخبار...' : language === 'ku' ? 'بارکردنی دەرفەتەکان...' : 'Fetching sector items from server...')}
           </span>
         </div>
-      ) : combinedJobItems.length === 0 ? (
+      ) : combinedItems.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-10 px-6 bg-[#121B2E] rounded-3xl border border-[#1F2E4D] border-dashed text-center shadow-lg" id="section-empty-container">
           <div className="w-12 h-12 rounded-full bg-slate-950/40 flex items-center justify-center text-xl mb-3.5 border border-[#1F2E4D]">
             {categoryConfig.emoji}
@@ -799,10 +808,10 @@ export default function SectionView({
           <p className="text-xs leading-relaxed text-[#94A3B8]/90 max-w-[290px]">
             {isJobSection
               ? (language === 'ar'
-                  ? 'بعض المواقع قد تمنع الجلب المباشر. سيتم تحسين هذا عبر جامع خلفي وقاعدة بيانات D1.'
+                  ? 'بعض المواقع قد تمنع الجلب المباشر. اختر مصدراً آخر أو محافظة أخرى.'
                   : language === 'ku'
-                  ? 'هەندێک ماڵپەڕ ڕێگە بە هێنانی ڕاستەوخۆ نادات. ئەمە دواتر بە D1 باشتر دەکرێت.'
-                  : 'Some websites may block live fetching. The next production step is a backend D1 importer.')
+                  ? 'هەندێک ماڵپەڕ ڕێگە بە هێنانی ڕاستەوخۆ نادات.'
+                  : 'Some websites may block live fetching. Try another source or governorate.')
               : (language === 'ar'
                   ? 'لا توجد عناصر حالياً لهذا القسم'
                   : language === 'ku'
@@ -825,7 +834,7 @@ export default function SectionView({
               </span>
             </div>
           )}
-          {combinedJobItems.map((item) => (
+          {combinedItems.map((item) => (
             <FeedCard
               key={item.id}
               item={item}
