@@ -70,6 +70,44 @@ export default function FutureFeed({
   const [error, setError] = useState<string | null>(null);
   const [activeChip, setActiveChip] = useState<string>('all');
 
+  // Safe text helper to prevent URL display as text
+  const safeText = (text: any, fallback: string, category?: string): string => {
+    if (!text || typeof text !== 'string') {
+      // Category-specific fallbacks
+      if (category === 'job' || category === 'full_time_job' || category === 'part_time_job') {
+        return 'Job Opportunity';
+      }
+      if (category === 'scholarship' || category === 'fellowship') {
+        return 'Scholarship Opportunity';
+      }
+      if (category === 'training') {
+        return 'Training Opportunity';
+      }
+      return fallback;
+    }
+
+    const trimmed = text.trim();
+    
+    // Check if text looks like a URL
+    if (trimmed.startsWith('http://') || trimmed.startsWith('https://') || 
+        trimmed.includes('images.unsplash.com') || trimmed.includes('auto=format') || 
+        trimmed.includes('fit=crop')) {
+      // Category-specific fallbacks for URLs
+      if (category === 'job' || category === 'full_time_job' || category === 'part_time_job') {
+        return 'Job Opportunity';
+      }
+      if (category === 'scholarship' || category === 'fellowship') {
+        return 'Scholarship Opportunity';
+      }
+      if (category === 'training') {
+        return 'Training Opportunity';
+      }
+      return fallback;
+    }
+
+    return trimmed;
+  };
+
   // Safe mapper for backend opportunities to FeedItem shape
   const mapBackendOpportunity = (item: any): FeedItem => {
     const categoryRaw = (item.category || item.type || 'job').toLowerCase();
@@ -95,13 +133,13 @@ export default function FutureFeed({
       displayCategory = 'Graduation project support';
     }
 
-    const titleEN = item.titleEN || item.title || item.title_en || 'Public Opportunity';
-    const titleAR = item.titleAR || item.title_ar || item.title || titleEN;
-    const titleKU = item.titleKU || item.title_ku || item.title || titleEN;
+    const titleEN = safeText(item.titleEN || item.title || item.title_en, 'Public Opportunity', categoryRaw);
+    const titleAR = safeText(item.titleAR || item.title_ar || item.title, titleEN, categoryRaw);
+    const titleKU = safeText(item.titleKU || item.title_ku || item.title, titleEN, categoryRaw);
 
-    const contentEN = item.contentEN || item.description || item.summary || item.description_en || 'View details of this public opportunity.';
-    const contentAR = item.contentAR || item.description_ar || item.description || item.summary || contentEN;
-    const contentKU = item.contentKU || item.description_ku || item.description || item.summary || contentEN;
+    const contentEN = safeText(item.contentEN || item.description || item.summary || item.description_en, 'View details of this public opportunity.', categoryRaw);
+    const contentAR = safeText(item.contentAR || item.description_ar || item.description || item.summary, contentEN, categoryRaw);
+    const contentKU = safeText(item.contentKU || item.description_ku || item.description || item.summary, contentEN, categoryRaw);
 
     const orgName = item.organization || item.institution_name || item.company || 'Recruiter/Provider';
     const gov = item.governorateId || item.governorate || 'all';
@@ -114,6 +152,9 @@ export default function FutureFeed({
     const applyUrl = item.apply_url || item.application_link || item.original_source_url || item.source_url || '';
     const sourceUrl = item.source_url || item.original_source_url || item.application_link || '';
     const imgUrl = item.image_url || item.imageUrl || '';
+
+    // Safe image URL - don't use Unsplash fallbacks
+    const safeImageUrl = imgUrl && !imgUrl.includes('images.unsplash.com') ? imgUrl : '';
 
     return {
       id: String(item.id),
@@ -143,7 +184,7 @@ export default function FutureFeed({
       author: {
         name: orgName,
         role: 'institution' as const,
-        avatar: imgUrl || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+        avatar: safeImageUrl || '',
         verified: true
       },
       date: item.published_date ? `Posted on ${item.published_date}` : 'Recently posted 🔔',
@@ -158,10 +199,10 @@ export default function FutureFeed({
       universityId: 'all',
       tags: [categoryRaw, displayCategory],
       company: orgName,
-      companyLogo: imgUrl || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+      companyLogo: safeImageUrl || '',
       location: locationStr,
       deadline: item.deadline || '',
-      imageUrl: imgUrl,
+      imageUrl: safeImageUrl,
       opportunityCategory: displayCategory as any,
       workplaceType: item.workplaceType || 'On-site',
       whoCanApply: item.whoCanApply || 'Interested applicants',
@@ -378,7 +419,7 @@ export default function FutureFeed({
     return true;
   });
 
-  // Category filter resolver helper for chips selection
+  // Category filter resolver helper for chips selection - EXACT category filtering
   const resolveChipFilteredItems = () => {
     if (activeChip === 'all') return filteredBaseOpportunities;
 
@@ -386,16 +427,22 @@ export default function FutureFeed({
       const cat = (item.opportunityCategory || item.type || '').toLowerCase();
       
       if (activeChip === 'job') {
-        return ['job', 'full_time_job', 'part_time_job'].includes(item.type) || cat.includes('job');
+        // ONLY show job items, not scholarships or training
+        return ['job', 'full_time_job', 'part_time_job'].includes(item.type) || 
+               (cat.includes('job') && !cat.includes('scholarship') && !cat.includes('train') && !cat.includes('intern'));
       }
       if (activeChip === 'scholarship') {
-        return item.type === 'scholarship' || cat.includes('scholarship');
+        // ONLY show scholarship/fellowship items, not jobs or training
+        return item.type === 'scholarship' || item.type === 'fellowship' || 
+               (cat.includes('scholarship') || cat.includes('fellow')) && !cat.includes('job') && !cat.includes('train');
       }
       if (activeChip === 'internship') {
         return item.type === 'internship' || cat.includes('intern');
       }
       if (activeChip === 'training') {
-        return item.type === 'training' || cat.includes('train');
+        // ONLY show training items, not jobs, scholarships, volunteering, or competitions
+        return item.type === 'training' || 
+               (cat.includes('train') && !cat.includes('job') && !cat.includes('scholarship') && !cat.includes('volun') && !cat.includes('compete'));
       }
       if (activeChip === 'event') {
         return item.type === 'event' || cat.includes('event');

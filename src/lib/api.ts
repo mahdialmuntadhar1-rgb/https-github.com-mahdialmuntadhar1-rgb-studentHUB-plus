@@ -8,7 +8,7 @@
   MessageItem 
 } from '../types';
 
-export const BACKEND_URL = '';
+export const BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
 const API_BASE = `${BACKEND_URL}/api`;
 
 function getHeaders() {
@@ -301,26 +301,50 @@ export const opportunityAutomation = {
 };
 
 export async function getOpportunities(categoryOrLang?: string, lang: Language = 'ar') {
-  try {
-    let category: string | undefined = undefined;
-    let finalLang = lang;
+  let category: string | undefined = undefined;
+  let finalLang = lang;
 
-    if (categoryOrLang) {
-      if (['ar', 'en', 'ku'].includes(categoryOrLang)) {
-        finalLang = categoryOrLang as Language;
-      } else {
-        category = categoryOrLang;
-      }
+  if (categoryOrLang) {
+    if (['ar', 'en', 'ku'].includes(categoryOrLang)) {
+      finalLang = categoryOrLang as Language;
+    } else {
+      category = categoryOrLang;
+    }
+  }
+
+  const url = category 
+    ? `${BACKEND_URL}/api/opportunities?category=${category}` 
+    : `${BACKEND_URL}/api/opportunities`;
+
+  const controller = new AbortController();
+  const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+  try {
+    const res = await fetch(url, {
+      signal: controller.signal,
+      headers: getHeaders()
+    });
+    clearTimeout(timeoutId);
+
+    const data = await handleResponse(res, finalLang);
+
+    // Handle different backend response shapes
+    if (Array.isArray(data)) {
+      return data;
+    }
+    if (data && typeof data === 'object') {
+      if (Array.isArray(data.value)) return data.value;
+      if (Array.isArray(data.data)) return data.data;
+      if (Array.isArray(data.items)) return data.items;
+      if (Array.isArray(data.results)) return data.results;
     }
 
-    const url = category 
-      ? `${BACKEND_URL}/api/opportunities?category=${category}` 
-      : `${BACKEND_URL}/api/opportunities`;
-    const res = await fetch(url);
-    return await handleResponse(res, finalLang);
+    return [];
   } catch (err: any) {
+    clearTimeout(timeoutId);
     console.error('Error fetching opportunities:', err);
-    throw err;
+    // Return empty array on error instead of throwing to prevent UI freeze
+    return [];
   }
 }
 

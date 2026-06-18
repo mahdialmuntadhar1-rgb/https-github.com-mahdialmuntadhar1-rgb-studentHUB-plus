@@ -8,7 +8,7 @@ interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
   language: Language;
-  onAuthSuccess: (username: string) => void;
+  onAuthSuccess: (username: string, email: string) => void;
 }
 
 type AuthMode = 'login' | 'register' | 'forgot';
@@ -89,13 +89,13 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       } else if (mode === 'register') {
         setSuccess(getLabel('registerSuccess'));
         setTimeout(() => {
-          onAuthSuccess(username || 'Zara Al-Iraqi');
+          onAuthSuccess(username || 'Zara Al-Iraqi', email);
           onClose();
         }, 1200);
       } else {
         setSuccess(getLabel('loginSuccess'));
         setTimeout(() => {
-          onAuthSuccess('Zara Al-Iraqi');
+          onAuthSuccess('Zara Al-Iraqi', email);
           onClose();
         }, 1200);
       }

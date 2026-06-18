@@ -1186,10 +1186,11 @@ export default function App() {
           isOpen={isAuthModalOpen}
           onClose={() => setIsAuthModalOpen(false)}
           language={language}
-          onAuthSuccess={(newUsername) => {
+          onAuthSuccess={(newUsername, userEmail) => {
             setIsLoggedIn(true);
             localStorage.setItem('jamiaati_logged_in', 'true');
             localStorage.setItem('jamiaati_token', 'mock_token_for_student_hub_' + Date.now());
+            localStorage.setItem('jamiaati_user_email', userEmail);
             setUserProfile(prev => ({
               ...prev,
               name: newUsername || 'Zara Al-Iraqi'

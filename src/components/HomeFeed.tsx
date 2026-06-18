@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { FeedItem, Language, University } from '../types';
 import { getTranslation } from '../data/translations';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from '../data/mockData';
@@ -6,6 +6,73 @@ import { Sparkles, MessageSquare, Briefcase, PlusCircle, CheckCircle, Info, Imag
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
 import StudentStories from './StudentStories';
+
+// Admin configuration - frontend-only editing
+const ADMIN_EMAIL = 'safaribosafar@gmail.com';
+const HERO_IMAGES_STORAGE_KEY = 'jamiaati_hero_images_v1';
+
+const DEFAULT_HERO_IMAGES: string[] = [
+  'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=1920',
+  'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=1920',
+  'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&q=80&w=1920',
+  'https://images.unsplash.com/photo-1607237138185-eedd9c632b0e?auto=format&fit=crop&q=80&w=1920',
+  'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?auto=format&fit=crop&q=80&w=1920'
+];
+
+// Helper function to read hero images from localStorage with safety checks
+function readStoredHeroImages(): string[] {
+  if (typeof window === 'undefined') return DEFAULT_HERO_IMAGES;
+
+  try {
+    const raw = window.localStorage.getItem(HERO_IMAGES_STORAGE_KEY);
+    
+    // Safety check: if raw data is too large (> 1MB), remove it to prevent freeze
+    if (raw && raw.length > 1000000) {
+      console.warn('Hero images data too large, clearing to prevent freeze');
+      window.localStorage.removeItem(HERO_IMAGES_STORAGE_KEY);
+      return DEFAULT_HERO_IMAGES;
+    }
+
+    const parsed = raw ? JSON.parse(raw) : null;
+
+    if (Array.isArray(parsed)) {
+      const cleaned = parsed
+        .map((item) => String(item || '').trim())
+        .filter((url) => {
+          // Reject base64 images (data:image/...)
+          if (url.startsWith('data:image')) {
+            console.warn('Base64 image detected, rejecting');
+            return false;
+          }
+          // Validate URL length (max 500 chars)
+          if (url.length > 500) {
+            console.warn('URL too long, rejecting');
+            return false;
+          }
+          return Boolean(url);
+        });
+
+      // Enforce max 5 images
+      if (cleaned.length > 0) {
+        return cleaned.slice(0, 5);
+      }
+    }
+  } catch (error) {
+    console.error('Error reading hero images from localStorage:', error);
+    // Clear corrupted data
+    try {
+      window.localStorage.removeItem(HERO_IMAGES_STORAGE_KEY);
+    } catch {}
+  }
+
+  return DEFAULT_HERO_IMAGES;
+}
+
+// Helper function to get logged-in admin email
+function getLoggedInEmail(): string | null {
+  if (typeof window === 'undefined') return null;
+  return localStorage.getItem('jamiaati_user_email')?.toLowerCase() || null;
+}
 
 interface HomeFeedProps {
   feedItems: FeedItem[];
@@ -386,37 +453,48 @@ export default function HomeFeed({
     }
   };
 
-  // Dynamic Hero Configuration with real-time updates support (localStorage + event listeners)  // New beautifully designed Hero Slides Carousel data
+  // Admin Hero Images editing states (frontend-only localStorage) - MUST be declared before heroSlides
+  const [heroImages, setHeroImages] = useState<string[]>(readStoredHeroImages);
+  const [isEditingHeroImages, setIsEditingHeroImages] = useState(false);
+  const [draftHeroImages, setDraftHeroImages] = useState<string[]>(heroImages);
+  const [newHeroImageUrl, setNewHeroImageUrl] = useState('');
+  const [heroImageMessage, setHeroImageMessage] = useState('');
+  const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
+
+  const isAdmin = useMemo(
+    () => loggedInEmail?.toLowerCase() === ADMIN_EMAIL,
+    [loggedInEmail]
+  );
+
+  // Sync admin email from localStorage
+  useEffect(() => {
+    const syncEmail = () => setLoggedInEmail(getLoggedInEmail());
+    syncEmail();
+    window.addEventListener('storage', syncEmail);
+    window.addEventListener('focus', syncEmail);
+    return () => {
+      window.removeEventListener('storage', syncEmail);
+      window.removeEventListener('focus', syncEmail);
+    };
+  }, []);
+
+  // Sync hero images from localStorage
+  useEffect(() => {
+    const syncImages = () => {
+      const nextImages = readStoredHeroImages();
+      setHeroImages(nextImages);
+      setDraftHeroImages(nextImages);
+    };
+    window.addEventListener('storage', syncImages);
+    window.addEventListener('jamiaati_hero_images_updated', syncImages);
+    return () => {
+      window.removeEventListener('storage', syncImages);
+      window.removeEventListener('jamiaati_hero_images_updated', syncImages);
+    };
+  }, []);
+
+  // New beautifully designed Hero Slides Carousel data
   const heroSlides = useMemo(() => [
-    {
-      id: 'slide_1',
-      image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=600',
-      tag: language === 'ar' ? 'مجتمع الحرم' : language === 'ku' ? 'کۆمەڵگەی زانکۆ' : 'Campus Community',
-      tagColor: 'bg-[#1E40AF] text-white',
-      headline: language === 'ar' ? 'اعثر على مسارك الدراسي والفرص المثمرة بكفاءة' : language === 'ku' ? 'ڕێڕەوی ئەکادیمی و گونجاوترین دەرفەت بدۆزەرەوە' : 'Find your university life and opportunities',
-      subtitle: language === 'ar' ? 'شاهد المنح التدريبية والوظائف وعش حياة الكلية مع زملائك' : language === 'ku' ? 'سکۆلەرشیپی بە فەرمی دابینکراو، باشترین برۆگرامی ڕاهێنان' : 'Scholarships, jobs, events, and campus community in one platform',
-      cta: language === 'ar' ? 'استكشف الفرص ➔' : language === 'ku' ? 'الفرص ➔' : 'Explore Now ➔',
-      action: () => {
-        setSelectedFeedTab('opportunities');
-        const el = document.getElementById('home-feed-tabs-selector');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    },
-    {
-      id: 'slide_3',
-      image: 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80&w=600',
-      tag: language === 'ar' ? 'وظائف التدريب والعمل' : language === 'ku' ? 'هەلی کار' : 'Job Opportunities',
-      tagColor: 'bg-emerald-600 text-white',
-      headline: language === 'ar' ? 'انطلق في مسيرتك المهنية مع شركائنا الموثوقين' : language === 'ku' ? 'سەرەتای کاروانە پیشەییەکەت لێرەوە دەستپێبکە' : 'Career & Entry-Level Job Openings',
-      subtitle: language === 'ar' ? 'قدم على وظائف صيفية، وتدريبات عمل خريجين في أفضل قطاعات العراق' : language === 'ku' ? 'مەشق و خولی هاوینە بۆ گەشەپێدانی توانای خوێندکاران' : 'Everything important for students in one place',
-      cta: language === 'ar' ? 'عرض الوظائف والتدريب ➔' : language === 'ku' ? 'بینینی کارەکان ➔' : 'View Career Openings ➔',
-      action: () => {
-        setSelectedFeedTab('opportunities');
-        setSelectedOppFilter('job');
-        const el = document.getElementById('home-feed-tabs-selector');
-        if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
-      }
-    },des = useMemo(() => [
     {
       id: 'slide_1',
       image: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=600',
@@ -492,6 +570,90 @@ export default function HomeFeed({
       }
     }
   ], [language]);
+  const heroSlides = useMemo(() => {
+    const baseSlides = [
+      {
+        id: 'slide_1',
+        image: heroImages[0] || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=600',
+        tag: language === 'ar' ? 'مجتمع الحرم' : language === 'ku' ? 'کۆمەڵگەی زانکۆ' : 'Campus Community',
+        tagColor: 'bg-[#1E40AF] text-white',
+        headline: language === 'ar' ? 'اعثر على مسارك الدراسي والفرص المثمرة بكفاءة' : language === 'ku' ? 'ڕێڕەوی ئەکادیمی و گونجاوترین دەرفەت بدۆزەرەوە' : 'Find your university life and opportunities',
+        subtitle: language === 'ar' ? 'شاهد المنح التدريبية والوظائف وعش حياة الكلية مع زملائك' : language === 'ku' ? 'سکۆلەرشیپی بە فەرمی دابینکراو، باشترین برۆگرامی ڕاهێنان' : 'Scholarships, jobs, events, and campus community in one platform',
+        cta: language === 'ar' ? 'استكشف الفرص ➔' : language === 'ku' ? 'الفرص ➔' : 'Explore Now ➔',
+        action: () => {
+          setSelectedFeedTab('opportunities');
+          const el = document.getElementById('home-feed-tabs-selector');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      },
+      {
+        id: 'slide_2',
+        image: heroImages[1] || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600',
+        tag: language === 'ar' ? 'المنح والمستقبل' : language === 'ku' ? 'سکۆلەرشیپ' : 'Scholarships',
+        tagColor: 'bg-indigo-600 text-white',
+        headline: language === 'ar' ? 'منح وتسهيلات دراسية ممولة بالكامل لطلابنا' : language === 'ku' ? 'هەلی بورس و خوێندنی باڵا بە شێوازی فەرمی' : 'Scholarships & Career Opportunities',
+        subtitle: language === 'ar' ? 'بوابة المنح الجامعية المحلية والدولية الممولة للمستويات كافة' : language === 'ku' ? 'نوێترین بورسە دراسييەکان لە ناوخۆ و دەرەوەی عێراق' : 'Apply for fully-funded local and international academic scholarships',
+        cta: language === 'ar' ? 'عرض منح الطلاب ➔' : language === 'ku' ? 'بینینی بورسەکان ➔' : 'View Scholarships ➔',
+        action: () => {
+          setSelectedFeedTab('opportunities');
+          setSelectedOppFilter('scholarship');
+          const el = document.getElementById('home-feed-tabs-selector');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      },
+      {
+        id: 'slide_3',
+        image: heroImages[2] || 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80&w=600',
+        tag: language === 'ar' ? 'وظائف التدريب والعمل' : language === 'ku' ? 'هەلی کار' : 'Job Opportunities',
+        tagColor: 'bg-emerald-600 text-white',
+        headline: language === 'ar' ? 'انطلق في مسيرتك المهنية مع شركائنا الموثوقين' : language === 'ku' ? 'سەرەتای کاروانە پیشەییەکەت لێرەوە دەستپێبکە' : 'Career & Entry-Level Job Openings',
+        subtitle: language === 'ar' ? 'قدم على وظائف صيفية، وتدريبات عمل خريجين في أفضل قطاعات العراق' : language === 'ku' ? 'مەشق و خولی هاوینە بۆ گەشەپێدانی توانای خوێندکاران' : 'Everything important for students in one place',
+        cta: language === 'ar' ? 'عرض الوظائف والتدريب ➔' : language === 'ku' ? 'بینینی کارەکان ➔' : 'View Career Openings ➔',
+        action: () => {
+          setSelectedFeedTab('opportunities');
+          setSelectedOppFilter('job');
+          const el = document.getElementById('home-feed-tabs-selector');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      },
+      {
+        id: 'slide_4',
+        image: heroImages[3] || 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=600',
+        tag: language === 'ar' ? 'حياة الحرم' : language === 'ku' ? 'کەمپەس لایف' : 'Campus Life',
+        tagColor: 'bg-orange-600 text-white',
+        headline: language === 'ar' ? 'تفوق وتفاعل في بيئة الحرم الجامعي الحيوية' : language === 'ku' ? 'لەگەڵ هاوڕێکانت بابەت و چالاکییەکان بەش بکە' : 'Campus Life & Interactive Communities',
+        subtitle: language === 'ar' ? 'شاهد منشورات زملائك، النوادي النشطة، وشارك في النقاشات الأكاديمية' : language === 'ku' ? 'ژیانی ڕۆژانەی زانکۆ و ئاگاداری فەرمی لە نوێترین گروپی خوێندن' : 'Exchange stories, join student clubs, and find study peer groups',
+        cta: language === 'ar' ? 'تصفح حياة الكلية ➔' : language === 'ku' ? 'تێکەڵ بە کەمپەس بە ➔' : 'Join Campus Groups ➔',
+        action: () => {
+          setSelectedFeedTab('campus_life');
+          setSelectedCampusFilter('all');
+          const el = document.getElementById('home-feed-tabs-selector');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      },
+      {
+        id: 'slide_5',
+        image: heroImages[4] || 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=600',
+        tag: language === 'ar' ? 'الفعاليات الكبرى' : language === 'ku' ? 'کۆنفرانس و چالاکی' : 'Exhibits & Seminars',
+        tagColor: 'bg-purple-600 text-white',
+        headline: language === 'ar' ? 'كن شريكاً في المؤتمرات ومعارض التوظيف السنوية' : language === 'ku' ? 'ئامادەی کۆڕبەند و سیمینارە کەمپەسییەکان بە' : 'University Scientific Conferences & Events',
+        subtitle: language === 'ar' ? 'تفاصيل كاملة عن مواعيد الورش والندوات والفعاليات داخل جامعات العراق' : language === 'ku' ? 'کات و ساتی کۆبوونەوە و گفتوگۆ ئەکادیمییەکان بزانە' : 'Never miss exhibitions, academic seminars, and graduate workshops',
+        cta: language === 'ar' ? 'عرض الفعاليات والمؤتمرات ➔' : language === 'ku' ? 'بینینی چالاکییەکان ➔' : 'Browse All Events ➔',
+        action: () => {
+          setSelectedFeedTab('campus_life');
+          setSelectedCampusFilter('event');
+          const el = document.getElementById('home-feed-tabs-selector');
+          if (el) el.scrollIntoView({ behavior: 'smooth', block: 'start' });
+        }
+      }
+    ];
+
+    // Map dynamic heroImages to slides (cycle through images if more slides than images)
+    return baseSlides.map((slide, idx) => ({
+      ...slide,
+      image: heroImages[idx % heroImages.length] || slide.image
+    }));
+  }, [language, heroImages]);
 
   // Carousel auto slider interval configuration
   useEffect(() => {
@@ -503,6 +665,16 @@ export default function HomeFeed({
 
   // Admin Hero Custom editing states
   const [isEditingHero, setIsEditingHero] = useState(false);
+
+// EMERGENCY SAFETY:
+// Hero inline editing is disabled because an overlay was trapping clicks on the live app.
+// Keep this disabled until backend-safe editing is implemented.
+useEffect(() => {
+  if (isEditingHero) {
+    setIsEditingHero(false);
+  }
+}, [isEditingHero]);
+
   const [formHeroBg, setFormHeroBg] = useState(heroBg);
   const [formTitleEN, setFormTitleEN] = useState(heroTitleEN);
   const [formTitleAR, setFormTitleAR] = useState(heroTitleAR);
@@ -525,7 +697,7 @@ export default function HomeFeed({
     setFormTagEN(heroTagEN);
     setFormTagAR(heroTagAR);
     setFormTagKU(heroTagKU);
-    setIsEditingHero(true);
+    setIsEditingHero(false);
   };
 
   const handleSaveHeroCustomization = (e: React.FormEvent) => {
@@ -540,11 +712,90 @@ export default function HomeFeed({
     localStorage.setItem('jamiaati_hero_tag_en', formTagEN);
     localStorage.setItem('jamiaati_hero_tag_ar', formTagAR);
     localStorage.setItem('jamiaati_hero_tag_ku', formTagKU);
-    
+
     window.dispatchEvent(new Event('jamiaati_hero_updated'));
     setIsEditingHero(false);
     if (showToast) {
       showToast(language === 'ar' ? 'تم حفظ التغييرات على الغلاف والبطاقة بنجاح! 💫' : 'Hero settings saved successfully! 💫', 'success');
+    }
+  };
+
+  // Hero Images editing handlers
+  const handleStartEditingHeroImages = () => {
+    setDraftHeroImages(heroImages);
+    setNewHeroImageUrl('');
+    setHeroImageMessage('');
+    setIsEditingHeroImages(true);
+  };
+
+  const handleCancelEditingHeroImages = () => {
+    setDraftHeroImages(heroImages);
+    setNewHeroImageUrl('');
+    setHeroImageMessage('');
+    setIsEditingHeroImages(false);
+  };
+
+  const handleUpdateDraftHeroImage = (index: number, value: string) => {
+    setDraftHeroImages(prev =>
+      prev.map((item, idx) => (idx === index ? value : item))
+    );
+  };
+
+  const handleRemoveDraftHeroImage = (index: number) => {
+    setDraftHeroImages(prev => {
+      const next = prev.filter((_, idx) => idx !== index);
+      return next.length > 0 ? next : prev;
+    });
+  };
+
+  const handleAddHeroImageUrl = () => {
+    const cleanUrl = newHeroImageUrl.trim();
+    if (!cleanUrl) {
+      setHeroImageMessage('Please paste an image URL first.');
+      return;
+    }
+    setDraftHeroImages(prev => [...prev, cleanUrl]);
+    setNewHeroImageUrl('');
+    setHeroImageMessage('Image added. Click Save to apply.');
+  };
+
+
+  const handleSaveHeroImages = () => {
+    const cleaned = draftHeroImages
+      .map(item => item.trim())
+      .filter((url) => {
+        // Reject base64 images
+        if (url.startsWith('data:image')) {
+          return false;
+        }
+        // Validate URL length
+        if (url.length > 500) {
+          return false;
+        }
+        return Boolean(url);
+      });
+
+    if (cleaned.length === 0) {
+      setHeroImageMessage('Please keep at least one hero image.');
+      return;
+    }
+
+    // Enforce max 5 images
+    const limitedImages = cleaned.slice(0, 5);
+
+    try {
+      localStorage.setItem(HERO_IMAGES_STORAGE_KEY, JSON.stringify(limitedImages));
+      window.dispatchEvent(new Event('jamiaati_hero_images_updated'));
+      setHeroImages(limitedImages);
+      setDraftHeroImages(limitedImages);
+      setCurrentSlide(0);
+      setIsEditingHeroImages(false);
+      setHeroImageMessage('Hero images saved successfully.');
+      if (showToast) {
+        showToast(language === 'ar' ? 'تم حفظ صور الغلاف بنجاح! 🖼️' : 'Hero images saved successfully! 🖼️', 'success');
+      }
+    } catch {
+      setHeroImageMessage('Could not save. Try using fewer or smaller image URLs.');
     }
   };
 
@@ -950,13 +1201,147 @@ export default function HomeFeed({
               key={idx}
               onClick={() => setCurrentSlide(idx)}
               className={`h-1.5 rounded-full transition-all cursor-pointer ${
-                idx === currentSlide 
-                  ? 'bg-[#FFD21F] w-4.5' 
+                idx === currentSlide
+                  ? 'bg-[#FFD21F] w-4.5'
                   : 'bg-white/35 hover:bg-white/60 w-1.5'
               }`}
             />
           ))}
         </div>
+
+        {/* Admin Edit Hero Images Button */}
+        {isAdmin && !isEditingHeroImages && (
+          <button
+            type="button"
+            onClick={handleStartEditingHeroImages}
+            className="absolute right-3 top-3 z-30 rounded-full bg-white/95 px-4 py-2 text-xs font-black text-slate-900 shadow-lg hover:bg-white"
+          >
+            ✎ Edit Hero
+          </button>
+        )}
+
+        {/* Admin Hero Images Editing Overlay */}
+        {isAdmin && isEditingHeroImages && (
+          <div className="absolute inset-0 z-40 overflow-y-auto bg-slate-950/92 p-4 text-white backdrop-blur">
+            <div className="mx-auto max-w-3xl rounded-2xl bg-white p-4 text-slate-900 shadow-2xl">
+              <div className="mb-3 flex items-center justify-between gap-3">
+                <div>
+                  <h3 className="text-base font-black">Edit Hero Images</h3>
+                  <p className="text-xs text-slate-500">
+                    Frontend-only editing for {ADMIN_EMAIL}. Use image URLs for best stability.
+                  </p>
+                </div>
+                <button
+                  type="button"
+                  onClick={handleCancelEditingHeroImages}
+                  className="rounded-full border px-3 py-1 text-xs font-bold"
+                >
+                  Close
+                </button>
+              </div>
+
+              <div className="space-y-3">
+                {draftHeroImages.map((image, index) => (
+                  <div key={index} className="rounded-2xl border border-slate-200 p-3">
+                    <div className="mb-2 flex items-center gap-3">
+                      <img
+                        src={image}
+                        alt={`Draft hero ${index + 1}`}
+                        className="h-16 w-24 rounded-xl object-cover bg-slate-100"
+                      />
+                      <div className="flex-1">
+                        <label className="mb-1 block text-[11px] font-black uppercase text-slate-500">
+                          Image {index + 1} URL
+                        </label>
+                        <input
+                          value={image}
+                          onChange={(e) => handleUpdateDraftHeroImage(index, e.target.value)}
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-slate-900"
+                          placeholder="Paste image URL"
+                        />
+                      </div>
+                    </div>
+
+                    <div className="flex flex-wrap gap-2">
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveDraftHeroImage(index)}
+                        className="rounded-full bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100"
+                      >
+                        Remove
+                      </button>
+                    </div>
+                  </div>
+                ))}
+              </div>
+
+              <div className="mt-4 rounded-2xl border border-dashed border-slate-300 p-3">
+                <label className="mb-1 block text-[11px] font-black uppercase text-slate-500">
+                  Add new image URL
+                </label>
+
+                <div className="flex flex-col gap-2 sm:flex-row">
+                  <input
+                    value={newHeroImageUrl}
+                    onChange={(e) => setNewHeroImageUrl(e.target.value)}
+                    className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-slate-900"
+                    placeholder="Paste new hero image URL (max 500 chars)"
+                    maxLength={500}
+                  />
+
+                  <button
+                    type="button"
+                    onClick={handleAddHeroImageUrl}
+                    className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-black text-white"
+                  >
+                    Add URL
+                  </button>
+                </div>
+              </div>
+
+              {heroImageMessage && (
+                <p className="mt-3 rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700">
+                  {heroImageMessage}
+                </p>
+              )}
+
+              <div className="mt-4 flex flex-wrap justify-end gap-2">
+                <button
+                  type="button"
+                  onClick={() => {
+                    localStorage.removeItem(HERO_IMAGES_STORAGE_KEY);
+                    window.dispatchEvent(new Event('jamiaati_hero_images_updated'));
+                    setHeroImages(DEFAULT_HERO_IMAGES);
+                    setDraftHeroImages(DEFAULT_HERO_IMAGES);
+                    setHeroImageMessage('Hero images reset to defaults.');
+                    if (showToast) {
+                      showToast(language === 'ar' ? 'تم إعادة تعيين صور الغلاف! 🔄' : 'Hero images reset to defaults! 🔄', 'success');
+                    }
+                  }}
+                  className="rounded-xl border border-red-200 px-4 py-2 text-xs font-black text-red-700 hover:bg-red-50"
+                >
+                  Reset to Defaults
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleCancelEditingHeroImages}
+                  className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-black"
+                >
+                  Cancel
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleSaveHeroImages}
+                  className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white hover:bg-emerald-700"
+                >
+                  Save Hero Images
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* 2. Interactive Circular Campus Life Channels & Guides */}
@@ -1970,3 +2355,4 @@ export default function HomeFeed({
     </div>
   );
 }
+
