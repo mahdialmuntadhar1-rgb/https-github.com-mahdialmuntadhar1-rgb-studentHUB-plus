@@ -1880,6 +1880,11 @@ export default function HomeFeed({
               <button
                 key={shortcut.id}
                 onClick={() => {
+                  if (shortcut.id === 'job' && onSelectSection) {
+                    onSelectSection('jobs');
+                    return;
+                  }
+
                   setSelectedOppFilter(shortcut.id as any);
                   // Clear story category highlight matching
                   setActiveStoryFilter(null);
@@ -2687,6 +2692,7 @@ export default function HomeFeed({
     </div>
   );
 }
+
 
 
 
