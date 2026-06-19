@@ -51,6 +51,116 @@ function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
 
+function normalizeEmail(email: string): string {
+  return email.trim().toLowerCase();
+}
+
+function normalizeGovernorate(raw: string | null | undefined): string {
+  if (!raw) return 'all';
+  const val = raw.trim().toLowerCase();
+  
+  // Map all variants to standard English names
+  const governorateMap: Record<string, string> = {
+    'erbil': 'erbil', 'هەولێر': 'erbil', 'أربيل': 'erbil', 'arbīl': 'erbil', 'hawler': 'erbil',
+    'sulaymaniyah': 'sulaymaniyah', 'sulaimani': 'sulaymaniyah', 'slemani': 'sulaymaniyah', 'السليمانية': 'sulaymaniyah', 'سلێمانی': 'sulaymaniyah',
+    'baghdad': 'baghdad', 'بغداد': 'baghdad',
+    'basra': 'basra', 'البصرة': 'basra', 'basrah': 'basra',
+    'nineveh': 'nineveh', 'نينوى': 'nineveh', 'الموصل': 'nineveh', 'mosul': 'nineveh',
+    'najaf': 'najaf', 'النجف': 'najaf',
+    'karbala': 'karbala', 'كربلاء': 'karbala', 'kerbala': 'karbala',
+    'duhok': 'duhok', 'دهوك': 'duhok', 'دهۆک': 'duhok', 'dohuk': 'duhok',
+    'kirkuk': 'kirkuk', 'كركوك': 'kirkuk', 'کەرکووک': 'kirkuk',
+    'diyala': 'diyala', 'ديالى': 'diyala',
+    'anbar': 'anbar', 'الأنبار': 'anbar',
+    'babil': 'babil', 'babylon': 'babil', 'بابل': 'babil',
+    'wasit': 'wasit', 'واسط': 'wasit',
+    'maysan': 'maysan', 'ميسان': 'maysan',
+    'dhi qar': 'dhi qar', 'ذي قار': 'dhi qar', 'dhi_qar': 'dhi qar', 'ziqar': 'dhi qar',
+    'muthanna': 'muthanna', 'المثنى': 'muthanna',
+    'qadisiyah': 'qadisiyah', 'القادسية': 'qadisiyah', 'al-qadisiyah': 'qadisiyah', 'al_qadisiyah': 'qadisiyah', 'diwaniyah': 'qadisiyah',
+    'salah al-din': 'salah al-din', 'صلاح الدين': 'salah al-din', 'salahaddin': 'salah al-din', 'salah_al_din': 'salah al-din',
+    'halabja': 'halabja', 'حلبجة': 'halabja'
+  };
+  
+  // Check for exact match or partial match in map
+  for (const [key, standard] of Object.entries(governorateMap)) {
+    if (val === key || val.includes(key)) {
+      return standard;
+    }
+  }
+  
+  // If no match found, return original lowercase or 'all'
+  return val === 'all' || val === 'all iraq' || val === 'iraq' ? 'all' : val;
+}
+
+
+function isUnclearDutyStation(raw: any): boolean {
+  const value = String(raw || '').trim().toLowerCase();
+  if (!value) return true;
+
+  const unclearTerms = [
+    'remote',
+    'multiple',
+    'multiple locations',
+    'various',
+    'several',
+    'all iraq',
+    'iraq-wide',
+    'iraq wide',
+    'nationwide',
+    'countrywide',
+    'anywhere',
+    'unspecified',
+    'not specified',
+    'n/a',
+    'na',
+    '-'
+  ];
+
+  return unclearTerms.some((term) => value === term || value.includes(term));
+}
+
+function hasUnsafeLocationText(raw: any): boolean {
+  const value = String(raw || '').trim();
+  if (!value) return true;
+
+  // Long location text is often an address/description, not a duty station.
+  if (value.length > 45) return true;
+
+  // Multiple separators usually mean mixed/multiple locations.
+  if (/[\/|;،،]/.test(value)) return true;
+  if (value.includes(',') && value.split(',').length > 2) return true;
+
+  return false;
+}
+
+function resolveDutyStation(item: any): { id: string; label: string } {
+  const explicitFields = [
+    item?.duty_station,
+    item?.city,
+    item?.governorate
+  ];
+
+  for (const field of explicitFields) {
+    if (isUnclearDutyStation(field)) continue;
+
+    const normalized = normalizeGovernorate(field);
+    if (normalized && normalized !== 'all') {
+      return { id: normalized, label: normalized };
+    }
+  }
+
+  // Only use location if it looks like a clean single governorate value.
+  if (!isUnclearDutyStation(item?.location) && !hasUnsafeLocationText(item?.location)) {
+    const normalizedLocation = normalizeGovernorate(item.location);
+    if (normalizedLocation && normalizedLocation !== 'all') {
+      return { id: normalizedLocation, label: normalizedLocation };
+    }
+  }
+
+  return { id: 'unspecified', label: 'MULTIPLE / REMOTE / UNSPECIFIED' };
+}
+
 async function hashPassword(password: string): Promise<string> {
   const encoder = new TextEncoder();
   const data = encoder.encode(password);
@@ -375,33 +485,36 @@ app.post('/api/auth/register', async (c) => {
       return c.json({ error: 'Email, password, and full_name are required' }, 400);
     }
     
-    // Check if user already exists
+    // Normalize email (trim and lowercase)
+    const normalizedEmail = normalizeEmail(email);
+    
+    // Check if user already exists (using normalized email)
     const existingUser = await c.env.DB.prepare(
-      'SELECT id FROM profiles WHERE email = ?'
-    ).bind(email).first();
+      'SELECT id FROM profiles WHERE LOWER(TRIM(email)) = ?'
+    ).bind(normalizedEmail).first();
     
     if (existingUser) {
-      return c.json({ error: 'User with this email already exists' }, 409);
+      return c.json({ error: 'Account already exists, please sign in or reset password' }, 409);
     }
     
     // Hash password
     const passwordHash = await hashPassword(password);
     
-    // Create user in profiles table
+    // Create user in profiles table (store normalized email)
     const userId = generateId();
     await c.env.DB.prepare(`
       INSERT INTO profiles (id, email, password_hash, full_name, governorate, institution, institution_id, role, is_verified)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
-    `).bind(userId, email, passwordHash, full_name, governorate || 'all', institution || 'manual', university_id || 'manual', 'student').run();
+    `).bind(userId, normalizedEmail, passwordHash, full_name, governorate || 'all', institution || 'manual', university_id || 'manual', 'student').run();
     
     // Generate JWT token
-    const token = await generateJWTToken(userId, email, 'student', (c.env.JWT_SECRET || c.env.JWT_SECRET_V2 || ""));
+    const token = await generateJWTToken(userId, normalizedEmail, 'student', (c.env.JWT_SECRET || c.env.JWT_SECRET_V2 || ""));
     
     return c.json({
       token,
       user: {
         id: userId,
-        email,
+        email: normalizedEmail,
         full_name,
         username: full_name,
         role: 'student',
@@ -426,13 +539,16 @@ app.post('/api/auth/login', async (c) => {
       return c.json({ error: 'Email and password are required' }, 400);
     }
     
-    // Find user in profiles table
+    // Normalize email (trim and lowercase)
+    const normalizedEmail = normalizeEmail(email);
+    
+    // Find user in profiles table (using normalized email)
     const user = await c.env.DB.prepare(
-      'SELECT * FROM profiles WHERE email = ?'
-    ).bind(email).first() as any;
+      'SELECT * FROM profiles WHERE LOWER(TRIM(email)) = ?'
+    ).bind(normalizedEmail).first() as any;
     
     if (!user) {
-      return c.json({ error: 'Invalid credentials' }, 401);
+      return c.json({ error: 'Invalid email or password' }, 401);
     }
     
     // Check if password is set (admin user might have empty password initially)
@@ -443,7 +559,7 @@ app.post('/api/auth/login', async (c) => {
     // Verify password
     const isValid = await verifyPassword(password, user.password_hash);
     if (!isValid) {
-      return c.json({ error: 'Invalid credentials' }, 401);
+      return c.json({ error: 'Invalid email or password' }, 401);
     }
     
     // Update last login
@@ -521,8 +637,8 @@ app.post('/api/auth/forgot-password', async (c) => {
     
     // Find user in profiles table
     const user = await c.env.DB.prepare(
-      'SELECT id, email FROM profiles WHERE email = ?'
-    ).bind(email).first() as any;
+      'SELECT id, email FROM profiles WHERE LOWER(TRIM(email)) = ?'
+    ).bind(normalizedEmail).first() as any;
     
     if (!user) {
       // Don't reveal if user exists or not for security
@@ -582,8 +698,8 @@ app.post('/api/auth/reset-password', async (c) => {
     
     // Update user password in profiles table
     await c.env.DB.prepare(
-      'UPDATE profiles SET password_hash = ?, updated_at = ? WHERE email = ?'
-    ).bind(passwordHash, new Date().toISOString(), resetToken.email).run();
+      'UPDATE profiles SET password_hash = ?, updated_at = ? WHERE LOWER(TRIM(email)) = ?'
+    ).bind(passwordHash, new Date().toISOString(), normalizeEmail(resetToken.email)).run();
     
     // Delete the reset token
     await c.env.DB.prepare(
@@ -1491,6 +1607,9 @@ app.get('/api/opportunities', async (c) => {
     const governorate = c.req.query('governorate') || 'all';
     const university_id = c.req.query('university_id') || c.req.query('institution_id') || 'all';
     
+    // Normalize governorate filter
+    const normalizedGovernorate = normalizeGovernorate(governorate);
+    
     let query = `
       SELECT * FROM opportunities 
       WHERE status = 'approved'
@@ -1508,10 +1627,21 @@ app.get('/api/opportunities', async (c) => {
       params.push(category);
     }
     
-    // Filter by governorate
-    if (governorate !== 'all') {
-      query += ' AND governorate = ?';
-      params.push(governorate);
+    // Filter by governorate (with normalization)
+    if (normalizedGovernorate !== 'all') {
+      // Normalize the governorate field in the database for comparison
+      // Use CASE statement to handle different spellings
+      query += ` AND (
+        LOWER(TRIM(governorate)) = ? OR
+        LOWER(TRIM(city)) = ? OR
+        LOWER(TRIM(duty_station)) = ? OR
+        governorate = ? OR
+        city = ? OR
+        duty_station = ? )`;
+      params.push(
+        normalizedGovernorate, normalizedGovernorate, normalizedGovernorate,
+      normalizedGovernorate, normalizedGovernorate, normalizedGovernorate
+      );
     }
     
     // Filter by university (using city or institution_name)
@@ -1525,7 +1655,21 @@ app.get('/api/opportunities', async (c) => {
     
     const opportunities = await c.env.DB.prepare(query).bind(...params).all();
     
-    return c.json(opportunities.results || []);
+    // Normalize governorate/duty station in response for consistency
+    const normalizedResults = (opportunities.results || []).map((item: any) => {
+      const resolvedDutyStation = resolveDutyStation(item);
+      return {
+        ...item,
+        governorateId: resolvedDutyStation.id,
+        duty_station: resolvedDutyStation.label
+      };
+    });
+    
+    const strictResults = normalizedGovernorate !== 'all'
+      ? normalizedResults.filter((item: any) => item.governorateId === normalizedGovernorate)
+      : normalizedResults;
+
+    return c.json(strictResults);
   } catch (error: any) {
     console.error('Get opportunities error:', error);
     return c.json({ error: 'Failed to get opportunities' }, 500);
@@ -1584,3 +1728,6 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
+
+
+

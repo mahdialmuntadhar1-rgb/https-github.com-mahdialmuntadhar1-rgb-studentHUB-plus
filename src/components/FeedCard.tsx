@@ -327,6 +327,11 @@ export default function FeedCard({
               <p className="mt-4 text-base font-black text-[#6b3a10]">
                 {cleanText(item.company || item.author?.name || item.location || 'Iraq', 'Iraq')}
               </p>
+              <div className="mt-3 inline-flex rounded-lg bg-slate-900 px-3 py-1.5 shadow-md">
+                <span className="text-[10px] font-black uppercase tracking-wider text-white">
+                  DUTY STATION: {String((item as any).duty_station || item.governorateId || 'MULTIPLE / REMOTE / UNSPECIFIED').toUpperCase()}
+                </span>
+              </div>
               <p className="mx-auto mt-3 max-w-[34ch] text-sm font-semibold leading-6 text-[#4a2a0d]">
                 {cleanText(
                   item.contentEN ||
@@ -527,3 +532,4 @@ export default function FeedCard({
     </article>
   );
 }
+
