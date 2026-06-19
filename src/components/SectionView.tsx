@@ -403,6 +403,25 @@ function inferGovernorateFromText(text: string) {
   return 'all';
 }
 
+function normalizeGovernorateId(raw: any): string {
+  const text = String(raw || '').trim().toLowerCase();
+
+  if (!text || text === 'all' || text === 'iraq' || text === 'all iraq' || text === 'iraq-wide') {
+    return 'all';
+  }
+
+  for (const [govId, aliases] of Object.entries(GOV_ALIASES)) {
+    if (text === govId || aliases.some((alias) => text.includes(alias.toLowerCase()))) {
+      return govId;
+    }
+  }
+
+  return text
+    .replace(/\s+/g, '_')
+    .replace(/-/g, '_')
+    .replace(/[^\w_]/g, '');
+}
+
 function hashCode(input: string) {
   let hash = 0;
   for (let i = 0; i < input.length; i++) {
@@ -636,12 +655,12 @@ export default function SectionView({
         const targetVal = categoryConfig.categoryValue;
         const params = new URLSearchParams();
         params.append('category', targetVal);
-        if (selectedGov && selectedGov !== 'all') params.append('governorate', selectedGov);
+        if (!isJobSection && selectedGov && selectedGov !== 'all') params.append('governorate', selectedGov);
         if (!isJobSection && selectedUni && selectedUni !== 'all') {
           params.append('university_id', selectedUni);
           params.append('institution_id', selectedUni);
         }
-        params.append('limit', '80');
+        params.append('limit', isJobSection ? '500' : '80');
 
         const response = await fetch(`${BACKEND_URL}/api/${queryEndpoint}?${params.toString()}`);
         if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
@@ -668,9 +687,9 @@ export default function SectionView({
           titleEN: item.titleEN || item.title || 'Untitled Opportunity',
           titleAR: item.titleAR || item.title || 'فرصة غير معنونة',
           titleKU: item.titleKU || item.title || 'هەلی بێ ناونیشان',
-          contentEN: item.contentEN || item.content || 'Check original portal for instructions.',
-          contentAR: item.contentAR || item.content || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
-          contentKU: item.contentKU || item.content || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
+          contentEN: item.contentEN || item.description || item.summary || item.content || 'Check original portal for instructions.',
+          contentAR: item.contentAR || item.description || item.summary || item.content || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
+          contentKU: item.contentKU || item.description || item.summary || item.content || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
           author: {
             name: item.organization || item.institution_name || item.author?.name || (isJobSection ? 'Career Source' : 'Academic Center'),
             role: 'institution' as const,
@@ -681,12 +700,14 @@ export default function SectionView({
           likes: item.likes || 10,
           commentsCount: 0,
           commentsList: [],
-          governorateId: item.governorateId || item.governorate || 'all',
+          governorateId: normalizeGovernorateId(item.governorateId || item.governorate || item.location || item.city || item.duty_station || item.work_location),
           universityId: item.universityId || item.university_id || 'all',
-          tags: item.tags || [categoryConfig.categoryValue, 'Iraq'],
+          tags: Array.isArray(item.tags) ? item.tags : [categoryConfig.categoryValue, normalizeGovernorateId(item.governorateId || item.governorate || item.location || item.city), 'Iraq'].filter(Boolean),
           imageUrl: item.imageUrl || item.image_url || undefined,
-          application_link: item.application_link || item.apply_url || item.source_url || item.original_source_url || undefined,
-          original_source_url: item.original_source_url || item.application_link || item.apply_url || item.source_url || undefined,
+          applyUrl: item.application_link || item.apply_url || item.source_url || item.original_source_url || item.url || item.link || item.job_url || item.details_url || item.source?.url || item.metadata?.url || undefined,
+          sourceUrl: item.source_url || item.original_source_url || item.application_link || item.apply_url || item.url || item.link || item.job_url || item.details_url || item.source?.url || item.metadata?.url || undefined,
+          application_link: item.application_link || item.apply_url || item.source_url || item.original_source_url || item.url || item.link || item.job_url || item.details_url || item.source?.url || item.metadata?.url || undefined,
+          original_source_url: item.original_source_url || item.source_url || item.application_link || item.apply_url || item.url || item.link || item.job_url || item.details_url || item.source?.url || item.metadata?.url || undefined,
           deadline: item.deadline || undefined,
           company: item.organization || item.institution_name || undefined,
           location: item.location || item.city || 'Iraq',
@@ -720,37 +741,25 @@ export default function SectionView({
       return;
     }
 
-    let active = true;
-    const runLiveAggregator = async () => {
-      setLiveLoading(true);
-      try {
-        const cacheKey = getJobCacheKey(selectedGov, selectedJobSource);
-        const cachedJobs = readCachedLiveJobs(cacheKey);
-
-        if (cachedJobs) {
-          if (active) setLiveJobItems(cachedJobs);
-          return;
-        }
-
-        const liveJobs = await fetchLiveJobsFromSources(selectedGov, selectedGovNameEN, selectedJobSource);
-        writeCachedLiveJobs(cacheKey, liveJobs);
-
-        if (active) setLiveJobItems(liveJobs);
-      } catch (err) {
-        console.warn('Live job aggregator failed:', err);
-        if (active) setLiveJobItems([]);
-      } finally {
-        if (active) setLiveLoading(false);
-      }
-    };
-
-    runLiveAggregator();
-    return () => { active = false; };
-  }, [isJobSection, selectedGov, selectedGovNameEN, selectedJobSource]);
+    // Browser scraping of external career websites is unreliable because many sources block CORS/proxies.
+    // The job section now uses approved backend jobs and filters them locally by governorate.
+    setLiveJobItems([]);
+    setLiveLoading(false);
+  }, [isJobSection, selectedGov, selectedJobSource]);
 
   const backendFilteredItems = items.filter(item => {
-    const matchesGov = selectedGov === 'all' || !item.governorateId || item.governorateId === 'all' || item.governorateId === selectedGov;
+    const itemGovText = [
+      (item as any).governorateId,
+      (item as any).governorate,
+      (item as any).location,
+      (item as any).city,
+      Array.isArray((item as any).tags) ? (item as any).tags.join(' ') : ''
+    ].filter(Boolean).join(' ');
+
+    const normalizedItemGov = normalizeGovernorateId(itemGovText);
+    const matchesGov = selectedGov === 'all' || normalizedItemGov === 'all' || normalizedItemGov === selectedGov;
     const matchesUni = isJobSection || selectedUni === 'all' || !item.universityId || item.universityId === 'all' || item.universityId === selectedUni;
+
     return matchesGov && matchesUni;
   });
 
@@ -967,5 +976,6 @@ export default function SectionView({
     </div>
   );
 }
+
 
 
