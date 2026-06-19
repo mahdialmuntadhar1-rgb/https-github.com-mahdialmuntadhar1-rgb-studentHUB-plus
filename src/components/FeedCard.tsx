@@ -324,7 +324,7 @@ export default function FeedCard({
               {title}
             </h2>
             <>
-              <p className="opportunity-duty-station-badge mt-4 text-base font-black text-[#6b3a10]">
+              <p className="opportunity-duty-station-badge mt-4 text-base font-black text-[#6b3a10]" style={{ backgroundColor: "#0f172a", color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
                 <span className="opportunity-company-black">{cleanText(item.company || item.author?.name || item.location || 'Iraq', 'Iraq')}</span>
               </p>
               <div className="mt-3 inline-flex rounded-lg bg-slate-900 px-3 py-1.5 shadow-md">
@@ -532,5 +532,6 @@ export default function FeedCard({
     </article>
   );
 }
+
 
 

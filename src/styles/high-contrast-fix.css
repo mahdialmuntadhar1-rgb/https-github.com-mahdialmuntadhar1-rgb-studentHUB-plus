@@ -381,3 +381,28 @@ html[lang="ckb"] h3,
   -webkit-text-fill-color: #ffffff !important;
 }
 
+/* =========================================================
+   FINAL duty-station badge contrast override
+   This must remain at the very end of the file.
+   ========================================================= */
+html body .opportunity-duty-station-badge,
+html body .opportunity-duty-station-badge *,
+html body .opportunity-readable-card .opportunity-duty-station-badge,
+html body .opportunity-readable-card .opportunity-duty-station-badge *,
+html body [class*="opportunity-duty-station-badge"],
+html body [class*="opportunity-duty-station-badge"] * {
+  background-color: #0f172a !important;
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  text-shadow: none !important;
+  opacity: 1 !important;
+}
+
+html body .opportunity-duty-station-badge span,
+html body .opportunity-duty-station-badge strong,
+html body .opportunity-duty-station-badge div {
+  color: #ffffff !important;
+  -webkit-text-fill-color: #ffffff !important;
+  background-color: transparent !important;
+}
+
