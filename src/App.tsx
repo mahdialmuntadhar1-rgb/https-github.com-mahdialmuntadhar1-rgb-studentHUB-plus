@@ -1,58 +1,25 @@
 ﻿import React, { useState, useEffect } from 'react';
 import './styles/high-contrast-fix.css';
 import { Language, FeedItem, UserProfile, Comment } from './types';
-import './styles/high-contrast-fix.css';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from './data/mockData';
-import './styles/high-contrast-fix.css';
 import { getTranslation } from './data/translations';
-import './styles/high-contrast-fix.css';
 import { brandingThemes } from './data/themes';
-import './styles/high-contrast-fix.css';
 import Header from './components/Header';
-import FixedLanguageBar from './components/FixedLanguageBar';
-import './styles/high-contrast-fix.css';
 import HomeFeed from './components/HomeFeed';
-import FixedLanguageBar from './components/FixedLanguageBar';
-import './styles/high-contrast-fix.css';
 import LifeFeed from './components/LifeFeed';
-import FixedLanguageBar from './components/FixedLanguageBar';
-import './styles/high-contrast-fix.css';
 import FutureFeed from './components/FutureFeed';
-import FixedLanguageBar from './components/FixedLanguageBar';
-import './styles/high-contrast-fix.css';
 import AskFeed from './components/AskFeed';
-import FixedLanguageBar from './components/FixedLanguageBar';
-import './styles/high-contrast-fix.css';
 import ProfileView from './components/ProfileView';
-import FixedLanguageBar from './components/FixedLanguageBar';
-import './styles/high-contrast-fix.css';
 import SectionView from './components/SectionView';
-import FixedLanguageBar from './components/FixedLanguageBar';
-import './styles/high-contrast-fix.css';
 import AuthModal from './components/AuthModal';
-import FixedLanguageBar from './components/FixedLanguageBar';
-import './styles/high-contrast-fix.css';
 import AdminPanel from './components/AdminPanel';
-import FixedLanguageBar from './components/FixedLanguageBar';
-import './styles/high-contrast-fix.css';
 import AdminAutomation from './components/AdminAutomation';
-import FixedLanguageBar from './components/FixedLanguageBar';
-import './styles/high-contrast-fix.css';
 import SocialHub from './components/SocialHub';
-import FixedLanguageBar from './components/FixedLanguageBar';
-import './styles/high-contrast-fix.css';
 import UserProfileModal from './components/UserProfileModal';
-import FixedLanguageBar from './components/FixedLanguageBar';
-import './styles/high-contrast-fix.css';
 import UniversitiesList from './components/UniversitiesList';
-import FixedLanguageBar from './components/FixedLanguageBar';
-import './styles/high-contrast-fix.css';
 import { BACKEND_URL, socialApi } from './lib/api';
-import './styles/high-contrast-fix.css';
 import { motion, AnimatePresence } from 'motion/react';
-import './styles/high-contrast-fix.css';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
-import './styles/high-contrast-fix.css';
 
 export default function App() {
   // Locale States
@@ -1110,9 +1077,7 @@ export default function App() {
   };
 
   return (
-    <>
-      <FixedLanguageBar language={language} setLanguage={setLanguage} />
-      <div id="jamiaati-portal" className="bg-[#FAF9FF] min-h-screen text-slate-800 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'} lang={language}>
+    <div id="jamiaati-portal" className="bg-[#FAF9FF] min-h-screen text-slate-800 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'} lang={language}>
       {/* Centered device presentation mock */}
       <div className="w-full max-w-md mx-auto min-h-screen bg-slate-50 shadow-2xl relative flex flex-col border-x border-slate-205">
         
@@ -1312,7 +1277,7 @@ export default function App() {
         </div>
 
       </div>
-      </div>
-    </>
+    </div>
   );
 };
+

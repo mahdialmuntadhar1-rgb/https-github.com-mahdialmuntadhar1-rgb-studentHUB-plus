@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Governorate, University, Language } from '../types';
 import { IraqiGovernorates, IraqiUniversities } from '../data/mockData';
 import { MapPin, School, Bell, Languages, Check, BookOpen, Palette, MessageSquare } from 'lucide-react';
@@ -39,10 +39,10 @@ export default function Header({
   ]);
   const [showNotifications, setShowNotifications] = useState(false);
 
-  const getLanguageLabel = (lang: Language) => {
-    if (lang === 'en') return 'EN';
-    if (lang === 'ar') return 'عربي';
-    return 'کوردی';
+  const getLanguageMeta = (lang: Language) => {
+    if (lang === 'ar') return { flag: '🇮🇶', label: 'Arabic', short: 'AR' };
+    if (lang === 'ku') return { flag: '☀️', label: 'Kurdish', short: 'KU' };
+    return { flag: '🇺🇸', label: 'English', short: 'EN' };
   };
 
   return (
@@ -76,20 +76,28 @@ export default function Header({
         {/* Action Elements: Inline Language Switcher Bar, Notifications & Profile */}
         <div className="flex items-center gap-2" id="header-actions">
           {/* Inline Language Bar: Beautiful, pill-shaped, intuitive switcher */}
-          <div className="flex items-center bg-[#F3F1FB] border border-[#E6E1F5] rounded-lg p-0.5" id="inline-language-bar">
-            {(['en', 'ar', 'ku'] as Language[]).map(lang => (
-              <button
-                key={lang}
-                onClick={() => setLanguage(lang)}
-                className={`px-1.5 py-0.5 text-[9px] font-black rounded-md cursor-pointer transition-all duration-150 ${
-                  language === lang 
-                    ? 'bg-orange-500 text-white shadow-sm' 
-                    : 'text-slate-600 hover:text-orange-600'
-                }`}
-              >
-                {getLanguageLabel(lang)}
-              </button>
-            ))}
+          <div className="flex items-center gap-1 rounded-xl border border-orange-200 bg-white px-1.5 py-1 shadow-sm" id="inline-language-bar">
+            {(['ar', 'ku', 'en'] as Language[]).map(lang => {
+              const meta = getLanguageMeta(lang);
+              const active = language === lang;
+
+              return (
+                <button
+                  key={lang}
+                  onClick={() => setLanguage(lang)}
+                  className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-black cursor-pointer transition-all duration-150 ${
+                    active
+                      ? 'bg-orange-500 text-white shadow-sm'
+                      : 'bg-slate-100 text-slate-900 hover:bg-orange-50 hover:text-orange-700'
+                  }`}
+                  title={meta.label}
+                  aria-label={`Switch language to ${meta.label}`}
+                >
+                  <span className="text-base leading-none">{meta.flag}</span>
+                  <span>{meta.short}</span>
+                </button>
+              );
+            })}
           </div>
 
           {/* Notifications Trigger */}
@@ -175,3 +183,4 @@ export default function Header({
     </header>
   );
 }
+

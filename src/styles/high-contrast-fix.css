@@ -115,6 +115,15 @@ textarea::placeholder {
 }
 
 /* Add space so fixed language bar does not cover the first top row */
-body {
-  padding-top: 58px;
+body { padding-top: 0; }
+
+/* Original top header language bar: compact and readable */
+#inline-language-bar,
+#inline-language-bar * {
+  -webkit-text-fill-color: unset !important;
+}
+
+#inline-language-bar button {
+  min-height: 30px;
+  white-space: nowrap;
 }
