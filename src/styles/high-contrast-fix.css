@@ -1,0 +1,120 @@
+﻿/* Jamiaati global contrast safety patch.
+   Prevents white text on white/light backgrounds across auth, language, cards, forms, and scholarship/opportunity cards. */
+
+:root {
+  color-scheme: light;
+}
+
+body,
+#root {
+  background: #f8fafc;
+  color: #0f172a;
+}
+
+/* Keep the new fixed language bar always readable */
+#fixed-language-bar,
+#fixed-language-bar * {
+  -webkit-text-fill-color: unset !important;
+}
+
+#fixed-language-bar button {
+  min-height: 44px;
+}
+
+/* All form fields must be readable */
+input,
+textarea,
+select {
+  background-color: #ffffff !important;
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  border-color: #cbd5e1 !important;
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+/* Auth/login/register modal contrast */
+[role="dialog"],
+.auth-modal,
+.login-modal,
+.register-modal,
+.fixed.inset-0 form,
+.fixed.inset-0 .bg-white,
+.fixed.inset-0 [class*="bg-white"] {
+  color: #0f172a !important;
+}
+
+[role="dialog"] label,
+[role="dialog"] p,
+[role="dialog"] span,
+[role="dialog"] h1,
+[role="dialog"] h2,
+[role="dialog"] h3,
+.fixed.inset-0 label,
+.fixed.inset-0 p,
+.fixed.inset-0 span,
+.fixed.inset-0 h1,
+.fixed.inset-0 h2,
+.fixed.inset-0 h3 {
+  color: #0f172a;
+}
+
+/* Fix white text accidentally placed on white/light cards */
+[class*="bg-white"] [class*="text-white"],
+[class*="bg-slate-50"] [class*="text-white"],
+[class*="bg-slate-100"] [class*="text-white"],
+[class*="bg-orange-50"] [class*="text-white"],
+[class*="bg-blue-50"] [class*="text-white"],
+[class*="bg-indigo-50"] [class*="text-white"],
+[class*="bg-purple-50"] [class*="text-white"],
+[class*="bg-emerald-50"] [class*="text-white"] {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
+/* Scholarship/opportunity cards: readable text on light backgrounds */
+[id*="scholarship" i],
+[class*="scholarship" i],
+[id*="opportunit" i],
+[class*="opportunit" i] {
+  color: #0f172a;
+}
+
+[id*="scholarship" i] p,
+[id*="scholarship" i] span,
+[id*="scholarship" i] h1,
+[id*="scholarship" i] h2,
+[id*="scholarship" i] h3,
+[class*="scholarship" i] p,
+[class*="scholarship" i] span,
+[class*="scholarship" i] h1,
+[class*="scholarship" i] h2,
+[class*="scholarship" i] h3 {
+  color: #0f172a;
+}
+
+/* Preserve white text only when it is truly on dark/colored backgrounds */
+.bg-black,
+.bg-slate-900,
+.bg-slate-950,
+.bg-orange-500,
+.bg-blue-600,
+.bg-indigo-600,
+.bg-purple-600,
+.bg-emerald-600,
+.bg-red-600,
+[class*="from-black"],
+[class*="from-[#"],
+[class*="via-[#"],
+[class*="to-[#"] {
+  color: inherit;
+}
+
+/* Add space so fixed language bar does not cover the first top row */
+body {
+  padding-top: 58px;
+}
