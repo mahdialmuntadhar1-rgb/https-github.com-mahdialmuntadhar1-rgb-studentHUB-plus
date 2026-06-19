@@ -1523,7 +1523,7 @@ export default function HomeFeed({
                 <div>
                   <h3 className="text-base font-black">Edit Hero Images</h3>
                   <p className="text-xs text-slate-500">
-                    Frontend-only editing for {ADMIN_EMAIL}. Upload images or paste safe image URLs.
+                    Frontend-only editing for {ADMIN_EMAIL}. Upload images from your computer to replace the scrolling hero images.
                   </p>
                 </div>
                 <button
@@ -1657,71 +1657,6 @@ export default function HomeFeed({
             </div>
           </div>
         )}
-      </div>
-
-      {/* 2. Interactive Circular Campus Life Channels & Guides */}
-      <div className="mb-6 bg-white border-2 border-slate-150 rounded-3xl p-4.5 shadow-sm" id="home-student-storyboard-section">
-        <div className="flex items-center justify-between mb-3 px-1">
-          <div className="flex items-center gap-2">
-            <span className="text-sm">🏛️</span>
-            <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
-              {language === 'ar' ? 'أقسام وقنوات الدليل الجامعي' : language === 'ku' ? 'بەش و کەناڵەکانی زانکۆ' : 'Campus Guides & Topic Channels'}
-            </span>
-          </div>
-          <span className="text-[10px] text-emerald-600 font-extrabold px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 rounded-full uppercase tracking-wide">
-            {language === 'ar' ? 'معتمد وموثق ✓' : language === 'ku' ? 'باوەڕپێکراو ✓' : 'VERIFIED FOR STUDENTS ✓'}
-          </span>
-        </div>
-
-        {/* Channels Horizontal Scrolling Container */}
-        <div className="flex gap-4 overflow-x-auto pb-2 pt-1 scrollbar-none snap-x touch-pan-x justify-start select-none" id="student-storyboard-row">
-          {campusLifeCategories.map((category) => {
-            const label = language === 'ar' ? category.labelAR : language === 'ku' ? category.labelKU : category.labelEN;
-            const isActive = selectedFeedTab === 'campus_life' && selectedCampusFilter === category.id;
-
-            return (
-              <button
-                key={category.id}
-                type="button"
-                onClick={() => {
-                  setSelectedFeedTab('campus_life');
-                  setSelectedCampusFilter(category.id);
-                  if (showToast) {
-                    showToast(language === 'ar' ? `الذهاب إلى: ${label}` : `Viewing: ${label}`, 'info');
-                  }
-                }}
-                className="flex flex-col items-center gap-1 cursor-pointer shrink-0 snap-center min-w-[76px] text-center focus:outline-none transition-transform active:scale-95 group"
-                id={`storyboard-capsule-${category.id}`}
-              >
-                {/* Topic Circular Gradient Ring */}
-                <div className="relative">
-                  <div className={`w-15 h-15 rounded-full p-[2.5px] bg-gradient-to-tr ${category.bg} transition-all group-hover:scale-105 shadow-sm`}>
-                    <div className="w-full h-full rounded-full flex items-center justify-center bg-white">
-                      <span className="text-2xl">{category.emoji}</span>
-                    </div>
-                  </div>
-                  
-                  {/* Small absolute green dot indicating verified channel */}
-                  <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full flex items-center justify-center">
-                    <span className="text-[7px] text-white font-black leading-none">✓</span>
-                  </span>
-                </div>
-
-                {/* Name text below */}
-                <span className={`text-[10.5px] font-extrabold max-w-[76px] truncate leading-tight mt-1 transition-colors ${
-                  isActive ? 'text-orange-600' : 'text-slate-800 group-hover:text-orange-600'
-                }`}>
-                  {label}
-                </span>
-                
-                {/* Subtext */}
-                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">
-                  {category.id.replace('_', ' ')}
-                </span>
-              </button>
-            );
-          })}
-        </div>
       </div>
 
       {/* 3 & 4. Governorate & University combined Row Filter */}
@@ -2692,6 +2627,7 @@ export default function HomeFeed({
     </div>
   );
 }
+
 
 
 
