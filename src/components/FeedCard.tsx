@@ -270,52 +270,34 @@ export default function FeedCard({
             loading="lazy"
             referrerPolicy="no-referrer"
           />
-
-          {isOpportunity && (
-            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/88 via-black/50 to-transparent px-5 pb-5 pt-16 text-white">
-              <div className="mb-2 inline-flex rounded-full bg-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow">
-                {item.type === 'scholarship' ? 'Scholarship' : item.type === 'internship' ? 'Internship' : 'Job Opportunity'}
-              </div>
-              <h2 className="text-3xl font-black leading-[1.05] drop-shadow-md">
-                {title}
-              </h2>
-              <p className="mt-2 text-sm font-bold text-white/85">
-                {cleanText(item.company || item.author?.name || item.location || 'Iraq', 'Iraq')}
-              </p>
-            </div>
-          )}
         </div>
-      ) : (
+      ) : isOpportunity ? (
         <div className="relative flex min-h-[340px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-orange-100 via-orange-200 to-orange-400 px-6 py-10 text-center text-[#3b2208]">
           <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top_left,_#ffffff_0,_transparent_30%),radial-gradient(circle_at_bottom_right,_#fdba74_0,_transparent_34%)]" />
           <div className="relative z-10">
             <div className="mb-4 inline-flex rounded-full bg-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow">
-              {isOpportunity ? (item.type === 'scholarship' ? 'Scholarship' : item.type === 'internship' ? 'Internship' : 'Job Opportunity') : 'Jamiaati'}
+              {item.type === 'scholarship' ? 'Scholarship' : item.type === 'internship' ? 'Internship' : 'Job Opportunity'}
             </div>
-            <h2 className={`${isOpportunity ? 'text-5xl' : 'text-2xl'} font-black leading-[1.02] tracking-tight`}>
+            <h2 className="text-5xl font-black leading-[1.02] tracking-tight">
               {title}
             </h2>
-            {isOpportunity && (
-              <>
-                <p className="mt-4 text-base font-black text-[#6b3a10]">
-                  {cleanText(item.company || item.author?.name || item.location || 'Iraq', 'Iraq')}
-                </p>
-                <p className="mx-auto mt-3 max-w-[34ch] text-sm font-semibold leading-6 text-[#4a2a0d]">
-                  {cleanText(
-                    item.contentEN ||
-                    item.contentAR ||
-                    item.contentKU ||
-                    item.content ||
-                    item.description ||
-                    'Open the direct link for full details.',
-                    'Open the direct link for full details.'
-                  ).slice(0, 160)}
-                </p>
-              </>
-            )}
+            <>
+              <p className="mt-4 text-base font-black text-[#6b3a10]">
+                {cleanText(item.company || item.author?.name || item.location || 'Iraq', 'Iraq')}
+              </p>
+              <p className="mx-auto mt-3 max-w-[34ch] text-sm font-semibold leading-6 text-[#4a2a0d]">
+                {cleanText(
+                  item.contentEN ||
+                  item.contentAR ||
+                  item.contentKU ||
+                  'Open the direct link for full details.',
+                  'Open the direct link for full details.'
+                ).slice(0, 160)}
+              </p>
+            </>
           </div>
         </div>
-      )}
+      ) : null}
 
       <div className="px-4 py-3">
         <p className={`whitespace-pre-line text-[14px] font-semibold leading-relaxed text-slate-900 ${!showFullCaption ? 'line-clamp-4' : ''}`}>

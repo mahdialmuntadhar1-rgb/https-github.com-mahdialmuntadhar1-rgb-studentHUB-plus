@@ -128,6 +128,12 @@ body { padding-top: 0; }
   white-space: nowrap;
 }
 
+/* Ensure active language button has high contrast dark text on orange */
+#inline-language-bar button.bg-orange-500 {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+}
+
 /* Home Opportunities readability patch */
 #empty-feed-card,
 #empty-feed-card * {

@@ -87,7 +87,7 @@ export default function Header({
                   onClick={() => setLanguage(lang)}
                   className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-black cursor-pointer transition-all duration-150 ${
                     active
-                      ? 'bg-orange-500 text-white shadow-sm'
+                      ? 'bg-orange-500 text-slate-900 shadow-sm'
                       : 'bg-slate-100 text-slate-900 hover:bg-orange-50 hover:text-orange-700'
                   }`}
                   title={meta.label}

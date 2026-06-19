@@ -41,6 +41,33 @@ function isSafeHeroImageValue(value: string): boolean {
   return false;
 }
 
+function getSafeTags(tags: any): string[] {
+  if (Array.isArray(tags)) {
+    return tags.map(tag => String(tag || '').trim()).filter(Boolean);
+  }
+
+  if (typeof tags === 'string') {
+    try {
+      const parsed = JSON.parse(tags);
+      if (Array.isArray(parsed)) {
+        return parsed.map(tag => String(tag || '').trim()).filter(Boolean);
+      }
+    } catch {
+      // keep plain string handling below
+    }
+
+    return tags
+      .replace(/^\[/, '')
+      .replace(/\]$/, '')
+      .replace(/"/g, '')
+      .split(',')
+      .map(tag => tag.trim())
+      .filter(Boolean);
+  }
+
+  return [];
+}
+
 // Helper function to read hero images from localStorage with safety checks
 function readStoredHeroImages(): string[] {
   if (typeof window === 'undefined') return DEFAULT_HERO_IMAGES;
@@ -1398,29 +1425,60 @@ export default function HomeFeed({
   const filteredOppsItems = useMemo(() => {
     // Use backend opportunities when a specific category filter is selected
     if (selectedOppFilter !== 'all' && backendOpportunities.length > 0) {
-      return backendOpportunities;
+      // Filter backend opportunities by governorate
+      const govFiltered = backendOpportunities.filter(item => {
+        const itemGovText = [
+          item.governorateId,
+          item.governorate,
+          item.location,
+          item.city,
+          Array.isArray(item.tags) ? item.tags.join(' ') : ''
+        ].filter(Boolean).join(' ');
+        const normalizedItemGov = normalizeHomeGovernorateId(itemGovText);
+        return selectedGov === 'all' || normalizedItemGov === 'all' || normalizedItemGov === selectedGov;
+      });
+
+      // Add Iraq-wide fallback if governorate has few results (less than 5)
+      if (selectedGov !== 'all' && govFiltered.length < 5 && govFiltered.length < backendOpportunities.length) {
+        // Add Iraq-wide jobs that aren't already in the filtered list
+        const iraqWideJobs = backendOpportunities.filter(item => {
+          const itemGovText = [
+            item.governorateId,
+            item.governorate,
+            item.location,
+            item.city,
+            Array.isArray(item.tags) ? item.tags.join(' ') : ''
+          ].filter(Boolean).join(' ');
+          const normalizedItemGov = normalizeHomeGovernorateId(itemGovText);
+          const isAlreadyIncluded = govFiltered.some(govItem => govItem.id === item.id);
+          return !isAlreadyIncluded && (normalizedItemGov === 'all' || normalizedItemGov !== selectedGov);
+        });
+        return [...govFiltered, ...iraqWideJobs];
+      }
+
+      return govFiltered;
     }
-    
+
     if (selectedOppFilter === 'all') {
       return allSeriousItems;
     }
     if (selectedOppFilter === 'job') {
-      return allSeriousItems.filter(item => 
+      return allSeriousItems.filter(item =>
         ['job', 'part_time_job', 'full_time_job', 'internship'].includes(item.type)
       );
     }
     if (selectedOppFilter === 'scholarship') {
-      return allSeriousItems.filter(item => 
+      return allSeriousItems.filter(item =>
         ['scholarship', 'fellowship'].includes(item.type)
       );
     }
     if (selectedOppFilter === 'training') {
-      return allSeriousItems.filter(item => 
+      return allSeriousItems.filter(item =>
         ['training', 'graduation_project_support', 'volunteering', 'competition'].includes(item.type)
       );
     }
     if (selectedOppFilter === 'admission') {
-      return allSeriousItems.filter(item => 
+      return allSeriousItems.filter(item =>
         ['admission', 'registration'].includes(item.type)
       );
     }
@@ -1428,8 +1486,8 @@ export default function HomeFeed({
       return allSeriousItems.filter(item => item.type === 'announcement');
     }
     if (selectedOppFilter === 'news') {
-      return allSeriousItems.filter(item => 
-        item.type === 'news' || 
+      return allSeriousItems.filter(item =>
+        item.type === 'news' ||
         getSafeTags(item.tags).some(tag => tag.toLowerCase().includes('news')) ||
         item.type === 'announcement'
       );
@@ -1438,13 +1496,13 @@ export default function HomeFeed({
       return allSeriousItems.filter(item => !!item.deadline);
     }
     if (selectedOppFilter === 'internship') {
-      return allSeriousItems.filter(item => 
-        item.type === 'internship' || 
+      return allSeriousItems.filter(item =>
+        item.type === 'internship' ||
         getSafeTags(item.tags).some(tag => tag.toLowerCase().includes('intern'))
       );
     }
     return allSeriousItems;
-  }, [allSeriousItems, selectedOppFilter, backendOpportunities]);
+  }, [allSeriousItems, selectedOppFilter, backendOpportunities, selectedGov]);
 
   // Filtering for Campus Life Tab
   const filteredCampusItems = useMemo(() => {
@@ -1923,6 +1981,20 @@ export default function HomeFeed({
               </button>
             );
           })}
+        </div>
+      )}
+
+      {/* External IQJScout Search Button */}
+      {selectedFeedTab === 'opportunities' && selectedOppFilter === 'job' && (
+        <div className="mb-5 flex justify-center">
+          <button
+            onClick={() => window.open('https://iqjscout.com/jobs/', '_blank', 'noopener,noreferrer')}
+            className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95"
+          >
+            <span>🔍</span>
+            <span>{language === 'ar' ? 'ابحث عن المزيد من الوظائف على IQJScout' : language === 'ku' ? 'گەڕان بەدوای هەلی کار زیاتر لە IQJScout' : 'Search more jobs on IQJScout'}</span>
+            <span>↗</span>
+          </button>
         </div>
       )}
 
