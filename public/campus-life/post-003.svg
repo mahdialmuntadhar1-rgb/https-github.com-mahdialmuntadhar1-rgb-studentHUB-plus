@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">One lecture, three coffees</title>
+  <desc id="desc">ثلاثة أكواب ورقية مصطفة قرب لابتوب</desc>
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(312 78% 55%)"/><stop offset="1" stop-color="hsl(35 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
+  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
+  <circle cx="256" cy="164" r="116" fill="#fff" opacity=".09"/>
+  <circle cx="918" cy="462" r="149" fill="#fff" opacity=".08"/>
+  <g filter="url(#s)"><path d="M430 300h250v150a100 100 0 0 1-100 100h-50a100 100 0 0 1-100-100z" fill="#fff" opacity=".94"/><path d="M680 340h55a65 65 0 0 1 0 130h-45" fill="none" stroke="#fff" stroke-width="28"/><path d="M500 245c-35-45 38-70 0-118M570 245c-35-45 38-70 0-118" fill="none" stroke="#fff" stroke-width="18" stroke-linecap="round" opacity=".75"/></g>
+  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
+  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(312 65% 32%)">STUDY HUMOR</text>
+  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 003</text>
+</svg>

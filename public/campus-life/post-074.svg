@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Cafeteria food rating</title>
+  <desc id="desc">سندويتش وكرسي كرتوني مع درجتي تقييم</desc>
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(59 78% 55%)"/><stop offset="1" stop-color="hsl(128 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
+  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
+  <circle cx="1049" cy="141" r="134" fill="#fff" opacity=".09"/>
+  <circle cx="187" cy="443" r="127" fill="#fff" opacity=".08"/>
+  <g filter="url(#s)"><path d="M330 235q135-55 270 20v280q-135-65-270-8zm540 0q-135-55-270 20v280q135-65 270-8z" fill="#fff" opacity=".94"/><path d="M600 255v280" stroke="#312e81" stroke-width="12"/><circle cx="600" cy="170" r="55" fill="#fde68a"/><path d="M555 185h90" stroke="#fff" stroke-width="18" stroke-linecap="round"/></g>
+  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
+  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(59 65% 32%)">CAFETERIA</text>
+  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 074</text>
+</svg>

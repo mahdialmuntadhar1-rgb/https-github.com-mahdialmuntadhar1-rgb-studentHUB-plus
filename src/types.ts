@@ -111,6 +111,7 @@ export interface FeedItem {
   likes: number;
   commentsCount: number;
   commentsList: Comment[];
+  shares?: number;
   likedByUser?: boolean;
   savedByUser?: boolean;
   views?: number;
@@ -129,11 +130,17 @@ export interface FeedItem {
   sourceType?: 'general_guide' | 'student_tip' | 'event' | 'club' | 'volunteering' | 'career_prep' | 'university_service' | 'official_update';
   verified?: boolean;
   createdAt?: string;
+  suggestedVisual?: string;
+  cta?: string;
+  moodTag?: string;
+  isMock?: boolean;
 
   // Specific Type Data
   videoUrl?: string; // Placeholder ratio string or actual link
   videoThumbnail?: string;
   imageUrl?: string;
+  imageAlt?: string;
+  visualTheme?: string;
   
   // For Polls
   pollOptions?: PollOption[];
@@ -448,5 +455,3 @@ export interface CampusLifeItem {
   verified: boolean;
   createdAt: string;
 }
-
-

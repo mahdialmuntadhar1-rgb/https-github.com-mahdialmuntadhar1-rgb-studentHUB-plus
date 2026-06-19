@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Transportation to campus</title>
+  <desc id="desc">حافلة جامعية خيالية وقت الشروق</desc>
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(174 78% 55%)"/><stop offset="1" stop-color="hsl(229 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
+  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
+  <circle cx="754" cy="236" r="134" fill="#fff" opacity=".09"/>
+  <circle cx="552" cy="458" r="105" fill="#fff" opacity=".08"/>
+  <g filter="url(#s)"><rect x="260" y="230" width="680" height="310" rx="65" fill="#fff" opacity=".95"/><rect x="325" y="285" width="220" height="120" rx="20" fill="#bfdbfe"/><rect x="585" y="285" width="220" height="120" rx="20" fill="#bfdbfe"/><circle cx="405" cy="555" r="62" fill="#312e81"/><circle cx="795" cy="555" r="62" fill="#312e81"/><path d="M940 370h65" stroke="#fde68a" stroke-width="22" stroke-linecap="round"/></g>
+  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
+  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(174 65% 32%)">TRANSPORT</text>
+  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 009</text>
+</svg>

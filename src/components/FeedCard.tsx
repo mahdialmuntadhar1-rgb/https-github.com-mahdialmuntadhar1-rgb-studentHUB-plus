@@ -203,6 +203,7 @@ export default function FeedCard({
   const [commentText, setCommentText] = useState('');
   const [copied, setCopied] = useState(false);
   const [showFullCaption, setShowFullCaption] = useState(false);
+  const [imageFailed, setImageFailed] = useState(false);
 
   const isOpportunity = OPPORTUNITY_TYPES.has(item.type) || Boolean((item as any).opportunityCategory);
   const isMockCampusPost = item.type === 'campus_life' && (item as any).isMock === true;
@@ -218,7 +219,7 @@ export default function FeedCard({
     return body || title;
   })();
 
-  const imageUrl = getImageUrl(item);
+  const imageUrl = imageFailed ? '' : getImageUrl(item);
   const opportunityUrl = getOpportunityUrl(item);
   const finalOpportunityUrl = opportunityUrl;
 
@@ -288,10 +289,11 @@ export default function FeedCard({
         <div className="relative w-full overflow-hidden bg-slate-100">
           <img
             src={imageUrl}
-            alt={title}
+            alt={item.imageAlt || title}
             className="block w-full max-h-[520px] object-cover bg-slate-100"
             loading="lazy"
             referrerPolicy="no-referrer"
+            onError={() => setImageFailed(true)}
           />
         </div>
       ) : isOpportunity ? (
@@ -318,6 +320,20 @@ export default function FeedCard({
                 ).slice(0, 160)}
               </p>
             </>
+          </div>
+        </div>
+      ) : isMockCampusPost ? (
+        <div
+          className="relative flex aspect-[16/9] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-violet-600 via-fuchsia-500 to-orange-400 px-8 text-center text-white"
+          role="img"
+          aria-label={item.imageAlt || item.moodTag || 'Colorful Campus Life illustration'}
+        >
+          <div className="absolute -left-10 -top-10 h-40 w-40 rounded-full bg-white/10" />
+          <div className="absolute -bottom-14 -right-8 h-48 w-48 rounded-full bg-yellow-200/20" />
+          <div className="relative">
+            <div className="mb-3 text-5xl">✨</div>
+            <div className="text-lg font-black">{item.moodTag || 'Campus Life'}</div>
+            <div className="mt-2 text-xs font-bold text-white/80">StudentHUB Campus Moment</div>
           </div>
         </div>
       ) : null}

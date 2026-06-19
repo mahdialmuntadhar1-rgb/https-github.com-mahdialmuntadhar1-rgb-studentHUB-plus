@@ -1,0 +1,12 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
+  <title id="title">Exam season survival memes</title>
+  <desc id="desc">ورقة امتحان خيالية بعيون كرتونية</desc>
+  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(29 78% 55%)"/><stop offset="1" stop-color="hsl(126 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
+  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
+  <circle cx="599" cy="201" r="134" fill="#fff" opacity=".09"/>
+  <circle cx="217" cy="463" r="171" fill="#fff" opacity=".08"/>
+  <g filter="url(#s)"><rect x="355" y="185" width="490" height="390" rx="35" fill="#fff" opacity=".95"/><path d="M445 290h310M445 370h230M445 450h280" stroke="#6366f1" stroke-width="18" stroke-linecap="round"/><circle cx="875" cy="205" r="95" fill="#fde68a"/><path d="M875 155v60l42 28" fill="none" stroke="#7c3aed" stroke-width="18" stroke-linecap="round"/><path d="M280 525l70-110 70 110" fill="#fb7185"/></g>
+  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
+  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(29 65% 32%)">EXAM SEASON</text>
+  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 044</text>
+</svg>
