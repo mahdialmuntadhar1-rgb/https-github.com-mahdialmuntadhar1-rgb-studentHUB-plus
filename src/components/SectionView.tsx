@@ -622,6 +622,7 @@ export default function SectionView({
   const [loading, setLoading] = useState(true);
   const [liveLoading, setLiveLoading] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
+  const [showingIraqWideFallback, setShowingIraqWideFallback] = useState(false);
 
   const lookupKey = sectionId.startsWith('h_') ? sectionId.substring(2) : sectionId;
   const normalizedKey = lookupKey === 'news' || lookupKey === 'announcements' ? 'news' :
@@ -741,27 +742,88 @@ export default function SectionView({
       return;
     }
 
-    // Browser scraping of external career websites is unreliable because many sources block CORS/proxies.
-    // The job section now uses approved backend jobs and filters them locally by governorate.
+    // Live scraping disabled - using backend jobs with fallback logic instead
     setLiveJobItems([]);
     setLiveLoading(false);
   }, [isJobSection, selectedGov, selectedJobSource]);
 
-  const backendFilteredItems = items.filter(item => {
-    const itemGovText = [
-      (item as any).governorateId,
-      (item as any).governorate,
-      (item as any).location,
-      (item as any).city,
-      Array.isArray((item as any).tags) ? (item as any).tags.join(' ') : ''
-    ].filter(Boolean).join(' ');
+  const backendFilteredItems = (() => {
+    if (!isJobSection) {
+      return items.filter(item => {
+        const itemGovText = [
+          (item as any).governorateId,
+          (item as any).governorate,
+          (item as any).location,
+          (item as any).city,
+          Array.isArray((item as any).tags) ? (item as any).tags.join(' ') : ''
+        ].filter(Boolean).join(' ');
 
-    const normalizedItemGov = normalizeGovernorateId(itemGovText);
-    const matchesGov = selectedGov === 'all' || normalizedItemGov === 'all' || normalizedItemGov === selectedGov;
-    const matchesUni = isJobSection || selectedUni === 'all' || !item.universityId || item.universityId === 'all' || item.universityId === selectedUni;
+        const normalizedItemGov = normalizeGovernorateId(itemGovText);
+        const matchesGov = selectedGov === 'all' || normalizedItemGov === 'all' || normalizedItemGov === selectedGov;
+        const matchesUni = selectedUni === 'all' || !item.universityId || item.universityId === 'all' || item.universityId === selectedUni;
 
-    return matchesGov && matchesUni;
-  });
+        return matchesGov && matchesUni;
+      });
+    }
+
+    // Job section fallback logic
+    const governorateJobs = items.filter(item => {
+      const itemGovText = [
+        (item as any).governorateId,
+        (item as any).governorate,
+        (item as any).location,
+        (item as any).city,
+        Array.isArray((item as any).tags) ? (item as any).tags.join(' ') : ''
+      ].filter(Boolean).join(' ');
+
+      const normalizedItemGov = normalizeGovernorateId(itemGovText);
+      return selectedGov === 'all' || normalizedItemGov === 'all' || normalizedItemGov === selectedGov;
+    });
+
+    // If governorate has 10+ jobs, return only governorate jobs
+    if (governorateJobs.length >= 10) {
+      setShowingIraqWideFallback(false);
+      return governorateJobs;
+    }
+
+    // If fewer than 10, append Iraq-wide jobs (governorate = 'all')
+    const iraqWideJobs = items.filter(item => {
+      const itemGovText = [
+        (item as any).governorateId,
+        (item as any).governorate,
+        (item as any).location,
+        (item as any).city,
+        Array.isArray((item as any).tags) ? (item as any).tags.join(' ') : ''
+      ].filter(Boolean).join(' ');
+
+      const normalizedItemGov = normalizeGovernorateId(itemGovText);
+      return normalizedItemGov === 'all';
+    });
+
+    const combinedWithIraqWide = [...governorateJobs];
+    const governorateJobIds = new Set(governorateJobs.map(j => j.id));
+    
+    for (const job of iraqWideJobs) {
+      if (!governorateJobIds.has(job.id)) {
+        combinedWithIraqWide.push(job);
+        governorateJobIds.add(job.id);
+      }
+    }
+
+    // If still fewer than 10, append all remaining backend jobs
+    if (combinedWithIraqWide.length < 10) {
+      const allJobIds = new Set(combinedWithIraqWide.map(j => j.id));
+      for (const job of items) {
+        if (!allJobIds.has(job.id)) {
+          combinedWithIraqWide.push(job);
+          allJobIds.add(job.id);
+        }
+      }
+    }
+
+    setShowingIraqWideFallback(true);
+    return combinedWithIraqWide;
+  })();
 
   const combinedItems = (() => {
     if (!isJobSection) return backendFilteredItems;
@@ -901,6 +963,19 @@ export default function SectionView({
             {liveLoading
               ? (language === 'ar' ? `جاري جلب وظائف ${selectedGovLabel}...` : language === 'ku' ? `هێنانی هەلی کاری ${selectedGovLabel}...` : `Fetching ${selectedGovLabel} jobs...`)
               : (language === 'ar' ? `${combinedItems.length} وظيفة/رابط تقديم لهذا الاختيار` : language === 'ku' ? `${combinedItems.length} هەلی کار بۆ ئەم هەڵبژاردنە` : `${combinedItems.length} job cards/direct apply links for this selection`)}
+          </span>
+        </div>
+      )}
+
+      {isJobSection && showingIraqWideFallback && (
+        <div className="mb-4 rounded-2xl bg-amber-900/30 border border-amber-500/30 px-3 py-2 text-[10px] text-amber-200 font-bold flex items-center gap-2">
+          <span>ℹ️</span>
+          <span>
+            {language === 'ar' 
+              ? 'عرض وظائف على مستوى العراق لأن هذه المحافظة لديها وظائف معتمدة محدودة.'
+              : language === 'ku'
+              ? 'پیشاندانی هەلی کار لە ئاستی عێراق چونکە ئەم پارێزگایە هەلی کاری سنوورداری هەیە.'
+              : 'Showing Iraq-wide jobs because this governorate has limited approved jobs.'}
           </span>
         </div>
       )}

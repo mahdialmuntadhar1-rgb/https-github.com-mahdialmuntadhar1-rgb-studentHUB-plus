@@ -275,7 +275,7 @@ export default function FeedCard({
         <div className="relative flex min-h-[340px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-orange-100 via-orange-200 to-orange-400 px-6 py-10 text-center text-[#3b2208]">
           <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top_left,_#ffffff_0,_transparent_30%),radial-gradient(circle_at_bottom_right,_#fdba74_0,_transparent_34%)]" />
           <div className="relative z-10">
-            <div className="mb-4 inline-flex rounded-full bg-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow">
+            <div className="mb-4 inline-flex rounded-full bg-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-900 shadow">
               {item.type === 'scholarship' ? 'Scholarship' : item.type === 'internship' ? 'Internship' : 'Job Opportunity'}
             </div>
             <h2 className="text-5xl font-black leading-[1.02] tracking-tight">
@@ -332,7 +332,7 @@ export default function FeedCard({
             type="button"
             onClick={openOpportunity}
             disabled={!finalOpportunityUrl}
-            className={`mt-4 w-full rounded-2xl px-4 py-3 text-center text-[13px] font-black text-white shadow-sm active:scale-[0.99] ${
+            className={`mt-4 w-full rounded-2xl px-4 py-3 text-center text-[13px] font-black text-slate-900 shadow-sm active:scale-[0.99] ${
               finalOpportunityUrl ? 'bg-orange-500' : 'cursor-not-allowed bg-slate-300'
             }`}
           >
