@@ -5,7 +5,6 @@ import { MapPin, School, Bell, Languages, Check, BookOpen, Palette, MessageSquar
 import { motion, AnimatePresence } from 'motion/react';
 import { getTranslation } from '../data/translations';
 import { brandingThemes } from '../data/themes';
-import PWAInstallButton from './PWAInstallButton';
 
 interface HeaderProps {
   selectedGov: string;
@@ -76,9 +75,6 @@ export default function Header({
 
         {/* Action Elements: Inline Language Switcher Bar, Notifications & Profile */}
         <div className="flex items-center gap-2" id="header-actions">
-          {/* PWA Install Button */}
-          <PWAInstallButton />
-          
           {/* Inline Language Bar: Beautiful, pill-shaped, intuitive switcher */}
           <div className="flex items-center gap-1 rounded-xl border border-orange-200 bg-white px-1.5 py-1 shadow-sm" id="inline-language-bar">
             {(['ar', 'ku', 'en'] as Language[]).map(lang => {
