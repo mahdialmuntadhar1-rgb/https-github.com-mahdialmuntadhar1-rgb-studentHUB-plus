@@ -282,7 +282,7 @@ export default function FeedCard({
     <article
       id={`feed-card-${item.id}`}
       dir={isRtl ? 'rtl' : 'ltr'}
-      className="mb-5 overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm"
+      className="opportunity-readable-card mb-5 overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm"
     >
       {isMockCampusPost && (
         <div className="flex items-center gap-3 border-b border-orange-50 px-4 py-3" dir="auto">
@@ -314,7 +314,7 @@ export default function FeedCard({
           />
         </div>
       ) : isOpportunity ? (
-        <div className="relative flex min-h-[340px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-orange-100 via-orange-200 to-orange-400 px-6 py-10 text-center text-[#3b2208]">
+        <div className="opportunity-type-badge relative flex min-h-[340px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-orange-100 via-orange-200 to-orange-400 px-6 py-10 text-center text-[#3b2208]">
           <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top_left,_#ffffff_0,_transparent_30%),radial-gradient(circle_at_bottom_right,_#fdba74_0,_transparent_34%)]" />
           <div className="relative z-10">
             <div className="mb-4 inline-flex rounded-full bg-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-900 shadow">
@@ -324,7 +324,7 @@ export default function FeedCard({
               {title}
             </h2>
             <>
-              <p className="mt-4 text-base font-black text-[#6b3a10]">
+              <p className="opportunity-duty-station-badge mt-4 text-base font-black text-[#6b3a10]">
                 {cleanText(item.company || item.author?.name || item.location || 'Iraq', 'Iraq')}
               </p>
               <div className="mt-3 inline-flex rounded-lg bg-slate-900 px-3 py-1.5 shadow-md">

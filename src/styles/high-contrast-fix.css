@@ -166,3 +166,39 @@ body { padding-top: 0; }
   color: #334155 !important;
   opacity: 1 !important;
 }
+
+/* =========================================================
+   Opportunity card readability hotfix
+   Fixes invisible/light text on white opportunity cards.
+   ========================================================= */
+.opportunity-readable-card,
+.opportunity-readable-card * {
+  color: #111827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+}
+
+.opportunity-readable-card .opportunity-type-badge {
+  background: #ff6b00 !important;
+  color: #111827 !important;
+  border: 2px solid #ff6b00 !important;
+  letter-spacing: 0.16em !important;
+}
+
+.opportunity-readable-card .opportunity-duty-station-badge {
+  background: #fff7ed !important;
+  color: #111827 !important;
+  border: 2px solid #fb923c !important;
+  box-shadow: 0 8px 20px rgba(249, 115, 22, 0.18) !important;
+}
+
+.opportunity-readable-card h1,
+.opportunity-readable-card h2,
+.opportunity-readable-card h3,
+.opportunity-readable-card p,
+.opportunity-readable-card span,
+.opportunity-readable-card div {
+  color: #111827 !important;
+  opacity: 1 !important;
+}
+
