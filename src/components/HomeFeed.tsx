@@ -10,7 +10,7 @@ import { getOpportunities } from '../lib/api';
 import { cleanDisplayText } from '../utils/safeText';
 
 // Admin configuration - frontend-only editing
-const ADMIN_EMAIL = 'safaribosafar@gmail.com';
+const ADMIN_EMAILS = ['safaribosafar@gmail.com', 'mahdialmuntadhar1@gmail.com'];
 const HERO_IMAGES_STORAGE_KEY = 'jamiaati_hero_images_v2';
 const HERO_STORAGE_MAX_LENGTH = 1800000;
 const HERO_UPLOAD_MAX_FILE_BYTES = 5 * 1024 * 1024;
@@ -835,7 +835,7 @@ export default function HomeFeed({
   const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
 
   const isAdmin = useMemo(
-    () => loggedInEmail?.toLowerCase() === ADMIN_EMAIL,
+    () => !!loggedInEmail && ADMIN_EMAILS.includes(loggedInEmail.toLowerCase()),
     [loggedInEmail]
   );
 
@@ -1028,32 +1028,63 @@ export default function HomeFeed({
     if (!file) return;
 
     try {
-      setHeroImageMessage('Optimizing uploaded image...');
+      setHeroImageMessage('Optimizing and saving uploaded image...');
 
       const dataUrl = await optimizeHeroImageFile(file);
 
-      setDraftHeroImages(prev => {
-        if (typeof replaceIndex === 'number') {
-          return prev.map((item, idx) => (idx === replaceIndex ? dataUrl : item)).slice(0, 5);
+      let nextImages = [...draftHeroImages];
+
+      if (typeof replaceIndex === 'number') {
+        nextImages[replaceIndex] = dataUrl;
+      } else {
+        if (nextImages.length >= 5) {
+          setHeroImageMessage('Maximum 5 hero images allowed. Replace an existing image instead.');
+          return;
         }
+        nextImages.push(dataUrl);
+      }
 
-        if (prev.length >= 5) {
-          setHeroImageMessage('Maximum 5 hero images allowed.');
-          return prev;
-        }
+      const cleaned = nextImages
+        .map(item => String(item || '').trim())
+        .filter(isSafeHeroImageValue)
+        .slice(0, 5);
 
-        return [...prev, dataUrl].slice(0, 5);
-      });
+      if (cleaned.length === 0) {
+        setHeroImageMessage('Please keep at least one hero image.');
+        return;
+      }
 
-      setHeroImageMessage(
-        typeof replaceIndex === 'number'
-          ? 'Image replaced. Click Save to apply.'
-          : 'Image uploaded. Click Save to apply.'
-      );
+      const heroStorageValue = JSON.stringify(cleaned);
+
+      if (heroStorageValue.length > HERO_STORAGE_MAX_LENGTH) {
+        setHeroImageMessage('Uploaded images are too large. Remove one image or use smaller photos.');
+        return;
+      }
+
+      localStorage.setItem(HERO_IMAGES_STORAGE_KEY, heroStorageValue);
+      window.dispatchEvent(new Event('jamiaati_hero_images_updated'));
+
+      setHeroImages(cleaned);
+      setDraftHeroImages(cleaned);
+      setCurrentSlide(typeof replaceIndex === 'number' ? replaceIndex : cleaned.length - 1);
+
+      setHeroImageMessage('Hero image uploaded, saved, and applied immediately.');
+
+      if (showToast) {
+        showToast(
+          language === 'ar'
+            ? 'تم رفع وحفظ صورة الغلاف مباشرة! 🖼️'
+            : language === 'ku'
+              ? 'وێنەی هێرۆ بەرزکرا و پاشەکەوتکرا! 🖼️'
+              : 'Hero image uploaded and saved immediately! 🖼️',
+          'success'
+        );
+      }
     } catch (error: any) {
       setHeroImageMessage(error?.message || 'Image upload failed.');
     }
   };
+
   const handleSaveHeroImages = () => {
     const cleaned = draftHeroImages
       .map(item => item.trim())
@@ -1523,7 +1554,7 @@ export default function HomeFeed({
                 <div>
                   <h3 className="text-base font-black">Edit Hero Images</h3>
                   <p className="text-xs text-slate-500">
-                    Frontend-only editing for {ADMIN_EMAIL}. Upload images from your computer to replace the scrolling hero images.
+                    Upload images from your computer. Changes apply immediately after each upload.
                   </p>
                 </div>
                 <button
@@ -1546,14 +1577,11 @@ export default function HomeFeed({
                       />
                       <div className="flex-1">
                         <label className="mb-1 block text-[11px] font-black uppercase text-slate-500">
-                          Image {index + 1} URL
+                          Hero image {index + 1}
                         </label>
-                        <input
-                          value={image}
-                          onChange={(e) => handleUpdateDraftHeroImage(index, e.target.value)}
-                          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-slate-900"
-                          placeholder="Paste image URL"
-                        />
+                        <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600">
+                          Use the upload button below. No URL needed.
+                        </p>
                       </div>
                     </div>
 
@@ -1582,36 +1610,22 @@ export default function HomeFeed({
 
               <div className="mt-4 rounded-2xl border border-dashed border-slate-300 p-3">
                 <label className="mb-1 block text-[11px] font-black uppercase text-slate-500">
-                  Add new image URL
+                  Add new hero image from computer
                 </label>
 
-                <div className="flex flex-col gap-2 sm:flex-row">
+                <p className="mb-3 text-xs font-bold text-slate-500">
+                  Upload PNG, JPG, or WebP. It will be compressed and applied immediately.
+                </p>
+
+                <label className="block cursor-pointer rounded-xl bg-blue-600 px-4 py-3 text-center text-xs font-black text-white hover:bg-blue-700">
+                  Upload hero image from computer
                   <input
-                    value={newHeroImageUrl}
-                    onChange={(e) => setNewHeroImageUrl(e.target.value)}
-                    className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-slate-900"
-                    placeholder="Paste new hero image URL (max 500 chars)"
-                    maxLength={500}
+                    type="file"
+                    accept="image/png,image/jpeg,image/webp"
+                    onChange={(e) => handleUploadHeroImageFile(e)}
+                    className="hidden"
                   />
-
-                  <button
-                    type="button"
-                    onClick={handleAddHeroImageUrl}
-                    className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-black text-white"
-                  >
-                    Add URL
-                  </button>
-
-                  <label className="cursor-pointer rounded-xl bg-blue-600 px-4 py-2 text-center text-xs font-black text-white hover:bg-blue-700">
-                    Upload hero image from computer
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/webp"
-                      onChange={(e) => handleUploadHeroImageFile(e)}
-                      className="hidden"
-                    />
-                  </label>
-                </div>
+                </label>
               </div>
 
               {heroImageMessage && (
@@ -1651,7 +1665,7 @@ export default function HomeFeed({
                   onClick={handleSaveHeroImages}
                   className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white hover:bg-emerald-700"
                 >
-                  Save Hero Images
+                  Done
                 </button>
               </div>
             </div>
@@ -2627,6 +2641,7 @@ export default function HomeFeed({
     </div>
   );
 }
+
 
 
 
