@@ -262,22 +262,44 @@ export default function FeedCard({
       className="mb-5 overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm"
     >
       {imageUrl ? (
-        <img
-          src={imageUrl}
-          alt={title}
-          className="block w-full max-h-[520px] object-cover bg-slate-100"
-          loading="lazy"
-          referrerPolicy="no-referrer"
-        />
+        <div className="relative w-full overflow-hidden bg-slate-100">
+          <img
+            src={imageUrl}
+            alt={title}
+            className="block w-full max-h-[520px] object-cover bg-slate-100"
+            loading="lazy"
+            referrerPolicy="no-referrer"
+          />
+
+          {isOpportunity && (
+            <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-black/88 via-black/50 to-transparent px-5 pb-5 pt-16 text-white">
+              <div className="mb-2 inline-flex rounded-full bg-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow">
+                {item.type === 'scholarship' ? 'Scholarship' : item.type === 'internship' ? 'Internship' : 'Job Opportunity'}
+              </div>
+              <h2 className="text-3xl font-black leading-[1.05] drop-shadow-md">
+                {title}
+              </h2>
+              <p className="mt-2 text-sm font-bold text-white/85">
+                {cleanText(item.company || item.author?.name || item.location || 'Iraq', 'Iraq')}
+              </p>
+            </div>
+          )}
+        </div>
       ) : (
-        <div className="flex min-h-[230px] w-full items-center justify-center bg-gradient-to-br from-[#4c1d95] via-[#6d28d9] to-[#111827] px-6 py-10 text-center text-white">
-          <div>
-            <div className="mb-3 text-xs font-black uppercase tracking-[0.22em] text-white/70">
-              Jamiaati
+        <div className="relative flex min-h-[310px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#4c1d95] via-[#6d28d9] to-[#111827] px-6 py-10 text-center text-white">
+          <div className="absolute inset-0 opacity-25 bg-[radial-gradient(circle_at_top_left,_#ffffff_0,_transparent_28%),radial-gradient(circle_at_bottom_right,_#fb923c_0,_transparent_30%)]" />
+          <div className="relative z-10">
+            <div className="mb-4 inline-flex rounded-full bg-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow">
+              {isOpportunity ? (item.type === 'scholarship' ? 'Scholarship' : item.type === 'internship' ? 'Internship' : 'Job Opportunity') : 'Jamiaati'}
             </div>
-            <div className="text-2xl font-black leading-tight">
+            <h2 className={`${isOpportunity ? 'text-4xl' : 'text-2xl'} font-black leading-[1.05] tracking-tight drop-shadow-md`}>
               {title}
-            </div>
+            </h2>
+            {isOpportunity && (
+              <p className="mt-4 text-sm font-bold text-white/85">
+                {cleanText(item.company || item.author?.name || item.location || 'Iraq', 'Iraq')}
+              </p>
+            )}
           </div>
         </div>
       )}
@@ -394,4 +416,5 @@ export default function FeedCard({
     </article>
   );
 }
+
 
