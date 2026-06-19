@@ -1,5 +1,6 @@
 ﻿import React, { useState } from 'react';
 import { Heart, MessageSquare, Share2, Bookmark, UserPlus, Send, UserRound, X } from 'lucide-react';
+import { BACKEND_URL } from '../lib/api';
 import { Author, Language, FeedItem, getLocalizedContent } from '../types';
 
 interface FeedCardProps {
@@ -278,6 +279,117 @@ export default function FeedCard({
     setShowMockProfile(true);
   };
 
+  const getAuthToken = () => localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token') || '';
+
+  const getTargetUserId = () => {
+    const possibleId = String(
+      item.author?.id ||
+      (item as any).author_id ||
+      (item as any).authorId ||
+      ''
+    ).trim();
+
+    return possibleId;
+  };
+
+  const isRealRegisteredTarget = () => {
+    const targetUserId = getTargetUserId();
+    if (!targetUserId) return false;
+
+    const lowerId = targetUserId.toLowerCase();
+    const isDemo =
+      lowerId.startsWith('mock') ||
+      lowerId.startsWith('demo') ||
+      lowerId.startsWith('campus') ||
+      lowerId.includes('mock-profile') ||
+      item.author?.isMockProfile === true;
+
+    return !isDemo;
+  };
+
+  const sendRealFriendRequest = async () => {
+    if (friendRequested) return;
+
+    const token = getAuthToken();
+    if (!token || token.startsWith('mock_token_')) {
+      alert('Please sign in first to send a real friend request.');
+      return;
+    }
+
+    const targetUserId = getTargetUserId();
+
+    if (!isRealRegisteredTarget()) {
+      alert('This is a demo Campus Life profile. Real friend requests are available for registered students.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/friend-requests`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          targetUserId,
+          message: `Hi ${item.author?.name || 'there'}, I would like to connect on Jamiaati.`
+        })
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok && response.status !== 409) {
+        throw new Error(data.error || 'Failed to send friend request');
+      }
+
+      setFriendRequested(true);
+    } catch (error: any) {
+      alert(error.message || 'Failed to send friend request.');
+    }
+  };
+
+  const sendRealMessageRequest = async () => {
+    if (messageRequested) return;
+
+    const token = getAuthToken();
+    if (!token || token.startsWith('mock_token_')) {
+      alert('Please sign in first to send a real message request.');
+      return;
+    }
+
+    const targetUserId = getTargetUserId();
+
+    if (!isRealRegisteredTarget()) {
+      alert('This is a demo Campus Life profile. Real message requests are available for registered students.');
+      return;
+    }
+
+    try {
+      const response = await fetch(`${BACKEND_URL}/api/message-requests`, {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${token}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          targetUserId,
+          body: `Hi ${item.author?.name || 'there'}, I would like to connect with you on Jamiaati.`
+        })
+      });
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok && response.status !== 409) {
+        throw new Error(data.error || 'Failed to send message request');
+      }
+
+      setMessageRequested(true);
+    } catch (error: any) {
+      alert(error.message || 'Failed to send message request.');
+    }
+  };
+
+
   return (
     <article
       id={`feed-card-${item.id}`}
@@ -376,10 +488,10 @@ export default function FeedCard({
             <button type="button" onClick={openMockProfile} className="flex items-center justify-center gap-1 rounded-xl border border-violet-200 bg-violet-50 px-2 py-2 text-[9px] font-black text-violet-800">
               <UserRound className="h-3.5 w-3.5" /> View profile
             </button>
-            <button type="button" onClick={() => setFriendRequested(true)} className="flex items-center justify-center gap-1 rounded-xl border border-blue-200 bg-blue-50 px-2 py-2 text-[9px] font-black text-blue-800">
+            <button type="button" onClick={sendRealFriendRequest} className="flex items-center justify-center gap-1 rounded-xl border border-blue-200 bg-blue-50 px-2 py-2 text-[9px] font-black text-blue-800">
               <UserPlus className="h-3.5 w-3.5" /> {friendRequested ? 'Request sent' : 'Add friend'}
             </button>
-            <button type="button" onClick={() => setMessageRequested(true)} className="flex items-center justify-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-2 text-[9px] font-black text-emerald-800">
+            <button type="button" onClick={sendRealMessageRequest} className="flex items-center justify-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-2 text-[9px] font-black text-emerald-800">
               <Send className="h-3.5 w-3.5" /> {messageRequested ? 'Request sent' : 'Message'}
             </button>
           </div>
@@ -522,16 +634,17 @@ export default function FeedCard({
               <p className="mt-1 line-clamp-3 rounded-2xl border border-orange-100 p-3 text-[11px] font-semibold leading-relaxed text-slate-700">{body}</p>
             </div>
             <div className="mt-4 grid grid-cols-2 gap-2">
-              <button type="button" onClick={() => setFriendRequested(true)} className="rounded-xl bg-blue-600 px-3 py-3 text-[11px] font-black text-white">{friendRequested ? 'Friend request sent' : 'Add friend'}</button>
-              <button type="button" onClick={() => setMessageRequested(true)} className="rounded-xl bg-emerald-600 px-3 py-3 text-[11px] font-black text-white">{messageRequested ? 'Message request sent' : 'Message request'}</button>
+              <button type="button" onClick={sendRealFriendRequest} className="rounded-xl bg-blue-600 px-3 py-3 text-[11px] font-black text-white">{friendRequested ? 'Friend request sent' : 'Add friend'}</button>
+              <button type="button" onClick={sendRealMessageRequest} className="rounded-xl bg-emerald-600 px-3 py-3 text-[11px] font-black text-white">{messageRequested ? 'Message request sent' : 'Message request'}</button>
             </div>
-            <p className="mt-3 text-center text-[9px] font-bold text-slate-400">Demo profile · no real person is represented</p>
+            <p className="mt-3 text-center text-[9px] font-bold text-slate-400">Real requests work with registered student profiles</p>
           </section>
         </div>
       )}
     </article>
   );
 }
+
 
 
 
