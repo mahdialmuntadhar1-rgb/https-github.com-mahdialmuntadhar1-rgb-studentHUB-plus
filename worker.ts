@@ -634,6 +634,8 @@ app.post('/api/auth/forgot-password', async (c) => {
     if (!email) {
       return c.json({ error: 'Email is required' }, 400);
     }
+
+    const normalizedEmail = normalizeEmail(email);
     
     // Find user in profiles table
     const user = await c.env.DB.prepare(
@@ -1728,6 +1730,8 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
+
+
 
 
 
