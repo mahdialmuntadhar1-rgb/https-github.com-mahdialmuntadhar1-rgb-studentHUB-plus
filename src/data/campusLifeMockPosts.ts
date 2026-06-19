@@ -1,4 +1,4 @@
-﻿import type { FeedItem, Language } from "../types";
+import type { FeedItem, Language } from "../types";
 
 export type CampusLifePost = {
   id: string;
@@ -281,7 +281,7 @@ const governorateIds: Record<string, string> = {
 
 const detectLanguage = (text: string): Language => {
   if (/[Û•ÛŽÛ†Ú•ÚµÚ¤Ù¾Ú†Ú˜Ú¯Ú©]/.test(text)) return "ku";
-  if (/[Ø€-Û¿]/.test(text)) return "ar";
+  if (/[\u0600-\u06FF]/.test(text)) return "ar";
   return "en";
 };
 
