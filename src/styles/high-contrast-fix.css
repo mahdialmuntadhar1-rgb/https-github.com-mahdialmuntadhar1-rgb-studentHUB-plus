@@ -1,4 +1,5 @@
-﻿/* Jamiaati global contrast safety patch.
+﻿@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700;800;900&family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap');
+/* Jamiaati global contrast safety patch.
    Prevents white text on white/light backgrounds across auth, language, cards, forms, and scholarship/opportunity cards. */
 
 :root {
@@ -200,5 +201,121 @@ body { padding-top: 0; }
 .opportunity-readable-card div {
   color: #111827 !important;
   opacity: 1 !important;
+}
+
+
+/* =========================================================
+   Kurdish / Sorani Arabic-script font improvement
+   Uses clean, readable Arabic-script fonts for Kurdish UI.
+   ========================================================= */
+html[lang="ku"],
+html[lang="ckb"],
+body,
+[dir="rtl"],
+:lang(ku),
+:lang(ckb),
+.kurdish,
+.sorani,
+[data-language="ku"],
+[data-lang="ku"] {
+  font-family: "Noto Sans Arabic", "Noto Kufi Arabic", "Segoe UI", Tahoma, Arial, sans-serif !important;
+}
+
+html[lang="ku"] h1,
+html[lang="ku"] h2,
+html[lang="ku"] h3,
+html[lang="ckb"] h1,
+html[lang="ckb"] h2,
+html[lang="ckb"] h3,
+[dir="rtl"] h1,
+[dir="rtl"] h2,
+[dir="rtl"] h3,
+:lang(ku) h1,
+:lang(ku) h2,
+:lang(ku) h3,
+:lang(ckb) h1,
+:lang(ckb) h2,
+:lang(ckb) h3 {
+  font-family: "Noto Kufi Arabic", "Noto Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif !important;
+  font-weight: 800 !important;
+}
+
+/* =========================================================
+   Strong opportunity title visibility fix
+   Makes job titles black instead of faded/white.
+   ========================================================= */
+.opportunity-readable-card .opportunity-job-title-black,
+.opportunity-readable-card .opportunity-job-title-black *,
+.opportunity-readable-card .opportunity-company-black,
+.opportunity-readable-card .opportunity-company-black * {
+  color: #111827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.opportunity-readable-card [class*="text-white"],
+.opportunity-readable-card [class*="text-orange"],
+.opportunity-readable-card [class*="text-[#"],
+.opportunity-readable-card [class*="opacity-"],
+.opportunity-readable-card [class*="text-slate"] {
+  color: #111827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.opportunity-readable-card h1,
+.opportunity-readable-card h2,
+.opportunity-readable-card h3,
+.opportunity-readable-card h4,
+.opportunity-readable-card .text-3xl,
+.opportunity-readable-card .text-4xl,
+.opportunity-readable-card .text-5xl,
+.opportunity-readable-card .text-6xl,
+.opportunity-readable-card .text-7xl,
+.opportunity-readable-card .text-8xl,
+.opportunity-readable-card .text-9xl {
+  color: #111827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+
+
+/* =========================================================
+   Final opportunity title visibility force-fix
+   Ensures the big job title/watermark/title text is black.
+   ========================================================= */
+.opportunity-readable-card,
+.opportunity-readable-card *,
+.opportunity-type-badge,
+.opportunity-type-badge *,
+.opportunity-readable-card [class*="text-white"],
+.opportunity-readable-card [class*="text-white/"],
+.opportunity-readable-card [class*="text-[#"],
+.opportunity-readable-card [class*="opacity-"],
+.opportunity-readable-card [class*="mix-blend"],
+.opportunity-readable-card [class*="blur"],
+.opportunity-readable-card [class*="drop-shadow"] {
+  color: #111827 !important;
+  opacity: 1 !important;
+  text-shadow: none !important;
+  filter: none !important;
+  mix-blend-mode: normal !important;
+  -webkit-text-fill-color: #111827 !important;
+}
+
+.opportunity-readable-card .opportunity-type-badge {
+  background: #fff7ed !important;
+  color: #111827 !important;
+  border-bottom: 1px solid #fed7aa !important;
+}
+
+.opportunity-readable-card .opportunity-type-badge * {
+  color: #111827 !important;
+  opacity: 1 !important;
+  -webkit-text-fill-color: #111827 !important;
 }
 
