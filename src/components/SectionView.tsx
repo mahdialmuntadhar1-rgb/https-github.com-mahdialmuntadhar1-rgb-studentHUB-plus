@@ -289,6 +289,8 @@ const FAST_JOB_SOURCE_NAMES = new Set([
 ]);
 
 const JOB_CACHE_TTL_MS = 10 * 60 * 1000;
+const TARGET_JOB_LIMIT = 120;
+const JOBS_PER_SOURCE_LIMIT = 12;
 
 function iqScoutSlug(govName: string) {
   const v = govName.toLowerCase();
@@ -410,7 +412,7 @@ function hashCode(input: string) {
   return hash;
 }
 
-function extractJobLinks(html: string, source: JobSource, sourceUrl: string, governorateId: string, governorateName: string): FeedItem[] {
+function extractJobLinks(html: string, source: JobSource, sourceUrl: string, governorateId: string, governorateName: string, perSourceLimit = JOBS_PER_SOURCE_LIMIT): FeedItem[] {
   const anchors: { href: string; text: string; context: string }[] = [];
   const anchorRegex = /<a\s+[^>]*href=["']([^"']+)["'][^>]*>([\s\S]*?)<\/a>/gi;
   let match: RegExpExecArray | null;
@@ -443,7 +445,9 @@ function extractJobLinks(html: string, source: JobSource, sourceUrl: string, gov
     const combined = `${a.text} ${a.href} ${a.context}`.toLowerCase();
     const looksLikeJob = JOB_KEYWORDS.some((kw) => combined.includes(kw.toLowerCase()));
     const looksLikeNavigationOnly = ['privacy', 'login', 'sign in', 'register', 'about us', 'contact us', 'terms'].some((bad) => combined.includes(bad));
-    const govMatches = governorateId === 'all' || selectedAliases.some((alias) => combined.includes(alias.toLowerCase())) || source.mode === 'search';
+    const govExplicitlyMatches = governorateId === 'all' || selectedAliases.some((alias) => combined.includes(alias.toLowerCase()));
+    const sourceUrlWasBuiltForSelectedGovernorate = governorateId !== 'all' && source.mode === 'search';
+    const govMatches = governorateId === 'all' || govExplicitlyMatches || sourceUrlWasBuiltForSelectedGovernorate;
 
     if (!looksLikeJob || looksLikeNavigationOnly || !govMatches || seen.has(a.href)) continue;
     seen.add(a.href);
@@ -485,7 +489,7 @@ function extractJobLinks(html: string, source: JobSource, sourceUrl: string, gov
       likedByUser: false
     } as FeedItem);
 
-    if (jobs.length >= 5) break;
+    if (jobs.length >= perSourceLimit) break;
   }
 
   return jobs;
@@ -506,7 +510,7 @@ async function fetchLiveJobsFromSources(governorateId: string, governorateName: 
       const sourceUrl = buildJobSourceUrl(source, governorateName);
       const html = await fetchHtmlViaProxy(sourceUrl);
       if (!html) return [] as FeedItem[];
-      return extractJobLinks(html, source, sourceUrl, governorateId, governorateName);
+      return extractJobLinks(html, source, sourceUrl, governorateId, governorateName, JOBS_PER_SOURCE_LIMIT);
     }));
     results.push(...batchJobs.flat());
   }
@@ -516,7 +520,19 @@ async function fetchLiveJobsFromSources(governorateId: string, governorateName: 
     const url = String((item as any).application_link || (item as any).original_source_url || item.id);
     if (!byUrl.has(url)) byUrl.set(url, item);
   }
-  return Array.from(byUrl.values()).slice(0, 120);
+  const dedupedJobs = Array.from(byUrl.values());
+
+  if (governorateId === 'all') {
+    return dedupedJobs.slice(0, TARGET_JOB_LIMIT);
+  }
+
+  const selectedGovernorateJobs = dedupedJobs.filter((item) => {
+    const itemGov = String((item as any).governorateId || '');
+    const itemTags = Array.isArray((item as any).tags) ? (item as any).tags.map(String) : [];
+    return itemGov === governorateId || itemTags.includes(governorateId);
+  });
+
+  return selectedGovernorateJobs.slice(0, TARGET_JOB_LIMIT);
 }
 
 function getJobCacheKey(governorateId: string, sourceName: string) {
@@ -553,7 +569,7 @@ function writeCachedLiveJobs(cacheKey: string, items: FeedItem[]) {
       cacheKey,
       JSON.stringify({
         createdAt: Date.now(),
-        items: items.slice(0, 120)
+        items: items.slice(0, TARGET_JOB_LIMIT)
       })
     );
   } catch {
@@ -951,4 +967,5 @@ export default function SectionView({
     </div>
   );
 }
+
 
