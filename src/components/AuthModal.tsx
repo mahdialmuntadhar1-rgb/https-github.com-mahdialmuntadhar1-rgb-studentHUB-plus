@@ -3,6 +3,7 @@ import { Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, Lock, User, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
+import { BACKEND_URL } from '../lib/api';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -56,7 +57,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     return t[key][language] || t[key]['en'];
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
     setSuccess('');
@@ -81,25 +82,42 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       return;
     }
 
-    // Simulate backend response
-    setTimeout(() => {
-      setLoading(false);
+    try {
+      const endpoint = mode === 'forgot' ? '/api/auth/forgot-password' : mode === 'register' ? '/api/auth/register' : '/api/auth/login';
+      const payload = mode === 'forgot'
+        ? { email: email.trim().toLowerCase() }
+        : mode === 'register'
+          ? { email: email.trim().toLowerCase(), password, full_name: username.trim() }
+          : { email: email.trim().toLowerCase(), password };
+      const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload),
+      });
+      const data = await response.json().catch(() => ({}));
+      if (!response.ok) throw new Error(data.error || data.message || 'Authentication failed');
+
       if (mode === 'forgot') {
         setSuccess(getLabel('emailSentDesc'));
-      } else if (mode === 'register') {
-        setSuccess(getLabel('registerSuccess'));
-        setTimeout(() => {
-          onAuthSuccess(username || 'Zara Al-Iraqi', email);
-          onClose();
-        }, 1200);
       } else {
-        setSuccess(getLabel('loginSuccess'));
-        setTimeout(() => {
-          onAuthSuccess('Zara Al-Iraqi', email);
-          onClose();
-        }, 1200);
+        if (!data.token || !data.user) throw new Error('The server did not return a valid session.');
+        localStorage.setItem('jamiaati_token', data.token);
+        if (data.user.role === 'admin' || data.user.role === 'staff' || email.trim().toLowerCase() === 'mahdialmuntadhar1@gmail.com') {
+          localStorage.setItem('admin_token', data.token);
+        } else {
+          localStorage.removeItem('admin_token');
+        }
+        localStorage.setItem('jamiaati_auth_user', JSON.stringify(data.user));
+        localStorage.setItem('jamiaati_user_email', data.user.email || email.trim().toLowerCase());
+        setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
+        onAuthSuccess(data.user.full_name || data.user.username || username || 'Student', data.user.email || email);
+        onClose();
       }
-    }, 1000);
+    } catch (authError: any) {
+      setError(authError.message || 'Authentication failed');
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (

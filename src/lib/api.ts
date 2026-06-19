@@ -11,6 +11,18 @@
 export const BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
 const API_BASE = `${BACKEND_URL}/api`;
 
+export interface HeroImageRecord {
+  id: string;
+  image_url: string;
+  r2_key?: string;
+  title: string;
+  alt_text: string;
+  sort_order: number;
+  is_active: number | boolean;
+  created_at: string;
+  updated_at: string;
+}
+
 function getHeaders() {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
@@ -60,6 +72,50 @@ async function handleResponse(response: Response, language: Language = 'ar') {
     return text;
   }
 }
+
+export const heroImagesApi = {
+  async getPublic(): Promise<HeroImageRecord[]> {
+    const response = await fetch(`${API_BASE}/hero-images`);
+    const data = await handleResponse(response, 'en');
+    return Array.isArray(data?.images) ? data.images : [];
+  },
+
+  async getAdmin(language: Language = 'en'): Promise<HeroImageRecord[]> {
+    const response = await fetch(`${API_BASE}/admin/hero-images`, { headers: getHeaders() });
+    const data = await handleResponse(response, language);
+    return Array.isArray(data?.images) ? data.images : [];
+  },
+
+  async upload(file: File, values: { title: string; altText: string; sortOrder?: number; replaceId?: string }, language: Language = 'en') {
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('title', values.title);
+    formData.append('alt_text', values.altText);
+    if (typeof values.sortOrder === 'number') formData.append('sort_order', String(values.sortOrder));
+    if (values.replaceId) formData.append('replace_id', values.replaceId);
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('jamiaati_token');
+    const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
+    const response = await fetch(`${API_BASE}/admin/hero-images/upload`, { method: 'POST', headers, body: formData });
+    return handleResponse(response, language);
+  },
+
+  async update(id: string, values: { title: string; alt_text: string; sort_order: number; is_active: boolean }, language: Language = 'en') {
+    const response = await fetch(`${API_BASE}/admin/hero-images/${encodeURIComponent(id)}`, {
+      method: 'PUT',
+      headers: getHeaders(),
+      body: JSON.stringify(values),
+    });
+    return handleResponse(response, language);
+  },
+
+  async remove(id: string, language: Language = 'en') {
+    const response = await fetch(`${API_BASE}/admin/hero-images/${encodeURIComponent(id)}`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    return handleResponse(response, language);
+  },
+};
 
 export const opportunityAutomation = {
   async getStatus(lang: Language = 'ar') {

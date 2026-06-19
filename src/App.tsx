@@ -166,6 +166,19 @@ export default function App() {
     return saved ? JSON.parse(saved) : defaultUserProfile;
   });
 
+  // UI authorization follows the authenticated API identity, not the locally
+  // editable profile role used by the demo/gamification controls.
+  const hasAuthenticatedAdminAccess = (() => {
+    if (!isLoggedIn || !localStorage.getItem('jamiaati_token')) return false;
+    try {
+      const authUser = JSON.parse(localStorage.getItem('jamiaati_auth_user') || 'null');
+      const email = String(authUser?.email || localStorage.getItem('jamiaati_user_email') || '').trim().toLowerCase();
+      return authUser?.role === 'admin' || authUser?.role === 'staff' || email === 'mahdialmuntadhar1@gmail.com';
+    } catch {
+      return false;
+    }
+  })();
+
   // Sync to local states - save only user-created custom posts
   useEffect(() => {
     const customOnly = feedItems.filter(item => item.id && String(item.id).startsWith('custom-'));
@@ -892,7 +905,7 @@ export default function App() {
           onAddComment={handleAddComment}
           onEditFeedItem={handleEditFeedItem}
           onDeleteFeedItem={handleDeleteFeedItem}
-          isAdminMode={userProfile.role === 'staff'}
+          isAdminMode={hasAuthenticatedAdminAccess}
           onUserClick={setSelectedUserForProfileCard}
         />
       );
@@ -926,7 +939,7 @@ export default function App() {
             onRetryInstitutions={handleRetryInstitutions}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={hasAuthenticatedAdminAccess}
             onSelectSection={setSelectedSection}
             onUserClick={setSelectedUserForProfileCard}
           />
@@ -949,7 +962,7 @@ export default function App() {
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={hasAuthenticatedAdminAccess}
             onUserClick={setSelectedUserForProfileCard}
           />
         );
@@ -971,7 +984,7 @@ export default function App() {
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={hasAuthenticatedAdminAccess}
             onUserClick={setSelectedUserForProfileCard}
           />
         );
@@ -993,7 +1006,7 @@ export default function App() {
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={hasAuthenticatedAdminAccess}
             onUserClick={setSelectedUserForProfileCard}
           />
         );
@@ -1016,6 +1029,10 @@ export default function App() {
               setIsLoggedIn(false);
               localStorage.setItem('jamiaati_logged_in', 'false');
               localStorage.removeItem('jamiaati_token');
+              localStorage.removeItem('admin_token');
+              localStorage.removeItem('jamiaati_auth_user');
+              localStorage.removeItem('jamiaati_user_email');
+              setUserProfile(prev => ({ ...prev, role: 'student' }));
               showToast(
                 language === 'ar' ? 'تم تسجيل خروجك بنجاح. نراك قريباً! 👋' : language === 'ku' ? 'خۆتۆمارکردنەکەت کۆتایی پێهات. بە هیوای دیدار! 👋' : 'Logged out successfully. See you! 👋', 
                 'info'
@@ -1025,7 +1042,7 @@ export default function App() {
             onNavigateAdmin={() => setActiveTab('admin')}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={userProfile.role === 'staff'}
+            isAdminMode={hasAuthenticatedAdminAccess}
             onUserClick={setSelectedUserForProfileCard}
             onNavigateToSocialTab={(tabType) => {
               setSocialSubTab(tabType);
@@ -1053,7 +1070,7 @@ export default function App() {
             language={language}
             onBack={() => setActiveTab('profile')}
             showToast={showToast}
-            userRole={userProfile.role}
+            userRole={hasAuthenticatedAdminAccess ? 'admin' : 'student'}
           />
         );
       case 'chats':
@@ -1200,11 +1217,11 @@ export default function App() {
           onAuthSuccess={(newUsername, userEmail) => {
             setIsLoggedIn(true);
             localStorage.setItem('jamiaati_logged_in', 'true');
-            localStorage.setItem('jamiaati_token', 'mock_token_for_student_hub_' + Date.now());
             localStorage.setItem('jamiaati_user_email', userEmail);
             setUserProfile(prev => ({
               ...prev,
-              name: newUsername || 'Zara Al-Iraqi'
+              name: newUsername || 'Zara Al-Iraqi',
+              role: userEmail.trim().toLowerCase() === 'mahdialmuntadhar1@gmail.com' ? 'staff' : prev.role
             }));
             showToast(
               language === 'ar' ? `مرحباً بك مجدداً يا ${newUsername || 'زارا'}! 👋 تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'زارا'}! 👋 دابەزاندن سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Zara'}! 👋 Signed in`, 

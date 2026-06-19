@@ -27,6 +27,7 @@ import {
   Check
 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
+import HeroPhotoManager from './HeroPhotoManager';
 
 interface AdminAutomationProps {
   language: Language;
@@ -35,7 +36,7 @@ interface AdminAutomationProps {
   userRole: string;
 }
 
-type TabType = 'dashboard' | 'sources' | 'import' | 'pending' | 'approved' | 'rejected' | 'duplicates' | 'expired' | 'logs' | 'portal' | 'settings';
+type TabType = 'dashboard' | 'sources' | 'import' | 'pending' | 'approved' | 'rejected' | 'duplicates' | 'expired' | 'logs' | 'hero' | 'portal' | 'settings';
 
 export default function AdminAutomation({
   language,
@@ -69,9 +70,7 @@ export default function AdminAutomation({
   const [page, setPage] = useState(1);
   const [limit] = useState(10);
 
-  // Portal Layout States (Task 1: Change Hero Image & Live Story Photos)
-  const [heroBgInput, setHeroBgInput] = useState(() => localStorage.getItem('jamiaati_hero_bg') || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600');
-  
+  // Portal text and story settings. Hero photos are managed only by HeroPhotoManager.
   const [heroTitleENInput, setHeroTitleENInput] = useState(() => localStorage.getItem('jamiaati_hero_title_en') || 'Master Your Campus Journey!');
   const [heroTitleARInput, setHeroTitleARInput] = useState(() => localStorage.getItem('jamiaati_hero_title_ar') || 'تميّز وابنِ مستقبلك الأكاديمي!');
   const [heroTitleKUInput, setHeroTitleKUInput] = useState(() => localStorage.getItem('jamiaati_hero_title_ku') || 'داهاتوویەکی پڕشنگدار بنيات بنێ!');
@@ -122,7 +121,7 @@ export default function AdminAutomation({
   const [uploadStats, setUploadStats] = useState<any | null>(null);
 
   // Checks Authorization quickly
-  const isAdmin = userRole === 'staff';
+  const isAdmin = userRole === 'staff' || userRole === 'admin';
 
   const t = {
     title: { en: 'Opportunity Automation Center', ar: 'مركز أتمتة الفرص المتقدم', ku: 'ناوەندی خۆکارکردنی دەرفەتەکان' },
@@ -136,6 +135,7 @@ export default function AdminAutomation({
     expired: { en: 'Expired', ar: 'منتهية الصلاحية', ku: 'بەسەرچوو' },
     logs: { en: 'Run Logs', ar: 'سجلات التشغيل', ku: 'لۆگی کارکردن' },
     portal: { en: 'Portal Design', ar: 'تعديل الواجهة والقصص', ku: 'ڕووكارى داستانەكان' },
+    hero: { en: 'Hero Photos', ar: 'صور الواجهة', ku: 'وێنەکانی هێرۆ' },
     settings: { en: 'Settings', ar: 'الإعدادات', ku: 'ڕێکخستنەکان' },
     back: { en: 'Back', ar: 'رجوع', ku: 'گەڕانەوە' },
     noPermission: { en: 'Admin Access Only. Please authenticate with staff role.', ar: 'وصول للمسؤولين فقط. يرجى تسجيل الدخول بحساب مشرف.', ku: 'تەنها بۆ سەرپەرشتیارەکان ڕێگەپێدراوە.' }
@@ -402,7 +402,7 @@ export default function AdminAutomation({
 
       {/* Ten Navigation Subtabs slider */}
       <div className="flex gap-1.5 overflow-x-auto pb-3 mb-5 scrollbar-none" id="automation-subtabs-tray">
-        {(['dashboard', 'sources', 'import', 'pending', 'approved', 'rejected', 'duplicates', 'expired', 'logs', 'portal', 'settings'] as TabType[]).map((tab) => {
+        {(['dashboard', 'sources', 'import', 'pending', 'approved', 'rejected', 'duplicates', 'expired', 'logs', 'hero', 'portal', 'settings'] as TabType[]).map((tab) => {
           const isSelected = activeTab === tab;
           const label = getL(tab);
 
@@ -440,6 +440,7 @@ export default function AdminAutomation({
 
       {/* RENDER CURRENT TAB */}
       <div className="flex-1" id="automation-main-content">
+        {activeTab === 'hero' && <HeroPhotoManager language={language} showToast={showToast} />}
         
         {/* TAB 1: DASHBOARD */}
         {activeTab === 'dashboard' && (
@@ -935,7 +936,6 @@ export default function AdminAutomation({
             {/* 1. Hero Configuration Form */}
             <form onSubmit={(e) => {
               e.preventDefault();
-              localStorage.setItem('jamiaati_hero_bg', heroBgInput);
               localStorage.setItem('jamiaati_hero_title_en', heroTitleENInput);
               localStorage.setItem('jamiaati_hero_title_ar', heroTitleARInput);
               localStorage.setItem('jamiaati_hero_title_ku', heroTitleKUInput);
@@ -948,43 +948,6 @@ export default function AdminAutomation({
               window.dispatchEvent(new Event('jamiaati_hero_updated'));
               showToast(language === 'ar' ? 'تم حفظ تعديلات قسم الهيرو بنجاح!' : 'Hero Banner updated successfully in real-time!', 'success');
             }} className="flex flex-col gap-4 text-xs font-bold text-slate-700">
-              
-              <div className="bg-[#F3F7FF] rounded-2xl p-3 border border-[#D5E1FC]">
-                <span className="text-[10px] font-black uppercase text-[#161A33] block mb-2">1. Main Hero background Photo</span>
-                
-                <div className="flex flex-col gap-1.5 mb-3">
-                  <span className="text-[8px] uppercase tracking-wider text-slate-400">Custom Image URL</span>
-                  <input
-                    type="text"
-                    required
-                    value={heroBgInput}
-                    onChange={(e) => setHeroBgInput(e.target.value)}
-                    className="w-full text-xs font-black p-2 border border-[#161A33] rounded-xl bg-white"
-                  />
-                </div>
-
-                <span className="text-[8.5px] uppercase tracking-wider text-slate-400 block mb-1">Quick Select Premium Campus Presets</span>
-                <div className="grid grid-cols-2 gap-2">
-                  {[
-                    { url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600', label: 'Classic Cap' },
-                    { url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=600', label: 'Lively Campus' },
-                    { url: 'https://images.unsplash.com/photo-1498243691581-b145c3f54a91?auto=format&fit=crop&q=80&w=600', label: 'Grand Library' },
-                    { url: 'https://images.unsplash.com/photo-1517486808906-6ca8b3f04846?auto=format&fit=crop&q=80&w=600', label: 'Global Study' }
-                  ].map((preset) => (
-                    <button
-                      key={preset.label}
-                      type="button"
-                      onClick={() => setHeroBgInput(preset.url)}
-                      className={`p-1 text-[9px] font-medium border rounded-lg text-center cursor-pointer transition-all ${
-                        heroBgInput === preset.url ? 'bg-[#161A33] text-white border-[#161A33]' : 'bg-white border-slate-300 hover:bg-slate-50'
-                      }`}
-                    >
-                      {preset.label}
-                    </button>
-                  ))}
-                </div>
-              </div>
-
               {/* Editable titles (EN, AR, KU) */}
               <div className="border border-slate-150 rounded-2xl p-3 flex flex-col gap-3">
                 <span className="text-[10px] font-black uppercase text-[#161A33] block">2. Hero title texts</span>

@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { initialFeedItems } from '../data/mockData';
+import { campusLifeFeedItems } from '../data/campusLifeMockPosts';
 import { X, Search, Heart, Sparkles, Filter, ChevronLeft, ChevronRight, Eye } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import FeedCard from './FeedCard';
@@ -65,9 +66,18 @@ export default function LifeFeed({
   const storiesList = initialFeedItems.filter(item => item.type === 'story' || item.type === 'video');
 
   // Intelligent inline classification to avoid empty feeds
-  const filteredItems = feedItems.filter(item => {
+  const campusOnlyItems = [
+    ...campusLifeFeedItems.filter(item => {
+      const matchesGov = selectedGov === 'all' || item.governorateId === selectedGov;
+      const matchesUni = selectedUni === 'all' || !item.universityId || item.universityId === 'all' || item.universityId === selectedUni;
+      return matchesGov && matchesUni;
+    }),
+    ...feedItems.filter(item => !campusLifeFeedItems.some(mock => mock.id === item.id)),
+  ];
+
+  const filteredItems = campusOnlyItems.filter(item => {
     // Keep only Life-type items (social, media, story, poll, service)
-    const isLifeContent = ['post', 'video', 'photo', 'story', 'poll', 'local_service'].includes(item.type);
+    const isLifeContent = ['post', 'video', 'photo', 'story', 'poll', 'local_service', 'campus_life'].includes(item.type);
     if (!isLifeContent) return false;
 
     const safeTags: string[] = Array.isArray(item.tags)

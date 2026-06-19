@@ -1,0 +1,16 @@
+name = "rafid-api"
+main = "worker.ts"
+compatibility_date = "2024-01-01"
+compatibility_flags = ["nodejs_compat"]
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rafid-db"
+database_id = "30febf83-135b-4888-8e5a-461105bb590a"
+
+[[r2_buckets]]
+binding = "R2"
+bucket_name = "rafid-uploads"
+
+[vars]
+# Configure JWT_SECRET with `wrangler secret put JWT_SECRET --config wrangler.api.toml`.
