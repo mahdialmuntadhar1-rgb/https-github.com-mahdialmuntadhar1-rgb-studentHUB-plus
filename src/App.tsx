@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Language, FeedItem, UserProfile, Comment } from './types';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from './data/mockData';
 import { getTranslation } from './data/translations';
@@ -369,6 +369,16 @@ export default function App() {
               location: item.location || item.city || 'Iraq',
               deadline: item.deadline || 'August 2026',
               imageUrl: item.imageUrl || item.image_url,
+
+              applyUrl: item.application_link || item.apply_url || item.source_url || item.original_source_url || item.url || item.link || item.job_url || item.details_url,
+
+              sourceUrl: item.source_url || item.original_source_url || item.application_link || item.apply_url || item.url || item.link || item.job_url || item.details_url,
+
+              application_link: item.application_link || item.apply_url || item.source_url || item.original_source_url || item.url || item.link || item.job_url || item.details_url,
+
+              original_source_url: item.original_source_url || item.source_url || item.application_link || item.apply_url || item.url || item.link || item.job_url || item.details_url,
+
+              url: item.url || item.link || item.application_link || item.apply_url || item.source_url || item.original_source_url || item.job_url || item.details_url,
               opportunityCategory: (item.category === 'internship' ? 'Internship' : 
                                      item.category === 'scholarship' ? 'Scholarship' : 
                                      item.category === 'training' ? 'Training' : 
@@ -1269,3 +1279,4 @@ export default function App() {
     </div>
   );
 };
+

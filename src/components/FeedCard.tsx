@@ -212,7 +212,7 @@ export default function FeedCard({
 
   const imageUrl = getImageUrl(item);
   const opportunityUrl = getOpportunityUrl(item);
-  const finalOpportunityUrl = opportunityUrl || (isOpportunity ? getFallbackJobSearchUrl(item, title) : '');
+  const finalOpportunityUrl = opportunityUrl;
 
   const tags = (() => {
     const rawTags = getSafeTags(item.tags)
@@ -314,9 +314,14 @@ export default function FeedCard({
           <button
             type="button"
             onClick={openOpportunity}
-            className="mt-4 w-full rounded-2xl bg-orange-500 px-4 py-3 text-center text-[13px] font-black text-white shadow-sm active:scale-[0.99]"
+            disabled={!finalOpportunityUrl}
+            className={`mt-4 w-full rounded-2xl px-4 py-3 text-center text-[13px] font-black text-white shadow-sm active:scale-[0.99] ${
+              finalOpportunityUrl ? 'bg-orange-500' : 'cursor-not-allowed bg-slate-300'
+            }`}
           >
-            {getApplyLabel(item, language)}
+            {finalOpportunityUrl
+              ? getApplyLabel(item, language)
+              : (language === 'ar' ? 'الرابط المباشر غير متوفر' : language === 'ku' ? 'لینکی ڕاستەوخۆ نییە' : 'Direct link missing')}
           </button>
         )}
 
@@ -389,3 +394,4 @@ export default function FeedCard({
     </article>
   );
 }
+
