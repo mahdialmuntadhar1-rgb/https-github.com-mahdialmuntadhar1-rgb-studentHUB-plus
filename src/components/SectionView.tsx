@@ -289,8 +289,8 @@ const FAST_JOB_SOURCE_NAMES = new Set([
 ]);
 
 const JOB_CACHE_TTL_MS = 10 * 60 * 1000;
-const TARGET_JOB_LIMIT = 120;
-const JOBS_PER_SOURCE_LIMIT = 12;
+const TARGET_JOB_LIMIT = 1000;
+const JOBS_PER_SOURCE_LIMIT = 50;
 
 function iqScoutSlug(govName: string) {
   const v = govName.toLowerCase();
@@ -660,7 +660,7 @@ export default function SectionView({
           params.append('university_id', selectedUni);
           params.append('institution_id', selectedUni);
         }
-        params.append('limit', isJobSection ? '500' : '80');
+        params.append('limit', isJobSection ? '2000' : '80');
 
         const response = await fetch(`${BACKEND_URL}/api/${queryEndpoint}?${params.toString()}`);
         if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
@@ -976,6 +976,7 @@ export default function SectionView({
     </div>
   );
 }
+
 
 
 

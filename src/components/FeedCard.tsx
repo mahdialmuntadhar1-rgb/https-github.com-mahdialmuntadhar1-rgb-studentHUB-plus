@@ -261,7 +261,7 @@ export default function FeedCard({
       dir={isRtl ? 'rtl' : 'ltr'}
       className="mb-5 overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm"
     >
-      {imageUrl ? (
+      {imageUrl && !isOpportunity ? (
         <div className="relative w-full overflow-hidden bg-slate-100">
           <img
             src={imageUrl}
@@ -286,19 +286,32 @@ export default function FeedCard({
           )}
         </div>
       ) : (
-        <div className="relative flex min-h-[310px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-[#4c1d95] via-[#6d28d9] to-[#111827] px-6 py-10 text-center text-white">
-          <div className="absolute inset-0 opacity-25 bg-[radial-gradient(circle_at_top_left,_#ffffff_0,_transparent_28%),radial-gradient(circle_at_bottom_right,_#fb923c_0,_transparent_30%)]" />
+        <div className="relative flex min-h-[340px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-orange-100 via-orange-200 to-orange-400 px-6 py-10 text-center text-[#3b2208]">
+          <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top_left,_#ffffff_0,_transparent_30%),radial-gradient(circle_at_bottom_right,_#fdba74_0,_transparent_34%)]" />
           <div className="relative z-10">
             <div className="mb-4 inline-flex rounded-full bg-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-white shadow">
               {isOpportunity ? (item.type === 'scholarship' ? 'Scholarship' : item.type === 'internship' ? 'Internship' : 'Job Opportunity') : 'Jamiaati'}
             </div>
-            <h2 className={`${isOpportunity ? 'text-4xl' : 'text-2xl'} font-black leading-[1.05] tracking-tight drop-shadow-md`}>
+            <h2 className={`${isOpportunity ? 'text-5xl' : 'text-2xl'} font-black leading-[1.02] tracking-tight`}>
               {title}
             </h2>
             {isOpportunity && (
-              <p className="mt-4 text-sm font-bold text-white/85">
-                {cleanText(item.company || item.author?.name || item.location || 'Iraq', 'Iraq')}
-              </p>
+              <>
+                <p className="mt-4 text-base font-black text-[#6b3a10]">
+                  {cleanText(item.company || item.author?.name || item.location || 'Iraq', 'Iraq')}
+                </p>
+                <p className="mx-auto mt-3 max-w-[34ch] text-sm font-semibold leading-6 text-[#4a2a0d]">
+                  {cleanText(
+                    item.contentEN ||
+                    item.contentAR ||
+                    item.contentKU ||
+                    item.content ||
+                    item.description ||
+                    'Open the direct link for full details.',
+                    'Open the direct link for full details.'
+                  ).slice(0, 160)}
+                </p>
+              </>
             )}
           </div>
         </div>
@@ -416,5 +429,6 @@ export default function FeedCard({
     </article>
   );
 }
+
 
 
