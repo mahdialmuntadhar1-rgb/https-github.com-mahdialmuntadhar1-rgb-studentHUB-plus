@@ -1,6 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { Heart, MessageSquare, Share2, Bookmark, UserPlus, Send, UserRound, X } from 'lucide-react';
 import { BACKEND_URL } from '../lib/api';
+import { compressImageToDataUrl } from '../utils/imageCompression';
 import { Author, Language, FeedItem, getLocalizedContent } from '../types';
 
 interface FeedCardProps {
@@ -102,8 +103,7 @@ function getImageUrl(item: FeedItem): string {
   const candidates = [
     item.imageUrl,
     item.videoThumbnail,
-    item.companyLogo,
-    item.author?.avatar
+    item.companyLogo
   ];
 
   for (const candidate of candidates) {
@@ -187,10 +187,10 @@ function getOpportunityUrl(item: FeedItem): string {
 
 function getApplyLabel(item: FeedItem, language: Language): string {
   if (item.type === 'scholarship' || item.type === 'fellowship') {
-    return language === 'ar' ? 'قدّم للمنحة' : language === 'ku' ? 'داواکاری بۆ سکۆلەرشیپ' : 'Apply for Scholarship';
+    return language === 'ar' ? 'تقديم' : language === 'ku' ? 'داواکاری' : 'Apply';
   }
 
-  return language === 'ar' ? 'قدّم الآن' : language === 'ku' ? 'ئێستا داواکاری بکە' : 'Apply Now';
+  return language === 'ar' ? 'تقديم' : language === 'ku' ? 'داواکاری' : 'Apply';
 }
 
 export default function FeedCard({
@@ -198,7 +198,10 @@ export default function FeedCard({
   language,
   onLike,
   onSave,
-  onAddComment
+  onAddComment,
+  onEditFeedItem,
+  onDeleteFeedItem,
+  isAdminMode
 }: FeedCardProps) {
   const [showComments, setShowComments] = useState(false);
   const [commentText, setCommentText] = useState('');
@@ -208,6 +211,10 @@ export default function FeedCard({
   const [showMockProfile, setShowMockProfile] = useState(false);
   const [friendRequested, setFriendRequested] = useState(false);
   const [messageRequested, setMessageRequested] = useState(false);
+  const [isEditingPost, setIsEditingPost] = useState(false);
+  const [editCaptionText, setEditCaptionText] = useState('');
+  const [editImagePreview, setEditImagePreview] = useState('');
+  const [isCompressingEditImage, setIsCompressingEditImage] = useState(false);
 
   const isOpportunity = OPPORTUNITY_TYPES.has(item.type) || Boolean((item as any).opportunityCategory);
   const isMockCampusPost = item.type === 'campus_life' && (item as any).isMock === true;
@@ -279,6 +286,79 @@ export default function FeedCard({
     setShowMockProfile(true);
   };
 
+  const isUserCreatedPost = String(item.id || '').startsWith('custom-');
+  const canManagePost = !isOpportunity && (isUserCreatedPost || isAdminMode === true);
+
+  const startEditingPost = () => {
+    setEditCaptionText(caption || '');
+    setEditImagePreview(String(item.imageUrl || ''));
+    setIsEditingPost(true);
+  };
+
+  const handleEditImageChange = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+
+    if (!file.type.startsWith('image/')) {
+      alert('Please choose an image file.');
+      return;
+    }
+
+    try {
+      setIsCompressingEditImage(true);
+      const compressedDataUrl = await compressImageToDataUrl(file, {
+        maxWidth: 1400,
+        maxHeight: 1400,
+        quality: 0.72,
+        maxBytes: 650 * 1024
+      });
+      setEditImagePreview(compressedDataUrl);
+    } catch (error) {
+      alert('Could not compress this image. Please choose a smaller JPG/PNG/WebP photo.');
+    } finally {
+      setIsCompressingEditImage(false);
+    }
+  };
+
+  const saveEditedPost = (event: React.FormEvent) => {
+    event.preventDefault();
+
+    const trimmedCaption = editCaptionText.trim();
+
+    if (!trimmedCaption && !editImagePreview) {
+      alert('Write a caption or choose an image before saving.');
+      return;
+    }
+
+    onEditFeedItem?.(item.id, {
+      titleEN: 'Campus Moment 🌟',
+      titleAR: 'لحظة جامعية 🌟',
+      titleKU: 'ساتێکی زانکۆ 🌟',
+      contentEN: trimmedCaption,
+      contentAR: trimmedCaption,
+      contentKU: trimmedCaption,
+      body_original: trimmedCaption,
+      imageUrl: editImagePreview || undefined,
+      imageAlt: editImagePreview ? 'Edited Campus Life image/design' : undefined,
+      tags: ['StudentShare', 'post', 'CampusLife']
+    } as any);
+
+    setIsEditingPost(false);
+  };
+
+  const deleteThisPost = () => {
+    const ok = window.confirm(
+      language === 'ar'
+        ? 'هل تريد حذف هذا المنشور؟'
+        : language === 'ku'
+        ? 'دەتەوێت ئەم پۆستە بسڕیتەوە؟'
+        : 'Delete this post?'
+    );
+
+    if (!ok) return;
+
+    onDeleteFeedItem?.(item.id);
+  };
   const getAuthToken = () => localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token') || '';
 
   const getTargetUserId = () => {
@@ -473,6 +553,88 @@ export default function FeedCard({
       ) : null}
 
       <div className="px-4 py-3">
+        {canManagePost && (
+          <div className="mb-3 rounded-2xl border border-orange-100 bg-orange-50/70 p-2" dir="auto">
+            {!isEditingPost ? (
+              <div className="flex gap-2">
+                <button
+                  type="button"
+                  onClick={startEditingPost}
+                  className="flex-1 rounded-xl bg-slate-900 px-3 py-2 text-[11px] font-black text-white"
+                >
+                  {language === 'ar' ? 'تعديل المنشور' : language === 'ku' ? 'دەستکاری پۆست' : 'Edit post'}
+                </button>
+                <button
+                  type="button"
+                  onClick={deleteThisPost}
+                  className="rounded-xl bg-red-600 px-3 py-2 text-[11px] font-black text-white"
+                >
+                  {language === 'ar' ? 'حذف' : language === 'ku' ? 'سڕینەوە' : 'Delete'}
+                </button>
+              </div>
+            ) : (
+              <form onSubmit={saveEditedPost} className="flex flex-col gap-2">
+                <label className="text-[10px] font-black uppercase tracking-wider text-slate-600">
+                  {language === 'ar' ? 'تعديل النص' : language === 'ku' ? 'دەستکاری نووسین' : 'Edit caption'}
+                </label>
+                <textarea
+                  value={editCaptionText}
+                  onChange={event => setEditCaptionText(event.target.value)}
+                  rows={3}
+                  className="w-full resize-none rounded-xl border border-orange-200 bg-white p-2 text-[12px] font-bold text-slate-900 outline-none focus:border-orange-500"
+                  placeholder={language === 'ar' ? 'اكتب الوصف الجديد...' : language === 'ku' ? 'نووسینی نوێ بنووسە...' : 'Write new caption...'}
+                />
+
+                {editImagePreview && (
+                  <div className="overflow-hidden rounded-xl border border-orange-200 bg-white">
+                    <img
+                      src={editImagePreview}
+                      alt="Edited preview"
+                      className="max-h-56 w-full object-cover"
+                    />
+                  </div>
+                )}
+
+                <div className="grid grid-cols-2 gap-2">
+                  <label className="cursor-pointer rounded-xl border border-orange-200 bg-white px-3 py-2 text-center text-[10px] font-black text-slate-800">
+                    {isCompressingEditImage
+                      ? (language === 'ar' ? 'جاري الضغط...' : language === 'ku' ? 'پەستاندن...' : 'Compressing...')
+                      : (language === 'ar' ? 'استبدال الصورة' : language === 'ku' ? 'گۆڕینی وێنە' : 'Replace image')}
+                    <input
+                      type="file"
+                      accept="image/*"
+                      className="hidden"
+                      onChange={handleEditImageChange}
+                    />
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => setEditImagePreview('')}
+                    className="rounded-xl border border-red-200 bg-white px-3 py-2 text-[10px] font-black text-red-700"
+                  >
+                    {language === 'ar' ? 'حذف الصورة' : language === 'ku' ? 'سڕینەوەی وێنە' : 'Remove image'}
+                  </button>
+                </div>
+
+                <div className="grid grid-cols-2 gap-2">
+                  <button
+                    type="button"
+                    onClick={() => setIsEditingPost(false)}
+                    className="rounded-xl bg-slate-200 px-3 py-2 text-[11px] font-black text-slate-900"
+                  >
+                    {language === 'ar' ? 'إلغاء' : language === 'ku' ? 'هەڵوەشاندنەوە' : 'Cancel'}
+                  </button>
+                  <button
+                    type="submit"
+                    className="rounded-xl bg-orange-500 px-3 py-2 text-[11px] font-black text-slate-900"
+                  >
+                    {language === 'ar' ? 'حفظ' : language === 'ku' ? 'پاشەکەوت' : 'Save'}
+                  </button>
+                </div>
+              </form>
+            )}
+          </div>
+        )}
         <p className={`whitespace-pre-line text-[14px] font-semibold leading-relaxed text-slate-900 ${!showFullCaption ? 'line-clamp-4' : ''}`}>
           {caption}
         </p>
@@ -644,6 +806,13 @@ export default function FeedCard({
     </article>
   );
 }
+
+
+
+
+
+
+
 
 
 

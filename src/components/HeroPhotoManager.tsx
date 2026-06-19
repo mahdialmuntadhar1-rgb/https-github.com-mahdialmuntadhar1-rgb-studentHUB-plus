@@ -1,7 +1,8 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { ArrowDown, ArrowUp, Eye, EyeOff, ImagePlus, Loader2, Save, Trash2, Upload } from 'lucide-react';
 import { Language } from '../types';
 import { HeroImageRecord, heroImagesApi } from '../lib/api';
+import { compressImageFile } from '../utils/imageCompression';
 
 interface HeroPhotoManagerProps {
   language: Language;
@@ -39,20 +40,33 @@ export default function HeroPhotoManager({ language, showToast }: HeroPhotoManag
 
   useEffect(() => { void loadImages(); }, []);
 
-  const chooseFile = (file: File | undefined, replacing?: HeroImageRecord) => {
+  const chooseFile = async (file: File | undefined, replacing?: HeroImageRecord) => {
     if (!file) return;
+
     if (!ALLOWED_TYPES.has(file.type)) {
       showToast('Use a JPG, JPEG, PNG, or WebP image.', 'error');
       return;
     }
-    if (file.size > MAX_FILE_SIZE) {
-      showToast('Hero images must be 5MB or smaller.', 'error');
-      return;
+
+    try {
+      const compressedFile = await compressImageFile(file, {
+        maxWidth: 1920,
+        maxHeight: 1080,
+        quality: 0.78,
+        maxBytes: 1200 * 1024
+      });
+
+      setPendingFile(compressedFile);
+      setReplaceId(replacing?.id || null);
+      setTitle(replacing?.title || file.name.replace(/\.[^.]+$/, '').slice(0, 120));
+      setAltText(replacing?.alt_text || 'StudentHUB homepage hero image');
+
+      if (compressedFile.size < file.size) {
+        showToast(`Image compressed: ${Math.round(file.size / 1024)}KB → ${Math.round(compressedFile.size / 1024)}KB`, 'success');
+      }
+    } catch (error: any) {
+      showToast(error.message || 'Could not compress this hero image.', 'error');
     }
-    setPendingFile(file);
-    setReplaceId(replacing?.id || null);
-    setTitle(replacing?.title || file.name.replace(/\.[^.]+$/, '').slice(0, 120));
-    setAltText(replacing?.alt_text || 'StudentHUB homepage hero image');
   };
 
   const cancelPending = () => {
@@ -126,7 +140,7 @@ export default function HeroPhotoManager({ language, showToast }: HeroPhotoManag
   };
 
   const deleteImage = async (image: HeroImageRecord) => {
-    if (!window.confirm(`Delete “${image.title || 'this hero image'}” permanently?`)) return;
+    if (!window.confirm(`Delete â€œ${image.title || 'this hero image'}â€ permanently?`)) return;
     setSaving(true);
     try {
       await heroImagesApi.remove(image.id, language);
@@ -153,9 +167,9 @@ export default function HeroPhotoManager({ language, showToast }: HeroPhotoManag
 
         <label className="mt-4 flex cursor-pointer items-center justify-center gap-2 rounded-2xl border-2 border-dashed border-[#6B25C9] bg-violet-50 px-4 py-4 text-xs font-black text-[#6B25C9] hover:bg-violet-100">
           <Upload className="h-4 w-4" /> Upload new hero image
-          <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={event => chooseFile(event.target.files?.[0])} />
+          <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={event => void chooseFile(event.target.files?.[0])} />
         </label>
-        <p className="mt-2 text-[9px] font-bold text-slate-500">JPG, JPEG, PNG, or WebP · maximum 5MB</p>
+        <p className="mt-2 text-[9px] font-bold text-slate-500">JPG, JPEG, PNG, or WebP Â· maximum 5MB</p>
       </div>
 
       {pendingFile && (
@@ -195,7 +209,7 @@ export default function HeroPhotoManager({ language, showToast }: HeroPhotoManag
                 <button disabled={saving || index === images.length - 1} onClick={() => moveImage(index, 1)} className="rounded-xl border px-2 py-2 disabled:opacity-30" aria-label="Move down"><ArrowDown className="h-3 w-3" /></button>
                 <label className="cursor-pointer rounded-xl bg-blue-50 px-3 py-2 text-[10px] font-black text-blue-800">
                   Replace
-                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={event => chooseFile(event.target.files?.[0], image)} />
+                  <input type="file" accept="image/jpeg,image/png,image/webp" className="hidden" onChange={event => void chooseFile(event.target.files?.[0], image)} />
                 </label>
                 <button disabled={saving} onClick={() => deleteImage(image)} className="ml-auto flex items-center gap-1 rounded-xl bg-red-50 px-3 py-2 text-[10px] font-black text-red-700"><Trash2 className="h-3 w-3" /> Delete</button>
               </div>
@@ -206,3 +220,5 @@ export default function HeroPhotoManager({ language, showToast }: HeroPhotoManag
     </section>
   );
 }
+
+

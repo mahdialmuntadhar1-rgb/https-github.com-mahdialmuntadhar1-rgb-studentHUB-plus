@@ -422,6 +422,88 @@ function normalizeGovernorateId(raw: any): string {
     .replace(/[^\w_]/g, '');
 }
 
+
+function normalizeOpportunityCategoryForSection(item: any) {
+  const categoryText = [
+    item.category,
+    item.type,
+    item.opportunityCategory,
+    item.sourceType,
+    item.kind,
+    item.tags && Array.isArray(item.tags) ? item.tags.join(' ') : ''
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  const bodyText = [
+    item.title,
+    item.titleEN,
+    item.titleAR,
+    item.titleKU,
+    item.description,
+    item.summary,
+    item.content,
+    item.contentEN,
+    item.contentAR,
+    item.contentKU
+  ].filter(Boolean).join(' ').toLowerCase();
+
+  const allText = `${categoryText} ${bodyText}`;
+
+  const hasAny = (words: string[]) => words.some(word => allText.includes(word));
+  const categoryHasAny = (words: string[]) => words.some(word => categoryText.includes(word));
+
+  if (categoryHasAny(['scholarship', 'scholarships', 'grant', 'funding', 'financial aid', 'bursary', 'منحة', 'منح', 'زمالة', 'بورسی', 'سکۆلەرشیپ'])) return 'scholarship';
+  if (categoryHasAny(['fellowship', 'fellowships', 'زمالة', 'زمالات'])) return 'fellowship';
+  if (categoryHasAny(['internship', 'internships', 'trainee', 'تدريب', 'تدريبات', 'مەشق'])) return 'internship';
+  if (categoryHasAny(['training', 'course', 'bootcamp', 'workshop', 'تدريب', 'دورة', 'ڕاهێنان'])) return 'training';
+  if (categoryHasAny(['competition', 'award', 'prize', 'challenge', 'hackathon', 'مسابقة', 'جائزة', 'پێشبڕکێ'])) return 'competition';
+  if (categoryHasAny(['volunteering', 'volunteer', 'تطوع', 'تطوعي', 'خۆبەخش'])) return 'volunteering';
+  if (categoryHasAny(['job', 'jobs', 'vacancy', 'vacancies', 'career', 'careers', 'position', 'employment', 'وظيفة', 'وظائف', 'توظيف', 'کار', 'هەلی کار'])) return 'job';
+
+  if (hasAny(['scholarship', 'scholarships', 'fully funded', 'partially funded', 'tuition', 'grant', 'financial aid', 'bursary', 'منحة', 'منح دراسية', 'بورسی', 'سکۆلەرشیپ'])) return 'scholarship';
+  if (hasAny(['fellowship', 'research fellowship', 'زمالة', 'زمالات'])) return 'fellowship';
+  if (hasAny(['internship', 'trainee', 'intern ', 'تدريب عملي', 'مەشق'])) return 'internship';
+  if (hasAny(['training', 'course', 'bootcamp', 'workshop', 'دورة', 'ڕاهێنان'])) return 'training';
+  if (hasAny(['competition', 'award', 'prize', 'challenge', 'hackathon', 'مسابقة', 'پێشبڕکێ'])) return 'competition';
+  if (hasAny(['volunteer', 'volunteering', 'تطوع', 'خۆبەخش'])) return 'volunteering';
+  if (hasAny(['job', 'vacancy', 'career', 'apply now', 'hiring', 'recruitment', 'position', 'officer', 'assistant', 'manager', 'engineer', 'coordinator', 'technician', 'وظيفة', 'وظائف', 'تعيين', 'هەلی کار'])) return 'job';
+
+  return String(item.category || item.type || '').toLowerCase();
+}
+
+function strictSectionCategoryMatch(item: any, target: string) {
+  const normalized = normalizeOpportunityCategoryForSection(item);
+  const targetLower = String(target || '').toLowerCase();
+
+  if (targetLower === 'job') {
+    return normalized === 'job';
+  }
+
+  if (targetLower === 'scholarship') {
+    return normalized === 'scholarship';
+  }
+
+  if (targetLower === 'internship') {
+    return normalized === 'internship';
+  }
+
+  if (targetLower === 'training') {
+    return normalized === 'training';
+  }
+
+  if (targetLower === 'fellowship') {
+    return normalized === 'fellowship';
+  }
+
+  if (targetLower === 'competition') {
+    return normalized === 'competition';
+  }
+
+  if (targetLower === 'volunteering') {
+    return normalized === 'volunteering';
+  }
+
+  return normalized === targetLower;
+}
 function hashCode(input: string) {
   let hash = 0;
   for (let i = 0; i < input.length; i++) {
@@ -665,7 +747,7 @@ export default function SectionView({
           params.append('university_id', selectedUni);
           params.append('institution_id', selectedUni);
         }
-        params.append('limit', isJobSection ? '2000' : '80');
+        params.append('limit', categoryConfig.isOpportunity ? '2000' : '80');
 
         const response = await fetch(`${BACKEND_URL}/api/${queryEndpoint}?${params.toString()}`);
         if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
@@ -679,8 +761,12 @@ export default function SectionView({
         const filteredResults = data.filter((item: any) => {
           const itemType = String(item.category || item.type || '').toLowerCase();
           const target = targetVal.toLowerCase();
+
+          if (categoryConfig.isOpportunity) {
+            return strictSectionCategoryMatch(item, target);
+          }
+
           return itemType === target ||
-                 (target === 'job' && itemType.includes('job')) ||
                  (target === 'news' && itemType === 'announcement') ||
                  (target === 'announcement' && itemType === 'official_announcement') ||
                  (target === 'student_club' && itemType === 'study_group');
@@ -1036,7 +1122,7 @@ export default function SectionView({
           {errorStatus && <p className="text-[10px] text-amber-300 mt-3">{errorStatus}</p>}
         </div>
       ) : (
-        <div className="flex flex-col gap-5" id="section-cards-feed">
+        <div className={isJobSection ? "section-job-grid grid grid-cols-2 gap-2" : "flex flex-col gap-5"} id="section-cards-feed">
           {isJobSection && (
             <div className="rounded-2xl bg-[#17243E] border border-[#263A62] px-3 py-2 text-[10px] text-slate-300 font-bold flex items-center gap-2">
               <Briefcase className="w-3.5 h-3.5 text-[#FFD21F]" />
@@ -1096,3 +1182,5 @@ export default function SectionView({
     </div>
   );
 }
+
+

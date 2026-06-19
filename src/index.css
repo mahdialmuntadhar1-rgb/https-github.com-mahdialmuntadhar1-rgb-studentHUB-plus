@@ -1,4 +1,4 @@
-@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Outfit:wght@300;450;600;800;900&family=Vazirmatn:wght@300;400;600;700;900&family=Readex+Pro:wght@300;400;600;700&family=Noto+Sans+Arabic:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+﻿@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Outfit:wght@300;450;600;800;900&family=Vazirmatn:wght@300;400;600;700;900&family=Readex+Pro:wght@300;400;600;700&family=Noto+Sans+Arabic:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -617,5 +617,1412 @@ span[id^="live-time-ticker"] {
   line-height: 1.7 !important;
   letter-spacing: 0px !important;
   word-spacing: 1.2px !important;
+}
+
+
+/* === JAMIAATI SOCIAL + MOBILE FIX === */
+
+#home-hero-carousel [class*="bg-gradient-to-t"],
+#home-hero-carousel [class*="text-left"][class*="z-10"] {
+  display: none !important;
+}
+
+#home-hero-carousel {
+  background: #fff !important;
+}
+
+#home-hero-carousel [class*="bg-cover"] {
+  filter: none !important;
+}
+
+/* Faster long feed */
+#mixed-feed-items-list > * {
+  content-visibility: auto;
+  contain-intrinsic-size: 360px;
+}
+
+/* Fix distorted-looking mixed Arabic / Kurdish / English text */
+#mixed-feed-items-list p,
+#mixed-feed-items-list span,
+#mixed-feed-items-list div {
+  unicode-bidi: plaintext;
+  word-break: normal;
+  overflow-wrap: anywhere;
+}
+
+#mixed-feed-items-list p {
+  white-space: normal !important;
+  font-family: "Noto Sans Arabic", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif !important;
+}
+
+/* Make opportunity heading/load-more span the grid */
+#mixed-feed-items-list.grid > .mb-3,
+#mixed-feed-items-list.grid > button {
+  grid-column: 1 / -1;
+}
+
+/* Compact opportunity cards on mobile: two per row */
+@media (max-width: 640px) {
+  #mixed-feed-items-list.grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  #mixed-feed-items-list.grid > * {
+    min-width: 0 !important;
+  }
+
+  #mixed-feed-items-list.grid article,
+  #mixed-feed-items-list.grid > div {
+    border-radius: 16px !important;
+    overflow: hidden !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge {
+    min-height: 118px !important;
+    padding: 12px 8px !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge h2 {
+    font-size: 13px !important;
+    line-height: 1.15 !important;
+    letter-spacing: -0.01em !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge p {
+    display: none !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge [class*="tracking"] {
+    font-size: 7px !important;
+    letter-spacing: .08em !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-duty-station-badge,
+  #mixed-feed-items-list.grid .opportunity-company-black {
+    font-size: 8px !important;
+    line-height: 1.2 !important;
+  }
+
+  #mixed-feed-items-list.grid button {
+    font-size: 10px !important;
+    padding: 8px 10px !important;
+    border-radius: 12px !important;
+  }
+
+  #mixed-feed-items-list.grid [class*="px-4"][class*="py-3"] {
+    padding: 8px !important;
+  }
+
+  #mixed-feed-items-list.grid [class*="mt-4"] {
+    margin-top: 8px !important;
+  }
+
+  #mixed-feed-items-list.grid [class*="gap-5"] {
+    gap: 10px !important;
+  }
+}
+
+@media (min-width: 641px) {
+  #mixed-feed-items-list.grid .opportunity-type-badge {
+    min-height: 220px !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge h2 {
+    font-size: 24px !important;
+  }
+}
+
+/* === OPPORTUNITY CARD LAYOUT FIX === */
+
+/* Always show opportunity cards in 2 columns */
+#mixed-feed-items-list.grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 12px !important;
+  align-items: stretch !important;
+}
+
+/* Let cards use the full column width cleanly */
+#mixed-feed-items-list.grid > * {
+  min-width: 0 !important;
+}
+
+/* Make the opportunity cards less narrow-looking */
+#mixed-feed-items-list.grid article,
+#mixed-feed-items-list.grid > div {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+/* Main opportunity badge/card area */
+#mixed-feed-items-list.grid .opportunity-type-badge {
+  min-height: 190px !important;
+  padding: 18px 12px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+/* Main title: smaller and no ugly letter splitting */
+#mixed-feed-items-list.grid .opportunity-type-badge h2 {
+  font-size: 20px !important;
+  line-height: 1.12 !important;
+  letter-spacing: -0.02em !important;
+  white-space: normal !important;
+  word-break: keep-all !important;
+  overflow-wrap: break-word !important;
+  hyphens: none !important;
+  text-wrap: balance !important;
+  max-width: 100% !important;
+  margin: 10px 0 0 0 !important;
+}
+
+/* Paragraph/secondary description smaller */
+#mixed-feed-items-list.grid .opportunity-type-badge p {
+  font-size: 11px !important;
+  line-height: 1.35 !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Small chips / labels */
+#mixed-feed-items-list.grid .opportunity-duty-station-badge,
+#mixed-feed-items-list.grid .opportunity-company-black,
+#mixed-feed-items-list.grid [class*="tracking"] {
+  font-size: 10px !important;
+  line-height: 1.2 !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: break-word !important;
+}
+
+/* Buttons slightly smaller */
+#mixed-feed-items-list.grid button {
+  font-size: 11px !important;
+  padding: 9px 10px !important;
+  border-radius: 12px !important;
+}
+
+/* IMPORTANT:
+   remove overly aggressive wrapping that distorts words */
+#mixed-feed-items-list.grid h1,
+#mixed-feed-items-list.grid h2,
+#mixed-feed-items-list.grid h3,
+#mixed-feed-items-list.grid p,
+#mixed-feed-items-list.grid span,
+#mixed-feed-items-list.grid div {
+  overflow-wrap: normal !important;
+  word-break: normal !important;
+}
+
+/* Keep readable wrapping only for title blocks */
+#mixed-feed-items-list.grid .opportunity-type-badge,
+#mixed-feed-items-list.grid .opportunity-type-badge * {
+  unicode-bidi: plaintext !important;
+}
+
+/* Mobile tighter version */
+@media (max-width: 640px) {
+  #mixed-feed-items-list.grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+    gap: 8px !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge {
+    min-height: 145px !important;
+    padding: 12px 8px !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge h2 {
+    font-size: 15px !important;
+    line-height: 1.08 !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge p {
+    font-size: 10px !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-duty-station-badge,
+  #mixed-feed-items-list.grid .opportunity-company-black,
+  #mixed-feed-items-list.grid [class*="tracking"] {
+    font-size: 8px !important;
+  }
+
+  #mixed-feed-items-list.grid button {
+    font-size: 10px !important;
+    padding: 8px !important;
+  }
+}
+
+/* === PREMIUM JOB CARD STYLE FIX === */
+
+/* Better font for opportunity cards */
+#mixed-feed-items-list.grid,
+#mixed-feed-items-list.grid * {
+  font-family: "Inter", "Manrope", "Noto Sans Arabic", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif !important;
+}
+
+/* Keep two cards per row, clean square feeling */
+#mixed-feed-items-list.grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+/* Make each opportunity card compact and square-like */
+#mixed-feed-items-list.grid article {
+  border-radius: 22px !important;
+  border: 1.5px solid #fed7aa !important;
+  background: #ffffff !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Main orange/white job visual area */
+#mixed-feed-items-list.grid .opportunity-type-badge {
+  min-height: 132px !important;
+  aspect-ratio: 1 / 1 !important;
+  padding: 10px 8px !important;
+  background: linear-gradient(180deg, #fff7ed 0%, #ffffff 55%, #fff7ed 100%) !important;
+  color: #111827 !important;
+  display: flex !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+/* Make the orange JOB OPPORTUNITY pill smaller */
+#mixed-feed-items-list.grid .opportunity-type-badge > div > div:first-child {
+  margin-bottom: 6px !important;
+  padding: 5px 10px !important;
+  border-radius: 999px !important;
+  background: #ff6b00 !important;
+  color: #111827 !important;
+  font-size: 7px !important;
+  line-height: 1.15 !important;
+  letter-spacing: 0.16em !important;
+  box-shadow: 0 4px 10px rgba(255, 107, 0, 0.22) !important;
+}
+
+/* Job title: smaller, beautiful, no distortion */
+#mixed-feed-items-list.grid .opportunity-type-badge h2 {
+  font-size: 14px !important;
+  line-height: 1.12 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em !important;
+  color: #111827 !important;
+  max-width: 96% !important;
+  margin: 6px auto 0 auto !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+  text-wrap: balance !important;
+}
+
+/* Hide long descriptions inside the small card */
+#mixed-feed-items-list.grid .opportunity-type-badge p:not(.opportunity-duty-station-badge) {
+  display: none !important;
+}
+
+/* Company badge: smaller and readable */
+#mixed-feed-items-list.grid .opportunity-duty-station-badge {
+  margin-top: 7px !important;
+  display: inline-flex !important;
+  max-width: 92% !important;
+  padding: 4px 8px !important;
+  border-radius: 10px !important;
+  background: #fff3d6 !important;
+  color: #3b2208 !important;
+  -webkit-text-fill-color: #3b2208 !important;
+  border: 1px solid #fb923c !important;
+  font-size: 9px !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+  box-shadow: none !important;
+}
+
+/* Company text inside the badge */
+#mixed-feed-items-list.grid .opportunity-company-black {
+  color: #3b2208 !important;
+  -webkit-text-fill-color: #3b2208 !important;
+  background: transparent !important;
+  font-size: 9px !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+}
+
+/* The black DUTY STATION badge: make bright background and dark text */
+#mixed-feed-items-list.grid .opportunity-type-badge [class*="bg-slate-900"] {
+  background: #fff7ed !important;
+  color: #7c2d12 !important;
+  border: 1px solid #fdba74 !important;
+  box-shadow: none !important;
+  padding: 4px 7px !important;
+  border-radius: 9px !important;
+  margin-top: 6px !important;
+}
+
+#mixed-feed-items-list.grid .opportunity-type-badge [class*="bg-slate-900"] span {
+  color: #7c2d12 !important;
+  -webkit-text-fill-color: #7c2d12 !important;
+  font-size: 7px !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1.1 !important;
+}
+
+/* Make bottom content area shorter */
+#mixed-feed-items-list.grid article > div:last-child {
+  padding: 8px !important;
+}
+
+/* Hide tags and social row on compact opportunity cards to avoid long cards */
+#mixed-feed-items-list.grid article > div:last-child > div.mt-3.flex.flex-wrap,
+#mixed-feed-items-list.grid article > div:last-child > div.mt-4.flex.items-center.justify-between {
+  display: none !important;
+}
+
+/* Apply button smaller */
+#mixed-feed-items-list.grid article button {
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+  padding: 8px 8px !important;
+  border-radius: 12px !important;
+  min-height: 34px !important;
+}
+
+/* Remove awkward large margins */
+#mixed-feed-items-list.grid article [class*="mt-4"] {
+  margin-top: 6px !important;
+}
+
+/* Mobile: very compact square cards */
+@media (max-width: 640px) {
+  #mixed-feed-items-list.grid {
+    gap: 8px !important;
+  }
+
+  #mixed-feed-items-list.grid article {
+    border-radius: 18px !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge {
+    min-height: 124px !important;
+    padding: 8px 6px !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge h2 {
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-duty-station-badge,
+  #mixed-feed-items-list.grid .opportunity-company-black {
+    font-size: 7.5px !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge [class*="bg-slate-900"] span {
+    font-size: 6.5px !important;
+  }
+
+  #mixed-feed-items-list.grid article button {
+    font-size: 9px !important;
+    padding: 7px 6px !important;
+  }
+}
+
+/* === PREMIUM JOB CARD STYLE FIX === */
+
+/* Better font for opportunity cards */
+#mixed-feed-items-list.grid,
+#mixed-feed-items-list.grid * {
+  font-family: "Inter", "Manrope", "Noto Sans Arabic", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif !important;
+}
+
+/* Keep two cards per row, clean square feeling */
+#mixed-feed-items-list.grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px !important;
+}
+
+/* Make each opportunity card compact and square-like */
+#mixed-feed-items-list.grid article {
+  border-radius: 22px !important;
+  border: 1.5px solid #fed7aa !important;
+  background: #ffffff !important;
+  overflow: hidden !important;
+  min-height: 0 !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Main orange/white job visual area */
+#mixed-feed-items-list.grid .opportunity-type-badge {
+  min-height: 132px !important;
+  aspect-ratio: 1 / 1 !important;
+  padding: 10px 8px !important;
+  background: linear-gradient(180deg, #fff7ed 0%, #ffffff 55%, #fff7ed 100%) !important;
+  color: #111827 !important;
+  display: flex !important;
+  justify-content: flex-start !important;
+  align-items: center !important;
+  text-align: center !important;
+}
+
+/* Make the orange JOB OPPORTUNITY pill smaller */
+#mixed-feed-items-list.grid .opportunity-type-badge > div > div:first-child {
+  margin-bottom: 6px !important;
+  padding: 5px 10px !important;
+  border-radius: 999px !important;
+  background: #ff6b00 !important;
+  color: #111827 !important;
+  font-size: 7px !important;
+  line-height: 1.15 !important;
+  letter-spacing: 0.16em !important;
+  box-shadow: 0 4px 10px rgba(255, 107, 0, 0.22) !important;
+}
+
+/* Job title: smaller, beautiful, no distortion */
+#mixed-feed-items-list.grid .opportunity-type-badge h2 {
+  font-size: 14px !important;
+  line-height: 1.12 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.03em !important;
+  color: #111827 !important;
+  max-width: 96% !important;
+  margin: 6px auto 0 auto !important;
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+  text-wrap: balance !important;
+}
+
+/* Hide long descriptions inside the small card */
+#mixed-feed-items-list.grid .opportunity-type-badge p:not(.opportunity-duty-station-badge) {
+  display: none !important;
+}
+
+/* Company badge: smaller and readable */
+#mixed-feed-items-list.grid .opportunity-duty-station-badge {
+  margin-top: 7px !important;
+  display: inline-flex !important;
+  max-width: 92% !important;
+  padding: 4px 8px !important;
+  border-radius: 10px !important;
+  background: #fff3d6 !important;
+  color: #3b2208 !important;
+  -webkit-text-fill-color: #3b2208 !important;
+  border: 1px solid #fb923c !important;
+  font-size: 9px !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+  box-shadow: none !important;
+}
+
+/* Company text inside the badge */
+#mixed-feed-items-list.grid .opportunity-company-black {
+  color: #3b2208 !important;
+  -webkit-text-fill-color: #3b2208 !important;
+  background: transparent !important;
+  font-size: 9px !important;
+  line-height: 1.15 !important;
+  font-weight: 900 !important;
+}
+
+/* The black DUTY STATION badge: make bright background and dark text */
+#mixed-feed-items-list.grid .opportunity-type-badge [class*="bg-slate-900"] {
+  background: #fff7ed !important;
+  color: #7c2d12 !important;
+  border: 1px solid #fdba74 !important;
+  box-shadow: none !important;
+  padding: 4px 7px !important;
+  border-radius: 9px !important;
+  margin-top: 6px !important;
+}
+
+#mixed-feed-items-list.grid .opportunity-type-badge [class*="bg-slate-900"] span {
+  color: #7c2d12 !important;
+  -webkit-text-fill-color: #7c2d12 !important;
+  font-size: 7px !important;
+  letter-spacing: 0.06em !important;
+  line-height: 1.1 !important;
+}
+
+/* Make bottom content area shorter */
+#mixed-feed-items-list.grid article > div:last-child {
+  padding: 8px !important;
+}
+
+/* Hide tags and social row on compact opportunity cards to avoid long cards */
+#mixed-feed-items-list.grid article > div:last-child > div.mt-3.flex.flex-wrap,
+#mixed-feed-items-list.grid article > div:last-child > div.mt-4.flex.items-center.justify-between {
+  display: none !important;
+}
+
+/* Apply button smaller */
+#mixed-feed-items-list.grid article button {
+  font-size: 10px !important;
+  line-height: 1.1 !important;
+  padding: 8px 8px !important;
+  border-radius: 12px !important;
+  min-height: 34px !important;
+}
+
+/* Remove awkward large margins */
+#mixed-feed-items-list.grid article [class*="mt-4"] {
+  margin-top: 6px !important;
+}
+
+/* Mobile: very compact square cards */
+@media (max-width: 640px) {
+  #mixed-feed-items-list.grid {
+    gap: 8px !important;
+  }
+
+  #mixed-feed-items-list.grid article {
+    border-radius: 18px !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge {
+    min-height: 124px !important;
+    padding: 8px 6px !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge h2 {
+    font-size: 12px !important;
+    line-height: 1.1 !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-duty-station-badge,
+  #mixed-feed-items-list.grid .opportunity-company-black {
+    font-size: 7.5px !important;
+  }
+
+  #mixed-feed-items-list.grid .opportunity-type-badge [class*="bg-slate-900"] span {
+    font-size: 6.5px !important;
+  }
+
+  #mixed-feed-items-list.grid article button {
+    font-size: 9px !important;
+    padding: 7px 6px !important;
+  }
+}
+
+/* === FINAL SQUARE JOB POSTCARDS === */
+
+/* Two square job postcards per row */
+#mixed-feed-items-list.grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+/* Make the whole postcard square, including caption and apply button */
+#mixed-feed-items-list.grid article {
+  aspect-ratio: 1 / 1 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  border-radius: 18px !important;
+  overflow: hidden !important;
+  background: #ffffff !important;
+  border: 1.5px solid #fed7aa !important;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.06) !important;
+}
+
+/* Top visual area inside the square card */
+#mixed-feed-items-list.grid article .opportunity-type-badge {
+  flex: 1 1 auto !important;
+  min-height: 0 !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  padding: 7px 6px !important;
+  background: linear-gradient(180deg, #fff7ed 0%, #ffffff 60%, #fff7ed 100%) !important;
+  overflow: hidden !important;
+}
+
+/* Smaller orange JOB OPPORTUNITY pill */
+#mixed-feed-items-list.grid article .opportunity-type-badge > div > div:first-child {
+  margin-bottom: 4px !important;
+  padding: 4px 8px !important;
+  border-radius: 999px !important;
+  background: #ff6b00 !important;
+  color: #111827 !important;
+  font-size: 6px !important;
+  line-height: 1.05 !important;
+  letter-spacing: 0.14em !important;
+  box-shadow: 0 3px 8px rgba(255, 107, 0, 0.2) !important;
+}
+
+/* Job title: beautiful, smaller, no letter-by-letter breaking */
+#mixed-feed-items-list.grid article .opportunity-type-badge h2 {
+  font-family: "Inter", "Manrope", "Noto Sans Arabic", "IBM Plex Sans Arabic", system-ui, sans-serif !important;
+  font-size: 11px !important;
+  line-height: 1.08 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em !important;
+  color: #111827 !important;
+  margin: 4px auto 0 auto !important;
+  max-width: 96% !important;
+
+  display: -webkit-box !important;
+  -webkit-line-clamp: 4 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+/* Hide long paragraph in the visual area to keep the card square */
+#mixed-feed-items-list.grid article .opportunity-type-badge p:not(.opportunity-duty-station-badge) {
+  display: none !important;
+}
+
+/* Company badge readable */
+#mixed-feed-items-list.grid article .opportunity-duty-station-badge {
+  margin-top: 5px !important;
+  padding: 3px 6px !important;
+  max-width: 92% !important;
+  border-radius: 8px !important;
+  background: #fff3d6 !important;
+  color: #3b2208 !important;
+  -webkit-text-fill-color: #3b2208 !important;
+  border: 1px solid #fb923c !important;
+  font-size: 7px !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  box-shadow: none !important;
+
+  display: -webkit-inline-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+/* Company text inside badge */
+#mixed-feed-items-list.grid article .opportunity-company-black {
+  color: #3b2208 !important;
+  -webkit-text-fill-color: #3b2208 !important;
+  background: transparent !important;
+  font-size: 7px !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+}
+
+/* Duty station badge: bright background, dark readable text */
+#mixed-feed-items-list.grid article .opportunity-type-badge [class*="bg-slate-900"] {
+  background: #fff7ed !important;
+  color: #7c2d12 !important;
+  -webkit-text-fill-color: #7c2d12 !important;
+  border: 1px solid #fdba74 !important;
+  box-shadow: none !important;
+  padding: 3px 5px !important;
+  border-radius: 8px !important;
+  margin-top: 4px !important;
+  max-width: 92% !important;
+}
+
+#mixed-feed-items-list.grid article .opportunity-type-badge [class*="bg-slate-900"] span {
+  color: #7c2d12 !important;
+  -webkit-text-fill-color: #7c2d12 !important;
+  font-size: 5.8px !important;
+  line-height: 1.05 !important;
+  letter-spacing: 0.04em !important;
+}
+
+/* Bottom caption/apply area included inside the square */
+#mixed-feed-items-list.grid article > div:last-child {
+  flex: 0 0 34% !important;
+  min-height: 0 !important;
+  padding: 5px 6px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+
+/* Caption: smaller and limited, still visible */
+#mixed-feed-items-list.grid article > div:last-child > p {
+  font-size: 7.5px !important;
+  line-height: 1.15 !important;
+  font-weight: 700 !important;
+  color: #374151 !important;
+  margin: 0 !important;
+
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
+/* Hide tags/social row to keep square card clean */
+#mixed-feed-items-list.grid article > div:last-child > div.mt-3.flex.flex-wrap,
+#mixed-feed-items-list.grid article > div:last-child > div.mt-4.flex.items-center.justify-between {
+  display: none !important;
+}
+
+/* Apply button: small but visible */
+#mixed-feed-items-list.grid article > div:last-child button {
+  margin-top: 4px !important;
+  min-height: 24px !important;
+  padding: 5px 6px !important;
+  border-radius: 9px !important;
+  font-size: 7.5px !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  background: #ff6b00 !important;
+  color: #111827 !important;
+}
+
+/* Stop ugly text distortion globally inside job cards */
+#mixed-feed-items-list.grid article * {
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+/* Slightly better on larger screens but still square */
+@media (min-width: 641px) {
+  #mixed-feed-items-list.grid {
+    gap: 12px !important;
+  }
+
+  #mixed-feed-items-list.grid article .opportunity-type-badge h2 {
+    font-size: 14px !important;
+    line-height: 1.1 !important;
+  }
+
+  #mixed-feed-items-list.grid article > div:last-child > p {
+    font-size: 9px !important;
+  }
+
+  #mixed-feed-items-list.grid article > div:last-child button {
+    font-size: 9px !important;
+    min-height: 30px !important;
+  }
+}
+
+/* === FINAL: TRUE SQUARE JOB POSTCARDS INCLUDING CAPTION === */
+
+/* Two square postcards per row */
+#mixed-feed-items-list.grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+}
+
+/* The WHOLE job card is square */
+#mixed-feed-items-list.grid article {
+  aspect-ratio: 1 / 1 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  border-radius: 18px !important;
+}
+
+/* Top visual part takes most of the square */
+#mixed-feed-items-list.grid article .opportunity-type-badge {
+  flex: 1 1 68% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  padding: 6px 5px !important;
+  overflow: hidden !important;
+}
+
+/* Orange badge smaller */
+#mixed-feed-items-list.grid article .opportunity-type-badge > div > div:first-child {
+  font-size: 5.5px !important;
+  line-height: 1.05 !important;
+  padding: 3px 7px !important;
+  margin-bottom: 3px !important;
+  letter-spacing: 0.12em !important;
+}
+
+/* Job title smaller and cleaner */
+#mixed-feed-items-list.grid article .opportunity-type-badge h2 {
+  font-size: 10.5px !important;
+  line-height: 1.07 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em !important;
+  margin: 3px auto 0 auto !important;
+  max-width: 96% !important;
+
+  display: -webkit-box !important;
+  -webkit-line-clamp: 4 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+/* Hide long description inside top area */
+#mixed-feed-items-list.grid article .opportunity-type-badge p:not(.opportunity-duty-station-badge) {
+  display: none !important;
+}
+
+/* Company badge */
+#mixed-feed-items-list.grid article .opportunity-duty-station-badge {
+  margin-top: 4px !important;
+  padding: 2px 5px !important;
+  max-width: 90% !important;
+  background: #fff3d6 !important;
+  color: #3b2208 !important;
+  -webkit-text-fill-color: #3b2208 !important;
+  border: 1px solid #fb923c !important;
+  border-radius: 7px !important;
+  font-size: 6.5px !important;
+  line-height: 1.05 !important;
+
+  display: -webkit-inline-box !important;
+  -webkit-line-clamp: 1 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+/* Duty station badge: bright, not black */
+#mixed-feed-items-list.grid article .opportunity-type-badge [class*="bg-slate-900"] {
+  background: #fff7ed !important;
+  color: #7c2d12 !important;
+  -webkit-text-fill-color: #7c2d12 !important;
+  border: 1px solid #fdba74 !important;
+  box-shadow: none !important;
+  padding: 2px 5px !important;
+  border-radius: 7px !important;
+  margin-top: 3px !important;
+  max-width: 90% !important;
+}
+
+#mixed-feed-items-list.grid article .opportunity-type-badge [class*="bg-slate-900"] span,
+#mixed-feed-items-list.grid article .opportunity-company-black {
+  color: #7c2d12 !important;
+  -webkit-text-fill-color: #7c2d12 !important;
+  font-size: 5.8px !important;
+  line-height: 1.05 !important;
+  letter-spacing: 0.03em !important;
+}
+
+/* Bottom caption + apply area included inside the square */
+#mixed-feed-items-list.grid article > div:last-child {
+  flex: 0 0 32% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 4px 5px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+
+/* Caption visible but very small */
+#mixed-feed-items-list.grid article > div:last-child > p {
+  font-size: 7px !important;
+  line-height: 1.1 !important;
+  font-weight: 700 !important;
+  color: #374151 !important;
+  margin: 0 !important;
+
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+}
+
+/* Hide tags and social row to keep it square */
+#mixed-feed-items-list.grid article > div:last-child > div.mt-3.flex.flex-wrap,
+#mixed-feed-items-list.grid article > div:last-child > div.mt-4.flex.items-center.justify-between {
+  display: none !important;
+}
+
+/* Small Apply button inside square */
+#mixed-feed-items-list.grid article > div:last-child button {
+  margin-top: 3px !important;
+  min-height: 22px !important;
+  padding: 4px 5px !important;
+  border-radius: 8px !important;
+  font-size: 7px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  background: #ff6b00 !important;
+  color: #111827 !important;
+}
+
+/* Stop text distortion */
+#mixed-feed-items-list.grid article * {
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+/* Slightly larger but still square on desktop */
+@media (min-width: 641px) {
+  #mixed-feed-items-list.grid {
+    gap: 12px !important;
+  }
+
+  #mixed-feed-items-list.grid article .opportunity-type-badge h2 {
+    font-size: 13px !important;
+  }
+
+  #mixed-feed-items-list.grid article > div:last-child > p {
+    font-size: 8.5px !important;
+  }
+
+  #mixed-feed-items-list.grid article > div:last-child button {
+    font-size: 8.5px !important;
+    min-height: 26px !important;
+  }
+}
+
+/* === JOBS SHORTCUT PAGE: TRUE SQUARE POSTCARDS === */
+
+/* The Jobs shortcut feed itself */
+#section-cards-feed.section-job-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  align-items: stretch !important;
+}
+
+/* Top info bars and load-more block span full width */
+#section-cards-feed.section-job-grid > .rounded-2xl:not(article) {
+  grid-column: 1 / -1 !important;
+}
+
+/* Whole job card square, including caption/apply area */
+#section-cards-feed.section-job-grid article {
+  aspect-ratio: 1 / 1 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  border-radius: 18px !important;
+  border: 1.5px solid #fed7aa !important;
+  background: #ffffff !important;
+  box-shadow: 0 6px 16px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Premium font for the small job cards */
+#section-cards-feed.section-job-grid article,
+#section-cards-feed.section-job-grid article * {
+  font-family: "Inter", "Manrope", "Noto Sans Arabic", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif !important;
+}
+
+/* Top visual/card area */
+#section-cards-feed.section-job-grid article .opportunity-type-badge {
+  flex: 1 1 68% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  aspect-ratio: auto !important;
+  padding: 6px 5px !important;
+  overflow: hidden !important;
+  background: linear-gradient(180deg, #fff7ed 0%, #ffffff 60%, #fff7ed 100%) !important;
+  color: #111827 !important;
+}
+
+/* Small orange JOB OPPORTUNITY pill */
+#section-cards-feed.section-job-grid article .opportunity-type-badge > div > div:first-child {
+  font-size: 5.5px !important;
+  line-height: 1.05 !important;
+  padding: 3px 7px !important;
+  margin-bottom: 3px !important;
+  letter-spacing: 0.12em !important;
+  border-radius: 999px !important;
+  background: #ff6b00 !important;
+  color: #111827 !important;
+  box-shadow: 0 3px 8px rgba(255, 107, 0, 0.2) !important;
+}
+
+/* Job title smaller and clean */
+#section-cards-feed.section-job-grid article .opportunity-type-badge h2 {
+  font-size: 10.5px !important;
+  line-height: 1.07 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em !important;
+  color: #111827 !important;
+  margin: 3px auto 0 auto !important;
+  max-width: 96% !important;
+
+  display: -webkit-box !important;
+  -webkit-line-clamp: 4 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+/* Hide long description in the visual area */
+#section-cards-feed.section-job-grid article .opportunity-type-badge p:not(.opportunity-duty-station-badge) {
+  display: none !important;
+}
+
+/* Company badge readable */
+#section-cards-feed.section-job-grid article .opportunity-duty-station-badge {
+  margin-top: 4px !important;
+  padding: 2px 5px !important;
+  max-width: 90% !important;
+  background: #fff3d6 !important;
+  color: #3b2208 !important;
+  -webkit-text-fill-color: #3b2208 !important;
+  border: 1px solid #fb923c !important;
+  border-radius: 7px !important;
+  font-size: 6.5px !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  box-shadow: none !important;
+
+  display: -webkit-inline-box !important;
+  -webkit-line-clamp: 1 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+/* Duty station badge: bright background, dark text */
+#section-cards-feed.section-job-grid article .opportunity-type-badge [class*="bg-slate-900"] {
+  background: #fff7ed !important;
+  color: #7c2d12 !important;
+  -webkit-text-fill-color: #7c2d12 !important;
+  border: 1px solid #fdba74 !important;
+  box-shadow: none !important;
+  padding: 2px 5px !important;
+  border-radius: 7px !important;
+  margin-top: 3px !important;
+  max-width: 90% !important;
+}
+
+#section-cards-feed.section-job-grid article .opportunity-type-badge [class*="bg-slate-900"] span,
+#section-cards-feed.section-job-grid article .opportunity-company-black {
+  color: #7c2d12 !important;
+  -webkit-text-fill-color: #7c2d12 !important;
+  font-size: 5.8px !important;
+  line-height: 1.05 !important;
+  letter-spacing: 0.03em !important;
+}
+
+/* Bottom caption + apply area inside the same square */
+#section-cards-feed.section-job-grid article > div:last-child {
+  flex: 0 0 32% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 4px 5px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+
+/* Caption: visible but small, no distortion */
+#section-cards-feed.section-job-grid article > div:last-child > p {
+  font-size: 7px !important;
+  line-height: 1.1 !important;
+  font-weight: 700 !important;
+  color: #374151 !important;
+  margin: 0 !important;
+
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+/* Hide tags and social row on shortcut job cards */
+#section-cards-feed.section-job-grid article > div:last-child > div.mt-3.flex.flex-wrap,
+#section-cards-feed.section-job-grid article > div:last-child > div.mt-4.flex.items-center.justify-between {
+  display: none !important;
+}
+
+/* Small Apply button */
+#section-cards-feed.section-job-grid article > div:last-child button {
+  margin-top: 3px !important;
+  min-height: 22px !important;
+  padding: 4px 5px !important;
+  border-radius: 8px !important;
+  font-size: 7px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  background: #ff6b00 !important;
+  color: #111827 !important;
+}
+
+/* Stop ugly text breaking */
+#section-cards-feed.section-job-grid article * {
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+/* Desktop/tablet still square, just a little more readable */
+@media (min-width: 641px) {
+  #section-cards-feed.section-job-grid {
+    gap: 12px !important;
+  }
+
+  #section-cards-feed.section-job-grid article .opportunity-type-badge h2 {
+    font-size: 13px !important;
+  }
+
+  #section-cards-feed.section-job-grid article > div:last-child > p {
+    font-size: 8.5px !important;
+  }
+
+  #section-cards-feed.section-job-grid article > div:last-child button {
+    font-size: 8.5px !important;
+    min-height: 26px !important;
+  }
+}
+
+/* === JOBS SHORTCUT PAGE: BRAND COLOR + SMALLER SQUARES === */
+
+/* Darker branded page feeling, closer to the rest of the app */
+body:has(#section-cards-feed.section-job-grid) {
+  background:
+    radial-gradient(circle at top left, rgba(124, 58, 237, 0.18), transparent 28%),
+    radial-gradient(circle at top right, rgba(34, 211, 238, 0.10), transparent 24%),
+    linear-gradient(180deg, #130814 0%, #1a0d1f 30%, #1f0f12 60%, #160a10 100%) !important;
+}
+
+/* Main section wrappers on the Jobs shortcut page */
+#section-cards-feed.section-job-grid {
+  display: grid !important;
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 8px !important;
+  align-items: stretch !important;
+}
+
+/* Any info/search/filter bars should stay full width */
+#section-cards-feed.section-job-grid > :not(article) {
+  grid-column: 1 / -1 !important;
+}
+
+/* Stronger dark brand style for search/info strips */
+#section-cards-feed.section-job-grid > .rounded-2xl,
+#section-cards-feed.section-job-grid > .rounded-3xl {
+  background: rgba(17, 24, 39, 0.88) !important;
+  color: #f8fafc !important;
+  border: 1px solid rgba(251, 146, 60, 0.35) !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.18) !important;
+}
+
+/* Make the whole postcard smaller and square */
+#section-cards-feed.section-job-grid article {
+  aspect-ratio: 1 / 1 !important;
+  height: auto !important;
+  min-height: 0 !important;
+  max-height: none !important;
+  display: flex !important;
+  flex-direction: column !important;
+  overflow: hidden !important;
+  border-radius: 16px !important;
+  border: 1.5px solid #fed7aa !important;
+  background: #ffffff !important;
+  box-shadow: 0 5px 14px rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Smaller premium font in those square cards */
+#section-cards-feed.section-job-grid article,
+#section-cards-feed.section-job-grid article * {
+  font-family: "Inter", "Manrope", "Noto Sans Arabic", "IBM Plex Sans Arabic", system-ui, -apple-system, "Segoe UI", sans-serif !important;
+}
+
+/* Top visual area */
+#section-cards-feed.section-job-grid article .opportunity-type-badge {
+  flex: 1 1 67% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 5px 5px !important;
+  overflow: hidden !important;
+  background: linear-gradient(180deg, #fff7ed 0%, #ffffff 60%, #fff7ed 100%) !important;
+  color: #111827 !important;
+}
+
+/* Small orange job pill */
+#section-cards-feed.section-job-grid article .opportunity-type-badge > div > div:first-child {
+  font-size: 5px !important;
+  line-height: 1.03 !important;
+  padding: 3px 6px !important;
+  margin-bottom: 3px !important;
+  letter-spacing: 0.12em !important;
+  border-radius: 999px !important;
+  background: #ff6b00 !important;
+  color: #111827 !important;
+  box-shadow: 0 2px 7px rgba(255, 107, 0, 0.18) !important;
+}
+
+/* Job title smaller */
+#section-cards-feed.section-job-grid article .opportunity-type-badge h2 {
+  font-size: 9.5px !important;
+  line-height: 1.05 !important;
+  font-weight: 900 !important;
+  letter-spacing: -0.02em !important;
+  color: #111827 !important;
+  margin: 2px auto 0 auto !important;
+  max-width: 96% !important;
+
+  display: -webkit-box !important;
+  -webkit-line-clamp: 4 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+
+  white-space: normal !important;
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+/* Hide long description in top area */
+#section-cards-feed.section-job-grid article .opportunity-type-badge p:not(.opportunity-duty-station-badge) {
+  display: none !important;
+}
+
+/* Company/duty station readable */
+#section-cards-feed.section-job-grid article .opportunity-duty-station-badge {
+  margin-top: 3px !important;
+  padding: 2px 4px !important;
+  max-width: 88% !important;
+  background: #fff3d6 !important;
+  color: #3b2208 !important;
+  -webkit-text-fill-color: #3b2208 !important;
+  border: 1px solid #fb923c !important;
+  border-radius: 7px !important;
+  font-size: 6px !important;
+  line-height: 1.03 !important;
+  font-weight: 900 !important;
+  box-shadow: none !important;
+
+  display: -webkit-inline-box !important;
+  -webkit-line-clamp: 1 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+}
+
+#section-cards-feed.section-job-grid article .opportunity-type-badge [class*="bg-slate-900"] {
+  background: #fff7ed !important;
+  color: #7c2d12 !important;
+  -webkit-text-fill-color: #7c2d12 !important;
+  border: 1px solid #fdba74 !important;
+  box-shadow: none !important;
+  padding: 2px 4px !important;
+  border-radius: 7px !important;
+  margin-top: 3px !important;
+  max-width: 88% !important;
+}
+
+#section-cards-feed.section-job-grid article .opportunity-type-badge [class*="bg-slate-900"] span,
+#section-cards-feed.section-job-grid article .opportunity-company-black {
+  color: #7c2d12 !important;
+  -webkit-text-fill-color: #7c2d12 !important;
+  font-size: 5.5px !important;
+  line-height: 1.02 !important;
+  letter-spacing: 0.02em !important;
+}
+
+/* Bottom caption/apply area stays inside square */
+#section-cards-feed.section-job-grid article > div:last-child {
+  flex: 0 0 33% !important;
+  min-height: 0 !important;
+  height: auto !important;
+  padding: 4px !important;
+  overflow: hidden !important;
+  display: flex !important;
+  flex-direction: column !important;
+  justify-content: space-between !important;
+}
+
+/* Small caption */
+#section-cards-feed.section-job-grid article > div:last-child > p {
+  font-size: 6.5px !important;
+  line-height: 1.08 !important;
+  font-weight: 700 !important;
+  color: #374151 !important;
+  margin: 0 !important;
+
+  display: -webkit-box !important;
+  -webkit-line-clamp: 2 !important;
+  -webkit-box-orient: vertical !important;
+  overflow: hidden !important;
+
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+/* Hide extra metadata to keep square size */
+#section-cards-feed.section-job-grid article > div:last-child > div.mt-3.flex.flex-wrap,
+#section-cards-feed.section-job-grid article > div:last-child > div.mt-4.flex.items-center.justify-between {
+  display: none !important;
+}
+
+/* Small Apply button */
+#section-cards-feed.section-job-grid article > div:last-child button {
+  margin-top: 3px !important;
+  min-height: 21px !important;
+  padding: 4px !important;
+  border-radius: 8px !important;
+  font-size: 6.5px !important;
+  line-height: 1 !important;
+  font-weight: 900 !important;
+  background: #ff6b00 !important;
+  color: #111827 !important;
+}
+
+/* Prevent ugly word splitting */
+#section-cards-feed.section-job-grid article * {
+  word-break: normal !important;
+  overflow-wrap: normal !important;
+  hyphens: none !important;
+}
+
+/* Filters card: make it match the branded style better */
+section:has(#section-cards-feed.section-job-grid) .rounded-\[2rem\],
+section:has(#section-cards-feed.section-job-grid) .rounded-\[32px\] {
+  box-shadow: 0 12px 28px rgba(0, 0, 0, 0.20) !important;
+}
+
+/* Slightly larger on wider screens, still 2 per row */
+@media (min-width: 641px) {
+  #section-cards-feed.section-job-grid {
+    gap: 10px !important;
+  }
+
+  #section-cards-feed.section-job-grid article .opportunity-type-badge h2 {
+    font-size: 11.5px !important;
+  }
+
+  #section-cards-feed.section-job-grid article > div:last-child > p {
+    font-size: 7.5px !important;
+  }
+
+  #section-cards-feed.section-job-grid article > div:last-child button {
+    font-size: 7.5px !important;
+    min-height: 24px !important;
+  }
 }
 

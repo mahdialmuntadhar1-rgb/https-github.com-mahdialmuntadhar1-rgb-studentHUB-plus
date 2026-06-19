@@ -9,6 +9,7 @@ import FeedCard from './FeedCard';
 import StudentStories from './StudentStories';
 import { getOpportunities, heroImagesApi } from '../lib/api';
 import { cleanDisplayText } from '../utils/safeText';
+import { compressImageToDataUrl } from '../utils/imageCompression';
 
 const DEFAULT_HERO_IMAGES: string[] = [
   'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=1920',
@@ -155,6 +156,14 @@ export default function HomeFeed({
   const [backendOpportunities, setBackendOpportunities] = useState<FeedItem[]>([]);
   const [isLoadingBackend, setIsLoadingBackend] = useState(false);
   const [backendError, setBackendError] = useState<string | null>(null);
+  const INITIAL_OPPORTUNITY_LIMIT = 12;
+  const INITIAL_CAMPUS_LIMIT = 8;
+  const LOAD_MORE_STEP = 12;
+  const [visibleItemsCount, setVisibleItemsCount] = useState(INITIAL_CAMPUS_LIMIT);
+
+  useEffect(() => {
+    setVisibleItemsCount(selectedFeedTab === 'opportunities' ? INITIAL_OPPORTUNITY_LIMIT : INITIAL_CAMPUS_LIMIT);
+  }, [selectedFeedTab, selectedOppFilter, selectedCampusFilter, selectedGov, selectedUni, activeStoryFilter, feedSearchQuery]);
   
   const studentsToDiscover: any[] = [];
 
@@ -390,7 +399,7 @@ export default function HomeFeed({
     setIsLoadingBackend(true);
     setBackendError(null);
 
-    getOpportunities({ category, page: 1, limit: 5000 }, language)
+    getOpportunities({ category, page: 1, limit: 120 }, language)
       .then((result: any) => {
         const rawItems = Array.isArray(result) ? result : Array.isArray(result?.items) ? result.items : [];
         setBackendOpportunities(rawItems.map(mapBackendOpportunity));
@@ -951,6 +960,16 @@ export default function HomeFeed({
     if (!postBody.trim()) return;
 
     onAddNewPost('Campus Moment 🌟', postBody, anonymous, 'post', postImageUrl || undefined, postGov, postUni);
+
+    setSelectedFeedTab('campus_life');
+    setSelectedCampusFilter('all');
+    setActiveStoryFilter(null);
+    setVisibleItemsCount(INITIAL_CAMPUS_LIMIT);
+
+    setTimeout(() => {
+      const list = document.getElementById('mixed-feed-items-list');
+      if (list) list.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 80);
     
     setPostTitle('');
     setPostBody('');
@@ -1003,9 +1022,17 @@ export default function HomeFeed({
 
   const allSocialItems = useMemo(() => {
     const liveAndStudentPosts = geoFilteredItems.filter(item => !seriousTypes.includes(item.type));
+    const customStudentPosts = liveAndStudentPosts.filter(item => String(item.id || '').startsWith('custom-'));
+    const otherLivePosts = liveAndStudentPosts.filter(item => !String(item.id || '').startsWith('custom-'));
     const mockCampusPosts = campusLifeFeedItems.filter(matchesGovAndUni);
     const liveIds = new Set(liveAndStudentPosts.map(item => item.id));
-    return [...mockCampusPosts.filter(item => !liveIds.has(item.id)), ...liveAndStudentPosts];
+
+    // User-created Campus Life posts must appear first, then real/live posts, then demo mock posts.
+    return [
+      ...customStudentPosts,
+      ...otherLivePosts,
+      ...mockCampusPosts.filter(item => !liveIds.has(item.id))
+    ];
   }, [geoFilteredItems, selectedGov, selectedUni]);
 
   // For You (Mixed & organized feed with controlled sorting)
@@ -1176,6 +1203,9 @@ export default function HomeFeed({
     });
   }
 
+  const visibleFeedItems = filteredFeedItems.slice(0, visibleItemsCount);
+  const hasMoreFeedItems = filteredFeedItems.length > visibleItemsCount;
+
   return (
     <div className="px-3.5 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-white text-slate-800" id="home-feed-container">
       
@@ -1200,10 +1230,10 @@ export default function HomeFeed({
               referrerPolicy="no-referrer"
             />
             {/* Dark contrast gradient overlay */}
-            <div className="absolute inset-0 bg-gradient-to-t from-black/90 via-black/50 to-black/30" />
+            <div className="hidden" />
             
             {/* Slide Content */}
-            <div className="relative z-10 text-left flex flex-col items-start gap-1.5">
+            <div className="hidden">
               <span className={`text-[8px] font-black uppercase tracking-wider px-2 py-0.5 rounded-lg select-none ${slide.tagColor}`}>
                 {slide.tag}
               </span>
@@ -1620,20 +1650,24 @@ export default function HomeFeed({
                     setIsDragging(true);
                   }}
                   onDragLeave={() => setIsDragging(false)}
-                  onDrop={(e) => {
+                  onDrop={async (e) => {
                     e.preventDefault();
                     setIsDragging(false);
                     const files = e.dataTransfer.files;
                     if (files && files[0]) {
                       const file = files[0];
                       if (file.type.startsWith('image/')) {
-                        const reader = new FileReader();
-                        reader.onload = (uploadEvent) => {
-                          if (uploadEvent.target?.result) {
-                            setPostImageUrl(String(uploadEvent.target.result));
-                          }
-                        };
-                        reader.readAsDataURL(file);
+                        try {
+                          const compressedDataUrl = await compressImageToDataUrl(file, {
+                            maxWidth: 1200,
+                            maxHeight: 1200,
+                            quality: 0.68,
+                            maxBytes: 650 * 1024
+                          });
+                          setPostImageUrl(compressedDataUrl);
+                        } catch (error) {
+                          alert('Could not compress this image. Please choose a smaller JPG/PNG/WebP photo.');
+                        }
                       }
                     }
                   }}
@@ -1669,17 +1703,21 @@ export default function HomeFeed({
                         id="post-photo-upload" 
                         accept="image/*" 
                         className="hidden" 
-                        onChange={(e) => {
+                        onChange={async (e) => {
                           const files = e.target.files;
                           if (files && files[0]) {
                             const file = files[0];
-                            const reader = new FileReader();
-                            reader.onload = (uploadEvent) => {
-                              if (uploadEvent.target?.result) {
-                                setPostImageUrl(String(uploadEvent.target.result));
-                              }
-                            };
-                            reader.readAsDataURL(file);
+                            try {
+                              const compressedDataUrl = await compressImageToDataUrl(file, {
+                                maxWidth: 1400,
+                                maxHeight: 1400,
+                                quality: 0.72,
+                                maxBytes: 750 * 1024
+                              });
+                              setPostImageUrl(compressedDataUrl);
+                            } catch (error) {
+                              alert('Could not compress this image. Please choose a smaller JPG/PNG/WebP photo.');
+                            }
                           }
                         }}
                       />
@@ -1696,7 +1734,7 @@ export default function HomeFeed({
                   </label>
                   <select
                     value={postGov}
-                    onChange={(e) => {
+                    onChange={async (e) => {
                       const gVal = e.target.value;
                       setPostGov(gVal);
                       const matchedUnis = IraqiUniversities.filter(u => u.governorateId === gVal);
@@ -1771,7 +1809,7 @@ export default function HomeFeed({
       </div>
 
       {/* 6. Content Feed/Cards Column */}
-      <div className="flex flex-col gap-1.5" id="mixed-feed-items-list">
+      <div className={selectedFeedTab === "opportunities" ? "grid grid-cols-2 gap-3 md:grid-cols-2" : "flex flex-col gap-2"} id="mixed-feed-items-list">
         {/* Category Heading */}
         {selectedFeedTab === 'opportunities' && selectedOppFilter !== 'all' && (
           <div className="mb-3">
@@ -1806,24 +1844,36 @@ export default function HomeFeed({
             </p>
           </div>
         ) : (
-          filteredFeedItems.map(item => (
-            <FeedCard
-              key={item.id}
-              item={item}
-              language={language}
-              onLike={onLike}
-              onSave={onSave}
-              onVote={onVote}
-              onApply={onApply}
-              onRsvp={onRsvp}
-              onJoinGroup={onJoinGroup}
-              onAddComment={onAddComment}
-              onEditFeedItem={onEditFeedItem}
-              onDeleteFeedItem={onDeleteFeedItem}
-              isAdminMode={isAdminMode}
-              onUserClick={onUserClick}
-            />
-          ))
+          <>
+            {visibleFeedItems.map(item => (
+              <FeedCard
+                key={item.id}
+                item={item}
+                language={language}
+                onLike={onLike}
+                onSave={onSave}
+                onVote={onVote}
+                onApply={onApply}
+                onRsvp={onRsvp}
+                onJoinGroup={onJoinGroup}
+                onAddComment={onAddComment}
+                onEditFeedItem={onEditFeedItem}
+                onDeleteFeedItem={onDeleteFeedItem}
+                isAdminMode={isAdminMode}
+                onUserClick={onUserClick}
+              />
+            ))}
+
+            {hasMoreFeedItems && (
+              <button
+                type="button"
+                onClick={() => setVisibleItemsCount(current => current + LOAD_MORE_STEP)}
+                className={selectedFeedTab === "opportunities" ? "col-span-2 md:col-span-3 mt-3 rounded-2xl bg-[#161A33] px-4 py-3 text-xs font-black text-white shadow-md" : "mt-3 rounded-2xl bg-[#161A33] px-4 py-3 text-xs font-black text-white shadow-md"}
+              >
+                {language === "ar" ? "تحميل المزيد" : language === "ku" ? "زیاتر باربکە" : "Load more"}
+              </button>
+            )}
+          </>
         )}
       </div>
 
@@ -1877,7 +1927,7 @@ export default function HomeFeed({
                 <input
                   type="text"
                   value={pickerSearch}
-                  onChange={(e) => {
+                  onChange={async (e) => {
                     setPickerSearch(e.target.value);
                     setPickerPage(1);
                   }}
@@ -2246,6 +2296,13 @@ export default function HomeFeed({
     </div>
   );
 }
+
+
+
+
+
+
+
 
 
 

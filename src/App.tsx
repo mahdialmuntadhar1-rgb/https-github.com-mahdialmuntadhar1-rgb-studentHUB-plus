@@ -143,22 +143,117 @@ export default function App() {
     }
   }, [isLoggedIn, language, activeTab]);
 
-  // Feed database state (persisted in session / local storage for active play)
-  const [feedItems, setFeedItems] = useState<FeedItem[]>(() => {
-    const saved = localStorage.getItem('jamiaati_feed_v2');
-    if (saved) {
+  // Feed database state - strong browser persistence for Campus Life custom posts
+  const CUSTOM_FEED_STORAGE_KEYS = [
+    'jamiaati_feed_v2',
+    'jamiaati_feed_v2_backup',
+    'jamiaati_custom_feed_backup'
+  ];
+
+  const cleanCustomFeedItemForStorage = (item: any): FeedItem | null => {
+    if (!item?.id || !String(item.id).startsWith('custom-')) return null;
+
+    const safeItem: any = {
+      ...item,
+      commentsList: Array.isArray(item.commentsList) ? item.commentsList : [],
+      tags: Array.isArray(item.tags) ? item.tags : ['StudentShare', 'CampusLife']
+    };
+
+    if (
+      typeof safeItem.imageUrl === 'string' &&
+      safeItem.imageUrl.startsWith('data:image/') &&
+      safeItem.imageUrl.length > 1600000
+    ) {
+      safeItem.imageUrl = undefined;
+      safeItem.imageAlt = safeItem.imageAlt || 'Large image removed from browser storage';
+    }
+
+    if (
+      safeItem.author &&
+      typeof safeItem.author.avatar === 'string' &&
+      safeItem.author.avatar.startsWith('data:image/')
+    ) {
+      safeItem.author = {
+        ...safeItem.author,
+        avatar: defaultUserProfile.avatar
+      };
+    }
+
+    return safeItem as FeedItem;
+  };
+
+  const readCustomFeedItemsFromBrowser = (): FeedItem[] => {
+    const readFrom = (storage: Storage | null, key: string): FeedItem[] => {
+      if (!storage) return [];
+      const raw = storage.getItem(key);
+      if (!raw) return [];
+
       try {
-        const parsed = JSON.parse(saved);
-        if (Array.isArray(parsed)) {
-          // Keep only user-created custom posts and discard any leaked scraped/mock/highlight records
-          return parsed.filter((item: any) => item.id && String(item.id).startsWith('custom-'));
-        }
-      } catch (e) {
-        console.error("Error reading custom feed from storage:", e);
+        const parsed = JSON.parse(raw);
+        if (!Array.isArray(parsed)) return [];
+
+        return parsed
+          .map(cleanCustomFeedItemForStorage)
+          .filter(Boolean) as FeedItem[];
+      } catch (error) {
+        console.warn('Could not read saved Campus Life posts from', key, error);
+        return [];
+      }
+    };
+
+    for (const key of CUSTOM_FEED_STORAGE_KEYS) {
+      const fromLocal = readFrom(localStorage, key);
+      if (fromLocal.length > 0) return fromLocal;
+    }
+
+    for (const key of CUSTOM_FEED_STORAGE_KEYS) {
+      const fromSession = readFrom(sessionStorage, key);
+      if (fromSession.length > 0) return fromSession;
+    }
+
+    return [];
+  };
+
+  const writeCustomFeedItemsToBrowser = (items: FeedItem[]) => {
+    const customOnly = items
+      .map(cleanCustomFeedItemForStorage)
+      .filter(Boolean) as FeedItem[];
+
+    const saveAll = (payloadItems: FeedItem[]) => {
+      const payload = JSON.stringify(payloadItems);
+
+      for (const key of CUSTOM_FEED_STORAGE_KEYS) {
+        localStorage.setItem(key, payload);
+      }
+
+      for (const key of CUSTOM_FEED_STORAGE_KEYS) {
+        sessionStorage.setItem(key, payload);
+      }
+    };
+
+    try {
+      saveAll(customOnly);
+    } catch (error) {
+      console.warn('Campus Life storage quota issue. Saving text-first backup.', error);
+
+      const textOnly = customOnly.map((item: any) => ({
+        ...item,
+        imageUrl:
+          typeof item.imageUrl === 'string' && item.imageUrl.startsWith('data:image/')
+            ? undefined
+            : item.imageUrl,
+        imageAlt: item.imageAlt || 'Image removed from browser backup'
+      }));
+
+      try {
+        saveAll(textOnly as FeedItem[]);
+      } catch (fallbackError) {
+        console.error('Could not save Campus Life posts even as text backup.', fallbackError);
       }
     }
-    return [];
-  });
+  };
+
+  const [feedItems, setFeedItems] = useState<FeedItem[]>(() => readCustomFeedItemsFromBrowser());
 
   // User profile state (gamification & badges tracker)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -179,10 +274,48 @@ export default function App() {
     }
   })();
 
-  // Sync to local states - save only user-created custom posts
+  // Sync to local states - save only user-created custom posts.
+  // IMPORTANT: never persist large base64 uploaded images in localStorage.
+  // Big uploaded images must go to backend/R2 later; localStorage is only for small text demo posts.
   useEffect(() => {
-    const customOnly = feedItems.filter(item => item.id && String(item.id).startsWith('custom-'));
-    localStorage.setItem('jamiaati_feed_v2', JSON.stringify(customOnly));
+    const stripLargeInlineImages = (item: any) => {
+      const safeItem = { ...item };
+
+      if (typeof safeItem.imageUrl === 'string' && safeItem.imageUrl.startsWith('data:image/') && safeItem.imageUrl.length > 1200000) {
+        safeItem.imageUrl = undefined;
+        safeItem.imageAlt = safeItem.imageAlt || 'Uploaded image removed from local browser storage';
+      }
+
+      if (safeItem.author && typeof safeItem.author.avatar === 'string' && safeItem.author.avatar.startsWith('data:image/')) {
+        safeItem.author = {
+          ...safeItem.author,
+          avatar: defaultUserProfile.avatar
+        };
+      }
+
+      return safeItem;
+    };
+
+    const customOnly = feedItems
+      .filter(item => item.id && String(item.id).startsWith('custom-'))
+      .map(stripLargeInlineImages);
+
+    try {
+      localStorage.setItem('jamiaati_feed_v2', JSON.stringify(customOnly));
+    } catch (error) {
+      console.warn('jamiaati_feed_v2 was too large. Saving text-only posts instead.', error);
+
+      try {
+        const textOnly = customOnly.map((item: any) => ({
+          ...item,
+          imageUrl: undefined,
+          imageAlt: item.imageAlt || ''
+        }));
+        localStorage.setItem('jamiaati_feed_v2', JSON.stringify(textOnly));
+      } catch {
+        localStorage.removeItem('jamiaati_feed_v2');
+      }
+    }
   }, [feedItems]);
 
   // Institutions Dynamic Loading States
@@ -507,15 +640,19 @@ export default function App() {
   };
 
   const handleEditFeedItem = (id: string, updatedFields: Partial<FeedItem>) => {
-    setFeedItems(prev => prev.map(item => {
-      if (item.id === id) {
-        return {
-          ...item,
-          ...updatedFields
-        };
-      }
-      return item;
-    }));
+    setFeedItems(prev => {
+      const next = prev.map(item => {
+        if (item.id === id) {
+          return {
+            ...item,
+            ...updatedFields
+          };
+        }
+        return item;
+      });
+      writeCustomFeedItemsToBrowser(next);
+      return next;
+    });
     showToast(
       language === 'ar' ? 'تم تحديث المنشور بنجاح! ✏️' : 'Post updated successfully by admin! ✏️', 
       'success'
@@ -523,7 +660,11 @@ export default function App() {
   };
 
   const handleDeleteFeedItem = (id: string) => {
-    setFeedItems(prev => prev.filter(item => item.id !== id));
+    setFeedItems(prev => {
+      const next = prev.filter(item => item.id !== id);
+      writeCustomFeedItemsToBrowser(next);
+      return next;
+    });
     showToast(
       language === 'ar' ? 'تم حذف المنشور بنجاح! 🗑️' : 'Post deleted successfully by admin! 🗑️', 
       'success'
@@ -813,7 +954,10 @@ export default function App() {
       likedByUser: true,
       governorateId: governorateId || (selectedGov === 'all' ? userProfile.governorateId : selectedGov),
       universityId: universityId || (selectedUni === 'all' ? userProfile.universityId : selectedUni),
-      tags: ['StudentShare', customType === 'anonymous_question' ? 'Advising' : 'Life']
+      category: 'post',
+      sourceType: 'student_share',
+      moodTag: 'Campus Moment',
+      tags: ['StudentShare', 'post', customType === 'anonymous_question' ? 'Advising' : 'CampusLife']
     };
 
     handleAwardPoints(40); // high points for sharing posts!
@@ -821,7 +965,11 @@ export default function App() {
       language === 'ar' ? 'تم نشر مساهمتك بنجاح على ساحة الطلاب! ✨ +٤٠ نقطة' : language === 'ku' ? 'بڵاوکراوەکەت بڵاوکرایەوە لە ساحەی قوتابیان! ✨ +٤٠ خاڵ' : 'Contribution published successfully! ✨ +40 pts', 
       'success'
     );
-    setFeedItems(prev => [freshPost, ...prev]);
+    setFeedItems(prev => {
+      const next = [freshPost, ...prev];
+      writeCustomFeedItemsToBrowser(next);
+      return next;
+    });
   };
 
   // Gamification engine helpers
@@ -1297,4 +1445,13 @@ export default function App() {
     </div>
   );
 };
+
+
+
+
+
+
+
+
+
 
