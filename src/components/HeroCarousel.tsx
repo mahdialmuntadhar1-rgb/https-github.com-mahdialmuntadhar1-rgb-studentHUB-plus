@@ -1,65 +1,157 @@
-import React, { useEffect, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { HeroImageRecord, heroImagesApi } from '../lib/api';
 
-const DEFAULT_HERO_IMAGES: HeroImageRecord[] = [
-  { id: 'fallback-1', image_url: 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=1920', title: 'Campus community', alt_text: 'Students walking through a university campus', sort_order: 0, is_active: true, created_at: '', updated_at: '' },
-  { id: 'fallback-2', image_url: 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=1920', title: 'University life', alt_text: 'University building and graduation cap', sort_order: 1, is_active: true, created_at: '', updated_at: '' },
-  { id: 'fallback-3', image_url: 'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&q=80&w=1920', title: 'Academic future', alt_text: 'Modern university campus exterior', sort_order: 2, is_active: true, created_at: '', updated_at: '' },
+type Props = {
+  isAdmin?: boolean;
+  onManageHero?: () => void;
+  [key: string]: any;
+};
+
+const fallbackImages: HeroImageRecord[] = [
+  {
+    id: 'fallback-1',
+    image_url: '/campus-life/post-001.svg',
+    alt_text: 'Jamiaati hero image',
+    title: 'Hero 1',
+    sort_order: 0,
+    is_active: 1,
+  } as HeroImageRecord,
+  {
+    id: 'fallback-2',
+    image_url: '/campus-life/post-002.svg',
+    alt_text: 'Jamiaati hero image',
+    title: 'Hero 2',
+    sort_order: 1,
+    is_active: 1,
+  } as HeroImageRecord,
 ];
 
-export default function HeroCarousel() {
+export default function HeroCarousel(props: Props) {
+  const [images, setImages] = useState<HeroImageRecord[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
-  const [heroImages, setHeroImages] = useState<HeroImageRecord[]>(DEFAULT_HERO_IMAGES);
 
   useEffect(() => {
-    let active = true;
+    let alive = true;
+
     const loadImages = async () => {
       try {
-        const images = await heroImagesApi.getPublic();
-        if (active) setHeroImages(images.length > 0 ? images : DEFAULT_HERO_IMAGES);
-      } catch (error) {
-        console.warn('Persistent hero images unavailable; using built-in defaults.', error);
-        if (active) setHeroImages(DEFAULT_HERO_IMAGES);
+        const savedImages = await heroImagesApi.getPublic();
+        const activeImages = Array.isArray(savedImages) && savedImages.length > 0
+          ? savedImages.filter((img: any) => img?.is_active !== 0)
+          : [];
+
+        if (!alive) return;
+
+        if (activeImages.length > 0) {
+          setImages(activeImages);
+        } else {
+          setImages(fallbackImages);
+        }
+      } catch {
+        if (!alive) return;
+        setImages(fallbackImages);
       }
     };
 
-    void loadImages();
-    const handleUpdate = () => void loadImages();
-    window.addEventListener('jamiaati_hero_images_updated', handleUpdate);
+    loadImages();
     return () => {
-      active = false;
-      window.removeEventListener('jamiaati_hero_images_updated', handleUpdate);
+      alive = false;
     };
   }, []);
 
-  useEffect(() => {
-    setCurrentIndex(index => Math.min(index, Math.max(0, heroImages.length - 1)));
-    const timer = setInterval(() => {
-      setCurrentIndex(previous => (previous + 1) % heroImages.length);
-    }, 5000);
-    return () => clearInterval(timer);
-  }, [heroImages.length]);
+  const heroImages = useMemo(() => {
+    return images.length > 0 ? images : fallbackImages;
+  }, [images]);
 
-  const current = heroImages[currentIndex] || DEFAULT_HERO_IMAGES[0];
+  useEffect(() => {
+    if (heroImages.length <= 1) return;
+
+    const timer = setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % heroImages.length);
+    }, 4500);
+
+    return () => clearInterval(timer);
+  }, [heroImages]);
+
+  useEffect(() => {
+    if (currentIndex >= heroImages.length) {
+      setCurrentIndex(0);
+    }
+  }, [currentIndex, heroImages.length]);
+
+  const goPrev = () => {
+    setCurrentIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length);
+  };
+
+  const goNext = () => {
+    setCurrentIndex((prev) => (prev + 1) % heroImages.length);
+  };
+
+  const current = heroImages[currentIndex] || fallbackImages[0];
 
   return (
-    <div className="relative h-64 w-full overflow-hidden bg-slate-900 sm:h-80 md:h-96 lg:h-[450px]">
-      <img src={current.image_url} alt={current.alt_text || current.title || 'StudentHUB hero image'} className="h-full w-full object-cover transition-opacity duration-700" />
-      <div className="absolute inset-0 bg-gradient-to-t from-black/30 via-transparent to-black/20" />
+    <div className="w-full">
+      <div className="relative overflow-hidden rounded-[2rem] border-2 border-orange-200 bg-white shadow-xl">
+        <div className="relative aspect-[16/9] md:aspect-[21/9] w-full">
+          <img
+            src={current?.image_url}
+            alt={current?.alt_text || current?.title || 'Hero image'}
+            className="w-full h-full object-cover"
+            style={{
+              opacity: 1,
+              filter: 'none',
+            }}
+          />
 
-      <button onClick={() => setCurrentIndex(previous => (previous - 1 + heroImages.length) % heroImages.length)} className="absolute left-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-lg" aria-label="Previous slide">
-        <ChevronLeft className="h-5 w-5 text-slate-800" />
-      </button>
-      <button onClick={() => setCurrentIndex(previous => (previous + 1) % heroImages.length)} className="absolute right-4 top-1/2 z-10 flex h-10 w-10 -translate-y-1/2 items-center justify-center rounded-full bg-white/90 shadow-lg" aria-label="Next slide">
-        <ChevronRight className="h-5 w-5 text-slate-800" />
-      </button>
+          {heroImages.length > 1 && (
+            <>
+              <button
+                type="button"
+                onClick={goPrev}
+                aria-label="Previous slide"
+                className="absolute left-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-black/55 hover:bg-black/70 text-white text-xl font-black shadow-lg flex items-center justify-center"
+              >
+                ‹
+              </button>
 
-      <div className="absolute bottom-4 left-1/2 z-10 flex -translate-x-1/2 gap-2">
-        {heroImages.map((image, index) => (
-          <button key={image.id} onClick={() => setCurrentIndex(index)} className={`h-2.5 rounded-full transition-all ${index === currentIndex ? 'w-6 bg-white' : 'w-2.5 bg-white/50'}`} aria-label={`Go to slide ${index + 1}`} />
-        ))}
+              <button
+                type="button"
+                onClick={goNext}
+                aria-label="Next slide"
+                className="absolute right-3 top-1/2 -translate-y-1/2 z-10 w-11 h-11 rounded-full bg-black/55 hover:bg-black/70 text-white text-xl font-black shadow-lg flex items-center justify-center"
+              >
+                ›
+              </button>
+
+              <div className="absolute bottom-4 left-1/2 -translate-x-1/2 z-10 flex items-center gap-2">
+                {heroImages.map((_, idx) => (
+                  <button
+                    key={idx}
+                    type="button"
+                    aria-label={`Go to slide ${idx + 1}`}
+                    onClick={() => setCurrentIndex(idx)}
+                    className={`h-2.5 rounded-full transition-all ${
+                      idx === currentIndex ? 'w-7 bg-orange-500' : 'w-2.5 bg-white/80'
+                    }`}
+                  />
+                ))}
+              </div>
+            </>
+          )}
+        </div>
       </div>
+
+      {props.isAdmin && typeof props.onManageHero === 'function' && (
+        <div className="mt-3 flex justify-end">
+          <button
+            type="button"
+            onClick={props.onManageHero}
+            className="rounded-2xl border-2 border-orange-200 bg-white px-5 py-3 text-sm font-black text-slate-950 shadow-md hover:bg-orange-50"
+          >
+            Manage Hero Photos
+          </button>
+        </div>
+      )}
     </div>
   );
 }
