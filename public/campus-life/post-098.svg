@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
-  <title id="title">Best study spot</title>
-  <desc id="desc">زاوية قراءة دافئة وسلك شحن طويل كرتوني</desc>
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(227 78% 55%)"/><stop offset="1" stop-color="hsl(296 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
-  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
-  <circle cx="1001" cy="219" r="116" fill="#fff" opacity=".09"/>
-  <circle cx="523" cy="427" r="127" fill="#fff" opacity=".08"/>
-  <g filter="url(#s)"><path d="M330 235q135-55 270 20v280q-135-65-270-8zm540 0q-135-55-270 20v280q135-65 270-8z" fill="#fff" opacity=".94"/><path d="M600 255v280" stroke="#312e81" stroke-width="12"/><circle cx="600" cy="170" r="55" fill="#fde68a"/><path d="M555 185h90" stroke="#fff" stroke-width="18" stroke-linecap="round"/></g>
-  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
-  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(227 65% 32%)">LIBRARY</text>
-  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 098</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f1f5f9"/><stop offset="1" stop-color="#94a3b8"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".16"/></filter></defs><rect width="1200" height="675" fill="url(#bg)"/><circle cx="701" cy="114" r="81" fill="#fff" opacity=".28"/><circle cx="499" cy="553" r="129" fill="#f97316" opacity=".13"/><g filter="url(#shadow)"><rect x="175" y="185" width="850" height="340" rx="38" fill="#fff"/><rect x="240" y="245" width="280" height="210" rx="22" fill="#94a3b8"/><circle cx="380" cy="350" r="72" fill="#f97316"/><path d="M575 275h360M575 345h285M575 415h330" stroke="#334155" stroke-width="24" stroke-linecap="round"/><path d="M260 525h680" stroke="#334155" stroke-width="22" stroke-linecap="round"/></g></svg>

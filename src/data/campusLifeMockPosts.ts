@@ -17,6 +17,13 @@ export type CampusLifePost = {
   imageUrl: string;
   imageAlt: string;
   visualTheme: string;
+  profile: {
+    id: string;
+    username: string;
+    major: string;
+    studentYear: string;
+    bio: string;
+  };
   isMock: true;
 };
 
@@ -186,6 +193,24 @@ const metricFor = (index: number) => ({
   shares: (index * 7 + index * index * 2) % 31,
 });
 
+const majors = [
+  "Medicine", "Law", "Civil Engineering", "Architecture", "Computer Science",
+  "Graphic Design", "Pharmacy", "Business Administration", "English Literature",
+  "Mechanical Engineering", "Dentistry", "Media", "Biology", "Accounting",
+  "Nursing", "Fine Arts", "Political Science", "Information Technology", "Education",
+];
+
+const studentYears = ["First year", "Second year", "Third year", "Fourth year", "Final year"];
+
+const bios = [
+  "Trying to survive lectures, make good friends, and find the quietest study corner.",
+  "Student, coffee enthusiast, and unofficial keeper of the class notes.",
+  "Learning one deadline at a time. Always happy to meet students from the same campus.",
+  "Campus photographer without faces—mostly buildings, books, weather, and tiny wins.",
+  "Here for study groups, honest cafeteria reviews, and helping first-years feel less lost.",
+  "Projects, presentations, bus rides, and whatever snack gets us through the week.",
+];
+
 export const campusLifeMockPosts: CampusLifePost[] = seeds.map((seed, index) => {
   const [studentName, universityOrCampus, governorate, category, text, suggestedVisual, cta, moodTag] = seed;
   const metrics = metricFor(index + 1);
@@ -207,6 +232,13 @@ export const campusLifeMockPosts: CampusLifePost[] = seeds.map((seed, index) => 
     imageUrl: `/campus-life/post-${String(index + 1).padStart(3, "0")}.svg`,
     imageAlt: suggestedVisual,
     visualTheme: `${category} · ${moodTag}`,
+    profile: {
+      id: `demo-student-${String(index + 1).padStart(3, "0")}`,
+      username: `campus.demo.${String(index + 1).padStart(3, "0")}`,
+      major: majors[index % majors.length],
+      studentYear: studentYears[(index * 3) % studentYears.length],
+      bio: bios[(index * 5 + Math.floor(index / 7)) % bios.length],
+    },
     isMock: true,
   };
 });
@@ -273,10 +305,17 @@ export const campusLifeFeedItems: FeedItem[] = campusLifeMockPosts.map((post, po
     title_original: post.moodTag,
     body_original: post.text,
     author: {
+      id: post.profile.id,
+      username: post.profile.username,
       name: post.studentName,
       role: "student",
       avatar: "",
       university: post.universityOrCampus,
+      governorate: post.governorate,
+      major: post.profile.major,
+      studentYear: post.profile.studentYear,
+      bio: post.profile.bio,
+      isMockProfile: true,
     },
     date: `${1 + (postIndex % 11)}h`,
     likes: post.likes,

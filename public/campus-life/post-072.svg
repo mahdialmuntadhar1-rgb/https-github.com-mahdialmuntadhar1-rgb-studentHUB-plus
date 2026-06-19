@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
-  <title id="title">Campus photography</title>
-  <desc id="desc">ظلال هندسية طويلة في ساحة خيالية</desc>
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(345 78% 55%)"/><stop offset="1" stop-color="hsl(82 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
-  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
-  <circle cx="883" cy="257" r="98" fill="#fff" opacity=".09"/>
-  <circle cx="309" cy="501" r="171" fill="#fff" opacity=".08"/>
-  <g filter="url(#s)"><path d="M250 485h700M300 485q300-390 600 0M360 485q240-275 480 0" fill="none" stroke="#fff" stroke-width="22" opacity=".95"/><path d="M320 390h560M410 275v210M790 275v210" stroke="#fff" stroke-width="12" opacity=".72"/><circle cx="600" cy="245" r="58" fill="#fde68a"/></g>
-  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
-  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(345 65% 32%)">CAMPUS PHOTOGRAPHY</text>
-  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 072</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#e0e7ff"/><stop offset="1" stop-color="#a5b4fc"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".16"/></filter></defs><rect width="1200" height="675" fill="url(#bg)"/><circle cx="663" cy="152" r="68" fill="#fff" opacity=".28"/><circle cx="537" cy="534" r="84" fill="#16a34a" opacity=".13"/><g filter="url(#shadow)"><path d="M120 520h960" stroke="#3730a3" stroke-width="28" stroke-linecap="round"/><path d="M210 510V210h780v300" fill="#fff"/><path d="M250 260h700M250 350h700M250 440h700" stroke="#a5b4fc" stroke-width="26"/><g fill="#3730a3"><rect x="275" y="220" width="50" height="75" rx="6"/><rect x="350" y="210" width="35" height="85" rx="6"/><rect x="420" y="225" width="65" height="70" rx="6"/><rect x="700" y="305" width="45" height="80" rx="6"/><rect x="770" y="315" width="70" height="70" rx="6"/></g><circle cx="600" cy="480" r="45" fill="#16a34a"/></g></svg>

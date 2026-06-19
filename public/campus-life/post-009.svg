@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
-  <title id="title">Transportation to campus</title>
-  <desc id="desc">حافلة جامعية خيالية وقت الشروق</desc>
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(174 78% 55%)"/><stop offset="1" stop-color="hsl(229 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
-  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
-  <circle cx="754" cy="236" r="134" fill="#fff" opacity=".09"/>
-  <circle cx="552" cy="458" r="105" fill="#fff" opacity=".08"/>
-  <g filter="url(#s)"><rect x="260" y="230" width="680" height="310" rx="65" fill="#fff" opacity=".95"/><rect x="325" y="285" width="220" height="120" rx="20" fill="#bfdbfe"/><rect x="585" y="285" width="220" height="120" rx="20" fill="#bfdbfe"/><circle cx="405" cy="555" r="62" fill="#312e81"/><circle cx="795" cy="555" r="62" fill="#312e81"/><path d="M940 370h65" stroke="#fde68a" stroke-width="22" stroke-linecap="round"/></g>
-  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
-  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(174 65% 32%)">TRANSPORT</text>
-  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 009</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fce7f3"/><stop offset="1" stop-color="#f9a8d4"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".16"/></filter></defs><rect width="1200" height="675" fill="url(#bg)"/><circle cx="734" cy="71" r="94" fill="#fff" opacity=".28"/><circle cx="466" cy="574.5" r="84" fill="#4f46e5" opacity=".13"/><g filter="url(#shadow)"><path d="M120 525h960" stroke="#9d174d" stroke-width="24" stroke-linecap="round"/><rect x="210" y="250" width="430" height="260" rx="25" fill="#fff"/><path d="M265 300h320v160H265z" fill="#fce7f3"/><path d="M700 485l80-230 210 75-80 230z" fill="#fff"/><path d="M770 305l145 52M748 365l145 52M725 425l145 52" stroke="#f9a8d4" stroke-width="18"/><circle cx="740" cy="205" r="45" fill="#4f46e5"/><path d="M740 250v80" stroke="#4f46e5" stroke-width="16"/></g></svg>

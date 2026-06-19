@@ -18,11 +18,18 @@ export interface University {
 }
 
 export interface Author {
+  id?: string;
+  username?: string;
   name: string;
   role: 'student' | 'graduate' | 'teacher' | 'staff' | 'institution';
   avatar: string;
   verified?: boolean;
   university?: string;
+  governorate?: string;
+  major?: string;
+  studentYear?: string;
+  bio?: string;
+  isMockProfile?: boolean;
 }
 
 export interface PollOption {

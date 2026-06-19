@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
-  <title id="title">Scholarship awareness</title>
-  <desc id="desc">هاتف يعرض قائمة فرص عامة مع أيقونة رابط أصلي</desc>
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(116 78% 55%)"/><stop offset="1" stop-color="hsl(199 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
-  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
-  <circle cx="752" cy="78" r="152" fill="#fff" opacity=".09"/>
-  <circle cx="706" cy="514" r="149" fill="#fff" opacity=".08"/>
-  <g filter="url(#s)"><rect x="270" y="190" width="660" height="370" rx="30" fill="#fff" opacity=".95"/><rect x="330" y="255" width="210" height="220" rx="20" fill="#c4b5fd"/><path d="M595 285h260M595 355h210M595 425h235" stroke="#7c3aed" stroke-width="20" stroke-linecap="round"/><path d="M565 560l-55 100M635 560l55 100" stroke="#fff" stroke-width="22"/></g>
-  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
-  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(116 65% 32%)">SCHOLARSHIP AWARENESS</text>
-  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 095</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ecfccb"/><stop offset="1" stop-color="#bef264"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".16"/></filter></defs><rect width="1200" height="675" fill="url(#bg)"/><circle cx="452" cy="153" r="107" fill="#fff" opacity=".28"/><circle cx="748" cy="533.5" r="102" fill="#db2777" opacity=".13"/><g filter="url(#shadow)"><ellipse cx="600" cy="500" rx="430" ry="70" fill="#3f6212" opacity=".16"/><path d="M305 420h590l-95 120H400z" fill="#fff"/><path d="M370 400l230-125 230 125-230 125z" fill="#3f6212"/><path d="M600 525v75" stroke="#db2777" stroke-width="18" stroke-linecap="round"/><circle cx="600" cy="610" r="22" fill="#db2777"/><path d="M830 400v100" stroke="#3f6212" stroke-width="14"/></g></svg>

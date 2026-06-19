@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
-  <title id="title">Campus vibe</title>
-  <desc id="desc">مساحة خضراء وكتب تتحرك مع النسيم</desc>
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(133 78% 55%)"/><stop offset="1" stop-color="hsl(230 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
-  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
-  <circle cx="195" cy="235" r="80" fill="#fff" opacity=".09"/>
-  <circle cx="965" cy="385" r="171" fill="#fff" opacity=".08"/>
-  <g filter="url(#s)"><path d="M250 520V310l350-180 350 180v210" fill="#fff" opacity=".94"/><path d="M335 520V350h530v170M520 520V395h160v125" fill="none" stroke="#6366f1" stroke-width="24"/><circle cx="600" cy="205" r="38" fill="#fde68a"/><path d="M190 560h820" stroke="#fff" stroke-width="24" stroke-linecap="round"/></g>
-  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
-  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(133 65% 32%)">CAMPUS VIBE</text>
-  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 076</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#ffedd5"/><stop offset="1" stop-color="#fdba74"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".16"/></filter></defs><rect width="1200" height="675" fill="url(#bg)"/><circle cx="995" cy="160" r="55" fill="#fff" opacity=".28"/><circle cx="205" cy="530" r="120" fill="#0891b2" opacity=".13"/><g filter="url(#shadow)"><path d="M150 530h900" stroke="#c2410c" stroke-width="24" stroke-linecap="round"/><rect x="235" y="250" width="730" height="280" rx="28" fill="#fff"/><path d="M300 310h600M300 390h600M300 470h600" stroke="#fdba74" stroke-width="28"/><g fill="#c2410c"><circle cx="350" cy="285" r="38"/><circle cx="600" cy="365" r="38"/><circle cx="830" cy="445" r="38"/></g><path d="M350 325v95M600 405v100M830 485v55" stroke="#c2410c" stroke-width="22"/></g></svg>

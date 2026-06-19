@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
-  <title id="title">Send notes please</title>
-  <desc id="desc">موجة صوتية تتحول إلى أوراق كرتونية</desc>
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(22 78% 55%)"/><stop offset="1" stop-color="hsl(77 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
-  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
-  <circle cx="966" cy="94" r="116" fill="#fff" opacity=".09"/>
-  <circle cx="248" cy="472" r="105" fill="#fff" opacity=".08"/>
-  <g filter="url(#s)"><path d="M250 520V310l350-180 350 180v210" fill="#fff" opacity=".94"/><path d="M335 520V350h530v170M520 520V395h160v125" fill="none" stroke="#6366f1" stroke-width="24"/><circle cx="600" cy="205" r="38" fill="#fde68a"/><path d="M190 560h820" stroke="#fff" stroke-width="24" stroke-linecap="round"/></g>
-  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
-  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(22 65% 32%)">NOTES EXCHANGE</text>
-  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 073</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#cffafe"/><stop offset="1" stop-color="#67e8f9"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".16"/></filter></defs><rect width="1200" height="675" fill="url(#bg)"/><circle cx="746" cy="199" r="81" fill="#fff" opacity=".28"/><circle cx="454" cy="510.5" r="93" fill="#eab308" opacity=".13"/><g filter="url(#shadow)"><path d="M130 490h940" stroke="#0e7490" stroke-width="25" stroke-linecap="round"/><path d="M235 265h650c70 0 125 55 125 125v100H180V320c0-30 25-55 55-55z" fill="#fff"/><rect x="285" y="300" width="150" height="100" rx="16" fill="#67e8f9"/><rect x="470" y="300" width="150" height="100" rx="16" fill="#67e8f9"/><rect x="655" y="300" width="150" height="100" rx="16" fill="#67e8f9"/><circle cx="330" cy="505" r="58" fill="#0e7490"/><circle cx="845" cy="505" r="58" fill="#0e7490"/><circle cx="330" cy="505" r="22" fill="#cffafe"/><circle cx="845" cy="505" r="22" fill="#cffafe"/></g></svg>

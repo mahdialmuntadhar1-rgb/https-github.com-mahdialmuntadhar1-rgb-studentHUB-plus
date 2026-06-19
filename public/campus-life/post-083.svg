@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
-  <title id="title">Study playlist recommendations</title>
-  <desc id="desc">شاشة كود وخلفية مطر رقمية وسماعات</desc>
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(32 78% 55%)"/><stop offset="1" stop-color="hsl(115 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
-  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
-  <circle cx="776" cy="144" r="116" fill="#fff" opacity=".09"/>
-  <circle cx="538" cy="352" r="149" fill="#fff" opacity=".08"/>
-  <g filter="url(#s)"><path d="M360 420v-65a240 240 0 0 1 480 0v65" fill="none" stroke="#fff" stroke-width="34"/><rect x="300" y="385" width="125" height="210" rx="58" fill="#fff"/><rect x="775" y="385" width="125" height="210" rx="58" fill="#fff"/><path d="M550 340v180l130-65-130-65" fill="#fde68a"/></g>
-  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
-  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(32 65% 32%)">STUDY PLAYLIST</text>
-  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 083</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#cffafe"/><stop offset="1" stop-color="#67e8f9"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".16"/></filter></defs><rect width="1200" height="675" fill="url(#bg)"/><circle cx="516" cy="129" r="81" fill="#fff" opacity=".28"/><circle cx="684" cy="545.5" r="120" fill="#eab308" opacity=".13"/><g filter="url(#shadow)"><path d="M130 490h940" stroke="#0e7490" stroke-width="25" stroke-linecap="round"/><path d="M235 265h650c70 0 125 55 125 125v100H180V320c0-30 25-55 55-55z" fill="#fff"/><rect x="285" y="300" width="150" height="100" rx="16" fill="#67e8f9"/><rect x="470" y="300" width="150" height="100" rx="16" fill="#67e8f9"/><rect x="655" y="300" width="150" height="100" rx="16" fill="#67e8f9"/><circle cx="330" cy="505" r="58" fill="#0e7490"/><circle cx="845" cy="505" r="58" fill="#0e7490"/><circle cx="330" cy="505" r="22" fill="#cffafe"/><circle cx="845" cy="505" r="22" fill="#cffafe"/></g></svg>

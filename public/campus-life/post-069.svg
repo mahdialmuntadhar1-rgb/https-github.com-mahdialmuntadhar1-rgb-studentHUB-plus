@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
-  <title id="title">Student advice</title>
-  <desc id="desc">مؤقت عشر دقائق ودفتر بصفحة واحدة</desc>
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(234 78% 55%)"/><stop offset="1" stop-color="hsl(289 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
-  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
-  <circle cx="634" cy="116" r="134" fill="#fff" opacity=".09"/>
-  <circle cx="492" cy="418" r="105" fill="#fff" opacity=".08"/>
-  <g filter="url(#s)"><path d="M250 520V310l350-180 350 180v210" fill="#fff" opacity=".94"/><path d="M335 520V350h530v170M520 520V395h160v125" fill="none" stroke="#6366f1" stroke-width="24"/><circle cx="600" cy="205" r="38" fill="#fde68a"/><path d="M190 560h820" stroke="#fff" stroke-width="24" stroke-linecap="round"/></g>
-  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
-  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(234 65% 32%)">STUDY ADVICE</text>
-  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 069</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#fce7f3"/><stop offset="1" stop-color="#f9a8d4"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".16"/></filter></defs><rect width="1200" height="675" fill="url(#bg)"/><circle cx="414" cy="191" r="94" fill="#fff" opacity=".28"/><circle cx="786" cy="514.5" r="120" fill="#4f46e5" opacity=".13"/><g filter="url(#shadow)"><path d="M120 525h960" stroke="#9d174d" stroke-width="24" stroke-linecap="round"/><rect x="210" y="250" width="430" height="260" rx="25" fill="#fff"/><path d="M265 300h320v160H265z" fill="#fce7f3"/><path d="M700 485l80-230 210 75-80 230z" fill="#fff"/><path d="M770 305l145 52M748 365l145 52M725 425l145 52" stroke="#f9a8d4" stroke-width="18"/><circle cx="740" cy="205" r="45" fill="#4f46e5"/><path d="M740 250v80" stroke="#4f46e5" stroke-width="16"/></g></svg>

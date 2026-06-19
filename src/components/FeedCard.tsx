@@ -1,6 +1,6 @@
 ﻿import React, { useState } from 'react';
-import { Heart, MessageSquare, Share2, Bookmark } from 'lucide-react';
-import { Language, FeedItem, getLocalizedContent } from '../types';
+import { Heart, MessageSquare, Share2, Bookmark, UserPlus, Send, UserRound, X } from 'lucide-react';
+import { Author, Language, FeedItem, getLocalizedContent } from '../types';
 
 interface FeedCardProps {
   key?: string | number;
@@ -17,7 +17,7 @@ interface FeedCardProps {
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
   onDeleteFeedItem?: (id: string) => void;
   isAdminMode?: boolean;
-  onUserClick?: (user: { id?: string; name: string; role: string; avatar: string; university?: string }) => void;
+  onUserClick?: (user: Author) => void;
 }
 
 const OPPORTUNITY_TYPES = new Set([
@@ -107,7 +107,7 @@ function getImageUrl(item: FeedItem): string {
 
   for (const candidate of candidates) {
     const url = String(candidate || '').trim();
-    if (/^https?:\/\//i.test(url) || /^data:image\//i.test(url)) {
+    if (/^https?:\/\//i.test(url) || /^data:image\//i.test(url) || /^\/campus-life\/post-\d{3}\.svg$/i.test(url)) {
       return url;
     }
   }
@@ -204,6 +204,9 @@ export default function FeedCard({
   const [copied, setCopied] = useState(false);
   const [showFullCaption, setShowFullCaption] = useState(false);
   const [imageFailed, setImageFailed] = useState(false);
+  const [showMockProfile, setShowMockProfile] = useState(false);
+  const [friendRequested, setFriendRequested] = useState(false);
+  const [messageRequested, setMessageRequested] = useState(false);
 
   const isOpportunity = OPPORTUNITY_TYPES.has(item.type) || Boolean((item as any).opportunityCategory);
   const isMockCampusPost = item.type === 'campus_life' && (item as any).isMock === true;
@@ -211,7 +214,8 @@ export default function FeedCard({
   const displayLikes = Math.min(187, stableStats.likes + (item.likedByUser ? 1 : 0));
   const isRtl = language === 'ar' || language === 'ku';
 
-  const title = cleanText(getLocalizedContent(item, 'title', language), item.titleEN || 'Jamiaati Post');
+  // Campus Life reads like a social caption; it should not prepend a generic poster headline.
+  const title = isMockCampusPost ? '' : cleanText(getLocalizedContent(item, 'title', language), item.titleEN || 'Jamiaati Post');
   const body = cleanText(getLocalizedContent(item, 'content', language), item.contentEN || '');
 
   const caption = (() => {
@@ -263,6 +267,16 @@ export default function FeedCard({
   };
 
   const captionIsLong = caption.length > 170;
+  const authorInitials = item.author.name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map(part => part.charAt(0))
+    .join('');
+
+  const openMockProfile = () => {
+    setShowMockProfile(true);
+  };
 
   return (
     <article
@@ -272,15 +286,18 @@ export default function FeedCard({
     >
       {isMockCampusPost && (
         <div className="flex items-center gap-3 border-b border-orange-50 px-4 py-3" dir="auto">
-          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-orange-400 text-sm font-black text-white shadow-sm">
-            {item.author.name.trim().charAt(0)}
-          </div>
-          <div className="min-w-0 flex-1">
+          <button type="button" onClick={openMockProfile} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-orange-400 text-sm font-black text-white shadow-sm" aria-label={`View ${item.author.name}'s demo profile`}>
+            {authorInitials}
+          </button>
+          <button type="button" onClick={openMockProfile} className="min-w-0 flex-1 text-start">
             <div className="truncate text-[13px] font-black text-slate-900">{item.author.name}</div>
             <div className="truncate text-[10px] font-bold text-slate-500">
               {item.author.university} · {item.location}
             </div>
-          </div>
+            <div className="truncate text-[9px] font-bold text-violet-700">
+              @{item.author.username} · {item.author.major} · {item.author.studentYear}
+            </div>
+          </button>
           <span className="rounded-full bg-violet-50 px-2 py-1 text-[9px] font-black text-violet-700">DEMO</span>
         </div>
       )}
@@ -346,6 +363,20 @@ export default function FeedCard({
         {isMockCampusPost && (item as any).cta && (
           <div className="mt-3 rounded-2xl bg-gradient-to-r from-violet-50 to-orange-50 px-3 py-2 text-[11px] font-black text-violet-800" dir="auto">
             💬 {(item as any).cta}
+          </div>
+        )}
+
+        {isMockCampusPost && (
+          <div className="mt-3 grid grid-cols-3 gap-2" dir="auto">
+            <button type="button" onClick={openMockProfile} className="flex items-center justify-center gap-1 rounded-xl border border-violet-200 bg-violet-50 px-2 py-2 text-[9px] font-black text-violet-800">
+              <UserRound className="h-3.5 w-3.5" /> View profile
+            </button>
+            <button type="button" onClick={() => setFriendRequested(true)} className="flex items-center justify-center gap-1 rounded-xl border border-blue-200 bg-blue-50 px-2 py-2 text-[9px] font-black text-blue-800">
+              <UserPlus className="h-3.5 w-3.5" /> {friendRequested ? 'Request sent' : 'Add friend'}
+            </button>
+            <button type="button" onClick={() => setMessageRequested(true)} className="flex items-center justify-center gap-1 rounded-xl border border-emerald-200 bg-emerald-50 px-2 py-2 text-[9px] font-black text-emerald-800">
+              <Send className="h-3.5 w-3.5" /> {messageRequested ? 'Request sent' : 'Message'}
+            </button>
           </div>
         )}
 
@@ -464,6 +495,35 @@ export default function FeedCard({
           </div>
         )}
       </div>
+
+      {isMockCampusPost && showMockProfile && (
+        <div className="fixed inset-0 z-[80] flex items-center justify-center bg-slate-950/60 p-4" onClick={() => setShowMockProfile(false)}>
+          <section className="w-full max-w-md rounded-3xl bg-white p-5 shadow-2xl" dir="auto" onClick={event => event.stopPropagation()} aria-label="Demo student profile">
+            <div className="flex items-start gap-3">
+              <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-orange-400 text-xl font-black text-white">{authorInitials}</div>
+              <div className="min-w-0 flex-1">
+                <div className="text-base font-black text-slate-950">{item.author.name}</div>
+                <div className="text-[11px] font-bold text-violet-700">@{item.author.username}</div>
+                <div className="mt-1 text-[10px] font-bold text-slate-500">{item.author.university} · {item.author.governorate || item.location}</div>
+              </div>
+              <button type="button" onClick={() => setShowMockProfile(false)} className="rounded-full bg-slate-100 p-2" aria-label="Close profile"><X className="h-4 w-4" /></button>
+            </div>
+            <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-[11px] font-semibold leading-relaxed text-slate-700">
+              <div className="font-black text-slate-950">{item.author.major} · {item.author.studentYear}</div>
+              <p className="mt-1">{item.author.bio}</p>
+            </div>
+            <div className="mt-3">
+              <div className="text-[10px] font-black uppercase tracking-wide text-slate-500">Recent Campus Life post</div>
+              <p className="mt-1 line-clamp-3 rounded-2xl border border-orange-100 p-3 text-[11px] font-semibold leading-relaxed text-slate-700">{body}</p>
+            </div>
+            <div className="mt-4 grid grid-cols-2 gap-2">
+              <button type="button" onClick={() => setFriendRequested(true)} className="rounded-xl bg-blue-600 px-3 py-3 text-[11px] font-black text-white">{friendRequested ? 'Friend request sent' : 'Add friend'}</button>
+              <button type="button" onClick={() => setMessageRequested(true)} className="rounded-xl bg-emerald-600 px-3 py-3 text-[11px] font-black text-white">{messageRequested ? 'Message request sent' : 'Message request'}</button>
+            </div>
+            <p className="mt-3 text-center text-[9px] font-bold text-slate-400">Demo profile · no real person is represented</p>
+          </section>
+        </div>
+      )}
     </article>
   );
 }

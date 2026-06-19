@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
-  <title id="title">Campus morning</title>
-  <desc id="desc">ممر فارغ صباحاً وظل حقيبة ودفتر</desc>
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(328 78% 55%)"/><stop offset="1" stop-color="hsl(51 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
-  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
-  <circle cx="420" cy="100" r="80" fill="#fff" opacity=".09"/>
-  <circle cx="950" cy="460" r="149" fill="#fff" opacity=".08"/>
-  <g filter="url(#s)"><path d="M250 520V310l350-180 350 180v210" fill="#fff" opacity=".94"/><path d="M335 520V350h530v170M520 520V395h160v125" fill="none" stroke="#6366f1" stroke-width="24"/><circle cx="600" cy="205" r="38" fill="#fde68a"/><path d="M190 560h820" stroke="#fff" stroke-width="24" stroke-linecap="round"/></g>
-  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
-  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(328 65% 32%)">CAMPUS VIBE</text>
-  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 091</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#dbeafe"/><stop offset="1" stop-color="#93c5fd"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".16"/></filter></defs><rect width="1200" height="675" fill="url(#bg)"/><circle cx="120" cy="145" r="55" fill="#fff" opacity=".28"/><circle cx="1080" cy="537.5" r="129" fill="#f59e0b" opacity=".13"/><g filter="url(#shadow)"><rect x="110" y="470" width="980" height="44" rx="22" fill="#1d4ed8" opacity=".22"/><rect x="300" y="260" width="430" height="245" rx="22" fill="#fff"/><rect x="335" y="295" width="360" height="165" rx="12" fill="#dbeafe"/><path d="M390 505h250" stroke="#1d4ed8" stroke-width="22" stroke-linecap="round"/><path d="M790 330h120v150H790z" fill="#fff"/><path d="M910 355h35a45 45 0 010 90h-35" fill="none" stroke="#fff" stroke-width="20"/><path d="M820 300c-24-34 25-55 0-88M870 300c-24-34 25-55 0-88" fill="none" stroke="#f59e0b" stroke-width="13" stroke-linecap="round"/></g></svg>

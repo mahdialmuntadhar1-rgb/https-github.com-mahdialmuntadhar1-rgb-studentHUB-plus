@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
-  <title id="title">Campus photography</title>
-  <desc id="desc">ظل مبنى جامعي خيالي وقت الغروب</desc>
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(147 78% 55%)"/><stop offset="1" stop-color="hsl(216 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
-  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
-  <circle cx="481" cy="239" r="116" fill="#fff" opacity=".09"/>
-  <circle cx="903" cy="367" r="127" fill="#fff" opacity=".08"/>
-  <g filter="url(#s)"><path d="M250 220h310v190H390l-85 70 20-70h-75zM620 310h330v200H815l-90 75 20-75H620z" fill="#fff" opacity=".94"/><text x="405" y="335" text-anchor="middle" font-size="70" font-weight="900" fill="#4338ca">سڵاو</text><text x="785" y="435" text-anchor="middle" font-size="58" font-weight="900" fill="#db2777">HELLO</text></g>
-  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
-  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(147 65% 32%)">PHOTOGRAPHY</text>
-  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 018</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f1f5f9"/><stop offset="1" stop-color="#94a3b8"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".16"/></filter></defs><rect width="1200" height="675" fill="url(#bg)"/><circle cx="421" cy="134" r="81" fill="#fff" opacity=".28"/><circle cx="779" cy="543" r="102" fill="#f97316" opacity=".13"/><g filter="url(#shadow)"><rect x="175" y="185" width="850" height="340" rx="38" fill="#fff"/><rect x="240" y="245" width="280" height="210" rx="22" fill="#94a3b8"/><circle cx="380" cy="350" r="72" fill="#f97316"/><path d="M575 275h360M575 345h285M575 415h330" stroke="#334155" stroke-width="24" stroke-linecap="round"/><path d="M260 525h680" stroke="#334155" stroke-width="22" stroke-linecap="round"/></g></svg>

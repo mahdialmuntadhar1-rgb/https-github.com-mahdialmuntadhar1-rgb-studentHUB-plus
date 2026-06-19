@@ -1,12 +1,1 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675" role="img" aria-labelledby="title desc">
-  <title id="title">Dorm life</title>
-  <desc id="desc">أوعية نودلز ودفاتر في مساحة مشتركة</desc>
-  <defs><linearGradient id="g" x1="0" y1="0" x2="1" y2="1"><stop stop-color="hsl(281 78% 55%)"/><stop offset="1" stop-color="hsl(18 82% 48%)"/></linearGradient><filter id="s"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".18"/></filter></defs>
-  <rect width="1200" height="675" rx="48" fill="url(#g)"/>
-  <circle cx="527" cy="213" r="152" fill="#fff" opacity=".09"/>
-  <circle cx="721" cy="439" r="171" fill="#fff" opacity=".08"/>
-  <g filter="url(#s)"><rect x="270" y="355" width="660" height="210" rx="30" fill="#fff" opacity=".94"/><rect x="300" y="290" width="240" height="130" rx="35" fill="#fde68a"/><path d="M270 250v355M930 350v255" stroke="#fff" stroke-width="28"/><path d="M700 255v100M650 300h100" stroke="#fff" stroke-width="24" stroke-linecap="round"/><circle cx="700" cy="220" r="38" fill="#f472b6"/></g>
-  <rect x="42" y="38" width="250" height="48" rx="24" fill="#fff" opacity=".92"/>
-  <text x="167" y="69" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="900" fill="hsl(281 65% 32%)">DORM LIFE</text>
-  <text x="1150" y="630" text-anchor="end" font-family="Arial, sans-serif" font-size="22" font-weight="800" fill="#fff" opacity=".78">STUDENTHUB · 080</text>
-</svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1200 675"><defs><linearGradient id="bg" x1="0" y1="0" x2="1" y2="1"><stop stop-color="#f3e8ff"/><stop offset="1" stop-color="#c4b5fd"/></linearGradient><filter id="shadow"><feDropShadow dx="0" dy="12" stdDeviation="14" flood-opacity=".16"/></filter></defs><rect width="1200" height="675" fill="url(#bg)"/><circle cx="267" cy="168" r="107" fill="#fff" opacity=".28"/><circle cx="933" cy="526" r="93" fill="#ea580c" opacity=".13"/><g filter="url(#shadow)"><rect x="110" y="420" width="980" height="130" rx="45" fill="#6d28d9" opacity=".18"/><path d="M170 420h860" stroke="#fff" stroke-width="20"/><circle cx="380" cy="350" r="78" fill="#fff"/><circle cx="820" cy="350" r="78" fill="#fff"/><path d="M380 428v95M820 428v95" stroke="#fff" stroke-width="25"/><path d="M300 520h160M740 520h160" stroke="#6d28d9" stroke-width="28" stroke-linecap="round"/><circle cx="600" cy="260" r="90" fill="#ea580c"/><path d="M550 260h100M600 210v100" stroke="#fff" stroke-width="16" stroke-linecap="round"/></g></svg>
