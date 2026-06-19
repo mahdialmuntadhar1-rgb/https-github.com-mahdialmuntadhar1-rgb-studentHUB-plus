@@ -1,4 +1,5 @@
-﻿import React from 'react';
+﻿import React, { useState } from 'react';
+import { Heart, MessageSquare, Share2, Bookmark } from 'lucide-react';
 import { Language, FeedItem, getLocalizedContent } from '../types';
 
 interface FeedCardProps {
@@ -64,7 +65,6 @@ function cleanText(value: any, fallback = ''): string {
   const text = String(value || '').trim();
 
   if (!text) return fallback;
-
   if (/^https?:\/\//i.test(text)) return fallback;
 
   return text
@@ -103,7 +103,7 @@ function getImageUrl(item: FeedItem): string {
 function getOpportunityUrl(item: FeedItem): string {
   const anyItem = item as any;
 
-  const candidates = [
+  const directCandidates = [
     anyItem.applyUrl,
     anyItem.sourceUrl,
     anyItem.apply_url,
@@ -113,6 +113,8 @@ function getOpportunityUrl(item: FeedItem): string {
     anyItem.application_link,
     anyItem.application_url,
     anyItem.apply_link,
+    anyItem.job_url,
+    anyItem.jobUrl,
     anyItem.url,
     anyItem.link,
     anyItem.external_url,
@@ -129,21 +131,57 @@ function getOpportunityUrl(item: FeedItem): string {
     anyItem.metadata?.application_link
   ];
 
-  for (const candidate of candidates) {
+  for (const candidate of directCandidates) {
     const url = String(candidate || '').trim().replace(/[)\].,;]+$/g, '');
     if (/^https?:\/\//i.test(url)) return url;
+  }
+
+  const textBlob = [
+    anyItem.description,
+    anyItem.summary,
+    anyItem.content,
+    anyItem.contentEN,
+    anyItem.contentAR,
+    anyItem.contentKU,
+    anyItem.body,
+    anyItem.body_original,
+    anyItem.raw_text,
+    anyItem.notes,
+    anyItem.metadata,
+    anyItem.raw
+  ]
+    .map(value => {
+      if (!value) return '';
+      if (typeof value === 'string') return value;
+      try {
+        return JSON.stringify(value);
+      } catch {
+        return String(value || '');
+      }
+    })
+    .join('\n');
+
+  const extracted = textBlob.match(/https?:\/\/[^\s<>"')\]]+/i);
+  if (extracted?.[0]) {
+    return extracted[0].replace(/[)\].,;]+$/g, '');
   }
 
   return '';
 }
 
+function getFallbackJobSearchUrl(item: FeedItem, title: string): string {
+  const provider = String(item.company || item.author?.name || '').trim();
+  const location = String(item.location || item.governorateId || 'Iraq').trim();
+  const query = [title, provider, location, 'job application']
+    .filter(Boolean)
+    .join(' ');
+
+  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
+}
+
 function getApplyLabel(item: FeedItem, language: Language): string {
   if (item.type === 'scholarship' || item.type === 'fellowship') {
     return language === 'ar' ? 'قدّم للمنحة' : language === 'ku' ? 'داواکاری بۆ سکۆلەرشیپ' : 'Apply for Scholarship';
-  }
-
-  if (item.type === 'training' || item.type === 'internship') {
-    return language === 'ar' ? 'قدّم الآن' : language === 'ku' ? 'ئێستا داواکاری بکە' : 'Apply Now';
   }
 
   return language === 'ar' ? 'قدّم الآن' : language === 'ku' ? 'ئێستا داواکاری بکە' : 'Apply Now';
@@ -152,8 +190,15 @@ function getApplyLabel(item: FeedItem, language: Language): string {
 export default function FeedCard({
   item,
   language,
-  onApply
+  onLike,
+  onSave,
+  onAddComment
 }: FeedCardProps) {
+  const [showComments, setShowComments] = useState(false);
+  const [commentText, setCommentText] = useState('');
+  const [copied, setCopied] = useState(false);
+  const [showFullCaption, setShowFullCaption] = useState(false);
+
   const isOpportunity = OPPORTUNITY_TYPES.has(item.type) || Boolean((item as any).opportunityCategory);
   const isRtl = language === 'ar' || language === 'ku';
 
@@ -167,13 +212,14 @@ export default function FeedCard({
 
   const imageUrl = getImageUrl(item);
   const opportunityUrl = getOpportunityUrl(item);
+  const finalOpportunityUrl = opportunityUrl || (isOpportunity ? getFallbackJobSearchUrl(item, title) : '');
 
   const tags = (() => {
     const rawTags = getSafeTags(item.tags)
       .map(tag => tag.replace(/^#/, '').trim())
       .filter(Boolean)
       .filter(tag => tag.length <= 28)
-      .slice(0, 4);
+      .slice(0, 5);
 
     if (rawTags.length > 0) return rawTags;
 
@@ -183,15 +229,31 @@ export default function FeedCard({
   })();
 
   const openOpportunity = () => {
-    if (opportunityUrl) {
-      window.open(opportunityUrl, '_blank', 'noopener,noreferrer');
-      return;
-    }
-
-    if (isOpportunity) {
-      onApply(item.id);
+    if (finalOpportunityUrl) {
+      window.open(finalOpportunityUrl, '_blank', 'noopener,noreferrer');
     }
   };
+
+  const sharePost = async () => {
+    const shareUrl = finalOpportunityUrl || `${window.location.origin}/item/${item.id}`;
+    try {
+      await navigator.clipboard.writeText(shareUrl);
+      setCopied(true);
+      setTimeout(() => setCopied(false), 1600);
+    } catch {
+      window.open(shareUrl, '_blank', 'noopener,noreferrer');
+    }
+  };
+
+  const submitComment = (event: React.FormEvent) => {
+    event.preventDefault();
+    if (!commentText.trim()) return;
+
+    onAddComment(item.id, commentText.trim());
+    setCommentText('');
+  };
+
+  const captionIsLong = caption.length > 170;
 
   return (
     <article
@@ -221,9 +283,21 @@ export default function FeedCard({
       )}
 
       <div className="px-4 py-3">
-        <p className="whitespace-pre-line text-[14px] font-semibold leading-relaxed text-slate-900">
+        <p className={`whitespace-pre-line text-[14px] font-semibold leading-relaxed text-slate-900 ${!showFullCaption ? 'line-clamp-4' : ''}`}>
           {caption}
         </p>
+
+        {captionIsLong && (
+          <button
+            type="button"
+            onClick={() => setShowFullCaption(prev => !prev)}
+            className="mt-1 text-[12px] font-black text-orange-600"
+          >
+            {showFullCaption
+              ? (language === 'ar' ? 'عرض أقل' : language === 'ku' ? 'کەمتر پیشان بدە' : 'Show less')
+              : (language === 'ar' ? 'عرض التفاصيل' : language === 'ku' ? 'وردەکاری پیشان بدە' : 'Show details')}
+          </button>
+        )}
 
         <div className="mt-3 flex flex-wrap gap-1.5">
           {tags.map(tag => (
@@ -244,6 +318,72 @@ export default function FeedCard({
           >
             {getApplyLabel(item, language)}
           </button>
+        )}
+
+        <div className="mt-4 flex items-center justify-between border-t border-orange-50 pt-3">
+          <div className="flex items-center gap-5 text-slate-700">
+            <button
+              type="button"
+              onClick={() => onLike(item.id)}
+              className="flex items-center gap-1.5 text-[12px] font-black"
+              aria-label="Like"
+            >
+              <Heart className={`h-5 w-5 ${item.likedByUser ? 'fill-red-500 text-red-500' : 'text-slate-700'}`} />
+              <span>{item.likes || 0}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={() => setShowComments(prev => !prev)}
+              className="flex items-center gap-1.5 text-[12px] font-black"
+              aria-label="Comment"
+            >
+              <MessageSquare className="h-5 w-5" />
+              <span>{item.commentsCount || 0}</span>
+            </button>
+
+            <button
+              type="button"
+              onClick={sharePost}
+              className="flex items-center gap-1.5 text-[12px] font-black"
+              aria-label="Share"
+            >
+              <Share2 className="h-5 w-5" />
+              <span>{copied ? 'Copied' : 'Share'}</span>
+            </button>
+          </div>
+
+          <button
+            type="button"
+            onClick={() => onSave(item.id)}
+            className="text-slate-700"
+            aria-label="Save"
+          >
+            <Bookmark className={`h-5 w-5 ${item.savedByUser ? 'fill-orange-400 text-orange-500' : ''}`} />
+          </button>
+        </div>
+
+        {showComments && (
+          <form onSubmit={submitComment} className="mt-3 flex gap-2">
+            <input
+              value={commentText}
+              onChange={(event) => setCommentText(event.target.value)}
+              placeholder={
+                language === 'ar'
+                  ? 'أضف تعليقاً...'
+                  : language === 'ku'
+                    ? 'کۆمێنت بنووسە...'
+                    : 'Add a comment...'
+              }
+              className="min-w-0 flex-1 rounded-full border border-orange-100 bg-orange-50/40 px-3 py-2 text-[12px] font-bold outline-none focus:border-orange-400"
+            />
+            <button
+              type="submit"
+              className="rounded-full bg-slate-900 px-4 py-2 text-[12px] font-black text-white"
+            >
+              {language === 'ar' ? 'نشر' : language === 'ku' ? 'ناردن' : 'Post'}
+            </button>
+          </form>
         )}
       </div>
     </article>
