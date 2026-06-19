@@ -121,17 +121,16 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
           animate={{ opacity: 1, scale: 1, y: 0 }}
           exit={{ opacity: 0, scale: 0.95, y: 15 }}
           transition={{ type: 'spring', damping: 25, stiffness: 350 }}
-          className="relative bg-gradient-to-b from-[#121B2E] to-[#0B1020] border border-[#1F2E4D] rounded-3xl p-6 w-full max-w-sm shadow-2xl shadow-cyan-500/5 select-none z-10 overflow-hidden"
+          className="relative bg-white border border-slate-200 rounded-3xl p-6 w-full max-w-sm shadow-2xl select-none z-10 overflow-hidden text-slate-900"
           id="auth-modal-body"
         >
-          {/* Cyan/indigo ambient glows */}
-          <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-500/10 rounded-full blur-2xl pointer-events-none" />
-          <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-500/10 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute top-0 right-0 w-32 h-32 bg-cyan-100/60 rounded-full blur-2xl pointer-events-none" />
+          <div className="absolute bottom-0 left-0 w-32 h-32 bg-indigo-100/60 rounded-full blur-2xl pointer-events-none" />
 
           {/* Close button */}
           <button
             onClick={onClose}
-            className="absolute top-4 right-4 p-2 text-slate-400 hover:text-white hover:bg-slate-800/40 rounded-xl transition-colors cursor-pointer"
+            className="absolute top-4 right-4 p-2 text-slate-600 hover:text-slate-950 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             id="auth-close-btn"
           >
             <X className="w-5 h-5" />
@@ -142,10 +141,10 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
             <div className="w-12 h-12 rounded-2xl bg-gradient-to-tr from-[#4F46E5] via-[#2563EB] to-[#06B6D4] flex items-center justify-center text-white font-bold shadow-lg shadow-cyan-500/10 border border-white/10 mb-3 shrink-0">
               <ShieldCheck className="w-6 h-6 text-white drop-shadow-md" />
             </div>
-            <h3 className="text-lg font-black text-white tracking-tight">
+            <h3 className="text-lg font-black text-slate-950 tracking-tight">
               {getLabel(mode)}
             </h3>
-            <p className="text-[10px] uppercase font-bold text-cyan-400 font-mono tracking-widest mt-1">
+            <p className="text-[10px] uppercase font-bold text-blue-700 font-mono tracking-widest mt-1">
               Jamiaati Portal • بَوّابَتُنا
             </p>
           </div>
@@ -156,18 +155,18 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
             {/* 1. Name input (only for Register mode) */}
             {mode === 'register' && (
               <div className="flex flex-col gap-1.5" id="auth-field-name">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider flex items-center justify-between">
+                <label className="text-[10px] font-black uppercase text-slate-700 tracking-wider flex items-center justify-between">
                   <span>{getLabel('usernameLabel')}</span>
                 </label>
                 <div className="relative flex items-center">
-                  <User className="absolute left-3.5 w-4 cursor-text h-4 text-slate-450 text-slate-400" />
+                  <User className="absolute left-3.5 w-4 cursor-text h-4 text-slate-500" />
                   <input
                     type="text"
                     required
                     value={username}
                     onChange={e => setUsername(e.target.value)}
                     placeholder="e.g. Ahmad Al-Mansour"
-                    className="w-full text-xs font-bold text-white bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors"
+                    className="w-full text-xs font-bold text-slate-950 bg-white border-2 border-slate-300 placeholder:text-slate-500 hover:border-slate-400 focus:border-blue-600 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors"
                   />
                 </div>
               </div>
@@ -175,18 +174,18 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
 
             {/* 2. Email Address Input */}
             <div className="flex flex-col gap-1.5" id="auth-field-email">
-              <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
+              <label className="text-[10px] font-black uppercase text-slate-700 tracking-wider">
                 {getLabel('emailLabel')}
               </label>
               <div className="relative flex items-center">
-                <Mail className="absolute left-3.5 w-4 cursor-text h-4 text-slate-450 text-slate-400" />
+                <Mail className="absolute left-3.5 w-4 cursor-text h-4 text-slate-500" />
                 <input
                   type="email"
                   required
                   value={email}
                   onChange={e => setEmail(e.target.value)}
                   placeholder="name@university.edu.iq"
-                  className="w-full text-xs font-bold text-white bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors"
+                  className="w-full text-xs font-bold text-slate-950 bg-white border-2 border-slate-300 placeholder:text-slate-500 hover:border-slate-400 focus:border-blue-600 rounded-xl pl-10 pr-4 py-3 focus:outline-none transition-colors"
                 />
               </div>
             </div>
@@ -194,23 +193,23 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
             {/* 3. Password Input (only if not forgot mode) */}
             {mode !== 'forgot' && (
               <div className="flex flex-col gap-1.5" id="auth-field-password">
-                <label className="text-[10px] font-black uppercase text-slate-400 tracking-wider">
+                <label className="text-[10px] font-black uppercase text-slate-700 tracking-wider">
                   {getLabel('passwordLabel')}
                 </label>
                 <div className="relative flex items-center">
-                  <Lock className="absolute left-3.5 w-4 cursor-text h-4 text-slate-450 text-slate-400" />
+                  <Lock className="absolute left-3.5 w-4 cursor-text h-4 text-slate-500" />
                   <input
                     type={showPassword ? 'text' : 'password'}
                     required
                     value={password}
                     onChange={e => setPassword(e.target.value)}
                     placeholder="••••••••"
-                    className="w-full text-xs font-bold text-white bg-[#101726]/80 border border-[#1F2E4D] hover:border-slate-600 focus:border-cyan-400/50 rounded-xl pl-10 pr-10 py-3 focus:outline-none transition-colors"
+                    className="w-full text-xs font-bold text-slate-950 bg-white border-2 border-slate-300 placeholder:text-slate-500 hover:border-slate-400 focus:border-blue-600 rounded-xl pl-10 pr-10 py-3 focus:outline-none transition-colors"
                   />
                   <button
                     type="button"
                     onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 p-1 text-slate-450 hover:text-white rounded cursor-pointer transition-colors"
+                    className="absolute right-3 p-1 text-slate-600 hover:text-slate-950 rounded cursor-pointer transition-colors"
                   >
                     {showPassword ? <EyeOff className="w-3.5 h-3.5" /> : <Eye className="w-3.5 h-3.5" />}
                   </button>
@@ -220,20 +219,20 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
 
             {/* Options Deck (Remember & forgot link) */}
             {mode === 'login' && (
-              <div className="flex items-center justify-between text-[11px] font-bold text-slate-400 mt-1" id="auth-login-options">
+              <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 mt-1" id="auth-login-options">
                 <label className="flex items-center gap-1.5 cursor-pointer">
                   <input
                     type="checkbox"
                     checked={rememberMe}
                     onChange={e => setRememberMe(e.target.checked)}
-                    className="w-4 h-4 text-[#06B6D4] bg-slate-950 border-[#1F2E4D] rounded focus:ring-0 cursor-pointer"
+                    className="w-4 h-4 text-blue-600 bg-white border-slate-400 rounded focus:ring-blue-500 cursor-pointer"
                   />
                   <span className="text-[10px] selection:bg-transparent">{getLabel('remember')}</span>
                 </label>
                 <button
                   type="button"
                   onClick={() => { setError(''); setSuccess(''); setMode('forgot'); }}
-                  className="text-cyan-400 hover:underline hover:text-cyan-300 font-extrabold cursor-pointer"
+                  className="text-blue-700 hover:underline hover:text-blue-900 font-extrabold cursor-pointer"
                 >
                   {getLabel('forgotLink')}
                 </button>
@@ -247,7 +246,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
-                  className="bg-red-500/10 text-red-400 text-[11px] font-extrabold p-3 rounded-xl border border-red-500/20 flex items-start gap-2.5"
+                  className="bg-red-50 text-red-700 text-[11px] font-extrabold p-3 rounded-xl border border-red-200 flex items-start gap-2.5"
                   id="auth-alert-error"
                 >
                   <AlertCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -260,7 +259,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
                   initial={{ opacity: 0, y: -5 }}
                   animate={{ opacity: 1, y: 0 }}
                   exit={{ opacity: 0, y: -5 }}
-                  className="bg-emerald-500/10 text-emerald-400 text-[11px] font-extrabold p-3 rounded-xl border border-emerald-500/20 flex items-start gap-2.5"
+                  className="bg-emerald-50 text-emerald-700 text-[11px] font-extrabold p-3 rounded-xl border border-emerald-200 flex items-start gap-2.5"
                   id="auth-alert-success"
                 >
                   <CheckCircle className="w-4 h-4 shrink-0 mt-0.5" />
@@ -285,14 +284,14 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
           </form>
 
           {/* Bottom Switch modes references */}
-          <div className="mt-5 pt-4 border-t border-[#1F2E4D] text-center text-xs font-bold text-slate-400" id="auth-modal-switch-mode">
+          <div className="mt-5 pt-4 border-t border-slate-200 text-center text-xs font-bold text-slate-700" id="auth-modal-switch-mode">
             {mode === 'login' ? (
               <p>
                 {getLabel('noAccount')}{' '}
                 <button
                   type="button"
                   onClick={() => { setError(''); setSuccess(''); setMode('register'); }}
-                  className="text-cyan-400 hover:underline hover:text-cyan-300 font-black cursor-pointer ml-1"
+                  className="text-blue-700 hover:underline hover:text-blue-900 font-black cursor-pointer ml-1"
                 >
                   {getLabel('registerNow')}
                 </button>
@@ -303,7 +302,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
                 <button
                   type="button"
                   onClick={() => { setError(''); setSuccess(''); setMode('login'); }}
-                  className="text-cyan-400 hover:underline hover:text-cyan-300 font-black cursor-pointer ml-1"
+                  className="text-blue-700 hover:underline hover:text-blue-900 font-black cursor-pointer ml-1"
                 >
                   {getLabel('loginNow')}
                 </button>
@@ -312,7 +311,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
               <button
                 type="button"
                 onClick={() => { setError(''); setSuccess(''); setMode('login'); }}
-                className="text-cyan-400 hover:underline hover:text-cyan-300 font-black cursor-pointer flex items-center justify-center gap-1 mx-auto"
+                className="text-blue-700 hover:underline hover:text-blue-900 font-black cursor-pointer flex items-center justify-center gap-1 mx-auto"
               >
                 <span>{getLabel('backToLogin')}</span>
               </button>

@@ -622,7 +622,7 @@ export default function SectionView({
   const [loading, setLoading] = useState(true);
   const [liveLoading, setLiveLoading] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
-  const [showingIraqWideFallback, setShowingIraqWideFallback] = useState(false);
+  const [visibleJobCount, setVisibleJobCount] = useState(20);
 
   const lookupKey = sectionId.startsWith('h_') ? sectionId.substring(2) : sectionId;
   const normalizedKey = lookupKey === 'news' || lookupKey === 'announcements' ? 'news' :
@@ -637,6 +637,10 @@ export default function SectionView({
 
   const categoryConfig = categoryConfigs[normalizedKey] || categoryConfigs['news'];
   const isJobSection = normalizedKey === 'job';
+
+  useEffect(() => {
+    setVisibleJobCount(20);
+  }, [selectedGov, selectedJobSource, isJobSection]);
 
   const selectedGovMeta = IraqiGovernorates.find(g => g.id === selectedGov);
   const selectedGovNameEN = selectedGov === 'all' ? 'Iraq' : selectedGovMeta?.nameEN || selectedGov;
@@ -777,12 +781,12 @@ export default function SectionView({
       ].filter(Boolean).join(' ');
 
       const normalizedItemGov = normalizeGovernorateId(itemGovText);
-      return selectedGov === 'all' || normalizedItemGov === 'all' || normalizedItemGov === selectedGov;
+      return selectedGov === 'all' || normalizedItemGov === selectedGov;
     });
 
     // If governorate has 10+ jobs, return only governorate jobs
     if (governorateJobs.length >= 10) {
-      setShowingIraqWideFallback(false);
+      // Do not set state during render; fallback message is handled without render-loop state.
       return governorateJobs;
     }
 
@@ -821,19 +825,36 @@ export default function SectionView({
       }
     }
 
-    setShowingIraqWideFallback(true);
+    // Do not set state during render; fallback message is handled without render-loop state.
     return combinedWithIraqWide;
   })();
 
   const combinedItems = (() => {
     if (!isJobSection) return backendFilteredItems;
-    const map = new Map<string, FeedItem>();
+    const deduped: FeedItem[] = [];
+    const seenIds = new Set<string>();
+    const seenUrls = new Set<string>();
     [...liveJobItems, ...backendFilteredItems].forEach((item) => {
-      const key = String((item as any).application_link || (item as any).original_source_url || item.id);
-      if (!map.has(key)) map.set(key, item);
+      const id = String(item.id || '').trim();
+      const url = String((item as any).application_link || (item as any).applyUrl || (item as any).sourceUrl || (item as any).original_source_url || '').trim();
+      if ((id && seenIds.has(id)) || (url && seenUrls.has(url))) return;
+      if (id) seenIds.add(id);
+      if (url) seenUrls.add(url);
+      deduped.push(item);
     });
-    return Array.from(map.values());
+    return deduped;
   })();
+
+  const selectedGovernorateJobCount = isJobSection && selectedGov !== 'all'
+    ? items.filter(item => {
+        const itemGovText = [item.governorateId, item.location, ...(Array.isArray(item.tags) ? item.tags : [])]
+          .filter(Boolean)
+          .join(' ');
+        return normalizeGovernorateId(itemGovText) === selectedGov;
+      }).length
+    : combinedItems.length;
+  const showingIraqWideFallback = isJobSection && selectedGov !== 'all' && selectedGovernorateJobCount < 10 && combinedItems.length > selectedGovernorateJobCount;
+  const displayedItems = isJobSection ? combinedItems.slice(0, visibleJobCount) : combinedItems;
 
   const availableUnis = selectedGov === 'all'
     ? IraqiUniversities
@@ -1028,7 +1049,7 @@ export default function SectionView({
               </span>
             </div>
           )}
-          {combinedItems.map((item) => (
+          {displayedItems.map((item) => (
             <FeedCard
               key={item.id}
               item={item}
@@ -1046,12 +1067,32 @@ export default function SectionView({
               onUserClick={onUserClick}
             />
           ))}
+          {isJobSection && (
+            <div className="rounded-2xl border border-[#263A62] bg-[#111A2D] px-4 py-3 text-center">
+              <p className="mb-2 text-[11px] font-bold text-slate-300">
+                {language === 'ar'
+                  ? `عرض ${displayedItems.length} من أصل ${combinedItems.length} وظيفة`
+                  : language === 'ku'
+                  ? `پیشاندانی ${displayedItems.length} لە ${combinedItems.length} کار`
+                  : `Showing ${displayedItems.length} of ${combinedItems.length} jobs`}
+              </p>
+              {displayedItems.length < combinedItems.length && (
+                <button
+                  type="button"
+                  onClick={() => setVisibleJobCount(count => Math.min(count + 20, combinedItems.length))}
+                  className="w-full rounded-2xl bg-[#FFD21F] px-4 py-3 text-xs font-black text-[#0B1020] shadow-sm transition-transform active:scale-[0.99]"
+                >
+                  {language === 'ar'
+                    ? 'تحميل المزيد من الوظائف'
+                    : language === 'ku'
+                    ? 'کاری زیاتر باربکە'
+                    : 'Load More Jobs'}
+                </button>
+              )}
+            </div>
+          )}
         </div>
       )}
     </div>
   );
 }
-
-
-
-

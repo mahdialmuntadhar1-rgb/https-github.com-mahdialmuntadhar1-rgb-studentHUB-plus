@@ -34,6 +34,21 @@ const OPPORTUNITY_TYPES = new Set([
   'admission'
 ]);
 
+function getStableSocialStats(id: string) {
+  let hash = 2166136261;
+  for (let index = 0; index < id.length; index += 1) {
+    hash ^= id.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  const unsigned = hash >>> 0;
+  return {
+    likes: 3 + (unsigned % 185),
+    comments: (unsigned >>> 7) % 27,
+    shares: (unsigned >>> 13) % 19,
+    saves: (unsigned >>> 19) % 23,
+  };
+}
+
 function getSafeTags(tags: any): string[] {
   if (Array.isArray(tags)) {
     return tags.map(tag => String(tag || '').trim()).filter(Boolean);
@@ -169,16 +184,6 @@ function getOpportunityUrl(item: FeedItem): string {
   return '';
 }
 
-function getFallbackJobSearchUrl(item: FeedItem, title: string): string {
-  const provider = String(item.company || item.author?.name || '').trim();
-  const location = String(item.location || item.governorateId || 'Iraq').trim();
-  const query = [title, provider, location, 'job application']
-    .filter(Boolean)
-    .join(' ');
-
-  return `https://www.google.com/search?q=${encodeURIComponent(query)}`;
-}
-
 function getApplyLabel(item: FeedItem, language: Language): string {
   if (item.type === 'scholarship' || item.type === 'fellowship') {
     return language === 'ar' ? 'قدّم للمنحة' : language === 'ku' ? 'داواکاری بۆ سکۆلەرشیپ' : 'Apply for Scholarship';
@@ -200,6 +205,9 @@ export default function FeedCard({
   const [showFullCaption, setShowFullCaption] = useState(false);
 
   const isOpportunity = OPPORTUNITY_TYPES.has(item.type) || Boolean((item as any).opportunityCategory);
+  const isMockCampusPost = item.type === 'campus_life' && (item as any).isMock === true;
+  const stableStats = getStableSocialStats(String(item.id));
+  const displayLikes = Math.min(187, stableStats.likes + (item.likedByUser ? 1 : 0));
   const isRtl = language === 'ar' || language === 'ku';
 
   const title = cleanText(getLocalizedContent(item, 'title', language), item.titleEN || 'Jamiaati Post');
@@ -261,6 +269,21 @@ export default function FeedCard({
       dir={isRtl ? 'rtl' : 'ltr'}
       className="mb-5 overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm"
     >
+      {isMockCampusPost && (
+        <div className="flex items-center gap-3 border-b border-orange-50 px-4 py-3" dir="auto">
+          <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-orange-400 text-sm font-black text-white shadow-sm">
+            {item.author.name.trim().charAt(0)}
+          </div>
+          <div className="min-w-0 flex-1">
+            <div className="truncate text-[13px] font-black text-slate-900">{item.author.name}</div>
+            <div className="truncate text-[10px] font-bold text-slate-500">
+              {item.author.university} · {item.location}
+            </div>
+          </div>
+          <span className="rounded-full bg-violet-50 px-2 py-1 text-[9px] font-black text-violet-700">DEMO</span>
+        </div>
+      )}
+
       {imageUrl && !isOpportunity ? (
         <div className="relative w-full overflow-hidden bg-slate-100">
           <img
@@ -303,6 +326,12 @@ export default function FeedCard({
         <p className={`whitespace-pre-line text-[14px] font-semibold leading-relaxed text-slate-900 ${!showFullCaption ? 'line-clamp-4' : ''}`}>
           {caption}
         </p>
+
+        {isMockCampusPost && (item as any).cta && (
+          <div className="mt-3 rounded-2xl bg-gradient-to-r from-violet-50 to-orange-50 px-3 py-2 text-[11px] font-black text-violet-800" dir="auto">
+            💬 {(item as any).cta}
+          </div>
+        )}
 
         {captionIsLong && (
           <button
@@ -351,7 +380,7 @@ export default function FeedCard({
               aria-label="Like"
             >
               <Heart className={`h-5 w-5 ${item.likedByUser ? 'fill-red-500 text-red-500' : 'text-slate-700'}`} />
-              <span>{item.likes || 0}</span>
+              <span>{displayLikes}</span>
             </button>
 
             <button
@@ -361,7 +390,7 @@ export default function FeedCard({
               aria-label="Comment"
             >
               <MessageSquare className="h-5 w-5" />
-              <span>{item.commentsCount || 0}</span>
+              <span>{stableStats.comments}</span>
             </button>
 
             <button
@@ -371,7 +400,7 @@ export default function FeedCard({
               aria-label="Share"
             >
               <Share2 className="h-5 w-5" />
-              <span>{copied ? 'Copied' : 'Share'}</span>
+              <span>{copied ? 'Copied' : stableStats.shares}</span>
             </button>
           </div>
 
@@ -381,12 +410,22 @@ export default function FeedCard({
             className="text-slate-700"
             aria-label="Save"
           >
-            <Bookmark className={`h-5 w-5 ${item.savedByUser ? 'fill-orange-400 text-orange-500' : ''}`} />
+            <span className="flex items-center gap-1 text-[12px] font-black">
+              <Bookmark className={`h-5 w-5 ${item.savedByUser ? 'fill-orange-400 text-orange-500' : ''}`} />
+              {Math.min(22, stableStats.saves + (item.savedByUser ? 1 : 0))}
+            </span>
           </button>
         </div>
 
         {showComments && (
-          <form onSubmit={submitComment} className="mt-3 flex gap-2">
+          <div className="mt-3 space-y-2">
+            {item.commentsList?.map(comment => (
+              <div key={comment.id} className="rounded-2xl bg-orange-50/60 px-3 py-2" dir="auto">
+                <div className="text-[10px] font-black text-slate-800">{comment.authorName}</div>
+                <div className="mt-0.5 text-[11px] font-semibold leading-relaxed text-slate-600">{comment.content}</div>
+              </div>
+            ))}
+          <form onSubmit={submitComment} className="flex gap-2">
             <input
               value={commentText}
               onChange={(event) => setCommentText(event.target.value)}
@@ -406,11 +445,9 @@ export default function FeedCard({
               {language === 'ar' ? 'نشر' : language === 'ku' ? 'ناردن' : 'Post'}
             </button>
           </form>
+          </div>
         )}
       </div>
     </article>
   );
 }
-
-
-
