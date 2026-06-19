@@ -287,9 +287,13 @@ const detectLanguage = (text: string): Language => {
 
 // Adapter for the existing app feed model. Keep this export scoped to Campus Life UI only.
 export const campusLifeFeedItems: FeedItem[] = campusLifeMockPosts.map((post, postIndex) => {
-  const originalLanguage = detectLanguage(post.text);
+  
+  const index = postIndex;
+const originalLanguage = detectLanguage(post.text);
   const commentsList = post.comments.map((comment, commentIndex) => {
-    const separatorIndex = comment.indexOf(":");
+    
+  const index = commentIndex;
+const separatorIndex = comment.indexOf(":");
     const authorName = separatorIndex >= 0 ? comment.slice(0, separatorIndex).trim() : "Student";
     const content = separatorIndex >= 0 ? comment.slice(separatorIndex + 1).trim() : comment;
 
