@@ -1883,7 +1883,7 @@ export default function HomeFeed({
       {selectedFeedTab === 'campus_life' && (
         <div 
           className="flex gap-4 mb-5 overflow-x-auto pb-3 pt-1.5 scrollbar-none snap-x touch-pan-x justify-start" 
-          id="campus-shortcuts-circles" hidden
+          id="campus-shortcuts-circles"
         >
           {[
             { id: 'all', emoji: '🏛️', labelEN: 'All', labelAR: 'الكل', labelKU: 'هەموو' },
@@ -2641,7 +2641,6 @@ export default function HomeFeed({
     </div>
   );
 }
-
 
 
 

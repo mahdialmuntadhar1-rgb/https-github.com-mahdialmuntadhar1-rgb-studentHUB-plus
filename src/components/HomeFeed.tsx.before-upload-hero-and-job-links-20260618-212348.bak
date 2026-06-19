@@ -10,12 +10,8 @@ import { getOpportunities } from '../lib/api';
 import { cleanDisplayText } from '../utils/safeText';
 
 // Admin configuration - frontend-only editing
-const ADMIN_EMAILS = ['safaribosafar@gmail.com', 'mahdialmuntadhar1@gmail.com'];
+const ADMIN_EMAIL = 'safaribosafar@gmail.com';
 const HERO_IMAGES_STORAGE_KEY = 'jamiaati_hero_images_v2';
-const HERO_STORAGE_MAX_LENGTH = 1800000;
-const HERO_UPLOAD_MAX_FILE_BYTES = 5 * 1024 * 1024;
-const HERO_UPLOAD_MAX_DATA_URL_LENGTH = 350000;
-const HERO_UPLOAD_MAX_DIMENSION = 1600;
 
 const DEFAULT_HERO_IMAGES: string[] = [
   'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=1920',
@@ -25,22 +21,6 @@ const DEFAULT_HERO_IMAGES: string[] = [
   'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?auto=format&fit=crop&q=80&w=1920'
 ];
 
-// Helper function to validate hero image values from URL or safe compressed upload
-function isSafeHeroImageValue(value: string): boolean {
-  const url = String(value || '').trim();
-  if (!url) return false;
-
-  if (url.startsWith('https://')) {
-    return url.length <= 500;
-  }
-
-  if (/^data:image\/(webp|jpeg|jpg|png);base64,/i.test(url)) {
-    return url.length <= HERO_UPLOAD_MAX_DATA_URL_LENGTH;
-  }
-
-  return false;
-}
-
 // Helper function to read hero images from localStorage with safety checks
 function readStoredHeroImages(): string[] {
   if (typeof window === 'undefined') return DEFAULT_HERO_IMAGES;
@@ -48,7 +28,7 @@ function readStoredHeroImages(): string[] {
   try {
     const raw = window.localStorage.getItem(HERO_IMAGES_STORAGE_KEY);
 
-    if (raw && raw.length > HERO_STORAGE_MAX_LENGTH) {
+    if (raw && raw.length > 10000) {
       console.warn('Hero images data too large, clearing to prevent freeze');
       window.localStorage.removeItem(HERO_IMAGES_STORAGE_KEY);
       return DEFAULT_HERO_IMAGES;
@@ -65,7 +45,13 @@ function readStoredHeroImages(): string[] {
 
     const cleaned = parsed
       .map((item) => String(item || '').trim())
-      .filter(isSafeHeroImageValue)
+      .filter((url) => {
+        if (!url) return false;
+        if (!url.startsWith('https://')) return false;
+        if (url.startsWith('data:image')) return false;
+        if (url.length > 500) return false;
+        return true;
+      })
       .slice(0, 5);
 
     return cleaned.length > 0 ? cleaned : DEFAULT_HERO_IMAGES;
@@ -78,86 +64,6 @@ function readStoredHeroImages(): string[] {
   }
 }
 
-// Compress uploaded hero image before putting it in localStorage
-function optimizeHeroImageFile(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    if (!file) {
-      reject(new Error('No image selected.'));
-      return;
-    }
-
-    if (!file.type.startsWith('image/')) {
-      reject(new Error('Please choose an image file.'));
-      return;
-    }
-
-    if (file.size > HERO_UPLOAD_MAX_FILE_BYTES) {
-      reject(new Error('Image is too large. Please use an image under 5 MB.'));
-      return;
-    }
-
-    const reader = new FileReader();
-
-    reader.onerror = () => reject(new Error('Could not read image file.'));
-
-    reader.onload = () => {
-      const img = new Image();
-
-      img.onerror = () => reject(new Error('Could not load image. Try another file.'));
-
-      img.onload = () => {
-        try {
-          const maxOriginalSide = Math.max(img.width, img.height);
-          const scale = Math.min(1, HERO_UPLOAD_MAX_DIMENSION / maxOriginalSide);
-
-          const canvas = document.createElement('canvas');
-          canvas.width = Math.max(1, Math.round(img.width * scale));
-          canvas.height = Math.max(1, Math.round(img.height * scale));
-
-          const ctx = canvas.getContext('2d');
-          if (!ctx) {
-            reject(new Error('Could not prepare image.'));
-            return;
-          }
-
-          ctx.drawImage(img, 0, 0, canvas.width, canvas.height);
-
-          canvas.toBlob(
-            (blob) => {
-              if (!blob) {
-                reject(new Error('Could not compress image.'));
-                return;
-              }
-
-              const outputReader = new FileReader();
-              outputReader.onerror = () => reject(new Error('Could not finalize image.'));
-              outputReader.onload = () => {
-                const dataUrl = String(outputReader.result || '');
-
-                if (!isSafeHeroImageValue(dataUrl)) {
-                  reject(new Error('Image is still too large after compression. Try a smaller image.'));
-                  return;
-                }
-
-                resolve(dataUrl);
-              };
-
-              outputReader.readAsDataURL(blob);
-            },
-            'image/webp',
-            0.72
-          );
-        } catch {
-          reject(new Error('Image upload failed. Try another image.'));
-        }
-      };
-
-      img.src = String(reader.result || '');
-    };
-
-    reader.readAsDataURL(file);
-  });
-}
 // Helper function to get logged-in admin email
 function getLoggedInEmail(): string | null {
   if (typeof window === 'undefined') return null;
@@ -391,79 +297,8 @@ export default function HomeFeed({
     const locationParts = [city, gov !== 'all' ? gov : '', country].filter(Boolean);
     const locationStr = locationParts.length > 0 ? locationParts.join(', ') : 'Iraq';
 
-    const resolvedOpportunityUrl = (() => {
-      const stringifyValue = (value: any): string => {
-        if (!value) return '';
-        if (typeof value === 'string') return value;
-        try {
-          return JSON.stringify(value);
-        } catch {
-          return String(value || '');
-        }
-      };
-
-      const cleanUrlCandidate = (value: any): string => {
-        return String(value || '')
-          .trim()
-          .replace(/[)\].,;]+$/g, '');
-      };
-
-      const directCandidates = [
-        item.applyUrl,
-        item.sourceUrl,
-        item.apply_url,
-        item.source_url,
-        item.details_url,
-        item.detailsUrl,
-        item.application_link,
-        item.application_url,
-        item.apply_link,
-        item.url,
-        item.link,
-        item.external_url,
-        item.original_source_url,
-        item.original_url,
-        item.raw_url,
-        item.raw_item_url,
-        item.candidate_url,
-        item.source_link,
-        item.source?.url,
-        item.raw?.url,
-        item.metadata?.url,
-        item.metadata?.source_url,
-        item.metadata?.application_link
-      ];
-
-      const textBlob = [
-        item.description,
-        item.summary,
-        item.content,
-        item.contentEN,
-        item.contentAR,
-        item.contentKU,
-        item.body,
-        item.body_original,
-        item.raw_text,
-        item.notes,
-        item.metadata,
-        item.raw
-      ].map(stringifyValue).join('\n');
-
-      const extractedMatch = textBlob.match(/https?:\/\/[^\s<>"')\]]+/i);
-      if (extractedMatch) directCandidates.push(extractedMatch[0]);
-
-      for (const candidate of directCandidates) {
-        const cleaned = cleanUrlCandidate(candidate);
-        if (/^https?:\/\//i.test(cleaned)) {
-          return cleaned;
-        }
-      }
-
-      return '';
-    })();
-
-    const applyUrl = resolvedOpportunityUrl;
-    const sourceUrl = resolvedOpportunityUrl;
+    const applyUrl = item.apply_url || item.application_link || item.original_source_url || item.source_url || '';
+    const sourceUrl = item.source_url || item.original_source_url || item.application_link || '';
     const imgUrl = item.image_url || item.imageUrl || '';
 
     const safeImageUrl = imgUrl && !imgUrl.includes('images.unsplash.com') ? imgUrl : '';
@@ -835,7 +670,7 @@ export default function HomeFeed({
   const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
 
   const isAdmin = useMemo(
-    () => !!loggedInEmail && ADMIN_EMAILS.includes(loggedInEmail.toLowerCase()),
+    () => loggedInEmail?.toLowerCase() === ADMIN_EMAIL,
     [loggedInEmail]
   );
 
@@ -1017,78 +852,16 @@ export default function HomeFeed({
   };
 
 
-
-  const handleUploadHeroImageFile = async (
-    event: React.ChangeEvent<HTMLInputElement>,
-    replaceIndex?: number
-  ) => {
-    const file = event.target.files?.[0];
-    event.target.value = '';
-
-    if (!file) return;
-
-    try {
-      setHeroImageMessage('Optimizing and saving uploaded image...');
-
-      const dataUrl = await optimizeHeroImageFile(file);
-
-      let nextImages = [...draftHeroImages];
-
-      if (typeof replaceIndex === 'number') {
-        nextImages[replaceIndex] = dataUrl;
-      } else {
-        if (nextImages.length >= 5) {
-          setHeroImageMessage('Maximum 5 hero images allowed. Replace an existing image instead.');
-          return;
-        }
-        nextImages.push(dataUrl);
-      }
-
-      const cleaned = nextImages
-        .map(item => String(item || '').trim())
-        .filter(isSafeHeroImageValue)
-        .slice(0, 5);
-
-      if (cleaned.length === 0) {
-        setHeroImageMessage('Please keep at least one hero image.');
-        return;
-      }
-
-      const heroStorageValue = JSON.stringify(cleaned);
-
-      if (heroStorageValue.length > HERO_STORAGE_MAX_LENGTH) {
-        setHeroImageMessage('Uploaded images are too large. Remove one image or use smaller photos.');
-        return;
-      }
-
-      localStorage.setItem(HERO_IMAGES_STORAGE_KEY, heroStorageValue);
-      window.dispatchEvent(new Event('jamiaati_hero_images_updated'));
-
-      setHeroImages(cleaned);
-      setDraftHeroImages(cleaned);
-      setCurrentSlide(typeof replaceIndex === 'number' ? replaceIndex : cleaned.length - 1);
-
-      setHeroImageMessage('Hero image uploaded, saved, and applied immediately.');
-
-      if (showToast) {
-        showToast(
-          language === 'ar'
-            ? 'تم رفع وحفظ صورة الغلاف مباشرة! 🖼️'
-            : language === 'ku'
-              ? 'وێنەی هێرۆ بەرزکرا و پاشەکەوتکرا! 🖼️'
-              : 'Hero image uploaded and saved immediately! 🖼️',
-          'success'
-        );
-      }
-    } catch (error: any) {
-      setHeroImageMessage(error?.message || 'Image upload failed.');
-    }
-  };
-
   const handleSaveHeroImages = () => {
     const cleaned = draftHeroImages
       .map(item => item.trim())
-      .filter(isSafeHeroImageValue)
+      .filter((url) => {
+        if (!url) return false;
+        if (!url.startsWith('https://')) return false;
+        if (url.startsWith('data:image')) return false;
+        if (url.length > 500) return false;
+        return true;
+      })
       .slice(0, 5);
 
     if (cleaned.length === 0) {
@@ -1100,12 +873,7 @@ export default function HomeFeed({
     const limitedImages = cleaned.slice(0, 5);
 
     try {
-      const heroStorageValue = JSON.stringify(limitedImages);
-      if (heroStorageValue.length > HERO_STORAGE_MAX_LENGTH) {
-        setHeroImageMessage('Too many uploaded images. Remove one image or use smaller images.');
-        return;
-      }
-      localStorage.setItem(HERO_IMAGES_STORAGE_KEY, heroStorageValue);
+      localStorage.setItem(HERO_IMAGES_STORAGE_KEY, JSON.stringify(limitedImages));
       window.dispatchEvent(new Event('jamiaati_hero_images_updated'));
       setHeroImages(limitedImages);
       setDraftHeroImages(limitedImages);
@@ -1554,7 +1322,7 @@ export default function HomeFeed({
                 <div>
                   <h3 className="text-base font-black">Edit Hero Images</h3>
                   <p className="text-xs text-slate-500">
-                    Upload images from your computer. Changes apply immediately after each upload.
+                    Frontend-only editing for {ADMIN_EMAIL}. Use image URLs for best stability.
                   </p>
                 </div>
                 <button
@@ -1577,11 +1345,14 @@ export default function HomeFeed({
                       />
                       <div className="flex-1">
                         <label className="mb-1 block text-[11px] font-black uppercase text-slate-500">
-                          Hero image {index + 1}
+                          Image {index + 1} URL
                         </label>
-                        <p className="rounded-xl bg-slate-50 px-3 py-2 text-xs font-bold text-slate-600">
-                          Use the upload button below. No URL needed.
-                        </p>
+                        <input
+                          value={image}
+                          onChange={(e) => handleUpdateDraftHeroImage(index, e.target.value)}
+                          className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-slate-900"
+                          placeholder="Paste image URL"
+                        />
                       </div>
                     </div>
 
@@ -1593,16 +1364,6 @@ export default function HomeFeed({
                       >
                         Remove
                       </button>
-
-                      <label className="cursor-pointer rounded-full bg-blue-50 px-3 py-2 text-xs font-bold text-blue-700 hover:bg-blue-100">
-                        Replace with upload
-                        <input
-                          type="file"
-                          accept="image/png,image/jpeg,image/webp"
-                          onChange={(e) => handleUploadHeroImageFile(e, index)}
-                          className="hidden"
-                        />
-                      </label>
                     </div>
                   </div>
                 ))}
@@ -1610,22 +1371,26 @@ export default function HomeFeed({
 
               <div className="mt-4 rounded-2xl border border-dashed border-slate-300 p-3">
                 <label className="mb-1 block text-[11px] font-black uppercase text-slate-500">
-                  Add new hero image from computer
+                  Add new image URL
                 </label>
 
-                <p className="mb-3 text-xs font-bold text-slate-500">
-                  Upload PNG, JPG, or WebP. It will be compressed and applied immediately.
-                </p>
-
-                <label className="block cursor-pointer rounded-xl bg-blue-600 px-4 py-3 text-center text-xs font-black text-white hover:bg-blue-700">
-                  Upload hero image from computer
+                <div className="flex flex-col gap-2 sm:flex-row">
                   <input
-                    type="file"
-                    accept="image/png,image/jpeg,image/webp"
-                    onChange={(e) => handleUploadHeroImageFile(e)}
-                    className="hidden"
+                    value={newHeroImageUrl}
+                    onChange={(e) => setNewHeroImageUrl(e.target.value)}
+                    className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-slate-900"
+                    placeholder="Paste new hero image URL (max 500 chars)"
+                    maxLength={500}
                   />
-                </label>
+
+                  <button
+                    type="button"
+                    onClick={handleAddHeroImageUrl}
+                    className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-black text-white"
+                  >
+                    Add URL
+                  </button>
+                </div>
               </div>
 
               {heroImageMessage && (
@@ -1665,12 +1430,77 @@ export default function HomeFeed({
                   onClick={handleSaveHeroImages}
                   className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white hover:bg-emerald-700"
                 >
-                  Done
+                  Save Hero Images
                 </button>
               </div>
             </div>
           </div>
         )}
+      </div>
+
+      {/* 2. Interactive Circular Campus Life Channels & Guides */}
+      <div className="mb-6 bg-white border-2 border-slate-150 rounded-3xl p-4.5 shadow-sm" id="home-student-storyboard-section">
+        <div className="flex items-center justify-between mb-3 px-1">
+          <div className="flex items-center gap-2">
+            <span className="text-sm">🏛️</span>
+            <span className="text-xs font-black text-slate-800 uppercase tracking-wider">
+              {language === 'ar' ? 'أقسام وقنوات الدليل الجامعي' : language === 'ku' ? 'بەش و کەناڵەکانی زانکۆ' : 'Campus Guides & Topic Channels'}
+            </span>
+          </div>
+          <span className="text-[10px] text-emerald-600 font-extrabold px-2.5 py-0.5 bg-emerald-50 border border-emerald-200 rounded-full uppercase tracking-wide">
+            {language === 'ar' ? 'معتمد وموثق ✓' : language === 'ku' ? 'باوەڕپێکراو ✓' : 'VERIFIED FOR STUDENTS ✓'}
+          </span>
+        </div>
+
+        {/* Channels Horizontal Scrolling Container */}
+        <div className="flex gap-4 overflow-x-auto pb-2 pt-1 scrollbar-none snap-x touch-pan-x justify-start select-none" id="student-storyboard-row">
+          {campusLifeCategories.map((category) => {
+            const label = language === 'ar' ? category.labelAR : language === 'ku' ? category.labelKU : category.labelEN;
+            const isActive = selectedFeedTab === 'campus_life' && selectedCampusFilter === category.id;
+
+            return (
+              <button
+                key={category.id}
+                type="button"
+                onClick={() => {
+                  setSelectedFeedTab('campus_life');
+                  setSelectedCampusFilter(category.id);
+                  if (showToast) {
+                    showToast(language === 'ar' ? `الذهاب إلى: ${label}` : `Viewing: ${label}`, 'info');
+                  }
+                }}
+                className="flex flex-col items-center gap-1 cursor-pointer shrink-0 snap-center min-w-[76px] text-center focus:outline-none transition-transform active:scale-95 group"
+                id={`storyboard-capsule-${category.id}`}
+              >
+                {/* Topic Circular Gradient Ring */}
+                <div className="relative">
+                  <div className={`w-15 h-15 rounded-full p-[2.5px] bg-gradient-to-tr ${category.bg} transition-all group-hover:scale-105 shadow-sm`}>
+                    <div className="w-full h-full rounded-full flex items-center justify-center bg-white">
+                      <span className="text-2xl">{category.emoji}</span>
+                    </div>
+                  </div>
+                  
+                  {/* Small absolute green dot indicating verified channel */}
+                  <span className="absolute bottom-0.5 right-0.5 w-3.5 h-3.5 bg-emerald-500 border-2 border-white rounded-full flex items-center justify-center">
+                    <span className="text-[7px] text-white font-black leading-none">✓</span>
+                  </span>
+                </div>
+
+                {/* Name text below */}
+                <span className={`text-[10.5px] font-extrabold max-w-[76px] truncate leading-tight mt-1 transition-colors ${
+                  isActive ? 'text-orange-600' : 'text-slate-800 group-hover:text-orange-600'
+                }`}>
+                  {label}
+                </span>
+                
+                {/* Subtext */}
+                <span className="text-[8px] font-black text-slate-400 uppercase tracking-widest leading-none">
+                  {category.id.replace('_', ' ')}
+                </span>
+              </button>
+            );
+          })}
+        </div>
       </div>
 
       {/* 3 & 4. Governorate & University combined Row Filter */}
@@ -1829,11 +1659,6 @@ export default function HomeFeed({
               <button
                 key={shortcut.id}
                 onClick={() => {
-                  if (shortcut.id === 'job' && onSelectSection) {
-                    onSelectSection('jobs');
-                    return;
-                  }
-
                   setSelectedOppFilter(shortcut.id as any);
                   // Clear story category highlight matching
                   setActiveStoryFilter(null);
@@ -1883,7 +1708,7 @@ export default function HomeFeed({
       {selectedFeedTab === 'campus_life' && (
         <div 
           className="flex gap-4 mb-5 overflow-x-auto pb-3 pt-1.5 scrollbar-none snap-x touch-pan-x justify-start" 
-          id="campus-shortcuts-circles" hidden
+          id="campus-shortcuts-circles"
         >
           {[
             { id: 'all', emoji: '🏛️', labelEN: 'All', labelAR: 'الكل', labelKU: 'هەموو' },
@@ -2641,12 +2466,6 @@ export default function HomeFeed({
     </div>
   );
 }
-
-
-
-
-
-
 
 
 

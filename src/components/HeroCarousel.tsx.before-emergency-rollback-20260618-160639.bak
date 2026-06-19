@@ -1,0 +1,495 @@
+﻿import React, { useEffect, useMemo, useState } from 'react';
+
+const ADMIN_EMAIL = 'safaribosafar@gmail.com';
+const HERO_IMAGES_STORAGE_KEY = 'jamiaati_hero_images_v1';
+
+const DEFAULT_HERO_IMAGES: string[] = [
+  'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=1920',
+  'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=1920',
+  'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&q=80&w=1920',
+  'https://images.unsplash.com/photo-1607237138185-eedd9c632b0e?auto=format&fit=crop&q=80&w=1920',
+  'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?auto=format&fit=crop&q=80&w=1920'
+];
+
+function decodeJwtPayload(token: string): any | null {
+  try {
+    const part = token.split('.')[1];
+    if (!part) return null;
+
+    const base64 = part.replace(/-/g, '+').replace(/_/g, '/');
+    const json = decodeURIComponent(
+      atob(base64)
+        .split('')
+        .map((c) => `%${(`00${c.charCodeAt(0).toString(16)}`).slice(-2)}`)
+        .join('')
+    );
+
+    return JSON.parse(json);
+  } catch {
+    return null;
+  }
+}
+
+function findEmailDeep(value: any): string | null {
+  if (!value) return null;
+
+  if (typeof value === 'string') {
+    const trimmed = value.trim();
+
+    if (trimmed.includes('@') && trimmed.includes('.')) {
+      const emailMatch = trimmed.match(/[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/i);
+      if (emailMatch) return emailMatch[0].toLowerCase();
+    }
+
+    const jwtPayload = decodeJwtPayload(trimmed);
+    if (jwtPayload) return findEmailDeep(jwtPayload);
+
+    try {
+      return findEmailDeep(JSON.parse(trimmed));
+    } catch {
+      return null;
+    }
+  }
+
+  if (Array.isArray(value)) {
+    for (const item of value) {
+      const found = findEmailDeep(item);
+      if (found) return found;
+    }
+    return null;
+  }
+
+  if (typeof value === 'object') {
+    const emailFields = ['email', 'user_email', 'userEmail', 'mail'];
+
+    for (const field of emailFields) {
+      if (typeof value[field] === 'string' && value[field].includes('@')) {
+        return value[field].toLowerCase();
+      }
+    }
+
+    for (const key of Object.keys(value)) {
+      const found = findEmailDeep(value[key]);
+      if (found) return found;
+    }
+  }
+
+  return null;
+}
+
+function getLoggedInEmail(): string | null {
+  if (typeof window === 'undefined') return null;
+
+  const likelyKeys = [
+    'user',
+    'currentUser',
+    'authUser',
+    'profile',
+    'session',
+    'auth',
+    'token',
+    'authToken',
+    'accessToken',
+    'jwt',
+    'jamiaati_user',
+    'jamiaati_auth',
+    'jamiaati_token',
+    'rafid_user',
+    'rafid_auth',
+    'rafid_token'
+  ];
+
+  const stores = [window.localStorage, window.sessionStorage];
+
+  for (const store of stores) {
+    for (const key of likelyKeys) {
+      const value = store.getItem(key);
+      const email = findEmailDeep(value);
+      if (email) return email;
+    }
+  }
+
+  for (const store of stores) {
+    for (let i = 0; i < store.length; i++) {
+      const key = store.key(i) || '';
+      if (!/(user|auth|profile|session|token|jwt)/i.test(key)) continue;
+
+      const value = store.getItem(key);
+      const email = findEmailDeep(value);
+      if (email) return email;
+    }
+  }
+
+  return null;
+}
+
+function readStoredHeroImages(): string[] {
+  if (typeof window === 'undefined') return DEFAULT_HERO_IMAGES;
+
+  try {
+    const raw = window.localStorage.getItem(HERO_IMAGES_STORAGE_KEY);
+    const parsed = raw ? JSON.parse(raw) : null;
+
+    if (Array.isArray(parsed)) {
+      const cleaned = parsed
+        .map((item) => String(item || '').trim())
+        .filter(Boolean);
+
+      if (cleaned.length > 0) return cleaned;
+    }
+  } catch {
+    // Keep default images if stored data is broken.
+  }
+
+  return DEFAULT_HERO_IMAGES;
+}
+
+export default function HeroCarousel() {
+  const [currentIndex, setCurrentIndex] = useState(0);
+  const [heroImages, setHeroImages] = useState<string[]>(readStoredHeroImages);
+  const [isEditing, setIsEditing] = useState(false);
+  const [draftImages, setDraftImages] = useState<string[]>(heroImages);
+  const [newImageUrl, setNewImageUrl] = useState('');
+  const [message, setMessage] = useState('');
+  const [loggedInEmail, setLoggedInEmail] = useState<string | null>(null);
+
+  const isAdmin = useMemo(
+    () => loggedInEmail?.toLowerCase() === ADMIN_EMAIL,
+    [loggedInEmail]
+  );
+
+  useEffect(() => {
+    const syncAdmin = () => setLoggedInEmail(getLoggedInEmail());
+
+    syncAdmin();
+
+    window.addEventListener('storage', syncAdmin);
+    window.addEventListener('focus', syncAdmin);
+    window.addEventListener('jamiaati_auth_updated', syncAdmin);
+
+    return () => {
+      window.removeEventListener('storage', syncAdmin);
+      window.removeEventListener('focus', syncAdmin);
+      window.removeEventListener('jamiaati_auth_updated', syncAdmin);
+    };
+  }, []);
+
+  useEffect(() => {
+    const syncHeroImages = () => {
+      const nextImages = readStoredHeroImages();
+      setHeroImages(nextImages);
+      setDraftImages(nextImages);
+      setCurrentIndex(0);
+    };
+
+    window.addEventListener('storage', syncHeroImages);
+    window.addEventListener('jamiaati_hero_images_updated', syncHeroImages);
+
+    return () => {
+      window.removeEventListener('storage', syncHeroImages);
+      window.removeEventListener('jamiaati_hero_images_updated', syncHeroImages);
+    };
+  }, []);
+
+  useEffect(() => {
+    if (heroImages.length <= 1 || isEditing) return;
+
+    const timer = window.setInterval(() => {
+      setCurrentIndex((prev) => (prev + 1) % heroImages.length);
+    }, 4500);
+
+    return () => window.clearInterval(timer);
+  }, [heroImages.length, isEditing]);
+
+  useEffect(() => {
+    if (currentIndex >= heroImages.length) {
+      setCurrentIndex(0);
+    }
+  }, [currentIndex, heroImages.length]);
+
+  const previousSlide = () => {
+    setCurrentIndex((prev) => (prev - 1 + heroImages.length) % heroImages.length);
+  };
+
+  const nextSlide = () => {
+    setCurrentIndex((prev) => (prev + 1) % heroImages.length);
+  };
+
+  const startEditing = () => {
+    setDraftImages(heroImages);
+    setNewImageUrl('');
+    setMessage('');
+    setIsEditing(true);
+  };
+
+  const cancelEditing = () => {
+    setDraftImages(heroImages);
+    setNewImageUrl('');
+    setMessage('');
+    setIsEditing(false);
+  };
+
+  const updateDraftImage = (index: number, value: string) => {
+    setDraftImages((prev) =>
+      prev.map((item, idx) => (idx === index ? value : item))
+    );
+  };
+
+  const removeDraftImage = (index: number) => {
+    setDraftImages((prev) => {
+      const next = prev.filter((_, idx) => idx !== index);
+      return next.length > 0 ? next : prev;
+    });
+  };
+
+  const addImageUrl = () => {
+    const cleanUrl = newImageUrl.trim();
+
+    if (!cleanUrl) {
+      setMessage('Please paste an image URL first.');
+      return;
+    }
+
+    setDraftImages((prev) => [...prev, cleanUrl]);
+    setNewImageUrl('');
+    setMessage('Image added. Click Save to apply.');
+  };
+
+  const handleFileImage = (index: number | 'new', file?: File) => {
+    if (!file) return;
+
+    const reader = new FileReader();
+
+    reader.onload = () => {
+      const result = String(reader.result || '');
+
+      if (index === 'new') {
+        setDraftImages((prev) => [...prev, result]);
+      } else {
+        updateDraftImage(index, result);
+      }
+
+      setMessage('Image loaded. Click Save to apply.');
+    };
+
+    reader.onerror = () => {
+      setMessage('Could not read this image file.');
+    };
+
+    reader.readAsDataURL(file);
+  };
+
+  const saveImages = () => {
+    const cleaned = draftImages
+      .map((item) => item.trim())
+      .filter(Boolean);
+
+    if (cleaned.length === 0) {
+      setMessage('Please keep at least one hero image.');
+      return;
+    }
+
+    try {
+      window.localStorage.setItem(HERO_IMAGES_STORAGE_KEY, JSON.stringify(cleaned));
+      window.dispatchEvent(new Event('jamiaati_hero_images_updated'));
+
+      setHeroImages(cleaned);
+      setDraftImages(cleaned);
+      setCurrentIndex(0);
+      setIsEditing(false);
+      setMessage('Hero images saved successfully.');
+    } catch {
+      setMessage('Could not save. The image may be too large for browser storage. Try using image URLs instead.');
+    }
+  };
+
+  const activeImage = heroImages[currentIndex] || heroImages[0];
+
+  return (
+    <section className="relative w-full overflow-hidden rounded-3xl mb-5 shadow-md bg-slate-950 aspect-[16/9]">
+      {activeImage && (
+        <img
+          src={activeImage}
+          alt={`Hero slide ${currentIndex + 1}`}
+          className="absolute inset-0 h-full w-full object-cover transition-all duration-700"
+        />
+      )}
+
+      <div className="absolute inset-0 bg-gradient-to-t from-black/35 via-black/5 to-transparent" />
+
+      {heroImages.length > 1 && !isEditing && (
+        <>
+          <button
+            type="button"
+            onClick={previousSlide}
+            className="absolute left-3 top-1/2 -translate-y-1/2 rounded-full bg-white/85 px-3 py-2 text-sm font-black text-slate-900 shadow hover:bg-white"
+            aria-label="Previous hero image"
+          >
+            ‹
+          </button>
+
+          <button
+            type="button"
+            onClick={nextSlide}
+            className="absolute right-3 top-1/2 -translate-y-1/2 rounded-full bg-white/85 px-3 py-2 text-sm font-black text-slate-900 shadow hover:bg-white"
+            aria-label="Next hero image"
+          >
+            ›
+          </button>
+        </>
+      )}
+
+      {!isEditing && (
+        <div className="absolute bottom-3 left-0 right-0 flex items-center justify-center gap-2">
+          {heroImages.map((_, index) => (
+            <button
+              key={index}
+              type="button"
+              onClick={() => setCurrentIndex(index)}
+              className={`h-2 rounded-full transition-all ${
+                index === currentIndex ? 'w-8 bg-white' : 'w-2 bg-white/55'
+              }`}
+              aria-label={`Go to hero image ${index + 1}`}
+            />
+          ))}
+        </div>
+      )}
+
+      {isAdmin && !isEditing && (
+        <button
+          type="button"
+          onClick={startEditing}
+          className="absolute right-3 top-3 rounded-full bg-white/95 px-4 py-2 text-xs font-black text-slate-900 shadow-lg hover:bg-white"
+        >
+          ✎ Edit Hero
+        </button>
+      )}
+
+      {isAdmin && isEditing && (
+        <div className="absolute inset-0 overflow-y-auto bg-slate-950/92 p-4 text-white backdrop-blur">
+          <div className="mx-auto max-w-3xl rounded-2xl bg-white p-4 text-slate-900 shadow-2xl">
+            <div className="mb-3 flex items-center justify-between gap-3">
+              <div>
+                <h3 className="text-base font-black">Edit Hero Images</h3>
+                <p className="text-xs text-slate-500">
+                  Frontend-only editing for {ADMIN_EMAIL}. Use image URLs for best stability.
+                </p>
+              </div>
+
+              <button
+                type="button"
+                onClick={cancelEditing}
+                className="rounded-full border px-3 py-1 text-xs font-bold"
+              >
+                Close
+              </button>
+            </div>
+
+            <div className="space-y-3">
+              {draftImages.map((image, index) => (
+                <div key={index} className="rounded-2xl border border-slate-200 p-3">
+                  <div className="mb-2 flex items-center gap-3">
+                    <img
+                      src={image}
+                      alt={`Draft hero ${index + 1}`}
+                      className="h-16 w-24 rounded-xl object-cover bg-slate-100"
+                    />
+
+                    <div className="flex-1">
+                      <label className="mb-1 block text-[11px] font-black uppercase text-slate-500">
+                        Image {index + 1} URL
+                      </label>
+                      <input
+                        value={image}
+                        onChange={(e) => updateDraftImage(index, e.target.value)}
+                        className="w-full rounded-xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-slate-900"
+                        placeholder="Paste image URL"
+                      />
+                    </div>
+                  </div>
+
+                  <div className="flex flex-wrap gap-2">
+                    <label className="cursor-pointer rounded-full bg-slate-100 px-3 py-2 text-xs font-bold hover:bg-slate-200">
+                      Replace with file
+                      <input
+                        type="file"
+                        accept="image/*"
+                        className="hidden"
+                        onChange={(e) => handleFileImage(index, e.target.files?.[0])}
+                      />
+                    </label>
+
+                    <button
+                      type="button"
+                      onClick={() => removeDraftImage(index)}
+                      className="rounded-full bg-red-50 px-3 py-2 text-xs font-bold text-red-700 hover:bg-red-100"
+                    >
+                      Remove
+                    </button>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            <div className="mt-4 rounded-2xl border border-dashed border-slate-300 p-3">
+              <label className="mb-1 block text-[11px] font-black uppercase text-slate-500">
+                Add new image URL
+              </label>
+
+              <div className="flex flex-col gap-2 sm:flex-row">
+                <input
+                  value={newImageUrl}
+                  onChange={(e) => setNewImageUrl(e.target.value)}
+                  className="flex-1 rounded-xl border border-slate-200 px-3 py-2 text-xs outline-none focus:border-slate-900"
+                  placeholder="Paste new hero image URL"
+                />
+
+                <button
+                  type="button"
+                  onClick={addImageUrl}
+                  className="rounded-xl bg-slate-900 px-4 py-2 text-xs font-black text-white"
+                >
+                  Add URL
+                </button>
+
+                <label className="cursor-pointer rounded-xl bg-slate-100 px-4 py-2 text-center text-xs font-black hover:bg-slate-200">
+                  Add File
+                  <input
+                    type="file"
+                    accept="image/*"
+                    className="hidden"
+                    onChange={(e) => handleFileImage('new', e.target.files?.[0])}
+                  />
+                </label>
+              </div>
+            </div>
+
+            {message && (
+              <p className="mt-3 rounded-xl bg-slate-100 px-3 py-2 text-xs font-bold text-slate-700">
+                {message}
+              </p>
+            )}
+
+            <div className="mt-4 flex flex-wrap justify-end gap-2">
+              <button
+                type="button"
+                onClick={cancelEditing}
+                className="rounded-xl border border-slate-200 px-4 py-2 text-xs font-black"
+              >
+                Cancel
+              </button>
+
+              <button
+                type="button"
+                onClick={saveImages}
+                className="rounded-xl bg-emerald-600 px-4 py-2 text-xs font-black text-white hover:bg-emerald-700"
+              >
+                Save Hero Images
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </section>
+  );
+}
