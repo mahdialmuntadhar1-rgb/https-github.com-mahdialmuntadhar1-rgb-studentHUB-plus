@@ -655,12 +655,49 @@ app.post('/api/auth/forgot-password', async (c) => {
     await c.env.DB.prepare(`
       INSERT INTO password_resets (email, token, expires_at, created_at)
       VALUES (?, ?, ?, ?)
-    `).bind(email, token, expiresAt, new Date().toISOString()).run();
-    
-    // In production, send email via RESEND_API_KEY
-    // For now, return the token for dev/testing (NOT SECURE for production)
+    `).bind(normalizedEmail, token, expiresAt, new Date().toISOString()).run();
+    // Send real password reset email via Resend.
     if (c.env.RESEND_API_KEY && c.env.PASSWORD_RESET_FROM_EMAIL) {
-      // TODO: Implement actual email sending
+      const resetUrl = new URL('/api/auth/reset-password', c.req.url);
+      resetUrl.searchParams.set('token', token);
+
+      const toEmail = String(user.email || normalizedEmail).trim().toLowerCase();
+      const resetUrlText = resetUrl.toString();
+
+      const emailResponse = await fetch('https://api.resend.com/emails', {
+        method: 'POST',
+        headers: {
+          'Authorization': `Bearer ${c.env.RESEND_API_KEY}`,
+          'Content-Type': 'application/json'
+        },
+        body: JSON.stringify({
+          from: c.env.PASSWORD_RESET_FROM_EMAIL,
+          to: [toEmail],
+          subject: 'Reset your Jamiaati password',
+          html: `
+            <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #111827;">
+              <h2>Reset your Jamiaati password</h2>
+              <p>You requested to reset your password for Jamiaati / StudentHUB.</p>
+              <p>Click the button below to choose a new password. This link expires in 1 hour.</p>
+              <p style="margin: 28px 0;">
+                <a href="${resetUrlText}" style="background:#ff6b00;color:#111827;padding:14px 22px;border-radius:14px;text-decoration:none;font-weight:800;display:inline-block;">
+                  Change Password
+                </a>
+              </p>
+              <p style="font-size:13px;color:#4b5563;">If the button does not work, copy this link:</p>
+              <p style="font-size:13px;word-break:break-all;color:#2563eb;">${resetUrlText}</p>
+            </div>
+          `,
+          text: `Reset your Jamiaati password: ${resetUrlText}`
+        })
+      });
+
+      if (!emailResponse.ok) {
+        const emailError = await emailResponse.text();
+        console.error('Password reset email send failed:', emailError);
+        return c.json({ error: 'Failed to send reset email' }, 500);
+      }
+
       return c.json({ message: 'Reset email sent' });
     } else {
       // Dev mode: return token (NOT for production)
@@ -676,6 +713,73 @@ app.post('/api/auth/forgot-password', async (c) => {
     return c.json({ error: 'Failed to process request' }, 500);
   }
 });
+
+
+// GET /api/auth/reset-password
+// Browser page for password reset links sent by email.
+app.get('/api/auth/reset-password', async (c) => {
+  const token = String(c.req.query('token') || '').trim();
+  const safeToken = token.replace(/[<>"']/g, '');
+
+  return c.html(`<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Change Password | Jamiaati</title>
+  <style>
+    body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;font-family:Arial,sans-serif;padding:20px;color:#111827}
+    .card{width:100%;max-width:430px;background:#fffaf3;border:2px solid #fdba74;border-radius:28px;padding:28px;box-shadow:0 30px 80px rgba(0,0,0,.35)}
+    h1{margin:0 0 10px;font-size:24px;font-weight:900;color:#111827}
+    p{color:#374151;line-height:1.5}
+    label{display:block;margin:18px 0 8px;font-size:12px;font-weight:900;text-transform:uppercase}
+    input{width:100%;box-sizing:border-box;padding:14px 16px;border-radius:16px;border:2px solid #fed7aa;font-size:16px;font-weight:700;color:#111827;background:#fff}
+    button{width:100%;margin-top:18px;padding:15px 18px;border:0;border-radius:16px;background:#ff6b00;color:#111827;font-weight:900;font-size:15px;cursor:pointer}
+    .msg{margin-top:14px;font-weight:800;color:#111827}.error{color:#b91c1c}.success{color:#047857}
+    a{color:#2563eb;font-weight:800}
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Change your password</h1>
+    <p>Choose a new password for your Jamiaati account.</p>
+    <form id="resetForm">
+      <input id="token" type="hidden" value="${safeToken}" />
+      <label>New password</label>
+      <input id="newPassword" type="password" minlength="6" required />
+      <label>Confirm password</label>
+      <input id="confirmPassword" type="password" minlength="6" required />
+      <button type="submit">Save new password</button>
+    </form>
+    <div id="message" class="msg"></div>
+    <p style="font-size:13px;margin-top:22px;"><a href="https://jamiaati.kaniq.org">Back to Jamiaati</a></p>
+  </div>
+  <script>
+    const form=document.getElementById('resetForm');
+    const message=document.getElementById('message');
+    if(!document.getElementById('token').value){message.className='msg error';message.textContent='Invalid reset link. Request a new reset email.';form.style.display='none';}
+    form.addEventListener('submit',async(e)=>{
+      e.preventDefault();
+      const token=document.getElementById('token').value;
+      const newPassword=document.getElementById('newPassword').value;
+      const confirmPassword=document.getElementById('confirmPassword').value;
+      if(newPassword.length<6){message.className='msg error';message.textContent='Password must be at least 6 characters.';return;}
+      if(newPassword!==confirmPassword){message.className='msg error';message.textContent='Passwords do not match.';return;}
+      message.className='msg';message.textContent='Saving...';
+      try{
+        const response=await fetch('/api/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,newPassword})});
+        const data=await response.json().catch(()=>({}));
+        if(!response.ok) throw new Error(data.error || 'Failed to reset password');
+        localStorage.removeItem('jamiaati_token');localStorage.removeItem('admin_token');localStorage.removeItem('jamiaati_auth_user');
+        message.className='msg success';message.textContent='Password changed successfully. Redirecting...';
+        setTimeout(()=>{window.location.href='https://jamiaati.kaniq.org?passwordReset=success';},1600);
+      }catch(error){message.className='msg error';message.textContent=error.message || 'Failed to reset password.';}
+    });
+  </script>
+</body>
+</html>`);
+});
+
 
 // POST /api/auth/reset-password
 app.post('/api/auth/reset-password', async (c) => {
@@ -1730,6 +1834,7 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
+
 
 
 
