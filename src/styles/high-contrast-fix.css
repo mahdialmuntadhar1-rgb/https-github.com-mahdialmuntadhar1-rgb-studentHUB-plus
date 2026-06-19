@@ -127,3 +127,36 @@ body { padding-top: 0; }
   min-height: 30px;
   white-space: nowrap;
 }
+
+/* Home Opportunities readability patch */
+#empty-feed-card,
+#empty-feed-card * {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  opacity: 1 !important;
+}
+
+#home-feed-tabs-selector,
+#home-feed-tabs-selector * {
+  -webkit-text-fill-color: unset !important;
+  opacity: 1 !important;
+}
+
+#inline-language-bar,
+#inline-language-bar * {
+  color: inherit;
+  opacity: 1 !important;
+  -webkit-text-fill-color: unset !important;
+}
+
+#home-feed-container select,
+#home-feed-container input {
+  color: #0f172a !important;
+  -webkit-text-fill-color: #0f172a !important;
+  background: #ffffff !important;
+}
+
+#home-feed-container input::placeholder {
+  color: #334155 !important;
+  opacity: 1 !important;
+}

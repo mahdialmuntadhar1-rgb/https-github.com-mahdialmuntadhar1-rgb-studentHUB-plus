@@ -350,6 +350,41 @@ export default function HomeFeed({
   
   const studentsToDiscover: any[] = [];
 
+  const normalizeHomeGovernorateId = (raw: any): string => {
+    const text = String(raw || '').trim().toLowerCase();
+
+    if (!text || text === 'all' || text === 'iraq' || text === 'all iraq' || text === 'iraq-wide') return 'all';
+
+    const aliases: Record<string, string[]> = {
+      baghdad: ['baghdad', 'بغداد'],
+      erbil: ['erbil', 'hawler', 'هەولێر', 'اربيل', 'أربيل'],
+      basra: ['basra', 'basrah', 'البصرة'],
+      sulaymaniyah: ['sulaymaniyah', 'sulaimani', 'sulaimaniyah', 'slemani', 'سلێمانی', 'السليمانية'],
+      nineveh: ['nineveh', 'mosul', 'ninhava', 'نينوى', 'الموصل'],
+      duhok: ['duhok', 'dohuk', 'دهوك', 'دهۆک'],
+      kirkuk: ['kirkuk', 'كركوك'],
+      anbar: ['anbar', 'الانبار', 'الأنبار'],
+      diyala: ['diyala', 'ديالى'],
+      salah_al_din: ['salah', 'salah al-din', 'صلاح الدين'],
+      najaf: ['najaf', 'النجف'],
+      karbala: ['karbala', 'kerbala', 'كربلاء'],
+      babil: ['babil', 'babylon', 'بابل'],
+      wasit: ['wasit', 'واسط'],
+      maysan: ['maysan', 'missan', 'ميسان'],
+      dhi_qar: ['dhi qar', 'thi qar', 'ذي قار'],
+      muthanna: ['muthanna', 'المثنى'],
+      al_qadisiyah: ['qadisiyah', 'qadisiyyah', 'diwaniyah', 'القادسية', 'الديوانية'],
+      halabja: ['halabja', 'حلبجة', 'هەڵەبجە']
+    };
+
+    for (const [govId, names] of Object.entries(aliases)) {
+      if (text === govId || names.some(alias => text.includes(alias.toLowerCase()))) return govId;
+    }
+
+    return text.replace(/\s+/g, '_').replace(/-/g, '_').replace(/[^\w_]/g, '');
+  };
+
+
   // Safe mapper for backend opportunities to FeedItem shape
   const mapBackendOpportunity = (item: any): FeedItem => {
     const categoryRaw = (item.category || item.type || 'job').toLowerCase();
@@ -384,7 +419,7 @@ export default function HomeFeed({
     const contentKU = cleanDisplayText(item.contentKU || item.description_ku || item.description || item.summary, contentEN, categoryRaw);
 
     const orgName = item.organization || item.institution_name || item.company || 'Recruiter/Provider';
-    const gov = item.governorateId || item.governorate || 'all';
+    const gov = normalizeHomeGovernorateId(item.governorateId || item.governorate || item.location || item.city || item.duty_station || item.work_location);
     const country = item.country || 'Iraq';
     const city = item.city || '';
     
@@ -523,38 +558,42 @@ export default function HomeFeed({
     };
   };
 
-  // Fetch backend opportunities when selectedOppFilter changes
+  // Fetch backend opportunities for the whole Opportunities tab.
+  // Do not rely on local mock feed only. Fetch a large approved backend list, then filter locally.
   useEffect(() => {
-    if (selectedFeedTab === 'opportunities' && selectedOppFilter !== 'all') {
-      const categoryMap: Record<string, string> = {
-        'job': 'job',
-        'scholarship': 'scholarship',
-        'training': 'training',
-        'internship': 'internship',
-        'admission': 'admission',
-        'announcement': 'announcement',
-        'news': 'news',
-        'deadline': 'deadline'
-      };
-      
-      const category = categoryMap[selectedOppFilter];
-      if (category) {
-        setIsLoadingBackend(true);
-        setBackendError(null);
-        getOpportunities({ category, page: 1, limit: 50 }, language)
-          .then(result => {
-            setBackendOpportunities(result.items.map(mapBackendOpportunity));
-          })
-          .catch(err => {
-            setBackendError(err.message || 'Failed to load opportunities');
-          })
-          .finally(() => {
-            setIsLoadingBackend(false);
-          });
-      }
-    } else {
+    if (selectedFeedTab !== 'opportunities') {
       setBackendOpportunities([]);
+      return;
     }
+
+    const categoryMap: Record<string, string> = {
+      'job': 'job',
+      'scholarship': 'scholarship',
+      'training': 'training',
+      'internship': 'internship',
+      'admission': 'admission',
+      'announcement': 'announcement',
+      'news': 'news',
+      'deadline': 'deadline'
+    };
+
+    const category = selectedOppFilter !== 'all' ? categoryMap[selectedOppFilter] : undefined;
+
+    setIsLoadingBackend(true);
+    setBackendError(null);
+
+    getOpportunities({ category, page: 1, limit: 5000 }, language)
+      .then((result: any) => {
+        const rawItems = Array.isArray(result) ? result : Array.isArray(result?.items) ? result.items : [];
+        setBackendOpportunities(rawItems.map(mapBackendOpportunity));
+      })
+      .catch(err => {
+        setBackendError(err.message || 'Failed to load opportunities');
+        setBackendOpportunities([]);
+      })
+      .finally(() => {
+        setIsLoadingBackend(false);
+      });
   }, [selectedFeedTab, selectedOppFilter, language]);
 
   const campusLifeCategories = [
@@ -1298,13 +1337,23 @@ export default function HomeFeed({
     'admission', 'announcement', 'news', 'deadline'
   ];
 
-  // Filter by governorate & university first (keeps the university & city ownership solid)
+  // Filter by governorate & university first.
+  // For opportunities, governorate matters but university should not hide jobs/scholarships.
   const matchesGovAndUni = (item: any) => {
-    const itemGov = item.governorateId;
-    const itemUni = item.universityId;
+    const itemGovText = [
+      item.governorateId,
+      item.governorate,
+      item.location,
+      item.city,
+      Array.isArray(item.tags) ? item.tags.join(' ') : ''
+    ].filter(Boolean).join(' ');
 
-    const matchesGov = selectedGov === 'all' || !itemGov || itemGov === 'all' || itemGov === selectedGov;
-    const matchesUni = selectedUni === 'all' || !itemUni || itemUni === 'all' || itemUni === selectedUni;
+    const normalizedItemGov = normalizeHomeGovernorateId(itemGovText);
+    const itemUni = item.universityId;
+    const isOpportunityItem = seriousTypes.includes(item.type);
+
+    const matchesGov = selectedGov === 'all' || normalizedItemGov === 'all' || normalizedItemGov === selectedGov;
+    const matchesUni = isOpportunityItem || selectedUni === 'all' || !itemUni || itemUni === 'all' || itemUni === selectedUni;
     
     return matchesGov && matchesUni;
   };
@@ -2641,6 +2690,7 @@ export default function HomeFeed({
     </div>
   );
 }
+
 
 
 
