@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { Language, FeedItem } from '../types';
 import { IraqiGovernorates, IraqiUniversities } from '../data/mockData';
 import {
@@ -273,6 +273,23 @@ const JOB_SOURCES: JobSource[] = [
   { name: 'Asiacell LinkedIn Jobs', url: 'https://www.linkedin.com/company/asiacell/jobs/', group: 'Company career pages', bestFor: 'Asiacell telecom job posts through LinkedIn', mode: 'direct' }
 ];
 
+const FAST_JOB_SOURCE_NAMES = new Set([
+  'Iraq Jobs Scout',
+  'Jobs.KRD',
+  'Kurdistan Jobs',
+  'mselect Jobs',
+  'Shull Solutions',
+  'Erbil Manpower',
+  'NGOs Jobs & Bids',
+  'UNjobs Iraq',
+  'Impactpool Iraq',
+  'UN Talent Iraq',
+  'LinkedIn Iraq Jobs',
+  'Bayt Iraq'
+]);
+
+const JOB_CACHE_TTL_MS = 10 * 60 * 1000;
+
 function iqScoutSlug(govName: string) {
   const v = govName.toLowerCase();
   if (v.includes('sulay')) return 'sulaymaniyah';
@@ -331,18 +348,40 @@ function htmlDecode(text: string) {
   return textarea.value;
 }
 
+function fetchWithTimeout(url: string, ms = 4500) {
+  const controller = new AbortController();
+  const timeout = setTimeout(() => controller.abort(), ms);
+
+  return fetch(url, { signal: controller.signal }).finally(() => {
+    clearTimeout(timeout);
+  });
+}
+
 async function fetchHtmlViaProxy(url: string) {
-  for (const proxy of PROXIES) {
-    try {
-      const response = await fetch(proxy(url), { signal: AbortSignal.timeout(8500) });
-      if (!response.ok) continue;
-      const text = await response.text();
-      if (text && text.length > 300) return text;
-    } catch (_) {
-      // Try next proxy.
-    }
-  }
-  return '';
+  return new Promise<string>((resolve) => {
+    let pending = PROXIES.length;
+    let finished = false;
+
+    PROXIES.forEach(async (proxy) => {
+      try {
+        const response = await fetchWithTimeout(proxy(url), 4500);
+        if (!response.ok) throw new Error(`Proxy failed ${response.status}`);
+
+        const text = await response.text();
+        if (text && text.length > 300 && !finished) {
+          finished = true;
+          resolve(text);
+        }
+      } catch (_) {
+        // Ignore this proxy and wait for another one.
+      } finally {
+        pending -= 1;
+        if (pending === 0 && !finished) {
+          resolve('');
+        }
+      }
+    });
+  });
 }
 
 function cleanJobTitle(raw: string, sourceName: string) {
@@ -454,10 +493,12 @@ function extractJobLinks(html: string, source: JobSource, sourceUrl: string, gov
 
 async function fetchLiveJobsFromSources(governorateId: string, governorateName: string, sourceName: string) {
   const results: FeedItem[] = [];
-  const selectedSources = sourceName === 'all'
+  const selectedSources = sourceName === 'recommended'
+    ? JOB_SOURCES.filter((source) => FAST_JOB_SOURCE_NAMES.has(source.name))
+    : sourceName === 'all'
     ? JOB_SOURCES
     : JOB_SOURCES.filter((source) => source.name === sourceName);
-  const batchSize = 4;
+  const batchSize = 8;
 
   for (let i = 0; i < selectedSources.length; i += batchSize) {
     const batch = selectedSources.slice(i, i + batchSize);
@@ -476,6 +517,48 @@ async function fetchLiveJobsFromSources(governorateId: string, governorateName: 
     if (!byUrl.has(url)) byUrl.set(url, item);
   }
   return Array.from(byUrl.values()).slice(0, 120);
+}
+
+function getJobCacheKey(governorateId: string, sourceName: string) {
+  return `jamiaati_live_jobs_${governorateId}_${sourceName}`;
+}
+
+function readCachedLiveJobs(cacheKey: string): FeedItem[] | null {
+  if (typeof window === 'undefined') return null;
+
+  try {
+    const raw = window.sessionStorage.getItem(cacheKey);
+    if (!raw) return null;
+
+    const parsed = JSON.parse(raw);
+    if (!parsed || !Array.isArray(parsed.items)) return null;
+
+    const createdAt = Number(parsed.createdAt || 0);
+    if (!createdAt || Date.now() - createdAt > JOB_CACHE_TTL_MS) {
+      window.sessionStorage.removeItem(cacheKey);
+      return null;
+    }
+
+    return parsed.items as FeedItem[];
+  } catch {
+    return null;
+  }
+}
+
+function writeCachedLiveJobs(cacheKey: string, items: FeedItem[]) {
+  if (typeof window === 'undefined') return;
+
+  try {
+    window.sessionStorage.setItem(
+      cacheKey,
+      JSON.stringify({
+        createdAt: Date.now(),
+        items: items.slice(0, 120)
+      })
+    );
+  } catch {
+    // Ignore cache write problems.
+  }
 }
 
 export default function SectionView({
@@ -500,7 +583,7 @@ export default function SectionView({
 }: SectionViewProps) {
   const [items, setItems] = useState<FeedItem[]>([]);
   const [liveJobItems, setLiveJobItems] = useState<FeedItem[]>([]);
-  const [selectedJobSource, setSelectedJobSource] = useState<string>('all');
+  const [selectedJobSource, setSelectedJobSource] = useState<string>('recommended');
   const [loading, setLoading] = useState(true);
   const [liveLoading, setLiveLoading] = useState(false);
   const [errorStatus, setErrorStatus] = useState<string | null>(null);
@@ -625,7 +708,17 @@ export default function SectionView({
     const runLiveAggregator = async () => {
       setLiveLoading(true);
       try {
+        const cacheKey = getJobCacheKey(selectedGov, selectedJobSource);
+        const cachedJobs = readCachedLiveJobs(cacheKey);
+
+        if (cachedJobs) {
+          if (active) setLiveJobItems(cachedJobs);
+          return;
+        }
+
         const liveJobs = await fetchLiveJobsFromSources(selectedGov, selectedGovNameEN, selectedJobSource);
+        writeCachedLiveJobs(cacheKey, liveJobs);
+
         if (active) setLiveJobItems(liveJobs);
       } catch (err) {
         console.warn('Live job aggregator failed:', err);
@@ -728,7 +821,8 @@ export default function SectionView({
                 onChange={(e) => setSelectedJobSource(e.target.value)}
                 className="w-full rounded-2xl bg-white text-[#0B1020] px-3 py-3 text-sm font-black border-2 border-[#0B1020]/20 focus:outline-none cursor-pointer shadow-inner"
               >
-                <option value="all">🌐 {language === 'ar' ? 'كل المصادر' : language === 'ku' ? 'هەموو سەرچاوەکان' : 'All Sources'}</option>
+                <option value="recommended">⚡ {language === 'ar' ? 'مصادر سريعة مقترحة' : language === 'ku' ? 'سەرچاوە خێرا پێشنیازکراوەکان' : 'Recommended Fast Sources'}</option>
+                <option value="all">🌐 {language === 'ar' ? 'كل المصادر - أبطأ' : language === 'ku' ? 'هەموو سەرچاوەکان - هێواشتر' : 'All Sources - Slower'}</option>
                 {JOB_SOURCES.map((source) => (
                   <option key={source.name} value={source.name}>{source.name}</option>
                 ))}
@@ -857,3 +951,4 @@ export default function SectionView({
     </div>
   );
 }
+
