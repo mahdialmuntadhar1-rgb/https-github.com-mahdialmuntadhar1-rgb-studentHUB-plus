@@ -642,8 +642,58 @@ export const socialApi = {
       console.error('Error in sendThreadMessage:', err);
       throw err;
     }
+  },
+
+  async reportMessage(messageId: string, reason: string = 'safety', note: string = '', lang: Language = 'ar'): Promise<any> {
+    const res = await fetch(`${API_BASE}/messages/${encodeURIComponent(messageId)}/report`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ reason, note }),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async blockUser(targetUserId: string, reason: string = '', lang: Language = 'ar'): Promise<any> {
+    const res = await fetch(`${API_BASE}/users/${encodeURIComponent(targetUserId)}/block`, {
+      method: 'POST',
+      headers: getHeaders(),
+      body: JSON.stringify({ reason }),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async unblockUser(targetUserId: string, lang: Language = 'ar'): Promise<any> {
+    const res = await fetch(`${API_BASE}/users/${encodeURIComponent(targetUserId)}/block`, {
+      method: 'DELETE',
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async getBlockedUsers(lang: Language = 'ar'): Promise<any> {
+    const res = await fetch(`${API_BASE}/users/blocked`, {
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async getMessageReports(status: string = 'pending', lang: Language = 'ar'): Promise<any> {
+    const res = await fetch(`${API_BASE}/admin/moderation/message-reports?status=${encodeURIComponent(status)}`, {
+      headers: getHeaders(),
+    });
+    return await handleResponse(res, lang);
+  },
+
+  async updateMessageReport(reportId: string, status: string, note: string = '', lang: Language = 'ar'): Promise<any> {
+    const res = await fetch(`${API_BASE}/admin/moderation/message-reports/${encodeURIComponent(reportId)}`, {
+      method: 'PATCH',
+      headers: getHeaders(),
+      body: JSON.stringify({ status, note }),
+    });
+    return await handleResponse(res, lang);
   }
 };
+
 
 
 

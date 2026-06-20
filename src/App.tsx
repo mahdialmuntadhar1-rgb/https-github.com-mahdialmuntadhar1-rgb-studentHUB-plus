@@ -14,6 +14,7 @@ import SectionView from './components/SectionView';
 import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
+import AdminModeration from './components/AdminModeration';
 import SocialHub from './components/SocialHub';
 import UserProfileModal from './components/UserProfileModal';
 import UniversitiesList from './components/UniversitiesList';
@@ -1214,12 +1215,20 @@ export default function App() {
         );
       case 'admin':
         return (
-          <AdminAutomation
-            language={language}
-            onBack={() => setActiveTab('profile')}
-            showToast={showToast}
-            userRole={hasAuthenticatedAdminAccess ? 'admin' : 'student'}
-          />
+          <>
+            <AdminAutomation
+              language={language}
+              onBack={() => setActiveTab('profile')}
+              showToast={showToast}
+              userRole={hasAuthenticatedAdminAccess ? 'admin' : 'student'}
+            />
+            {hasAuthenticatedAdminAccess && (
+              <AdminModeration
+                language={language}
+                showToast={showToast}
+              />
+            )}
+          </>
         );
       case 'chats':
         return (
@@ -1445,6 +1454,7 @@ export default function App() {
     </div>
   );
 };
+
 
 
 

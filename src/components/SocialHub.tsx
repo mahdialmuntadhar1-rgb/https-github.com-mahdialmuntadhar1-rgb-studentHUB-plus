@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import { 
   Language, 
   FriendRequestsResponse, 
@@ -29,7 +29,9 @@ import {
   MessageCircle,
   Check,
   X,
-  Sparkles
+  Sparkles,
+  Flag,
+  Ban
 } from 'lucide-react';
 
 interface SocialHubProps {
@@ -439,6 +441,59 @@ export default function SocialHub({
     }
   };
 
+  const handleReportMessage = async (msg: ThreadMessage) => {
+    if (!msg?.id || msg.senderId === 'me') return;
+
+    if (msg.id.startsWith('m1') || msg.id.startsWith('m2') || msg.id.startsWith('m3') || msg.id.includes('demo')) {
+      showToast(language === 'ar' ? 'هذه رسالة تجريبية ولا يمكن الإبلاغ عنها.' : 'Demo messages cannot be reported.', 'info');
+      return;
+    }
+
+    const reason = window.prompt(
+      language === 'ar'
+        ? 'سبب البلاغ؟ مثال: إساءة، إزعاج، احتيال، تحرش'
+        : language === 'ku'
+          ? 'هۆکاری ڕاپۆرت؟ نموونە: بێڕێزی، بێزارکردن، فێڵ، هەراسانکردن'
+          : 'Reason for report? Example: abuse, spam, scam, harassment',
+      'safety'
+    );
+
+    if (!reason) return;
+
+    try {
+      await socialApi.reportMessage(msg.id, reason, '', language);
+      showToast(language === 'ar' ? 'تم إرسال البلاغ للمراجعة.' : language === 'ku' ? 'ڕاپۆرتەکە نێردرا بۆ پێداچوونەوە.' : 'Report sent for moderation review.', 'success');
+    } catch (err: any) {
+      showToast(err.message || 'Failed to report message', 'error');
+    }
+  };
+
+  const handleBlockActiveUser = async () => {
+    if (!activeThread?.opponentId) {
+      showToast(language === 'ar' ? 'لا يمكن تحديد المستخدم لحظره.' : 'Cannot identify user to block.', 'error');
+      return;
+    }
+
+    const ok = window.confirm(
+      language === 'ar'
+        ? `هل تريد حظر ${activeThread.opponentName}؟`
+        : language === 'ku'
+          ? `دەتەوێت ${activeThread.opponentName} بلۆک بکەیت؟`
+          : `Block ${activeThread.opponentName}?`
+    );
+
+    if (!ok) return;
+
+    try {
+      await socialApi.blockUser(activeThread.opponentId, 'blocked_from_chat', language);
+      showToast(language === 'ar' ? 'تم حظر المستخدم.' : language === 'ku' ? 'بەکارهێنەرەکە بلۆک کرا.' : 'User blocked.', 'success');
+      setActiveThread(null);
+      loadSocialStats(true);
+    } catch (err: any) {
+      showToast(err.message || 'Failed to block user', 'error');
+    }
+  };
+
   // Accept Friend Request Action
   const handleAcceptFriend = async (id: string, isDemo = false) => {
     setLoading(true);
@@ -613,13 +668,25 @@ export default function SocialHub({
             </div>
           </div>
 
-          <button
-            onClick={() => fetchThreadMessages(activeThread.id)}
-            disabled={refreshingChat}
-            className="p-1 px-1.5 text-slate-350 hover:text-white hover:bg-slate-800 rounded-lg cursor-pointer transition-colors"
-          >
-            <RefreshCw className={`w-3.5 h-3.5 ${refreshingChat ? 'animate-spin' : ''}`} />
-          </button>
+          <div className="flex items-center gap-1.5">
+            {activeThread.opponentId && (
+              <button
+                id="privacy-block-user-btn"
+                onClick={handleBlockActiveUser}
+                className="p-1 px-1.5 text-red-300 hover:text-white hover:bg-red-600/25 rounded-lg cursor-pointer transition-colors"
+                title={language === 'ar' ? 'حظر المستخدم' : 'Block user'}
+              >
+                <Ban className="w-3.5 h-3.5" />
+              </button>
+            )}
+            <button
+              onClick={() => fetchThreadMessages(activeThread.id)}
+              disabled={refreshingChat}
+              className="p-1 px-1.5 text-slate-350 hover:text-white hover:bg-slate-800 rounded-lg cursor-pointer transition-colors"
+            >
+              <RefreshCw className={`w-3.5 h-3.5 ${refreshingChat ? 'animate-spin' : ''}`} />
+            </button>
+          </div>
         </div>
 
         {/* Chat Messages List Panel */}
@@ -659,9 +726,22 @@ export default function SocialHub({
                     >
                       {msgRef.body}
                     </div>
-                    <span className={`text-[8px] text-slate-500 mt-1 ${isMineMsg ? 'text-right' : 'text-left'}`}>
-                      {msgRef.createdAt}
-                    </span>
+                    <div className={`mt-1 flex items-center gap-2 ${isMineMsg ? 'justify-end' : 'justify-start'}`}>
+                      <span className="text-[8px] text-slate-500">
+                        {msgRef.createdAt}
+                      </span>
+                      {!isMineMsg && (
+                        <button
+                          id={`privacy-report-message-btn-${msgRef.id}`}
+                          onClick={() => handleReportMessage(msgRef)}
+                          className="text-[8px] font-black text-red-400 hover:text-red-300 flex items-center gap-1"
+                          title={language === 'ar' ? 'الإبلاغ عن الرسالة' : 'Report message'}
+                        >
+                          <Flag className="w-3 h-3" />
+                          {language === 'ar' ? 'بلاغ' : language === 'ku' ? 'ڕاپۆرت' : 'Report'}
+                        </button>
+                      )}
+                    </div>
                   </div>
                 </div>
               );
@@ -710,6 +790,7 @@ export default function SocialHub({
     const normalizedThreads = allThreads.map((thr: any) => {
       const id = thr.id || '';
       const opponentName = thr.opponentName || thr.other_name || 'Iraqi Student';
+      const opponentId = thr.opponentId || thr.other_user_id || thr.recipient_id || thr.requester_id || '';
       
       // Determine avatar from standard middleEasternAvatars or other details
       let opponentAvatar = thr.opponentAvatar || thr.other_avatar || '';
@@ -1167,3 +1248,4 @@ export default function SocialHub({
     </div>
   );
 }
+
