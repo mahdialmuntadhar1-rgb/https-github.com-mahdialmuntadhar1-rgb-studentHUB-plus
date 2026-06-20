@@ -583,7 +583,7 @@ function extractJobLinks(html: string, source: JobSource, sourceUrl: string, gov
       original_source_url: a.href,
       location: inferredGov === 'all' ? 'Iraq' : governorateName,
       company: source.name,
-      workplaceType: 'See source',
+      workplaceType: 'On-site',
       whoCanApply: source.bestFor,
       salary: 'See source',
       savedByUser: false,
@@ -1182,6 +1182,7 @@ export default function SectionView({
     </div>
   );
 }
+
 
 
 

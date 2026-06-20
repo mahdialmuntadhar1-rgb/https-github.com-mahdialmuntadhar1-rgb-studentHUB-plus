@@ -1,4 +1,4 @@
-export type Language = 'en' | 'ar' | 'ku';
+﻿export type Language = 'en' | 'ar' | 'ku';
 
 export interface Governorate {
   id: string;
@@ -134,7 +134,7 @@ export interface FeedItem {
   
   // Safe Campus Life Model Extensions
   category?: string;
-  sourceType?: 'general_guide' | 'student_tip' | 'event' | 'club' | 'volunteering' | 'career_prep' | 'university_service' | 'official_update';
+  sourceType?: 'general_guide' | 'student_tip' | 'event' | 'club' | 'volunteering' | 'career_prep' | 'university_service' | 'official_update' | 'student_share';
   verified?: boolean;
   createdAt?: string;
   suggestedVisual?: string;
@@ -462,3 +462,4 @@ export interface CampusLifeItem {
   verified: boolean;
   createdAt: string;
 }
+

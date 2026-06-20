@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+﻿import React, { useState, useEffect, useRef } from 'react';
 import { Language } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, ChevronLeft, ChevronRight, Send, Heart, Sparkles, Trophy, MessageCircle } from 'lucide-react';
@@ -353,9 +353,9 @@ export default function StudentStories({
   const [creatorName, setCreatorName] = useState(() => {
     try {
       const p = localStorage.getItem('jamiaati_profile_v2');
-      return p ? JSON.parse(p).name : 'Zara Al-Iraqi';
+      return p ? JSON.parse(p).name : '';
     } catch {
-      return 'Zara Al-Iraqi';
+      return '';
     }
   });
   const [selectedTemplate, setSelectedTemplate] = useState<number | 'custom'>(0);
@@ -1180,3 +1180,4 @@ export default function StudentStories({
     </div>
   );
 }
+

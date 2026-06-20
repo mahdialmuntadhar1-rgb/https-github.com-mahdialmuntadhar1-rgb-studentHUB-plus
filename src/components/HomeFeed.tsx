@@ -1027,7 +1027,7 @@ export default function HomeFeed({
     const mockCampusPosts = campusLifeFeedItems.filter(matchesGovAndUni);
     const liveIds = new Set(liveAndStudentPosts.map(item => item.id));
 
-    // User-created Campus Life posts must appear first, then real/live posts, then demo mock posts.
+    // User-created Campus Life posts must appear first, then real/live posts, then public posts.
     return [
       ...customStudentPosts,
       ...otherLivePosts,
@@ -2296,6 +2296,7 @@ export default function HomeFeed({
     </div>
   );
 }
+
 
 
 

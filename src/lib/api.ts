@@ -36,42 +36,79 @@ function getHeaders() {
 }
 
 async function handleResponse(response: Response, language: Language = 'ar') {
+  const url = response.url || '';
+  const isAdminUrl = url.includes('/opportunity-automation') || url.includes('/outreach') || url.includes('/admin');
+
+  const messages = {
+    adminLogin: {
+      ar: 'يرجى تسجيل الدخول كمسؤول أولاً.',
+      ku: 'تکایە وەک بەڕێوەبەر بچۆ ژوورەوە.',
+      en: 'Admin login required.'
+    },
+    invalidSession: {
+      ar: 'انتهت الجلسة، يرجى تسجيل الدخول مرة أخرى.',
+      ku: 'دانیشتنەکە بەسەرچووە، تکایە دووبارە بچۆ ژوورەوە.',
+      en: 'Session expired. Please log in again.'
+    },
+    adminOnly: {
+      ar: 'هذه الصفحة للمسؤولين فقط.',
+      ku: 'ئەم بەشە تەنها بۆ بەڕێوەبەرانە.',
+      en: 'Admin access only.'
+    },
+    forbidden: {
+      ar: 'غير مصرح لك بهذا الإجراء.',
+      ku: 'ڕێگەپێدراو نیت بۆ ئەم کردارە.',
+      en: 'Forbidden action.'
+    },
+    server: {
+      ar: 'حدث خطأ في الخادم.',
+      ku: 'هەڵەیەک لە سێرڤەر ڕوویدا.',
+      en: 'Server error occurred.'
+    },
+    unknown: {
+      ar: 'حدث خطأ غير معروف.',
+      ku: 'هەڵەیەکی نەناسراو ڕوویدا.',
+      en: 'Unknown error occurred.'
+    }
+  } as const;
+
+  const pick = (key: keyof typeof messages) => {
+    return messages[key][language as 'ar' | 'ku' | 'en'] || messages[key].en;
+  };
+
   if (response.status === 401) {
-    const url = response.url || '';
-    const isUrlAdmin = url.includes('/opportunity-automation') || url.includes('/outreach') || url.includes('/admin');
-    if (isUrlAdmin) {
-      alert(language === 'ar' ? 'Ù‚Ù… Ø¨ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ ÙƒÙ…Ø³Ø¤ÙˆÙ„ Ø£ÙˆÙ„Ø§Ù‹.' : language === 'ku' ? 'ØªÚ©Ø§ÛŒÛ• Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ• ÙˆÛ•Ú© Ø³Û•Ø±Ù¾Û•Ø±Ø´ØªÛŒØ§Ø±.' : 'Admin login required.');
+    if (isAdminUrl) {
+      alert(pick('adminLogin'));
       window.location.href = '#/login';
       throw new Error('Admin login required');
-    } else {
-      throw new Error(language === 'ar' ? 'Ø¬Ù„Ø³Ø© ØºÙŠØ± ØµØ§Ù„Ø­Ø©ØŒ ÙŠØ±Ø¬Ù‰ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„.' : language === 'ku' ? 'Ø³ÛŽØ´Ù†ÛŒ Ù†Ø§Ú•Ø§Ø³ØªØŒ ØªÚ©Ø§ÛŒÛ• Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ•.' : 'Unauthorized action');
     }
-  }
-  if (response.status === 403) {
-    const url = response.url || '';
-    const isUrlAdmin = url.includes('/opportunity-automation') || url.includes('/outreach') || url.includes('/admin');
-    if (isUrlAdmin) {
-      alert(language === 'ar' ? 'ÙˆØµÙˆÙ„ Ù„Ù„Ù…Ø³Ø¤ÙˆÙ„ÙŠÙ† ÙÙ‚Ø·!' : language === 'ku' ? 'ØªÛ•Ù†Ù‡Ø§ Ø¨Û† Ø¨Û•Ú•ÛŽÙˆÛ•Ø¨Û•Ø±Ø§Ù† Ú•ÛŽÚ¯Û•Ù¾ÛŽØ¯Ø±Ø§ÙˆÛ•!' : 'Admin access only');
-      throw new Error('Admin access only');
-    } else {
-      throw new Error(language === 'ar' ? 'ØºÙŠØ± Ù…ØµØ±Ø­ Ø¨Ø§Ù„Ø¯Ø®ÙˆÙ„' : language === 'ku' ? 'Ú•ÛŽÚ¯Û•Ù¾ÛŽÙ†Û•Ø¯Ø±Ø§Ùˆ' : 'Forbidden action');
-    }
+    throw new Error(pick('invalidSession'));
   }
 
-  const contentType = response.headers.get('content-type');
-  if (contentType && contentType.includes('application/json')) {
+  if (response.status === 403) {
+    if (isAdminUrl) {
+      alert(pick('adminOnly'));
+      throw new Error('Admin access only');
+    }
+    throw new Error(pick('forbidden'));
+  }
+
+  const contentType = response.headers.get('content-type') || '';
+
+  if (contentType.includes('application/json')) {
     const data = await response.json();
     if (!response.ok) {
-      throw new Error(data.message || data.error || (language === 'ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£ ÙÙŠ Ø§Ù„Ø®Ø§Ø¯Ù…' : 'Server error occurred'));
+      throw new Error(data.message || data.error || pick('server'));
     }
     return data;
-  } else {
-    const text = await response.text();
-    if (!response.ok) {
-      throw new Error(text || (language === 'ar' ? 'Ø­Ø¯Ø« Ø®Ø·Ø£ ØºÙŠØ± Ù…Ø¹Ø±ÙˆÙ' : 'Unknown error occurred'));
-    }
-    return text;
   }
+
+  const text = await response.text();
+  if (!response.ok) {
+    throw new Error(text || pick('unknown'));
+  }
+
+  return text;
 }
 
 export const heroImagesApi = {
@@ -702,6 +739,7 @@ export const socialApi = {
     return await handleResponse(res, lang);
   }
 };
+
 
 
 

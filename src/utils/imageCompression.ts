@@ -1,79 +1,137 @@
-﻿export type ImageCompressionOptions = {
+﻿export interface ImageCompressionOptions {
   maxWidth?: number;
   maxHeight?: number;
   quality?: number;
-  outputType?: "image/jpeg" | "image/webp";
   maxBytes?: number;
-};
+  maxInputBytes?: number;
+  maxOutputBytes?: number;
+}
 
-const DEFAULT_OPTIONS: Required<ImageCompressionOptions> = {
-  maxWidth: 1400,
-  maxHeight: 1400,
-  quality: 0.72,
-  outputType: "image/jpeg",
-  maxBytes: 750 * 1024,
-};
+function isCompressibleImage(file: File): boolean {
+  return file instanceof File && /^image\/(jpeg|jpg|png|webp)$/i.test(file.type || '');
+}
 
-function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob> {
-  return new Promise((resolve, reject) => {
-    canvas.toBlob(
-      blob => blob ? resolve(blob) : reject(new Error("Image compression failed.")),
-      type,
-      quality
-    );
+function canvasToBlob(canvas: HTMLCanvasElement, type: string, quality: number): Promise<Blob | null> {
+  return new Promise((resolve) => {
+    canvas.toBlob((blob) => resolve(blob), type, quality);
   });
 }
 
-function blobToDataUrl(blob: Blob): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader();
-    reader.onload = event => resolve(String(event.target?.result || ""));
-    reader.onerror = () => reject(new Error("Could not read compressed image."));
-    reader.readAsDataURL(blob);
-  });
+async function loadImageFromFile(file: File): Promise<HTMLImageElement> {
+  const url = URL.createObjectURL(file);
+
+  try {
+    const image = new Image();
+    image.decoding = 'async';
+
+    await new Promise<void>((resolve, reject) => {
+      image.onload = () => resolve();
+      image.onerror = () => reject(new Error('Image failed to load'));
+      image.src = url;
+    });
+
+    return image;
+  } finally {
+    setTimeout(() => URL.revokeObjectURL(url), 1000);
+  }
+}
+
+export async function compressImageFile(
+  file: File,
+  options: ImageCompressionOptions = {}
+): Promise<File> {
+  try {
+    if (!isCompressibleImage(file)) return file;
+
+    const maxInputBytes = options.maxInputBytes ?? 12 * 1024 * 1024;
+    const maxOutputBytes = options.maxOutputBytes ?? options.maxBytes ?? 1600 * 1024;
+
+    if (file.size > maxInputBytes) {
+      throw new Error('Image is too large.');
+    }
+
+    const maxWidth = options.maxWidth ?? 1600;
+    const maxHeight = options.maxHeight ?? 1600;
+    const quality = Math.min(0.95, Math.max(0.55, options.quality ?? 0.82));
+
+    const image = await loadImageFromFile(file);
+
+    const originalWidth = image.naturalWidth || image.width;
+    const originalHeight = image.naturalHeight || image.height;
+
+    if (!originalWidth || !originalHeight) return file;
+
+    const scale = Math.min(1, maxWidth / originalWidth, maxHeight / originalHeight);
+    const width = Math.max(1, Math.round(originalWidth * scale));
+    const height = Math.max(1, Math.round(originalHeight * scale));
+
+    if (scale === 1 && file.size <= maxOutputBytes) return file;
+
+    const canvas = document.createElement('canvas');
+    canvas.width = width;
+    canvas.height = height;
+
+    const ctx = canvas.getContext('2d');
+    if (!ctx) return file;
+
+    ctx.drawImage(image, 0, 0, width, height);
+
+    const outputType = file.type === 'image/png' ? 'image/png' : 'image/jpeg';
+    let currentQuality = quality;
+    let blob: Blob | null = null;
+
+    for (let attempt = 0; attempt < 5; attempt++) {
+      blob = await canvasToBlob(canvas, outputType, currentQuality);
+      if (!blob) return file;
+      if (blob.size <= maxOutputBytes || currentQuality <= 0.58) break;
+      currentQuality -= 0.08;
+    }
+
+    if (!blob) return file;
+    if (blob.size >= file.size && file.size <= maxOutputBytes) return file;
+
+    const extension = outputType === 'image/png' ? 'png' : 'jpg';
+    const safeName = file.name.replace(/\.[^.]+$/, '') || 'image';
+    const finalName = `${safeName}.${extension}`;
+
+    return new File([blob], finalName, {
+      type: outputType,
+      lastModified: Date.now()
+    });
+  } catch (error) {
+    console.warn('Image compression skipped:', error);
+    return file;
+  }
+}
+
+export async function compressImageForUpload(
+  file: File,
+  options: ImageCompressionOptions = {}
+): Promise<File> {
+  return compressImageFile(file, options);
 }
 
 export async function compressImageToDataUrl(
   file: File,
   options: ImageCompressionOptions = {}
 ): Promise<string> {
-  const settings = { ...DEFAULT_OPTIONS, ...options };
+  const compressedFile = await compressImageFile(file, options);
 
-  if (!file.type.startsWith("image/")) {
-    throw new Error("Please choose an image file.");
-  }
+  return new Promise<string>((resolve, reject) => {
+    const reader = new FileReader();
 
-  const bitmap = await createImageBitmap(file);
+    reader.onload = () => {
+      if (typeof reader.result === 'string') {
+        resolve(reader.result);
+      } else {
+        reject(new Error('Could not convert image to data URL.'));
+      }
+    };
 
-  const ratio = Math.min(
-    settings.maxWidth / bitmap.width,
-    settings.maxHeight / bitmap.height,
-    1
-  );
+    reader.onerror = () => {
+      reject(reader.error || new Error('Image read failed.'));
+    };
 
-  const width = Math.max(1, Math.round(bitmap.width * ratio));
-  const height = Math.max(1, Math.round(bitmap.height * ratio));
-
-  const canvas = document.createElement("canvas");
-  canvas.width = width;
-  canvas.height = height;
-
-  const context = canvas.getContext("2d", { alpha: false });
-  if (!context) {
-    bitmap.close();
-    throw new Error("Browser cannot compress this image.");
-  }
-
-  context.drawImage(bitmap, 0, 0, width, height);
-  bitmap.close();
-
-  let quality = settings.quality;
-  let blob = await canvasToBlob(canvas, settings.outputType, quality);
-
-  while (blob.size > settings.maxBytes && quality > 0.42) {
-    quality -= 0.08;
-    blob = await canvasToBlob(canvas, settings.outputType, quality);
-  }
-
-  return blobToDataUrl(blob);
+    reader.readAsDataURL(compressedFile);
+  });
 }

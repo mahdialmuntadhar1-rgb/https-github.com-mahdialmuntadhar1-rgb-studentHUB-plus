@@ -99,11 +99,9 @@ export default function App() {
 
   // Auth States
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    const loggedIn = localStorage.getItem('jamiaati_logged_in') !== 'false';
-    if (loggedIn && !localStorage.getItem('jamiaati_token')) {
-      localStorage.setItem('jamiaati_token', 'mock_token_for_student_hub_' + Date.now());
-    }
-    return loggedIn;
+    const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+    const notLoggedOut = localStorage.getItem('jamiaati_logged_in') !== 'false';
+    return Boolean(token) && notLoggedOut;
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
 
@@ -1377,7 +1375,7 @@ export default function App() {
             localStorage.setItem('jamiaati_user_email', userEmail);
             setUserProfile(prev => ({
               ...prev,
-              name: newUsername || 'Zara Al-Iraqi',
+              name: newUsername || '',
               role: userEmail.trim().toLowerCase() === 'mahdialmuntadhar1@gmail.com' ? 'staff' : prev.role
             }));
             showToast(
@@ -1454,6 +1452,8 @@ export default function App() {
     </div>
   );
 };
+
+
 
 
 

@@ -835,7 +835,7 @@ if (!(file instanceof File)) return c.json({ error: 'Image file is required' }, 
     if (file.size <= 0 || file.size > 5 * 1024 * 1024) return c.json({ error: 'Image must be 5MB or smaller' }, 400);
 
     const buffer = await file.arrayBuffer();
-    if (!isSupportedHeroImage(new Uint8Array(buffer.slice(0, 16)), file.type)) {
+    if (!isSupportedHeroImage(new Uint8Array(buffer.slice(0, 16)))) {
       return c.json({ error: 'The uploaded file content is not a valid image' }, 400);
     }
 
@@ -2643,6 +2643,7 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
+
 
 
 

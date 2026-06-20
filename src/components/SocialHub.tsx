@@ -358,7 +358,7 @@ export default function SocialHub({
           {
             id: 'm2',
             senderId: 'me',
-            senderName: 'Zara Al-Iraqi',
+            senderName: '',
             senderAvatar: '/src/assets/images/me_female_cs_student_1781347041085.jpg',
             body: 'الحمد لله سمر، قمت بإنهاء قراءة ملازم الفصل الأول.',
             createdAt: '2 hours ago'
@@ -377,7 +377,7 @@ export default function SocialHub({
           {
             id: 'm1_m',
             senderId: 'me',
-            senderName: 'Zara Al-Iraqi',
+            senderName: '',
             senderAvatar: '/src/assets/images/me_female_cs_student_1781347041085.jpg',
             body: 'أهلاً مصطفى، كيف يمكنني تأكيد الأهلية لبرنامج النخبة التدريبي؟',
             createdAt: 'Yesterday'
@@ -429,7 +429,7 @@ export default function SocialHub({
       const tempMsg: ThreadMessage = {
         id: `msg_user_${Date.now()}`,
         senderId: 'me',
-        senderName: 'Zara Al-Iraqi',
+        senderName: '',
         senderAvatar: '/src/assets/images/me_female_cs_student_1781347041085.jpg',
         body: textToSend,
         createdAt: 'Just now ⚡'
@@ -1248,4 +1248,5 @@ export default function SocialHub({
     </div>
   );
 }
+
 

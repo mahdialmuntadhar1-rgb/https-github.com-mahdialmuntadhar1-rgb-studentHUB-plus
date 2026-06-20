@@ -175,7 +175,7 @@ export default function Header({
             onClick={onProfileClick}
             className="w-7' w-7 h-7 rounded-lg border border-orange-500/40 overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer shrink-0"
           >
-            <img src={currentUserAvatar} alt="Zara Al-Iraqi Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            <img src={currentUserAvatar} alt=" Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
           </button>
         </div>
 
@@ -183,5 +183,6 @@ export default function Header({
     </header>
   );
 }
+
 
 
