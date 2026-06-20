@@ -37,17 +37,12 @@ const OPPORTUNITY_TYPES = new Set([
 ]);
 
 function getStableSocialStats(id: string) {
-  let hash = 2166136261;
-  for (let index = 0; index < id.length; index += 1) {
-    hash ^= id.charCodeAt(index);
-    hash = Math.imul(hash, 16777619);
-  }
-  const unsigned = hash >>> 0;
+  void id;
   return {
-    likes: 3 + (unsigned % 185),
-    comments: (unsigned >>> 7) % 27,
-    shares: (unsigned >>> 13) % 19,
-    saves: (unsigned >>> 19) % 23,
+    likes: 0,
+    comments: 0,
+    shares: 0,
+    saves: 0,
   };
 }
 
@@ -257,7 +252,7 @@ export default function FeedCard({
 
     if (isOpportunity) return [item.type.replace(/_/g, '')];
 
-    return ['StudentShare'];
+    return [];
   })();
 
   const openOpportunity = () => {
@@ -351,7 +346,7 @@ export default function FeedCard({
       body_original: trimmedCaption,
       imageUrl: editImagePreview || undefined,
       imageAlt: editImagePreview ? 'Edited Campus Life image/design' : undefined,
-      tags: ['StudentShare', 'post', 'CampusLife']
+      tags: []
     } as any);
 
     setIsEditingPost(false);
@@ -845,6 +840,8 @@ export default function FeedCard({
     </article>
   );
 }
+
+
 
 
 
