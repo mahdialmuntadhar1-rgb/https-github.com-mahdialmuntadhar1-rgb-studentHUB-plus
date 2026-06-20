@@ -40,9 +40,9 @@ export default function Header({
   const [showNotifications, setShowNotifications] = useState(false);
 
   const getLanguageMeta = (lang: Language) => {
-    if (lang === 'ar') return { flag: '🇮🇶', label: 'Arabic', short: 'AR' };
-    if (lang === 'ku') return { flag: '☀️', label: 'Kurdish', short: 'KU' };
-    return { flag: '🇺🇸', label: 'English', short: 'EN' };
+    if (lang === 'ar') return { flag: '🇮🇶', label: 'Arabic', short: 'Arabic' };
+    if (lang === 'ku') return { flag: '☀️', label: 'Kurdish', short: 'Kurdish' };
+    return { flag: '🇺🇸', label: 'English', short: 'English' };
   };
 
   return (
@@ -76,7 +76,7 @@ export default function Header({
         {/* Action Elements: Inline Language Switcher Bar, Notifications & Profile */}
         <div className="flex items-center gap-2" id="header-actions">
           {/* Inline Language Bar: Beautiful, pill-shaped, intuitive switcher */}
-          <div className="flex items-center gap-1 rounded-xl border border-orange-200 bg-white px-1.5 py-1 shadow-sm" id="inline-language-bar">
+          <div className="flex items-center gap-1 rounded-xl border border-white/30 bg-gradient-to-r from-[#6B25C9] via-[#2F7CCB] to-[#F59E0B] px-1.5 py-1 shadow-sm" id="inline-language-bar">
             {(['ar', 'ku', 'en'] as Language[]).map(lang => {
               const meta = getLanguageMeta(lang);
               const active = language === lang;
@@ -87,13 +87,13 @@ export default function Header({
                   onClick={() => setLanguage(lang)}
                   className={`flex items-center gap-1 rounded-lg px-2 py-1 text-[10px] font-black cursor-pointer transition-all duration-150 ${
                     active
-                      ? 'bg-orange-500 text-slate-900 shadow-sm'
-                      : 'bg-slate-100 text-slate-900 hover:bg-orange-50 hover:text-orange-700'
+                      ? 'bg-[#FFD21F] text-[#161A33] shadow-sm'
+                      : 'bg-transparent text-white hover:bg-white/15 hover:text-white'
                   }`}
                   title={meta.label}
                   aria-label={`Switch language to ${meta.label}`}
                 >
-                  <span className="text-base leading-none">{meta.flag}</span>
+                  <span className="hidden text-sm leading-none sm:inline">{meta.flag}</span>
                   <span>{meta.short}</span>
                 </button>
               );
@@ -183,4 +183,5 @@ export default function Header({
     </header>
   );
 }
+
 

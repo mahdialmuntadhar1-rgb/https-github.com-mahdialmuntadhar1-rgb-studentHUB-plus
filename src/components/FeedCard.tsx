@@ -1,5 +1,5 @@
 ﻿import React, { useState } from 'react';
-import { Heart, MessageSquare, Share2, Bookmark, UserPlus, Send, UserRound, X } from 'lucide-react';
+import { Heart, MessageSquare, Share2, Bookmark, UserPlus, Send, UserRound, X, MoreHorizontal } from 'lucide-react';
 import { BACKEND_URL } from '../lib/api';
 import { compressImageToDataUrl } from '../utils/imageCompression';
 import { Author, Language, FeedItem, getLocalizedContent } from '../types';
@@ -215,6 +215,7 @@ export default function FeedCard({
   const [editCaptionText, setEditCaptionText] = useState('');
   const [editImagePreview, setEditImagePreview] = useState('');
   const [isCompressingEditImage, setIsCompressingEditImage] = useState(false);
+  const [showManageMenu, setShowManageMenu] = useState(false);
 
   const isOpportunity = OPPORTUNITY_TYPES.has(item.type) || Boolean((item as any).opportunityCategory);
   const isMockCampusPost = item.type === 'campus_life' && (item as any).isMock === true;
@@ -358,6 +359,7 @@ export default function FeedCard({
     if (!ok) return;
 
     onDeleteFeedItem?.(item.id);
+    setShowManageMenu(false);
   };
   const getAuthToken = () => localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token') || '';
 
@@ -477,16 +479,16 @@ export default function FeedCard({
       className="opportunity-readable-card mb-5 overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm"
     >
       {isMockCampusPost && (
-        <div className="flex items-center gap-3 border-b border-orange-50 px-4 py-3" dir="auto">
+        <div className="flex items-center gap-3 overflow-hidden border-b border-orange-50 px-4 py-3" dir="auto">
           <button type="button" onClick={openMockProfile} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-orange-400 text-sm font-black text-white shadow-sm" aria-label={`View ${item.author.name}'s demo profile`}>
             {authorInitials}
           </button>
-          <button type="button" onClick={openMockProfile} className="min-w-0 flex-1 text-start">
+          <button type="button" onClick={openMockProfile} className="min-w-0 flex-1 overflow-hidden text-start">
             <div className="truncate text-[13px] font-black text-slate-900">{item.author.name}</div>
             <div className="truncate text-[10px] font-bold text-slate-500">
               {item.author.university} · {item.location}
             </div>
-            <div className="truncate text-[9px] font-bold text-violet-700">
+            <div className="max-w-full break-words text-[9px] font-bold leading-tight text-violet-700">
               @{item.author.username} · {item.author.major} · {item.author.studentYear}
             </div>
           </button>
@@ -556,21 +558,46 @@ export default function FeedCard({
         {canManagePost && (
           <div className="mb-3 rounded-2xl border border-orange-100 bg-orange-50/70 p-2" dir="auto">
             {!isEditingPost ? (
-              <div className="flex gap-2">
+              <div className="relative flex justify-end" dir="auto">
                 <button
                   type="button"
-                  onClick={startEditingPost}
-                  className="flex-1 rounded-xl bg-slate-900 px-3 py-2 text-[11px] font-black text-white"
+                  onClick={() => setShowManageMenu(prev => !prev)}
+                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-2 text-slate-700 shadow-sm hover:bg-slate-100 active:scale-95"
+                  aria-label={
+                    language === 'ar'
+                      ? 'خيارات المنشور'
+                      : language === 'ku'
+                      ? 'هەڵبژاردنەکانی پۆست'
+                      : 'Post options'
+                  }
                 >
-                  {language === 'ar' ? 'تعديل المنشور' : language === 'ku' ? 'دەستکاری پۆست' : 'Edit post'}
+                  <MoreHorizontal className="h-5 w-5" />
                 </button>
-                <button
-                  type="button"
-                  onClick={deleteThisPost}
-                  className="rounded-xl bg-red-600 px-3 py-2 text-[11px] font-black text-white"
-                >
-                  {language === 'ar' ? 'حذف' : language === 'ku' ? 'سڕینەوە' : 'Delete'}
-                </button>
+
+                {showManageMenu && (
+                  <div className={`absolute top-11 ${isRtl ? 'left-0' : 'right-0'} z-30 w-44 overflow-hidden rounded-2xl border border-slate-200 bg-white shadow-2xl`}>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowManageMenu(false);
+                        startEditingPost();
+                      }}
+                      className="block w-full px-4 py-3 text-start text-[12px] font-black text-slate-800 hover:bg-slate-50"
+                    >
+                      {language === 'ar' ? 'تعديل المنشور' : language === 'ku' ? 'دەستکاری پۆست' : 'Edit post'}
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => {
+                        setShowManageMenu(false);
+                        deleteThisPost();
+                      }}
+                      className="block w-full border-t border-slate-100 px-4 py-3 text-start text-[12px] font-black text-red-600 hover:bg-red-50"
+                    >
+                      {language === 'ar' ? 'حذف المنشور' : language === 'ku' ? 'سڕینەوەی پۆست' : 'Delete post'}
+                    </button>
+                  </div>
+                )}
               </div>
             ) : (
               <form onSubmit={saveEditedPost} className="flex flex-col gap-2">
@@ -782,7 +809,7 @@ export default function FeedCard({
               <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-orange-400 text-xl font-black text-white">{authorInitials}</div>
               <div className="min-w-0 flex-1">
                 <div className="text-base font-black text-slate-950">{item.author.name}</div>
-                <div className="text-[11px] font-bold text-violet-700">@{item.author.username}</div>
+                <div className="max-w-full break-all text-[11px] font-bold text-violet-700">@{item.author.username}</div>
                 <div className="mt-1 text-[10px] font-bold text-slate-500">{item.author.university} · {item.author.governorate || item.location}</div>
               </div>
               <button type="button" onClick={() => setShowMockProfile(false)} className="rounded-full bg-slate-100 p-2" aria-label="Close profile"><X className="h-4 w-4" /></button>
@@ -806,6 +833,7 @@ export default function FeedCard({
     </article>
   );
 }
+
 
 
 
