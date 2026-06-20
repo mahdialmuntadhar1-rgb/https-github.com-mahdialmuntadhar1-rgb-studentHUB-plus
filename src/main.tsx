@@ -1,4 +1,5 @@
-﻿import { installPoliceStickyTabs } from './utils/policeStickyTabs';
+﻿import { installForcePoliceSwitcher } from './utils/forcePoliceSwitcher';
+import { installPoliceStickyTabs } from './utils/policeStickyTabs';
 import { installRemoveOpportunitiesUI } from './utils/removeOpportunitiesUI';
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
@@ -28,6 +29,7 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 );
+
 
 
 
