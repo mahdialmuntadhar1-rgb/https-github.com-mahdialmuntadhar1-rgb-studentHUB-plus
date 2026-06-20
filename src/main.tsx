@@ -9,7 +9,9 @@ import './styles/neon-purple-theme.css';
 import './styles/campus-light-purple-bg.css';
 import './styles/unified-light-purple-ui.css';
 import './styles/purple-3d-postcards.css';
+import './styles/mobile-cards-fix.css';
 import { registerJamiaatiPwa } from './pwa-install';
+import { startMobileUiEnhancements } from './mobile-ui-helpers';
 
 type ErrorBoundaryProps = {
   children: ReactNode;
@@ -136,6 +138,8 @@ if (!rootElement) {
   );
 
   void registerJamiaatiPwa();
+  startMobileUiEnhancements();
 }
+
 
 
