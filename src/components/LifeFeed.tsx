@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { FeedItem, Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { initialFeedItems } from '../data/mockData';
@@ -152,7 +152,7 @@ export default function LifeFeed({
                 )}
               </div>
               <span className="text-[9px] font-bold text-slate-700 max-w-[65px] truncate">
-                {story.author.name.split(' ')[0]}
+                {String(story.author?.name || 'User').split(' ')[0] || 'User'}
               </span>
             </button>
           ))}
@@ -280,3 +280,4 @@ export default function LifeFeed({
     </div>
   );
 }
+
