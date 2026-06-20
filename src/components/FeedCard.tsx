@@ -275,7 +275,7 @@ export default function FeedCard({
     setCommentText('');
   };
 
-  const captionIsLong = caption.length > 170;
+  const captionIsLong = caption.length > 150;
   const authorInitials = item.author.name
     .split(/\s+/)
     .filter(Boolean)
@@ -476,7 +476,7 @@ export default function FeedCard({
     <article
       id={`feed-card-${item.id}`}
       dir={isRtl ? 'rtl' : 'ltr'}
-      className="opportunity-readable-card mb-5 overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm"
+      className="opportunity-readable-card relative mb-4 overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm"
     >
       {isMockCampusPost && (
         <div className="flex items-center gap-3 overflow-hidden border-b border-orange-50 px-4 py-3" dir="auto">
@@ -554,15 +554,15 @@ export default function FeedCard({
         </div>
       ) : null}
 
-      <div className="px-4 py-3">
+      <div className="px-3.5 py-2.5">
         {canManagePost && (
-          <div className="mb-3 rounded-2xl border border-orange-100 bg-orange-50/70 p-2" dir="auto">
+          <div className={!isEditingPost ? "absolute right-3 top-3 z-40" : "mb-2 rounded-2xl border border-orange-100 bg-orange-50/70 p-2"} dir="auto">
             {!isEditingPost ? (
               <div className="relative flex justify-end" dir="auto">
                 <button
                   type="button"
                   onClick={() => setShowManageMenu(prev => !prev)}
-                  className="rounded-full border border-slate-200 bg-slate-50 px-2.5 py-2 text-slate-700 shadow-sm hover:bg-slate-100 active:scale-95"
+                  className="rounded-full border border-white/70 bg-white/90 px-2.5 py-2 text-slate-800 shadow-lg backdrop-blur hover:bg-white active:scale-95"
                   aria-label={
                     language === 'ar'
                       ? 'خيارات المنشور'
@@ -662,18 +662,20 @@ export default function FeedCard({
             )}
           </div>
         )}
-        <p className={`whitespace-pre-line text-[14px] font-semibold leading-relaxed text-slate-900 ${!showFullCaption ? 'line-clamp-4' : ''}`}>
-          {caption}
-        </p>
+        {caption && (
+          <p className={`whitespace-pre-line text-[13px] font-semibold leading-snug text-slate-900 ${!showFullCaption ? 'line-clamp-3' : ''}`}>
+            {caption}
+          </p>
+        )}
 
         {isMockCampusPost && (item as any).cta && (
-          <div className="mt-3 rounded-2xl bg-gradient-to-r from-violet-50 to-orange-50 px-3 py-2 text-[11px] font-black text-violet-800" dir="auto">
+          <div className="mt-2 rounded-2xl bg-gradient-to-r from-violet-50 to-orange-50 px-3 py-1.5 text-[11px] font-black text-violet-800" dir="auto">
             💬 {(item as any).cta}
           </div>
         )}
 
         {isMockCampusPost && (
-          <div className="mt-3 grid grid-cols-3 gap-2" dir="auto">
+          <div className="mt-2 grid grid-cols-3 gap-1.5" dir="auto">
             <button type="button" onClick={openMockProfile} className="flex items-center justify-center gap-1 rounded-xl border border-violet-200 bg-violet-50 px-2 py-2 text-[9px] font-black text-violet-800">
               <UserRound className="h-3.5 w-3.5" /> View profile
             </button>
@@ -698,7 +700,7 @@ export default function FeedCard({
           </button>
         )}
 
-        <div className="mt-3 flex flex-wrap gap-1.5">
+        <div className="mt-2 flex flex-wrap gap-1.5">
           {tags.map(tag => (
             <span
               key={tag}
@@ -724,7 +726,7 @@ export default function FeedCard({
           </button>
         )}
 
-        <div className="mt-4 flex items-center justify-between border-t border-orange-50 pt-3">
+        <div className="mt-3 flex items-center justify-between border-t border-orange-50 pt-2">
           <div className="flex items-center gap-5 text-slate-700">
             <button
               type="button"
@@ -771,7 +773,7 @@ export default function FeedCard({
         </div>
 
         {showComments && (
-          <div className="mt-3 space-y-2">
+          <div className="mt-2 space-y-2">
             {item.commentsList?.map(comment => (
               <div key={comment.id} className="rounded-2xl bg-orange-50/60 px-3 py-2" dir="auto">
                 <div className="text-[10px] font-black text-slate-800">{comment.authorName}</div>
@@ -833,6 +835,7 @@ export default function FeedCard({
     </article>
   );
 }
+
 
 
 
