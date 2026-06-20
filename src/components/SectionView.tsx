@@ -12,7 +12,7 @@ import {
   Filter
 } from 'lucide-react';
 import FeedCard from './FeedCard';
-import { BACKEND_URL } from '../lib/api';
+import { BACKEND_URL, getOpportunities } from '../lib/api';
 
 interface SectionViewProps {
   sectionId: string;
@@ -749,14 +749,38 @@ export default function SectionView({
         }
         params.append('limit', isJobSection ? '6000' : (categoryConfig.isOpportunity ? '2000' : '80'));
 
-        const response = await fetch(`${BACKEND_URL}/api/${queryEndpoint}?${params.toString()}`);
-        if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
-        const data = await response.json();
-        if (!active) return;
-        if (!Array.isArray(data)) {
-          setItems([]);
-          return;
+        let data: any[] = [];
+
+        if (categoryConfig.isOpportunity) {
+          const result = await getOpportunities({
+            category: targetVal,
+            page: 1,
+            limit: isJobSection ? 6000 : 2000,
+            governorate: !isJobSection && selectedGov && selectedGov !== 'all' ? selectedGov : undefined
+          }, language);
+
+          data = Array.isArray(result)
+            ? result
+            : Array.isArray(result?.items)
+              ? result.items
+              : [];
+        } else {
+          const response = await fetch(`${BACKEND_URL}/api/${queryEndpoint}?${params.toString()}`);
+          if (!response.ok) throw new Error(`HTTP Error: ${response.status}`);
+          const rawData = await response.json();
+
+          data = Array.isArray(rawData)
+            ? rawData
+            : Array.isArray(rawData?.items)
+              ? rawData.items
+              : Array.isArray(rawData?.data)
+                ? rawData.data
+                : Array.isArray(rawData?.results)
+                  ? rawData.results
+                  : [];
         }
+
+        if (!active) return;
 
         const filteredResults = data.filter((item: any) => {
           const itemType = String(item.category || item.type || '').toLowerCase();
@@ -1182,6 +1206,7 @@ export default function SectionView({
     </div>
   );
 }
+
 
 
 
