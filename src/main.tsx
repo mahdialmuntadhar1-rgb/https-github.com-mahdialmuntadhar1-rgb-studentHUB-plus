@@ -8,6 +8,7 @@ import './styles/neon-purple-theme.css';
 import './styles/campus-light-purple-bg.css';
 import './styles/unified-light-purple-ui.css';
 import './styles/purple-3d-postcards.css';
+import PWAInstallButton from './components/PWAInstallButton';
 
 
 // STABILITY: unregister legacy service workers to prevent stale cached white screens.
@@ -25,6 +26,7 @@ if (typeof window !== 'undefined' && 'serviceWorker' in navigator) {
 createRoot(document.getElementById('root')!).render(
   <StrictMode>
     <App />
+    <PWAInstallButton />
   </StrictMode>,
 );
 
@@ -37,3 +39,10 @@ createRoot(document.getElementById('root')!).render(
 
 
 
+if (import.meta.env.PROD && "serviceWorker" in navigator) {
+  window.addEventListener("load", () => {
+    navigator.serviceWorker.register("/sw.js").catch((error) => {
+      console.warn("Service worker registration failed:", error);
+    });
+  });
+}
