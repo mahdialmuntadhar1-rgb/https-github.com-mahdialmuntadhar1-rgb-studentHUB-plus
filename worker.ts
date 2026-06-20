@@ -1707,6 +1707,241 @@ app.post('/api/messages/threads/:threadId/messages', authMiddleware, async (c) =
   }
 });
 
+
+// ============================================================================
+// PRIVACY SAFETY ENDPOINTS: REPORTS, BLOCKS, MODERATION
+// ============================================================================
+
+// POST /api/messages/:messageId/report
+// User reports one specific private message. Admin can review only this reported snapshot.
+app.post('/api/messages/:messageId/report', authMiddleware, async (c) => {
+  try {
+    const userId = c.get('userId');
+    const messageId = c.req.param('messageId');
+    const body = await c.req.json().catch(() => ({}));
+    const reason = String(body.reason || 'safety').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 120) || 'safety';
+    const note = String(body.note || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 1000);
+
+    const row = await c.env.DB.prepare(`
+      SELECT
+        sm.*,
+        smt.requester_id,
+        smt.recipient_id
+      FROM social_messages sm
+      JOIN social_message_threads smt ON sm.thread_id = smt.id
+      JOIN social_message_thread_members smtm ON sm.thread_id = smtm.thread_id
+      WHERE sm.id = ? AND smtm.user_id = ?
+      LIMIT 1
+    `).bind(messageId, userId).first() as any;
+
+    if (!row) {
+      return c.json({ error: 'Message not found or not accessible' }, 404);
+    }
+
+    if (row.sender_id === userId) {
+      return c.json({ error: 'You cannot report your own message' }, 400);
+    }
+
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM message_reports WHERE message_id = ? AND reporter_id = ?'
+    ).bind(messageId, userId).first();
+
+    if (existing) {
+      return c.json({ error: 'Message already reported' }, 409);
+    }
+
+    const decryptedBody = await decryptPrivateMessage(c, row);
+    const reportId = generateId();
+    const now = new Date().toISOString();
+
+    const snapshot = JSON.stringify({
+      message_id: row.id,
+      thread_id: row.thread_id,
+      sender_id: row.sender_id,
+      created_at: row.created_at,
+      body: decryptedBody
+    });
+
+    await c.env.DB.prepare(`
+      INSERT INTO message_reports (
+        id, message_id, thread_id, reporter_id, reported_user_id,
+        reason, note, reported_message_snapshot, status, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'pending', ?)
+    `).bind(
+      reportId,
+      messageId,
+      row.thread_id,
+      userId,
+      row.sender_id,
+      reason,
+      note,
+      snapshot,
+      now
+    ).run();
+
+    return c.json({ message: 'Message reported for safety review', report_id: reportId });
+  } catch (error: any) {
+    console.error('Report message error:', error);
+    return c.json({ error: 'Failed to report message' }, 500);
+  }
+});
+
+// POST /api/users/:targetUserId/block
+app.post('/api/users/:targetUserId/block', authMiddleware, async (c) => {
+  try {
+    const userId = c.get('userId');
+    const targetUserId = c.req.param('targetUserId');
+    const body = await c.req.json().catch(() => ({}));
+    const reason = String(body.reason || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 240);
+
+    if (!targetUserId) {
+      return c.json({ error: 'Target user is required' }, 400);
+    }
+
+    if (targetUserId === userId) {
+      return c.json({ error: 'You cannot block yourself' }, 400);
+    }
+
+    const target = await c.env.DB.prepare(
+      'SELECT id FROM profiles WHERE id = ?'
+    ).bind(targetUserId).first();
+
+    if (!target) {
+      return c.json({ error: 'User not found' }, 404);
+    }
+
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM user_blocks WHERE blocker_id = ? AND blocked_id = ?'
+    ).bind(userId, targetUserId).first();
+
+    if (existing) {
+      return c.json({ blocked: true, message: 'User already blocked' });
+    }
+
+    await c.env.DB.prepare(`
+      INSERT INTO user_blocks (id, blocker_id, blocked_id, reason, created_at)
+      VALUES (?, ?, ?, ?, ?)
+    `).bind(generateId(), userId, targetUserId, reason || null, new Date().toISOString()).run();
+
+    return c.json({ blocked: true, message: 'User blocked' });
+  } catch (error: any) {
+    console.error('Block user error:', error);
+    return c.json({ error: 'Failed to block user' }, 500);
+  }
+});
+
+// DELETE /api/users/:targetUserId/block
+app.delete('/api/users/:targetUserId/block', authMiddleware, async (c) => {
+  try {
+    const userId = c.get('userId');
+    const targetUserId = c.req.param('targetUserId');
+
+    await c.env.DB.prepare(
+      'DELETE FROM user_blocks WHERE blocker_id = ? AND blocked_id = ?'
+    ).bind(userId, targetUserId).run();
+
+    return c.json({ blocked: false, message: 'User unblocked' });
+  } catch (error: any) {
+    console.error('Unblock user error:', error);
+    return c.json({ error: 'Failed to unblock user' }, 500);
+  }
+});
+
+// GET /api/users/blocked
+app.get('/api/users/blocked', authMiddleware, async (c) => {
+  try {
+    const userId = c.get('userId');
+
+    const rows = await c.env.DB.prepare(`
+      SELECT ub.*, p.full_name, p.avatar_url, p.institution, p.governorate
+      FROM user_blocks ub
+      LEFT JOIN profiles p ON ub.blocked_id = p.id
+      WHERE ub.blocker_id = ?
+      ORDER BY ub.created_at DESC
+    `).bind(userId).all();
+
+    return c.json({ blocked: rows.results || [] });
+  } catch (error: any) {
+    console.error('Get blocked users error:', error);
+    return c.json({ error: 'Failed to load blocked users' }, 500);
+  }
+});
+
+// GET /api/admin/moderation/message-reports
+// Admin can only see user-reported message snapshots, not full private chats.
+app.get('/api/admin/moderation/message-reports', authMiddleware, adminMiddleware, async (c) => {
+  try {
+    const status = String(c.req.query('status') || 'pending').trim();
+    const limit = Math.min(parseInt(c.req.query('limit') || '50'), 100);
+    const offset = Math.max(parseInt(c.req.query('offset') || '0'), 0);
+
+    let query = `
+      SELECT
+        mr.*,
+        reporter.full_name as reporter_name,
+        reported.full_name as reported_user_name,
+        reported.email as reported_user_email
+      FROM message_reports mr
+      LEFT JOIN profiles reporter ON mr.reporter_id = reporter.id
+      LEFT JOIN profiles reported ON mr.reported_user_id = reported.id
+    `;
+
+    const params: any[] = [];
+
+    if (status !== 'all') {
+      query += ' WHERE mr.status = ?';
+      params.push(status);
+    }
+
+    query += ' ORDER BY mr.created_at DESC LIMIT ? OFFSET ?';
+    params.push(limit, offset);
+
+    const rows = await c.env.DB.prepare(query).bind(...params).all();
+    return c.json({ reports: rows.results || [] });
+  } catch (error: any) {
+    console.error('Admin message reports error:', error);
+    return c.json({ error: 'Failed to load message reports' }, 500);
+  }
+});
+
+// PATCH /api/admin/moderation/message-reports/:reportId
+app.patch('/api/admin/moderation/message-reports/:reportId', authMiddleware, adminMiddleware, async (c) => {
+  try {
+    const adminId = c.get('userId');
+    const reportId = c.req.param('reportId');
+    const body = await c.req.json().catch(() => ({}));
+    const allowedStatuses = ['pending', 'reviewed', 'action_taken', 'dismissed'];
+    const status = allowedStatuses.includes(String(body.status)) ? String(body.status) : 'reviewed';
+    const note = String(body.note || '').replace(/[\u0000-\u001f\u007f]/g, '').trim().slice(0, 1000);
+
+    const existing = await c.env.DB.prepare(
+      'SELECT id FROM message_reports WHERE id = ?'
+    ).bind(reportId).first();
+
+    if (!existing) {
+      return c.json({ error: 'Report not found' }, 404);
+    }
+
+    const now = new Date().toISOString();
+
+    await c.env.DB.prepare(`
+      UPDATE message_reports
+      SET status = ?, reviewed_at = ?, reviewed_by = ?
+      WHERE id = ?
+    `).bind(status, now, adminId, reportId).run();
+
+    await c.env.DB.prepare(`
+      INSERT INTO moderation_audit_logs (id, admin_id, action, target_type, target_id, note, created_at)
+      VALUES (?, ?, ?, ?, ?, ?, ?)
+    `).bind(generateId(), adminId, `message_report_${status}`, 'message_report', reportId, note || null, now).run();
+
+    return c.json({ message: 'Report updated', status });
+  } catch (error: any) {
+    console.error('Update message report error:', error);
+    return c.json({ error: 'Failed to update report' }, 500);
+  }
+});
+
 // ============================================================================
 // INSTITUTIONS ENDPOINTS
 // ============================================================================
@@ -1979,6 +2214,7 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
+
 
 
 
