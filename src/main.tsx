@@ -1,5 +1,4 @@
-﻿import { installRealPoliceSirenSwitcher } from './utils/realPoliceSirenSwitcher';
-import { installRemoveOpportunitiesUI } from './utils/removeOpportunitiesUI';
+﻿import { installHideBottomOpportunitiesOnly } from './utils/hideBottomOpportunitiesOnly';
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
@@ -28,6 +27,7 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 );
+
 
 
 
