@@ -223,6 +223,16 @@ export default function FeedCard({
   const displayLikes = Math.min(187, stableStats.likes + (item.likedByUser ? 1 : 0));
   const isRtl = language === 'ar' || language === 'ku';
 
+  const safeAuthor = (item.author || {}) as any;
+  const safeAuthorName = cleanText(
+    safeAuthor.name,
+    language === 'ar' ? 'مستخدم' : language === 'ku' ? 'بەکارهێنەر' : 'User'
+  );
+  const safeAuthorUniversity = cleanText(safeAuthor.university, '');
+  const safeAuthorUsername = cleanText(safeAuthor.username, '');
+  const safeAuthorMajor = cleanText(safeAuthor.major, '');
+  const safeAuthorStudentYear = cleanText(safeAuthor.studentYear, '');
+
   // Campus Life reads like a social caption; it should not prepend a generic poster headline.
   const title = isMockCampusPost ? '' : cleanText(getLocalizedContent(item, 'title', language), item.titleEN || 'Jamiaati Post');
   const body = cleanText(getLocalizedContent(item, 'content', language), item.contentEN || '');
@@ -276,12 +286,12 @@ export default function FeedCard({
   };
 
   const captionIsLong = caption.length > 150;
-  const authorInitials = item.author.name
+  const authorInitials = safeAuthorName
     .split(/\s+/)
     .filter(Boolean)
     .slice(0, 2)
     .map(part => part.charAt(0))
-    .join('');
+    .join('') || 'U';
 
   const openMockProfile = () => {
     setShowMockProfile(true);
@@ -480,16 +490,16 @@ export default function FeedCard({
     >
       {isMockCampusPost && (
         <div className="flex items-center gap-3 overflow-hidden border-b border-orange-50 px-4 py-3" dir="auto">
-          <button type="button" onClick={openMockProfile} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-orange-400 text-sm font-black text-white shadow-sm" aria-label={`View ${item.author.name}'s demo profile`}>
+          <button type="button" onClick={openMockProfile} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-orange-400 text-sm font-black text-white shadow-sm" aria-label={`View ${safeAuthorName}'s demo profile`}>
             {authorInitials}
           </button>
           <button type="button" onClick={openMockProfile} className="min-w-0 flex-1 overflow-hidden text-start">
-            <div className="truncate text-[13px] font-black text-slate-900">{item.author.name}</div>
+            <div className="truncate text-[13px] font-black text-slate-900">{safeAuthorName}</div>
             <div className="truncate text-[10px] font-bold text-slate-500">
-              {item.author.university} · {item.location}
+              {safeAuthorUniversity} · {item.location}
             </div>
             <div className="max-w-full break-words text-[9px] font-bold leading-tight text-violet-700">
-              @{item.author.username} · {item.author.major} · {item.author.studentYear}
+              @{safeAuthorUsername} · {safeAuthorMajor} · {safeAuthorStudentYear}
             </div>
           </button>
           <span className="rounded-full bg-violet-50 px-2 py-1 text-[9px] font-black text-violet-700">DEMO</span>
@@ -810,14 +820,14 @@ export default function FeedCard({
             <div className="flex items-start gap-3">
               <div className="flex h-16 w-16 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-orange-400 text-xl font-black text-white">{authorInitials}</div>
               <div className="min-w-0 flex-1">
-                <div className="text-base font-black text-slate-950">{item.author.name}</div>
-                <div className="max-w-full break-all text-[11px] font-bold text-violet-700">@{item.author.username}</div>
-                <div className="mt-1 text-[10px] font-bold text-slate-500">{item.author.university} · {item.author.governorate || item.location}</div>
+                <div className="text-base font-black text-slate-950">{safeAuthorName}</div>
+                <div className="max-w-full break-all text-[11px] font-bold text-violet-700">@{safeAuthorUsername}</div>
+                <div className="mt-1 text-[10px] font-bold text-slate-500">{safeAuthorUniversity} · {item.author.governorate || item.location}</div>
               </div>
               <button type="button" onClick={() => setShowMockProfile(false)} className="rounded-full bg-slate-100 p-2" aria-label="Close profile"><X className="h-4 w-4" /></button>
             </div>
             <div className="mt-4 rounded-2xl bg-slate-50 p-3 text-[11px] font-semibold leading-relaxed text-slate-700">
-              <div className="font-black text-slate-950">{item.author.major} · {item.author.studentYear}</div>
+              <div className="font-black text-slate-950">{safeAuthorMajor} · {safeAuthorStudentYear}</div>
               <p className="mt-1">{item.author.bio}</p>
             </div>
             <div className="mt-3">
@@ -835,6 +845,8 @@ export default function FeedCard({
     </article>
   );
 }
+
+
 
 
 
