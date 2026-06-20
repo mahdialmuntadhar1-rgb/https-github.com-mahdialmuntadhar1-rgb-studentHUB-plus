@@ -212,6 +212,37 @@ function createInstallStyles() {
   document.head.appendChild(style);
 }
 
+function showAndroidInstallHelp() {
+  if (document.querySelector('.jamiaati-pwa-install__ios')) return;
+
+  const overlay = document.createElement('div');
+  overlay.className = 'jamiaati-pwa-install__ios';
+  overlay.innerHTML = `
+    <div class="jamiaati-pwa-install__ios-card" role="dialog" aria-modal="true">
+      <h3>Install Jamiaati</h3>
+      <p>The app is ready, but your browser has not opened the automatic install popup yet.</p>
+      <ol>
+        <li>Tap the browser menu <strong>⋮</strong></li>
+        <li>Choose <strong>Install app</strong> or <strong>Add to Home screen</strong></li>
+        <li>If it does not appear, refresh once and wait 5 seconds</li>
+      </ol>
+      <div class="jamiaati-pwa-install__ios-actions">
+        <button class="jamiaati-pwa-install__secondary" type="button" data-close-ios>Close</button>
+        <button class="jamiaati-pwa-install__primary" type="button" data-close-ios>I understand</button>
+      </div>
+    </div>
+  `;
+
+  overlay.addEventListener('click', (event) => {
+    const target = event.target as HTMLElement;
+    if (target === overlay || target.hasAttribute('data-close-ios')) {
+      overlay.remove();
+    }
+  });
+
+  document.body.appendChild(overlay);
+}
+
 function showIOSInstructions() {
   if (document.querySelector('.jamiaati-pwa-install__ios')) return;
 
@@ -259,10 +290,10 @@ function renderInstallButton() {
   installBox.setAttribute('role', 'region');
   installBox.setAttribute('aria-label', 'Install Jamiaati app');
 
-  const installText = isIOS() ? 'How to install' : 'Install';
+  const installText = isIOS() ? 'How to install' : (deferredPrompt ? 'Install' : 'Guide');
   const subtitle = isIOS()
     ? 'Add to Home Screen from Safari'
-    : 'Fast access from your home screen';
+    : (deferredPrompt ? 'Fast access from your home screen' : 'Tap for install steps');
 
   installBox.innerHTML = `
     <div class="jamiaati-pwa-install__card">
@@ -338,3 +369,4 @@ export async function registerJamiaatiPwa() {
   setTimeout(renderInstallButton, 1200);
   setTimeout(renderInstallButton, 5000);
 }
+
