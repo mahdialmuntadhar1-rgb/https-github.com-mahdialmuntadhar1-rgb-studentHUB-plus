@@ -3,6 +3,7 @@ import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
 import './index.css';
 import './styles/high-contrast-fix.css';
+import './styles/neon-purple-theme.css';
 
 
 // STABILITY: unregister legacy service workers to prevent stale cached white screens.
@@ -22,4 +23,5 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 );
+
 
