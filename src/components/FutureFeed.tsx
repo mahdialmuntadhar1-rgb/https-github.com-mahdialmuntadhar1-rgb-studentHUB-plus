@@ -237,16 +237,30 @@ export default function FutureFeed({
       setError(null);
       setCurrentPage(1);
       try {
-        let categoryParam: string | undefined = undefined;
-        if (['job', 'scholarship', 'internship', 'training', 'event', 'volunteering', 'fellowship', 'competition', 'announcement', 'exam'].includes(activeChip)) {
-          categoryParam = activeChip;
-        }
-        
-        // Pass the category filter to the getOpportunities API with pagination
-        const result = await getOpportunities({ category: categoryParam, page: 1, limit: 50, governorate: filterGov !== 'all' ? filterGov : undefined }, language);
+        const coreOpportunityCategories = ['job', 'scholarship', 'training', 'internship', 'event', 'exam', 'registration'];
+        const isAllBatch = activeChip === 'all' || activeChip === 'deadline_soon';
+        const categoriesToFetch = isAllBatch ? coreOpportunityCategories : [activeChip];
+
+        const results = await Promise.all(
+          categoriesToFetch.map(category =>
+            getOpportunities({
+              category,
+              page: 1,
+              limit: category === 'job' ? 1200 : 300,
+              governorate: filterGov !== 'all' ? filterGov : undefined
+            }, language)
+          )
+        );
+
+        const mergedItems = results.flatMap(result => result.items || []);
+        const mergedTotal = results.reduce((sum, result) => {
+          return sum + (Number(result.total) || (result.items?.length || 0));
+        }, 0);
+
         if (active) {
-          setOpportunities(result.items.map(mapBackendOpportunity));
-          setTotalCount(result.total);
+          setOpportunities(mergedItems.map(mapBackendOpportunity));
+          setTotalCount(mergedTotal || null);
+          setVisibleCount(12);
         }
       } catch (err: any) {
         if (active) {
@@ -377,7 +391,7 @@ export default function FutureFeed({
       'job', 'internship', 'scholarship', 'training', 
       'part_time_job', 'full_time_job', 'volunteering', 
       'competition', 'graduation_project_support', 'fellowship',
-      'event', 'announcement', 'exam'
+      'event', 'announcement', 'exam', 'registration', 'registration'
     ].includes(item.type) || !!item.opportunityCategory;
   };
 
@@ -601,21 +615,42 @@ export default function FutureFeed({
 
   // Slice paginated items
   const paginatedItems = finalFilteredOpportunityItems.slice(0, visibleCount);
-  const hasMore = totalCount !== null ? opportunities.length < totalCount : finalFilteredOpportunityItems.length > visibleCount;
+  const hasHiddenLoadedItems = finalFilteredOpportunityItems.length > visibleCount;
+  const hasMoreRemoteItems = totalCount !== null && opportunities.length < totalCount;
+  const hasMore = hasHiddenLoadedItems || hasMoreRemoteItems;
 
   const handleLoadMore = async () => {
+    if (finalFilteredOpportunityItems.length > visibleCount) {
+      setVisibleCount(prev => prev + 12);
+      return;
+    }
+
     const nextPage = currentPage + 1;
     setIsLoading(true);
     try {
-      let categoryParam: string | undefined = undefined;
-      if (['job', 'scholarship', 'internship', 'training', 'event', 'volunteering', 'fellowship', 'competition', 'announcement', 'exam'].includes(activeChip)) {
-        categoryParam = activeChip;
-      }
-      
-      const result = await getOpportunities({ category: categoryParam, page: nextPage, limit: 50, governorate: filterGov !== 'all' ? filterGov : undefined }, language);
-      setOpportunities(prev => [...prev, ...result.items.map(mapBackendOpportunity)]);
+      const coreOpportunityCategories = ['job', 'scholarship', 'training', 'internship', 'event', 'exam', 'registration'];
+      const isAllBatch = activeChip === 'all' || activeChip === 'deadline_soon';
+      const categoriesToFetch = isAllBatch ? coreOpportunityCategories : [activeChip];
+
+      const results = await Promise.all(
+        categoriesToFetch.map(category =>
+          getOpportunities({
+            category,
+            page: nextPage,
+            limit: category === 'job' ? 1200 : 300,
+            governorate: filterGov !== 'all' ? filterGov : undefined
+          }, language)
+        )
+      );
+
+      const mergedItems = results.flatMap(result => result.items || []);
+      const mergedTotal = results.reduce((sum, result) => {
+        return sum + (Number(result.total) || (result.items?.length || 0));
+      }, 0);
+
+      setOpportunities(prev => [...prev, ...mergedItems.map(mapBackendOpportunity)]);
       setCurrentPage(nextPage);
-      setTotalCount(result.total);
+      setTotalCount(mergedTotal || null);
     } catch (err: any) {
       setError(err.message || 'Failed to load more opportunities');
     } finally {
@@ -1072,6 +1107,8 @@ export default function FutureFeed({
     </div>
   );
 }
+
+
 
 
 
