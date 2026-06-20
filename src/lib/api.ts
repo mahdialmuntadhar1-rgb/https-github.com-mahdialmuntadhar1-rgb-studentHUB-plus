@@ -405,8 +405,6 @@ export const opportunityAutomation = {
 export async function getOpportunities(params?: { category?: string; page?: number; limit?: number; governorate?: string }, lang: Language = 'ar') {
   const { category, page = 1, limit = 50, governorate } = params || {};
 
-  const publicCategories = ['job', 'scholarship', 'training', 'internship', 'event', 'exam', 'registration'];
-
   const extractItems = (payload: any): any[] => {
     if (!payload) return [];
     if (Array.isArray(payload)) return payload;
@@ -452,14 +450,58 @@ export async function getOpportunities(params?: { category?: string; page?: numb
       if (Number.isFinite(num) && num > 0) return num;
     }
 
-    return fallback > 0 ? null : null;
+    return fallback > 0 ? fallback : null;
   };
 
-  const fetchOneCategory = async (categoryToFetch?: string) => {
+  const filterAndPage = (items: any[]) => {
+    let filtered = items;
+
+    if (category && category !== 'all') {
+      filtered = filtered.filter(item => {
+        const itemCategory = String(item.category || item.type || '').toLowerCase();
+        return itemCategory === category.toLowerCase() || itemCategory.includes(category.toLowerCase());
+      });
+    }
+
+    if (governorate && governorate !== 'all') {
+      const gov = governorate.toLowerCase();
+      filtered = filtered.filter(item => {
+        const itemGov = String(item.governorate || item.governorateId || item.location || item.city || '').toLowerCase();
+        return itemGov.includes(gov) || itemGov === 'all';
+      });
+    }
+
+    const start = (page - 1) * limit;
+    const end = start + limit;
+
+    return {
+      items: filtered.slice(start, end),
+      total: filtered.length
+    };
+  };
+
+  const fetchCache = async () => {
+    try {
+      const cacheResponse = await fetch('/data/opportunities-cache.json', {
+        headers: { Accept: 'application/json' }
+      });
+
+      if (!cacheResponse.ok) return { items: [], total: null };
+
+      const cacheData = await cacheResponse.json();
+      const cacheItems = extractItems(cacheData);
+      return filterAndPage(cacheItems);
+    } catch (err) {
+      console.error('Error reading local opportunities cache:', err);
+      return { items: [], total: null };
+    }
+  };
+
+  const fetchBackend = async () => {
     const url = new URL(`${BACKEND_URL}/api/opportunities`);
 
-    if (categoryToFetch && categoryToFetch !== 'all') {
-      url.searchParams.append('category', categoryToFetch);
+    if (category && category !== 'all') {
+      url.searchParams.append('category', category);
     }
 
     if (governorate && governorate !== 'all') {
@@ -467,72 +509,44 @@ export async function getOpportunities(params?: { category?: string; page?: numb
     }
 
     url.searchParams.append('page', String(page));
-
-    const smartLimit =
-      categoryToFetch === 'job'
-        ? Math.max(limit, 1200)
-        : categoryToFetch
-          ? Math.max(limit, 300)
-          : Math.max(limit, 1200);
-
-    url.searchParams.append('limit', String(smartLimit));
+    url.searchParams.append('limit', String(limit));
 
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 15000);
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
 
     try {
       const res = await fetch(url.toString(), {
         signal: controller.signal,
-        headers: {
-          Accept: 'application/json'
-        }
+        headers: { Accept: 'application/json' }
       });
 
       clearTimeout(timeoutId);
 
       const data = await handleResponse(res, lang);
       const items = extractItems(data);
-      const total = extractTotal(data, items.length);
 
-      return { items, total };
+      if (items.length === 0) {
+        return { items: [], total: null };
+      }
+
+      return {
+        items,
+        total: extractTotal(data, items.length)
+      };
     } catch (err: any) {
       clearTimeout(timeoutId);
-      console.error('Error fetching opportunities category:', categoryToFetch || 'all', err);
+      console.error('Error fetching opportunities from backend:', err);
       return { items: [], total: null };
     }
   };
 
-  // Important: the public backend works reliably by category.
-  // When the UI asks for "All", fetch the real categories in batches.
-  if (!category || category === 'all') {
-    const results = await Promise.all(publicCategories.map(fetchOneCategory));
-    const seen = new Set<string>();
-    const mergedItems: any[] = [];
+  const backendResult = await fetchBackend();
 
-    for (const result of results) {
-      for (const item of result.items || []) {
-        const key = String(
-          item.id ||
-          item.source_url ||
-          item.original_source_url ||
-          item.application_link ||
-          item.apply_url ||
-          item.url ||
-          item.link ||
-          `${item.category || item.type || 'opportunity'}-${item.title || item.title_en || item.position_title || Math.random()}`
-        );
-
-        if (!seen.has(key)) {
-          seen.add(key);
-          mergedItems.push(item);
-        }
-      }
-    }
-
-    return { items: mergedItems, total: null };
+  if (backendResult.items.length > 0) {
+    return backendResult;
   }
 
-  return fetchOneCategory(category);
+  return fetchCache();
 }
 
 export const outreachApi = {
@@ -829,6 +843,7 @@ export const socialApi = {
     return await handleResponse(res, lang);
   }
 };
+
 
 
 
