@@ -31,3 +31,7 @@ OPPORTUNITY_SCHEMA_AND_SAMPLE_*.txt
 # Local generated design backup folders
 /_KEEP_*/
 /_REMOVE_*/
+
+# Local generated restore/repair folders
+/_RESTORE_*/
+/_REPAIR_*/
