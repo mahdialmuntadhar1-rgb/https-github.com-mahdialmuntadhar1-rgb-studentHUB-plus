@@ -707,7 +707,7 @@ export default function HomeFeed({
     const baseSlides = [
       {
         id: 'slide_1',
-        image: heroImages[0] || 'data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 700'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%236B25C9'/%3E%3Cstop offset='1' stop-color='%231E40AF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='700' fill='url(%23g)'/%3E%3C/svg%3E',
+        image: heroImages[0] || 'data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 700%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%236B25C9%22/%3E%3Cstop offset=%221%22 stop-color=%22%231E40AF%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%221200%22 height=%22700%22 fill=%22url(%23g)%22/%3E%3C/svg%3E',
         tag: language === 'ar' ? 'مجتمع الحرم' : language === 'ku' ? 'کۆمەڵگەی زانکۆ' : 'Campus Community',
         tagColor: 'bg-[#1E40AF] text-white',
         headline: language === 'ar' ? 'اعثر على مسارك الدراسي والفرص المثمرة بكفاءة' : language === 'ku' ? 'ڕێڕەوی ئەکادیمی و گونجاوترین دەرفەت بدۆزەرەوە' : 'Find your university life and opportunities',
@@ -2290,6 +2290,7 @@ export default function HomeFeed({
     </div>
   );
 }
+
 
 
 

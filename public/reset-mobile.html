@@ -1,9 +1,9 @@
 ﻿<!doctype html>
 <html lang="en">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Reset Jamiaati Mobile Cache</title>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reset Jamiaati</title>
   <style>
     body {
       margin: 0;
@@ -12,68 +12,76 @@
       place-items: center;
       font-family: Arial, sans-serif;
       color: white;
-      background: radial-gradient(circle at top, #7c3aed, #160826 55%, #05000c);
+      background: linear-gradient(135deg,#160826,#301057,#090016);
     }
     .card {
-      width: min(92vw, 460px);
-      padding: 26px;
-      border-radius: 26px;
-      background: rgba(255,255,255,0.12);
-      border: 1px solid rgba(255,255,255,0.22);
-      box-shadow: 0 20px 80px rgba(0,0,0,0.35);
-      text-align: center;
+      width: min(92vw, 560px);
+      padding: 24px;
+      border-radius: 24px;
+      background: rgba(255,255,255,.10);
+      border: 1px solid rgba(255,255,255,.22);
+      box-shadow: 0 24px 80px rgba(0,0,0,.45);
     }
-    h1 { margin: 0 0 10px; font-size: 24px; }
-    p { opacity: 0.9; line-height: 1.5; }
     button, a {
       display: inline-block;
-      margin-top: 14px;
-      padding: 13px 18px;
+      margin-top: 12px;
+      padding: 12px 16px;
       border-radius: 999px;
       border: 0;
-      color: white;
-      background: linear-gradient(135deg, #8b5cf6, #06b6d4);
+      background: white;
+      color: #301057;
       font-weight: 800;
       text-decoration: none;
       cursor: pointer;
     }
-    .small { font-size: 13px; opacity: 0.8; }
+    pre {
+      white-space: pre-wrap;
+      background: rgba(0,0,0,.30);
+      padding: 12px;
+      border-radius: 14px;
+      overflow:auto;
+    }
   </style>
 </head>
 <body>
   <div class="card">
-    <h1>Resetting Jamiaati...</h1>
-    <p>Clearing old mobile cache, old PWA data, and old service worker.</p>
-    <p class="small">تنظيف الكاش القديم · پاککردنەوەی کاشی کۆن</p>
-    <button onclick="resetNow()">Reset now</button>
-    <br />
-    <a id="go" href="/?fresh=aftermobilereset20260620">Open Jamiaati</a>
+    <h1>Resetting Jamiaati</h1>
+    <p>This clears old phone/laptop cache, old service workers, and old local storage.</p>
+    <pre id="log">Starting...</pre>
+    <button onclick="resetNow()">Reset again</button>
+    <a href="/?fresh=after-reset-20260620">Open Jamiaati</a>
   </div>
 
   <script>
     async function resetNow() {
-      try {
-        localStorage.clear();
-        sessionStorage.clear();
-      } catch (e) {}
+      const log = document.getElementById("log");
+      function line(x) { log.textContent += "\n" + x; }
 
-      try {
-        if ("caches" in window) {
+      log.textContent = "Clearing browser storage...";
+
+      try { localStorage.clear(); line("localStorage cleared"); } catch(e) { line("localStorage error: " + e.message); }
+      try { sessionStorage.clear(); line("sessionStorage cleared"); } catch(e) { line("sessionStorage error: " + e.message); }
+
+      if ("caches" in window) {
+        try {
           const keys = await caches.keys();
-          await Promise.all(keys.map(key => caches.delete(key)));
-        }
-      } catch (e) {}
+          await Promise.all(keys.map(k => caches.delete(k)));
+          line("Caches deleted: " + keys.length);
+        } catch(e) { line("Cache error: " + e.message); }
+      }
 
-      try {
-        if ("serviceWorker" in navigator) {
+      if ("serviceWorker" in navigator) {
+        try {
           const regs = await navigator.serviceWorker.getRegistrations();
-          await Promise.all(regs.map(reg => reg.unregister()));
-        }
-      } catch (e) {}
+          await Promise.all(regs.map(r => r.unregister()));
+          line("Service workers unregistered: " + regs.length);
+        } catch(e) { line("Service worker error: " + e.message); }
+      }
 
+      line("Done. Opening fresh app...");
       setTimeout(() => {
-        window.location.href = "/?fresh=aftermobilereset20260620_" + Date.now();
-      }, 700);
+        location.href = "/?fresh=after-reset-20260620-" + Date.now();
+      }, 900);
     }
 
     resetNow();
