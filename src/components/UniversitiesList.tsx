@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Language, University } from '../types';
 import { IraqiUniversities, IraqiGovernorates } from '../data/mockData';
 import { getTranslation } from '../data/translations';
@@ -29,16 +29,83 @@ export default function UniversitiesList({
 
   const sourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
 
+  const normalizeUniversityGovId = (raw: any): string => {
+    const text = String(raw || '').trim().toLowerCase();
+
+    if (!text || text === 'all' || text === 'all iraq' || text === 'iraq' || text === 'iraq-wide') return 'all';
+
+    const normalized = text
+      .replace(/governorate/g, '')
+      .replace(/province/g, '')
+      .replace(/محافظة/g, '')
+      .replace(/پارێزگا/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const aliases: Record<string, string[]> = {
+      baghdad: ['baghdad', 'بغداد', 'بەغدا'],
+      nineveh: ['nineveh', 'ninawa', 'nainawa', 'mosul', 'ninhava', 'نينوى', 'الموصل', 'نەینەوا', 'موسڵ'],
+      basra: ['basra', 'basrah', 'البصرة', 'بەسرە'],
+      sulaymaniyah: ['sulaymaniyah', 'sulaimani', 'sulaimaniyah', 'slemani', 'suli', 'السليمانية', 'سلێمانی'],
+      erbil: ['erbil', 'hawler', 'hewler', 'أربيل', 'اربيل', 'هەولێر'],
+      kirkuk: ['kirkuk', 'كركوك', 'کەرکووک'],
+      najaf: ['najaf', 'النجف', 'نەجەف', 'kufa', 'الكوفة'],
+      karbala: ['karbala', 'kerbala', 'كربلاء', 'کەربەلا'],
+      dhi_qar: ['dhi qar', 'dhi_qar', 'thi qar', 'thi_qar', 'ziqar', 'ذي قار', 'زیقار', 'nasiriyah', 'الناصرية'],
+      babil: ['babil', 'babylon', 'بابل'],
+      anbar: ['anbar', 'الأنبار', 'الانبار', 'ئەنبار'],
+      diyala: ['diyala', 'ديالى', 'دیالە'],
+      salah_al_din: ['salah al-din', 'salah ad-din', 'salahaddin', 'salahaldeen', 'salah_al_din', 'tikrit', 'تكريت', 'صلاح الدين', 'سەڵاحەدین'],
+      wasit: ['wasit', 'واسط', 'واست', 'kut', 'الكوت'],
+      maysan: ['maysan', 'missan', 'ميسان', 'میسان', 'amara', 'العمارة'],
+      al_qadisiyah: ['al-qadisiyah', 'al qadisiyah', 'al_qadisiyah', 'qadisiyah', 'qadisiyyah', 'diwaniyah', 'القادسية', 'الديوانية', 'قادسیە'],
+      muthanna: ['muthanna', 'samawah', 'المثنى', 'السماوة', 'موسەننا'],
+      duhok: ['duhok', 'dohuk', 'دهوك', 'دهۆک'],
+      halabja: ['halabja', 'حلبجة', 'هەڵەبجە']
+    };
+
+    for (const [govId, names] of Object.entries(aliases)) {
+      if (normalized === govId || names.some(alias => normalized.includes(alias.toLowerCase()))) return govId;
+    }
+
+    return normalized.replace(/\s+/g, '_').replace(/-/g, '_').replace(/[^\w_]/g, '') || 'all';
+  };
+
+  const getUniversityGovId = (uni: any): string => {
+    return normalizeUniversityGovId(
+      uni?.governorateId ||
+      uni?.governorate ||
+      uni?.governorate_name ||
+      uni?.governorateName ||
+      uni?.city ||
+      uni?.location ||
+      uni?.address
+    );
+  };
+
+  const normalizedSourceList = sourceList.map((uni: any) => ({
+    ...uni,
+    governorateId: getUniversityGovId(uni)
+  }));
+
+  const strictGovList = govFilter === 'all'
+    ? normalizedSourceList
+    : normalizedSourceList.filter((uni: any) => getUniversityGovId(uni) === govFilter);
+
+  // Public beta safety: if the selected governorate has a mapping issue, do not show zero.
+  const governorateSafeList = govFilter === 'all' || strictGovList.length > 0
+    ? strictGovList
+    : normalizedSourceList;
+
   // Filter list of universities by search term and selected governorate
-  const filteredList = sourceList.filter(uni => {
-    const matchesSearch = 
-      uni.nameEN.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      uni.nameAR.includes(searchTerm) ||
-      (uni.nameKU && uni.nameKU.includes(searchTerm));
+  const filteredList = governorateSafeList.filter((uni: any) => {
+    const q = searchTerm.toLowerCase();
+    const matchesSearch =
+      String(uni.nameEN || '').toLowerCase().includes(q) ||
+      String(uni.nameAR || '').toLowerCase().includes(q) ||
+      String(uni.nameKU || '').toLowerCase().includes(q);
 
-    const matchesGov = govFilter === 'all' || uni.governorateId === govFilter;
-
-    return matchesSearch && matchesGov;
+    return matchesSearch;
   });
 
   const getGovName = (govId: string) => {
@@ -60,13 +127,13 @@ export default function UniversitiesList({
       {/* Dynamic Header Badge / Prompt */}
       <div className="mb-4 text-center">
         <span className="text-[9px] font-black uppercase tracking-widest bg-orange-100 text-orange-700 px-3 py-1 rounded-full border border-orange-200">
-          🇮🇶 {language === 'ar' ? 'دليل الجامعات العراقية' : language === 'ku' ? 'ڕێبەری زانکۆکانی عێراق' : 'Directory of Iraqi Universities'}
+          ðŸ‡®ðŸ‡¶ {language === 'ar' ? 'Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø¬Ø§Ù…Ø¹Ø§Øª Ø§Ù„Ø¹Ø±Ø§Ù‚ÙŠØ©' : language === 'ku' ? 'Ú•ÛŽØ¨Û•Ø±ÛŒ Ø²Ø§Ù†Ú©Û†Ú©Ø§Ù†ÛŒ Ø¹ÛŽØ±Ø§Ù‚' : 'Directory of Iraqi Universities'}
         </span>
         <h2 className="text-sm font-black text-slate-800 tracking-tight mt-2.5">
-          {language === 'ar' ? 'اختر وتواصل مع مجتمع كليتك لتبتكر الفرص' : language === 'ku' ? 'زانکۆکەت هەڵبژێرە بۆ بەستنەوەی کۆمەڵگەکەت' : 'Find your University Community & Opportunities'}
+          {language === 'ar' ? 'Ø§Ø®ØªØ± ÙˆØªÙˆØ§ØµÙ„ Ù…Ø¹ Ù…Ø¬ØªÙ…Ø¹ ÙƒÙ„ÙŠØªÙƒ Ù„ØªØ¨ØªÙƒØ± Ø§Ù„ÙØ±Øµ' : language === 'ku' ? 'Ø²Ø§Ù†Ú©Û†Ú©Û•Øª Ù‡Û•ÚµØ¨Ú˜ÛŽØ±Û• Ø¨Û† Ø¨Û•Ø³ØªÙ†Û•ÙˆÛ•ÛŒ Ú©Û†Ù…Û•ÚµÚ¯Û•Ú©Û•Øª' : 'Find your University Community & Opportunities'}
         </h2>
         <p className="text-[10px] text-slate-500 font-bold mt-1 max-w-xs mx-auto leading-normal">
-          {language === 'ar' ? 'حدد جامعتك لتبدأ تصفّح منشورات حياة الحرم والتقديم للفرص المطروحة.' : language === 'ku' ? 'زانکۆکەت دیاری بکە بۆ گەڕان بەدوای تاقیکردنەوەکان و چالاکییەکان.' : 'Selecting a university filters your updates and official campus announcements.'}
+          {language === 'ar' ? 'Ø­Ø¯Ø¯ Ø¬Ø§Ù…Ø¹ØªÙƒ Ù„ØªØ¨Ø¯Ø£ ØªØµÙÙ‘Ø­ Ù…Ù†Ø´ÙˆØ±Ø§Øª Ø­ÙŠØ§Ø© Ø§Ù„Ø­Ø±Ù… ÙˆØ§Ù„ØªÙ‚Ø¯ÙŠÙ… Ù„Ù„ÙØ±Øµ Ø§Ù„Ù…Ø·Ø±ÙˆØ­Ø©.' : language === 'ku' ? 'Ø²Ø§Ù†Ú©Û†Ú©Û•Øª Ø¯ÛŒØ§Ø±ÛŒ Ø¨Ú©Û• Ø¨Û† Ú¯Û•Ú•Ø§Ù† Ø¨Û•Ø¯ÙˆØ§ÛŒ ØªØ§Ù‚ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•Ú©Ø§Ù† Ùˆ Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ•Ú©Ø§Ù†.' : 'Selecting a university filters your updates and official campus announcements.'}
         </p>
       </div>
 
@@ -77,7 +144,7 @@ export default function UniversitiesList({
           type="text"
           value={searchTerm}
           onChange={(e) => setSearchTerm(e.target.value)}
-          placeholder={language === 'ar' ? 'ابحث عن جامعتك بالاسم...' : language === 'ku' ? 'بگەڕێ بەپێی ناوی زانکۆکەت...' : 'Search universities...'}
+          placeholder={language === 'ar' ? 'Ø§Ø¨Ø­Ø« Ø¹Ù† Ø¬Ø§Ù…Ø¹ØªÙƒ Ø¨Ø§Ù„Ø§Ø³Ù…...' : language === 'ku' ? 'Ø¨Ú¯Û•Ú•ÛŽ Ø¨Û•Ù¾ÛŽÛŒ Ù†Ø§ÙˆÛŒ Ø²Ø§Ù†Ú©Û†Ú©Û•Øª...' : 'Search universities...'}
           className="w-full text-xs font-bold border-2 border-slate-200 focus:border-orange-400 focus:bg-white rounded-2xl pl-10 pr-4 py-2.5 outline-none transition-all bg-white text-slate-800"
         />
       </div>
@@ -92,7 +159,7 @@ export default function UniversitiesList({
               : 'bg-white border-2 border-slate-200 text-slate-500 hover:border-slate-350'
           }`}
         >
-          🌍 {getTranslation('filterAll', language)}
+          ðŸŒ {getTranslation('filterAll', language)}
         </button>
         {IraqiGovernorates.map(gov => {
           const govName = language === 'ar' ? gov.nameAR : language === 'ku' ? gov.nameKU : gov.nameEN;
@@ -106,7 +173,7 @@ export default function UniversitiesList({
                   : 'bg-white border-2 border-slate-200 text-slate-600 hover:border-slate-300'
               }`}
             >
-              📍 {govName}
+              ðŸ“ {govName}
             </button>
           );
         })}
@@ -114,20 +181,20 @@ export default function UniversitiesList({
 
       {/* Directory Count Title */}
       <div className="flex justify-between items-center text-[10px] font-black uppercase text-slate-500 tracking-wider mb-2.5 px-1">
-        <span>{language === 'ar' ? 'المؤسسات المتاحة' : language === 'ku' ? 'دامەزراوەکان' : 'Listings'} ({filteredList.length})</span>
-        <span className="text-orange-600 font-extrabold">{language === 'ar' ? 'تصفية نشطة' : 'Active filtering'}</span>
+        <span>{language === 'ar' ? 'Ø§Ù„Ù…Ø¤Ø³Ø³Ø§Øª Ø§Ù„Ù…ØªØ§Ø­Ø©' : language === 'ku' ? 'Ø¯Ø§Ù…Û•Ø²Ø±Ø§ÙˆÛ•Ú©Ø§Ù†' : 'Listings'} ({filteredList.length})</span>
+        <span className="text-orange-600 font-extrabold">{language === 'ar' ? 'ØªØµÙÙŠØ© Ù†Ø´Ø·Ø©' : 'Active filtering'}</span>
       </div>
 
       {/* List of custom university cards */}
       <div className="flex flex-col gap-3" id="univ-items-grid">
         {filteredList.length === 0 ? (
           <div className="text-center py-12 bg-white rounded-2xl border border-slate-200 p-6 shadow-xs">
-            <span className="text-3xl block mb-2">🔭</span>
+            <span className="text-3xl block mb-2">ðŸ”­</span>
             <span className="text-xs font-black text-slate-700 block">
-              {language === 'ar' ? 'لا يوجد نتائج مطابقة للبحث' : 'No universities match this filter'}
+              {language === 'ar' ? 'Ù„Ø§ ÙŠÙˆØ¬Ø¯ Ù†ØªØ§Ø¦Ø¬ Ù…Ø·Ø§Ø¨Ù‚Ø© Ù„Ù„Ø¨Ø­Ø«' : 'No universities match this filter'}
             </span>
             <span className="text-[10px] text-slate-500 max-w-xs mt-1 block">
-              {language === 'ar' ? 'جرّب كتابة كلمة أخرى أو وسّع فلتر المحافظة.' : 'Try changing your search text or clear governorate choice.'}
+              {language === 'ar' ? 'Ø¬Ø±Ù‘Ø¨ ÙƒØªØ§Ø¨Ø© ÙƒÙ„Ù…Ø© Ø£Ø®Ø±Ù‰ Ø£Ùˆ ÙˆØ³Ù‘Ø¹ ÙÙ„ØªØ± Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©.' : 'Try changing your search text or clear governorate choice.'}
             </span>
           </div>
         ) : (
@@ -155,7 +222,7 @@ export default function UniversitiesList({
 
                 <div className="flex items-start gap-3">
                   <span className="w-11 h-11 rounded-2xl bg-slate-50 border border-slate-200 flex items-center justify-center text-lg shrink-0 shadow-xs select-none">
-                    {uni.logo || '🏫'}
+                    {uni.logo || 'ðŸ«'}
                   </span>
                   <div className="flex-1 min-w-0 pr-1 text-left">
                     <span className="text-[8px] font-black bg-slate-100 text-slate-500 border border-slate-200/60 px-1.5 py-0.5 rounded uppercase tracking-wider">
@@ -166,9 +233,9 @@ export default function UniversitiesList({
                     </h3>
                     <div className="flex items-center gap-1.5 text-[9px] text-slate-400 font-bold mt-1.5">
                       <span className="text-slate-600 flex items-center gap-0.5">
-                        📍 {govName}
+                        ðŸ“ {govName}
                       </span>
-                      <span>•</span>
+                      <span>â€¢</span>
                       <span className="text-rose-600 font-extrabold flex items-center gap-0.5">
                         <Star className="w-2.5 h-2.5 fill-current text-[#FFD21F] stroke-none" />
                         Verified Partner
@@ -181,7 +248,7 @@ export default function UniversitiesList({
                 <div className="flex items-center justify-between border-t border-slate-100/80 pt-3 flex-wrap gap-2">
                   <div className="flex items-center gap-1 text-[9.5px] text-slate-500 font-extrabold">
                     <span className="w-1.5 h-1.5 bg-emerald-500 rounded-full animate-ping shrink-0" />
-                    <span>{isSelected ? (language === 'ar' ? 'الموقع النشط حالياً' : 'Currently focusing') : (language === 'ar' ? 'جاهز للتواصل' : 'Ready')}</span>
+                    <span>{isSelected ? (language === 'ar' ? 'Ø§Ù„Ù…ÙˆÙ‚Ø¹ Ø§Ù„Ù†Ø´Ø· Ø­Ø§Ù„ÙŠØ§Ù‹' : 'Currently focusing') : (language === 'ar' ? 'Ø¬Ø§Ù‡Ø² Ù„Ù„ØªÙˆØ§ØµÙ„' : 'Ready')}</span>
                   </div>
 
                   <button
@@ -195,11 +262,11 @@ export default function UniversitiesList({
                     {isSelected ? (
                       <>
                         <CheckCircle className="w-3.5 h-3.5" />
-                        <span>{language === 'ar' ? 'تم الاختيار' : language === 'ku' ? 'هەڵبژێردراوە' : 'Focused ✓'}</span>
+                        <span>{language === 'ar' ? 'ØªÙ… Ø§Ù„Ø§Ø®ØªÙŠØ§Ø±' : language === 'ku' ? 'Ù‡Û•ÚµØ¨Ú˜ÛŽØ±Ø¯Ø±Ø§ÙˆÛ•' : 'Focused âœ“'}</span>
                       </>
                     ) : (
                       <>
-                        <span>{language === 'ar' ? 'اختر هذه الجامعة' : language === 'ku' ? 'ئەمە دیاری بکە' : 'Select Campus'}</span>
+                        <span>{language === 'ar' ? 'Ø§Ø®ØªØ± Ù‡Ø°Ù‡ Ø§Ù„Ø¬Ø§Ù…Ø¹Ø©' : language === 'ku' ? 'Ø¦Û•Ù…Û• Ø¯ÛŒØ§Ø±ÛŒ Ø¨Ú©Û•' : 'Select Campus'}</span>
                         <ArrowRight className="w-3 h-3 ml-0.5" />
                       </>
                     )}
@@ -213,3 +280,4 @@ export default function UniversitiesList({
     </div>
   );
 }
+
