@@ -155,7 +155,7 @@ export default function App() {
     const safeItem: any = {
       ...item,
       commentsList: Array.isArray(item.commentsList) ? item.commentsList : [],
-      tags: Array.isArray(item.tags) ? item.tags : ['StudentShare', 'CampusLife']
+      tags: Array.isArray(item.tags) ? item.tags : []
     };
 
     if (
@@ -937,17 +937,17 @@ export default function App() {
 
       imageUrl: imageUrl || undefined,
       author: anonymous ? {
-        name: 'Anonymous Student',
+        name: language === 'ar' ? 'مجهول' : language === 'ku' ? 'نەناسراو' : 'Anonymous',
         role: 'student',
-        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?auto=format&fit=crop&q=80&w=100'
+        avatar: defaultUserProfile.avatar
       } : {
         name: userProfile.name,
         role: userProfile.role,
         avatar: userProfile.avatar,
-        university: IraqiUniversities.find(u => u.id === (universityId || userProfile.universityId || 'u_baghdad'))?.nameEN || 'University of Baghdad'
+        university: IraqiUniversities.find(u => u.id === (universityId || userProfile.universityId || ''))?.nameEN || ''
       },
       date: 'Just now',
-      likes: 1,
+      likes: 0,
       commentsCount: 0,
       commentsList: [],
       likedByUser: true,
@@ -955,8 +955,8 @@ export default function App() {
       universityId: universityId || (selectedUni === 'all' ? userProfile.universityId : selectedUni),
       category: 'post',
       sourceType: 'student_share',
-      moodTag: 'Campus Moment',
-      tags: ['StudentShare', 'post', customType === 'anonymous_question' ? 'Advising' : 'CampusLife']
+      moodTag: '',
+      tags: customType === 'anonymous_question' ? ['Advising'] : []
     };
 
     handleAwardPoints(40); // high points for sharing posts!
@@ -1452,6 +1452,7 @@ export default function App() {
     </div>
   );
 };
+
 
 
 

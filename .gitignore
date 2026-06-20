@@ -35,3 +35,9 @@ OPPORTUNITY_SCHEMA_AND_SAMPLE_*.txt
 # Local generated restore/repair folders
 /_RESTORE_*/
 /_REPAIR_*/
+
+# Local generated purge backup folders
+/_RESTORE_*/
+/_REPAIR_*/
+/_REMOVE_*/
+/_PURGE_*/

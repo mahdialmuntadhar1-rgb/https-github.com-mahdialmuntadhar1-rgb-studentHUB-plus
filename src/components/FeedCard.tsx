@@ -337,15 +337,15 @@ export default function FeedCard({
     }
 
     onEditFeedItem?.(item.id, {
-      titleEN: 'Campus Moment 🌟',
-      titleAR: 'لحظة جامعية 🌟',
-      titleKU: 'ساتێکی زانکۆ 🌟',
+      titleEN: 'Campus Life Post',
+      titleAR: 'منشور حياة جامعية',
+      titleKU: 'بڵاوکراوەی ژیانی زانکۆ',
       contentEN: trimmedCaption,
       contentAR: trimmedCaption,
       contentKU: trimmedCaption,
       body_original: trimmedCaption,
       imageUrl: editImagePreview || undefined,
-      imageAlt: editImagePreview ? 'Edited Campus Life image/design' : undefined,
+      imageAlt: editImagePreview ? 'Uploaded Campus Life image' : undefined,
       tags: []
     } as any);
 
@@ -554,7 +554,7 @@ export default function FeedCard({
           <div className="relative">
             <div className="mb-3 text-5xl">✨</div>
             <div className="text-lg font-black">{item.moodTag || 'Campus Life'}</div>
-            <div className="mt-2 text-xs font-bold text-white/80">StudentHUB Campus Moment</div>
+            <div className="mt-2 text-xs font-bold text-white/80">Campus Life</div>
           </div>
         </div>
       ) : null}
@@ -840,6 +840,7 @@ export default function FeedCard({
     </article>
   );
 }
+
 
 
 

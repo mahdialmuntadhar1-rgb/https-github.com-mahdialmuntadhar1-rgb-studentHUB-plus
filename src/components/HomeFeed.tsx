@@ -11,13 +11,7 @@ import { getOpportunities, heroImagesApi } from '../lib/api';
 import { cleanDisplayText } from '../utils/safeText';
 import { compressImageToDataUrl } from '../utils/imageCompression';
 
-const DEFAULT_HERO_IMAGES: string[] = [
-  'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=1920',
-  'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=1920',
-  'https://images.unsplash.com/photo-1562774053-701939374585?auto=format&fit=crop&q=80&w=1920',
-  'https://images.unsplash.com/photo-1607237138185-eedd9c632b0e?auto=format&fit=crop&q=80&w=1920',
-  'https://images.unsplash.com/photo-1571260899304-425eee4c7efc?auto=format&fit=crop&q=80&w=1920'
-];
+const DEFAULT_HERO_IMAGES: string[] = [];
 
 function getSafeTags(tags: any): string[] {
   if (Array.isArray(tags)) {
@@ -713,7 +707,7 @@ export default function HomeFeed({
     const baseSlides = [
       {
         id: 'slide_1',
-        image: heroImages[0] || 'https://images.unsplash.com/photo-1523050854058-8df90110c9f1?auto=format&fit=crop&q=80&w=600',
+        image: heroImages[0] || 'data:image/svg+xml;utf8,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 1200 700'%3E%3Cdefs%3E%3ClinearGradient id='g' x1='0' y1='0' x2='1' y2='1'%3E%3Cstop stop-color='%236B25C9'/%3E%3Cstop offset='1' stop-color='%231E40AF'/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width='1200' height='700' fill='url(%23g)'/%3E%3C/svg%3E',
         tag: language === 'ar' ? 'مجتمع الحرم' : language === 'ku' ? 'کۆمەڵگەی زانکۆ' : 'Campus Community',
         tagColor: 'bg-[#1E40AF] text-white',
         headline: language === 'ar' ? 'اعثر على مسارك الدراسي والفرص المثمرة بكفاءة' : language === 'ku' ? 'ڕێڕەوی ئەکادیمی و گونجاوترین دەرفەت بدۆزەرەوە' : 'Find your university life and opportunities',
@@ -959,7 +953,7 @@ export default function HomeFeed({
     e.preventDefault();
     if (!postBody.trim()) return;
 
-    onAddNewPost('Campus Moment 🌟', postBody, anonymous, 'post', postImageUrl || undefined, postGov, postUni);
+    onAddNewPost('Campus Life Post', postBody, anonymous, 'post', postImageUrl || undefined, postGov, postUni);
 
     setSelectedFeedTab('campus_life');
     setSelectedCampusFilter('all');
@@ -2296,6 +2290,7 @@ export default function HomeFeed({
     </div>
   );
 }
+
 
 
 

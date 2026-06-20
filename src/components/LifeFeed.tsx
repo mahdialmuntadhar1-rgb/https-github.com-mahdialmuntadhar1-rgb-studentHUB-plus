@@ -123,7 +123,7 @@ export default function LifeFeed({
       {/* Stories Rail */}
       <div className="mb-5" id="stories-circular-container">
         <h3 className="text-[10px] font-black uppercase text-[#6B25C9] tracking-wider mb-2.5 flex items-center gap-1">
-          ✨ Campus Moments Stories
+          Campus Life Stories
         </h3>
         <div className="flex gap-3 overflow-x-auto pb-1.5 scrollbar-none" id="stories-circular-rail">
           {storiesList.map((story) => (
@@ -280,4 +280,5 @@ export default function LifeFeed({
     </div>
   );
 }
+
 
