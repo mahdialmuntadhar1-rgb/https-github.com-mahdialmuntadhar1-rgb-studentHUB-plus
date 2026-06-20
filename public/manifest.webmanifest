@@ -1,0 +1,64 @@
+{
+  "name": "Jamiaati / StudentHUB",
+  "short_name": "Jamiaati",
+  "description": "Universities, campus life, jobs, scholarships, and opportunities across Iraq.",
+  "id": "/?source=pwa",
+  "start_url": "/?source=pwa",
+  "scope": "/",
+  "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
+  "orientation": "portrait",
+  "background_color": "#F7F2FF",
+  "theme_color": "#5B2FD6",
+  "categories": ["education", "social", "productivity"],
+  "lang": "ar-IQ",
+  "dir": "rtl",
+  "icons": [
+    {
+      "src": "/icons/icon-192.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "/icons/maskable-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Opportunities",
+      "short_name": "Jobs",
+      "description": "Open jobs, scholarships, and trainings",
+      "url": "/?source=pwa&tab=opportunities",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Campus Life",
+      "short_name": "Campus",
+      "description": "Open campus life updates",
+      "url": "/?source=pwa&tab=campus",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    }
+  ]
+}

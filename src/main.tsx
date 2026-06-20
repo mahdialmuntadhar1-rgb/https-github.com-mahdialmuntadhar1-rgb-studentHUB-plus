@@ -9,6 +9,7 @@ import './styles/neon-purple-theme.css';
 import './styles/campus-light-purple-bg.css';
 import './styles/unified-light-purple-ui.css';
 import './styles/purple-3d-postcards.css';
+import { registerJamiaatiPwa } from './pwa-install';
 
 type ErrorBoundaryProps = {
   children: ReactNode;
@@ -134,5 +135,7 @@ if (!rootElement) {
     </StrictMode>,
   );
 
-  void removeLegacyServiceWorkersAndCaches();
+  void registerJamiaatiPwa();
 }
+
+
