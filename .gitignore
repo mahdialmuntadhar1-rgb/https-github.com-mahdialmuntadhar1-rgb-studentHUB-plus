@@ -15,3 +15,8 @@ _BROKEN*/
 _FINAL*/
 _LOCAL_BACKUPS_ARCHIVE*/
 *.local-backup
+
+# Local diagnostic scripts and reports
+*.ps1
+OPPORTUNITY_DATABASE_COUNT_*.txt
+OPPORTUNITY_SCHEMA_AND_SAMPLE_*.txt
