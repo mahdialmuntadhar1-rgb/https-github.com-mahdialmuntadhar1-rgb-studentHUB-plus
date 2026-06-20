@@ -806,62 +806,7 @@ export default function HomeFeed({
   useEffect(() => {
     setPickerPage(1);
   }, [selectedGov, pickerSearch]);
-
-  const normalizeUniversityGovId = (raw: any): string => {
-    const text = String(raw || '').trim().toLowerCase();
-
-    if (!text || text === 'all' || text === 'all iraq' || text === 'iraq' || text === 'iraq-wide') return 'all';
-
-    const normalized = text
-      .replace(/governorate/g, '')
-      .replace(/province/g, '')
-      .replace(/محافظة/g, '')
-      .replace(/پارێزگا/g, '')
-      .replace(/\s+/g, ' ')
-      .trim();
-
-    const aliases: Record<string, string[]> = {
-      baghdad: ['baghdad', 'بغداد', 'بەغدا'],
-      nineveh: ['nineveh', 'nīnawā', 'ninawa', 'nainawa', 'mosul', 'ninhava', 'نينوى', 'الموصل', 'نەینەوا', 'موسڵ'],
-      basra: ['basra', 'basrah', 'البصرة', 'بەسرە'],
-      sulaymaniyah: ['sulaymaniyah', 'sulaimani', 'sulaimaniyah', 'slemani', 'suli', 'السليمانية', 'سلێمانی'],
-      erbil: ['erbil', 'hawler', 'hewler', 'أربيل', 'اربيل', 'هەولێر'],
-      kirkuk: ['kirkuk', 'كركوك', 'کەرکووک'],
-      najaf: ['najaf', 'النجف', 'نەجەف', 'kufa', 'الكوفة'],
-      karbala: ['karbala', 'kerbala', 'كربلاء', 'کەربەلا'],
-      dhi_qar: ['dhi qar', 'dhi_qar', 'thi qar', 'thi_qar', 'ziqar', 'ذي قار', 'زیقار', 'nasiriyah', 'الناصرية'],
-      babil: ['babil', 'babylon', 'بابل'],
-      anbar: ['anbar', 'الأنبار', 'الانبار', 'ئەنبار'],
-      diyala: ['diyala', 'ديالى', 'دیالە'],
-      salah_al_din: ['salah al-din', 'salah ad-din', 'salahaddin', 'salahaldeen', 'salah_al_din', 'tikrit', 'تكريت', 'صلاح الدين', 'سەڵاحەدین'],
-      wasit: ['wasit', 'واسط', 'واست', 'kut', 'الكوت'],
-      maysan: ['maysan', 'missan', 'ميسان', 'میسان', 'amara', 'العمارة'],
-      al_qadisiyah: ['al-qadisiyah', 'al qadisiyah', 'al_qadisiyah', 'qadisiyah', 'qadisiyyah', 'diwaniyah', 'القادسية', 'الديوانية', 'قادسیە'],
-      muthanna: ['muthanna', 'samawah', 'المثنى', 'السماوة', 'موسەننا'],
-      duhok: ['duhok', 'dohuk', 'دهوك', 'دهۆک'],
-      halabja: ['halabja', 'حلبجة', 'هەڵەبجە']
-    };
-
-    for (const [govId, names] of Object.entries(aliases)) {
-      if (normalized === govId || names.some(alias => normalized.includes(alias.toLowerCase()))) return govId;
-    }
-
-    return normalized.replace(/\s+/g, '_').replace(/-/g, '_').replace(/[^\w_]/g, '') || 'all';
-  };
-
-  const getUniversityGovId = (uni: any): string => {
-    return normalizeUniversityGovId(
-      uni?.governorateId ||
-      uni?.governorate ||
-      uni?.governorate_name ||
-      uni?.governorateName ||
-      uni?.city ||
-      uni?.location ||
-      uni?.address
-    );
-  };
-
-  const filteredAndSearchedUnis = useMemo(() => {
+const filteredAndSearchedUnis = useMemo(() => {
     const rawSourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
 
     const sourceList = rawSourceList.map((uni: any) => ({
@@ -2352,6 +2297,7 @@ export default function HomeFeed({
     </div>
   );
 }
+
 
 
 

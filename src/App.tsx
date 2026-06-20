@@ -537,8 +537,13 @@ export default function App() {
         setInstitutions([...IraqiUniversities]);
         setInstitutionsError(null);
       } else {
+        if (IraqiUniversities.length > 0) {
+        setInstitutions([...IraqiUniversities]);
+        setInstitutionsError(null);
+      } else {
         setInstitutions([]);
         setInstitutionsError(err?.message || 'Could not load institutions');
+      }
       }
     } finally {
       setInstitutionsLoading(false);
@@ -1590,6 +1595,7 @@ export default function App() {
     </div>
   );
 };
+
 
 
 
