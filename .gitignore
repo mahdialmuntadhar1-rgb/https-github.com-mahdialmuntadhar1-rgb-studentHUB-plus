@@ -20,3 +20,10 @@ _LOCAL_BACKUPS_ARCHIVE*/
 *.ps1
 OPPORTUNITY_DATABASE_COUNT_*.txt
 OPPORTUNITY_SCHEMA_AND_SAMPLE_*.txt
+
+# Local generated backup folders
+/_FIX_*/
+/_FINAL_*/
+/_MVP_*/
+/backup*/
+/emergency-*/
