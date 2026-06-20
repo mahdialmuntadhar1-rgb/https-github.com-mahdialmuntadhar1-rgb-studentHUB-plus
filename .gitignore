@@ -6,3 +6,12 @@ coverage/
 *.log
 .env*
 !.env.example
+
+# Local ChatGPT / PowerShell safety backups
+_PHASE*/
+_PRIVACY*/
+_BACKUP*/
+_BROKEN*/
+_FINAL*/
+_LOCAL_BACKUPS_ARCHIVE*/
+*.local-backup

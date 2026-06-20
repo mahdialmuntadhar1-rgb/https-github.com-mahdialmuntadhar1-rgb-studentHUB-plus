@@ -14,3 +14,7 @@ bucket_name = "rafid-uploads"
 
 [vars]
 # Configure JWT_SECRET with `wrangler secret put JWT_SECRET --config wrangler.api.toml`.
+
+[triggers]
+crons = ["0 */6 * * *"]
+

@@ -26,7 +26,194 @@ interface HonoContextVariables {
 
 type AppContext = Context<{ Bindings: Bindings, Variables: HonoContextVariables }>;
 
+
+/**
+ * PHASE 4A SECURITY HARDENING
+ * CORS is restricted to the production frontend and local dev.
+ * Lightweight D1-backed rate limiting protects risky write endpoints.
+ */
+
+const BETA_ALLOWED_ORIGINS = new Set<string>([
+  'https://https-github.mahdialmuntadhar1.workers.dev',
+  'http://localhost:5173',
+  'http://localhost:8787',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:8787'
+]);
+
+function isBetaAllowedOrigin(origin?: string | null): boolean {
+  if (!origin) return true;
+  if (BETA_ALLOWED_ORIGINS.has(origin)) return true;
+
+  // Keep Cloudflare preview/dev pages usable without reopening CORS to everyone.
+  try {
+    const url = new URL(origin);
+    if (url.hostname.endsWith('.pages.dev')) return true;
+    if (url.hostname.endsWith('.workers.dev') && origin.includes('mahdialmuntadhar1')) return true;
+  } catch (_) {}
+
+  return false;
+}
+
+function getCorsAllowedOrigin(origin?: string | null): string {
+  if (origin && isBetaAllowedOrigin(origin)) return origin;
+  return 'https://https-github.mahdialmuntadhar1.workers.dev';
+}
+
+function buildBetaCorsHeaders(origin?: string | null): Record<string, string> {
+  return {
+    'Access-Control-Allow-Origin': getCorsAllowedOrigin(origin),
+    'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, X-Turnstile-Token',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin'
+  };
+}
+
+async function betaHashText(value: string): Promise<string> {
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(value || ''));
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function betaRateLimitId(): string {
+  try {
+    return crypto.randomUUID();
+  } catch (_) {
+    return `rl_${Date.now()}_${Math.random().toString(16).slice(2)}`;
+  }
+}
+
+function getBetaClientIp(c: any): string {
+  return String(
+    c.req.header('CF-Connecting-IP') ||
+    c.req.header('x-forwarded-for') ||
+    c.req.header('x-real-ip') ||
+    'unknown'
+  ).split(',')[0].trim();
+}
+
+function getBetaRateRule(method: string, path: string): null | { group: string; limit: number; windowSeconds: number } {
+  const m = method.toUpperCase();
+
+  if (m === 'OPTIONS' || m === 'GET' || m === 'HEAD') return null;
+
+  if (path.includes('/api/auth/login') || path.endsWith('/api/login')) {
+    return { group: 'auth_login', limit: 12, windowSeconds: 15 * 60 };
+  }
+
+  if (path.includes('/api/auth/register') || path.endsWith('/api/register')) {
+    return { group: 'auth_register', limit: 8, windowSeconds: 60 * 60 };
+  }
+
+  if (path.includes('/api/password-reset') || path.includes('/api/forgot-password')) {
+    return { group: 'password_reset', limit: 5, windowSeconds: 60 * 60 };
+  }
+
+  if (path.includes('/api/message-requests')) {
+    return { group: 'message_requests', limit: 30, windowSeconds: 60 * 60 };
+  }
+
+  if (path.includes('/api/messages') && path.includes('/report')) {
+    return { group: 'message_reports', limit: 30, windowSeconds: 60 * 60 };
+  }
+
+  if (path.includes('/api/messages')) {
+    return { group: 'messages', limit: 80, windowSeconds: 60 * 60 };
+  }
+
+  if (path.includes('/api/posts') || path.includes('/api/comments')) {
+    return { group: 'social_write', limit: 60, windowSeconds: 60 * 60 };
+  }
+
+  if (path.includes('/upload') || path.includes('/hero-images')) {
+    return { group: 'uploads', limit: 30, windowSeconds: 60 * 60 };
+  }
+
+  if (path.includes('/api/admin')) {
+    return { group: 'admin_write', limit: 120, windowSeconds: 60 * 60 };
+  }
+
+  return null;
+}
+
+async function betaRateLimitMiddleware(c: any, next: any) {
+  const url = new URL(c.req.url);
+  const path = url.pathname;
+  const method = c.req.method.toUpperCase();
+  const rule = getBetaRateRule(method, path);
+
+  if (!rule || !c.env?.DB) {
+    return next();
+  }
+
+  try {
+    const ip = getBetaClientIp(c);
+    const ipHash = await betaHashText(ip);
+    const nowSeconds = Math.floor(Date.now() / 1000);
+    const windowStart = Math.floor(nowSeconds / rule.windowSeconds) * rule.windowSeconds;
+    const rateKey = `${rule.group}:${ipHash}`;
+
+    const existing = await c.env.DB.prepare(`
+      SELECT id, count
+      FROM api_rate_limits
+      WHERE rate_key = ? AND window_start = ?
+      LIMIT 1
+    `).bind(rateKey, windowStart).first();
+
+    if (existing && Number(existing.count || 0) >= rule.limit) {
+      return c.json({
+        error: 'Too many requests. Please wait and try again.',
+        code: 'RATE_LIMITED',
+        group: rule.group
+      }, 429);
+    }
+
+    if (existing) {
+      await c.env.DB.prepare(`
+        UPDATE api_rate_limits
+        SET count = count + 1, updated_at = CURRENT_TIMESTAMP
+        WHERE id = ?
+      `).bind(existing.id).run();
+    } else {
+      await c.env.DB.prepare(`
+        INSERT INTO api_rate_limits (id, rate_key, route_group, window_start, count, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 1, CURRENT_TIMESTAMP, CURRENT_TIMESTAMP)
+      `).bind(betaRateLimitId(), rateKey, rule.group, windowStart).run();
+    }
+  } catch (error) {
+    console.error('Rate limit middleware failed open:', error);
+    // Fail open so a D1 hiccup does not break the whole beta.
+  }
+
+  return next();
+}
+
 const app = new Hono<{ Bindings: Bindings, Variables: HonoContextVariables }>();
+
+app.use('*', async (c, next) => {
+  const origin = c.req.header('Origin');
+
+  if (origin && !isBetaAllowedOrigin(origin)) {
+    return c.json({ error: 'Origin not allowed' }, 403, buildBetaCorsHeaders(origin));
+  }
+
+  if (c.req.method.toUpperCase() === 'OPTIONS') {
+    return new Response(null, { status: 204, headers: buildBetaCorsHeaders(origin) });
+  }
+
+  await next();
+
+  const headers = buildBetaCorsHeaders(origin);
+  for (const [key, value] of Object.entries(headers)) {
+    c.header(key, value);
+  }
+
+  c.header('X-Content-Type-Options', 'nosniff');
+  c.header('Referrer-Policy', 'strict-origin-when-cross-origin');
+});
+
+app.use('*', betaRateLimitMiddleware);
+
 
 // Add type augmentation for Hono context
 declare module 'hono' {
@@ -2456,6 +2643,7 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
+
 
 
 
