@@ -27,3 +27,7 @@ OPPORTUNITY_SCHEMA_AND_SAMPLE_*.txt
 /_MVP_*/
 /backup*/
 /emergency-*/
+
+# Local generated design backup folders
+/_KEEP_*/
+/_REMOVE_*/
