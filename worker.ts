@@ -594,6 +594,29 @@ app.post('/api/auth/register', async (c) => {
       INSERT INTO profiles (id, email, password_hash, full_name, governorate, institution, institution_id, role, is_verified)
       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 0)
     `).bind(userId, normalizedEmail, passwordHash, full_name, governorate || 'all', institution || 'manual', university_id || 'manual', 'student').run();
+
+    const consentIp = String(c.req.header('CF-Connecting-IP') || c.req.header('x-forwarded-for') || '').split(',')[0].trim();
+    const consentIpHash = consentIp ? await sha256HexText(consentIp) : null;
+    const consentUserAgent = String(c.req.header('User-Agent') || '').slice(0, 500);
+    const consentTime = new Date().toISOString();
+
+    await c.env.DB.prepare(`
+      INSERT INTO user_consents (
+        id, user_id, consent_type, consent_version, terms_version, privacy_version,
+        accepted_at, ip_hash, user_agent, created_at
+      ) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)
+    `).bind(
+      generateId(),
+      userId,
+      'registration_privacy',
+      safePrivacyVersion,
+      safeTermsVersion,
+      safePrivacyVersion,
+      consentTime,
+      consentIpHash,
+      consentUserAgent,
+      consentTime
+    ).run();
     
     // Generate JWT token
     const token = await generateJWTToken(userId, normalizedEmail, 'student', (c.env.JWT_SECRET || c.env.JWT_SECRET_V2 || ""));
@@ -1467,10 +1490,24 @@ app.post('/api/message-requests', authMiddleware, async (c) => {
     
     // Create first message in social_messages
     const messageId = generateId();
+    const encryptedMessage = await encryptPrivateMessage(c, body);
     await c.env.DB.prepare(`
-      INSERT INTO social_messages (id, thread_id, sender_id, body, status, created_at)
-      VALUES (?, ?, ?, ?, 'sent', ?)
-    `).bind(messageId, threadId, userId, body, new Date().toISOString()).run();
+      INSERT INTO social_messages (
+        id, thread_id, sender_id, body,
+        body_ciphertext, body_iv, body_key_version, encryption_status,
+        status, created_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'encrypted', 'sent', ?)
+    `).bind(
+      messageId,
+      threadId,
+      userId,
+      '[encrypted]',
+      encryptedMessage.ciphertext,
+      encryptedMessage.iv,
+      encryptedMessage.keyVersion,
+      new Date().toISOString()
+    ).run();
     
     return c.json({ threadId, messageId });
   } catch (error: any) {
@@ -1630,10 +1667,24 @@ app.post('/api/messages/threads/:threadId/messages', authMiddleware, async (c) =
     
     const messageId = generateId();
     
+    const encryptedMessage = await encryptPrivateMessage(c, body);
     await c.env.DB.prepare(`
-      INSERT INTO social_messages (id, thread_id, sender_id, body, status, created_at)
-      VALUES (?, ?, ?, ?, 'sent', ?)
-    `).bind(messageId, threadId, userId, body, new Date().toISOString()).run();
+      INSERT INTO social_messages (
+        id, thread_id, sender_id, body,
+        body_ciphertext, body_iv, body_key_version, encryption_status,
+        status, created_at
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, 'encrypted', 'sent', ?)
+    `).bind(
+      messageId,
+      threadId,
+      userId,
+      '[encrypted]',
+      encryptedMessage.ciphertext,
+      encryptedMessage.iv,
+      encryptedMessage.keyVersion,
+      new Date().toISOString()
+    ).run();
     
     // Update thread last message
     await c.env.DB.prepare(
@@ -1928,6 +1979,7 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
+
 
 
 
