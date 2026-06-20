@@ -787,7 +787,7 @@ export default function SectionView({
           const target = targetVal.toLowerCase();
 
           if (categoryConfig.isOpportunity) {
-            return strictSectionCategoryMatch(item, target);
+            return strictSectionCategoryMatch(item, target) || String(item.category || item.type || '').toLowerCase() === target;
           }
 
           return itemType === target ||
@@ -1206,6 +1206,7 @@ export default function SectionView({
     </div>
   );
 }
+
 
 
 

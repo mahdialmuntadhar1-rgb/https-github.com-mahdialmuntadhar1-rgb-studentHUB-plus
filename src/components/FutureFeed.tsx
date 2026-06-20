@@ -237,7 +237,7 @@ export default function FutureFeed({
       setError(null);
       setCurrentPage(1);
       try {
-        const coreOpportunityCategories = ['job', 'scholarship', 'training', 'internship', 'event', 'exam', 'registration'];
+        const coreOpportunityCategories = ['job', 'scholarship', 'training', 'internship', 'event', 'exam', 'registration', 'registration'];
         const isAllBatch = activeChip === 'all' || activeChip === 'deadline_soon';
         const categoriesToFetch = isAllBatch ? coreOpportunityCategories : [activeChip];
 
@@ -391,7 +391,7 @@ export default function FutureFeed({
       'job', 'internship', 'scholarship', 'training', 
       'part_time_job', 'full_time_job', 'volunteering', 
       'competition', 'graduation_project_support', 'fellowship',
-      'event', 'announcement', 'exam', 'registration', 'registration', 'registration'
+      'event', 'announcement', 'exam', 'registration', 'registration', 'registration', 'registration'
     ].includes(item.type) || !!item.opportunityCategory;
   };
 
@@ -628,7 +628,7 @@ export default function FutureFeed({
     const nextPage = currentPage + 1;
     setIsLoading(true);
     try {
-      const coreOpportunityCategories = ['job', 'scholarship', 'training', 'internship', 'event', 'exam', 'registration'];
+      const coreOpportunityCategories = ['job', 'scholarship', 'training', 'internship', 'event', 'exam', 'registration', 'registration'];
       const isAllBatch = activeChip === 'all' || activeChip === 'deadline_soon';
       const categoriesToFetch = isAllBatch ? coreOpportunityCategories : [activeChip];
 
@@ -1107,6 +1107,7 @@ export default function FutureFeed({
     </div>
   );
 }
+
 
 
 

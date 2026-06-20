@@ -405,6 +405,8 @@ export const opportunityAutomation = {
 export async function getOpportunities(params?: { category?: string; page?: number; limit?: number; governorate?: string }, lang: Language = 'ar') {
   const { category, page = 1, limit = 50, governorate } = params || {};
 
+  const publicCategories = ['job', 'scholarship', 'training', 'internship', 'event', 'exam', 'registration'];
+
   const extractItems = (payload: any): any[] => {
     if (!payload) return [];
     if (Array.isArray(payload)) return payload;
@@ -431,7 +433,7 @@ export async function getOpportunities(params?: { category?: string; page?: numb
   };
 
   const extractTotal = (payload: any, fallback: number): number | null => {
-    if (!payload || typeof payload !== 'object') return null;
+    if (!payload || typeof payload !== 'object') return fallback > 0 ? fallback : null;
 
     const possibleTotals = [
       payload.total,
@@ -453,24 +455,38 @@ export async function getOpportunities(params?: { category?: string; page?: numb
     return fallback > 0 ? fallback : null;
   };
 
+  const matchesCategory = (item: any, wanted?: string) => {
+    if (!wanted || wanted === 'all') return true;
+
+    const itemCategory = String(item.category || item.type || '').toLowerCase();
+    const itemTags = Array.isArray(item.tags) ? item.tags.map((tag: any) => String(tag).toLowerCase()).join(' ') : '';
+    const text = `${itemCategory} ${itemTags} ${String(item.opportunityCategory || '').toLowerCase()}`;
+
+    if (wanted === 'admission') return text.includes('admission') || text.includes('registration');
+    if (wanted === 'registration') return text.includes('registration') || text.includes('admission');
+
+    return itemCategory === wanted || text.includes(wanted);
+  };
+
+  const matchesGovernorate = (item: any) => {
+    if (!governorate || governorate === 'all') return true;
+
+    const gov = governorate.toLowerCase();
+    const itemGovText = [
+      item.governorate,
+      item.governorateId,
+      item.location,
+      item.city,
+      item.duty_station,
+      item.work_location,
+      Array.isArray(item.tags) ? item.tags.join(' ') : ''
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    return itemGovText.includes(gov) || itemGovText.includes('all iraq') || itemGovText === 'all';
+  };
+
   const filterAndPage = (items: any[]) => {
-    let filtered = items;
-
-    if (category && category !== 'all') {
-      filtered = filtered.filter(item => {
-        const itemCategory = String(item.category || item.type || '').toLowerCase();
-        return itemCategory === category.toLowerCase() || itemCategory.includes(category.toLowerCase());
-      });
-    }
-
-    if (governorate && governorate !== 'all') {
-      const gov = governorate.toLowerCase();
-      filtered = filtered.filter(item => {
-        const itemGov = String(item.governorate || item.governorateId || item.location || item.city || '').toLowerCase();
-        return itemGov.includes(gov) || itemGov === 'all';
-      });
-    }
-
+    const filtered = items.filter(item => matchesCategory(item, category)).filter(matchesGovernorate);
     const start = (page - 1) * limit;
     const end = start + limit;
 
@@ -482,26 +498,27 @@ export async function getOpportunities(params?: { category?: string; page?: numb
 
   const fetchCache = async () => {
     try {
-      const cacheResponse = await fetch('/data/opportunities-cache.json', {
+      const response = await fetch('/data/opportunities-cache.json', {
         headers: { Accept: 'application/json' }
       });
 
-      if (!cacheResponse.ok) return { items: [], total: null };
+      if (!response.ok) return { items: [], total: null };
 
-      const cacheData = await cacheResponse.json();
-      const cacheItems = extractItems(cacheData);
-      return filterAndPage(cacheItems);
+      const payload = await response.json();
+      const items = extractItems(payload);
+
+      return filterAndPage(items);
     } catch (err) {
-      console.error('Error reading local opportunities cache:', err);
+      console.error('Error reading opportunities cache:', err);
       return { items: [], total: null };
     }
   };
 
-  const fetchBackend = async () => {
+  const fetchBackendOne = async (categoryToFetch?: string) => {
     const url = new URL(`${BACKEND_URL}/api/opportunities`);
 
-    if (category && category !== 'all') {
-      url.searchParams.append('category', category);
+    if (categoryToFetch && categoryToFetch !== 'all') {
+      url.searchParams.append('category', categoryToFetch);
     }
 
     if (governorate && governorate !== 'all') {
@@ -509,38 +526,79 @@ export async function getOpportunities(params?: { category?: string; page?: numb
     }
 
     url.searchParams.append('page', String(page));
-    url.searchParams.append('limit', String(limit));
+
+    const smartLimit =
+      categoryToFetch === 'job'
+        ? Math.max(limit, 1200)
+        : categoryToFetch
+          ? Math.max(limit, 300)
+          : Math.max(limit, 1200);
+
+    url.searchParams.append('limit', String(smartLimit));
 
     const controller = new AbortController();
     const timeoutId = setTimeout(() => controller.abort(), 12000);
 
     try {
-      const res = await fetch(url.toString(), {
+      const response = await fetch(url.toString(), {
         signal: controller.signal,
         headers: { Accept: 'application/json' }
       });
 
       clearTimeout(timeoutId);
 
-      const data = await handleResponse(res, lang);
-      const items = extractItems(data);
-
-      if (items.length === 0) {
-        return { items: [], total: null };
-      }
+      const payload = await handleResponse(response, lang);
+      const items = extractItems(payload);
 
       return {
         items,
-        total: extractTotal(data, items.length)
+        total: extractTotal(payload, items.length)
       };
-    } catch (err: any) {
+    } catch (err) {
       clearTimeout(timeoutId);
-      console.error('Error fetching opportunities from backend:', err);
+      console.error('Backend opportunities failed:', categoryToFetch || 'all', err);
       return { items: [], total: null };
     }
   };
 
-  const backendResult = await fetchBackend();
+  if (!category || category === 'all') {
+    const backendResults = await Promise.all(publicCategories.map(fetchBackendOne));
+    const merged: any[] = [];
+    const seen = new Set<string>();
+
+    for (const result of backendResults) {
+      for (const item of result.items || []) {
+        const key = String(
+          item.id ||
+          item.source_url ||
+          item.original_source_url ||
+          item.application_link ||
+          item.apply_url ||
+          item.url ||
+          item.link ||
+          `${item.category || item.type || 'opportunity'}-${item.title || item.title_en || item.position_title || Math.random()}`
+        );
+
+        if (!seen.has(key)) {
+          seen.add(key);
+          merged.push(item);
+        }
+      }
+    }
+
+    if (merged.length > 0) {
+      const start = (page - 1) * limit;
+      const end = start + limit;
+      return {
+        items: merged.slice(start, end),
+        total: merged.length
+      };
+    }
+
+    return fetchCache();
+  }
+
+  const backendResult = await fetchBackendOne(category);
 
   if (backendResult.items.length > 0) {
     return backendResult;
@@ -843,6 +901,7 @@ export const socialApi = {
     return await handleResponse(res, lang);
   }
 };
+
 
 
 

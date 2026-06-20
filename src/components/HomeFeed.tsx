@@ -393,7 +393,7 @@ export default function HomeFeed({
     setIsLoadingBackend(true);
     setBackendError(null);
 
-    getOpportunities({ category, page: 1, limit: 120 }, language)
+    getOpportunities({ category, page: 1, limit: selectedOppFilter === 'job' ? 1200 : 300 }, language)
       .then((result: any) => {
         const rawItems = Array.isArray(result) ? result : Array.isArray(result?.items) ? result.items : [];
         setBackendOpportunities(rawItems.map(mapBackendOpportunity));
@@ -981,7 +981,7 @@ export default function HomeFeed({
     'job', 'part_time_job', 'full_time_job', 'internship',
     'scholarship', 'fellowship',
     'training', 'graduation_project_support', 'volunteering', 'competition',
-    'admission', 'announcement', 'news', 'deadline'
+    'admission', 'registration', 'announcement', 'news', 'deadline'
   ];
 
   // Filter by governorate & university first.
@@ -1053,7 +1053,7 @@ export default function HomeFeed({
   }, [geoFilteredItems]);
 
   // Filtering for Opportunities Tab
-    const filteredOppsItems = useMemo(() => {
+      const filteredOppsItems = useMemo(() => {
     const sourceItems = backendOpportunities.length > 0 ? backendOpportunities : allSeriousItems;
 
     const matchesSelectedCategory = (item: FeedItem) => {
@@ -1124,7 +1124,6 @@ export default function HomeFeed({
       return selectedGov === 'all' || normalizedItemGov === 'all' || normalizedItemGov === selectedGov;
     });
 
-    // If a governorate filter hides too much, still show Iraq-wide / other backend items.
     if (selectedGov !== 'all' && govFiltered.length < 5 && categoryItems.length > govFiltered.length) {
       const seen = new Set(govFiltered.map(item => String(item.id)));
       const fallback = categoryItems.filter(item => !seen.has(String(item.id)));
@@ -2289,6 +2288,7 @@ export default function HomeFeed({
     </div>
   );
 }
+
 
 
 
