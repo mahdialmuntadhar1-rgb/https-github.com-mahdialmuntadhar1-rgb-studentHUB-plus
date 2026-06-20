@@ -46,3 +46,4 @@ export const defaultUserProfile: UserProfile = {
 };
 
 export const initialFeedItems: FeedItem[] = [];
+
