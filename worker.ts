@@ -12,6 +12,7 @@ interface Env {
   JWT_SECRET_V2?: string;
   RESEND_API_KEY?: string;
   PASSWORD_RESET_FROM_EMAIL?: string;
+  MESSAGE_ENCRYPTION_KEY?: string;
 }
 
 type Bindings = Env;
@@ -281,6 +282,72 @@ async function adminMiddleware(c: any, next: any) {
   await next();
 }
 
+
+async function sha256HexText(value: string): Promise<string> {
+  const bytes = new TextEncoder().encode(value || '');
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function bytesToBase64(bytes: Uint8Array): string {
+  let binary = '';
+  for (const b of bytes) binary += String.fromCharCode(b);
+  return btoa(binary);
+}
+
+function base64ToBytes(value: string): Uint8Array {
+  return Uint8Array.from(atob(value), c => c.charCodeAt(0));
+}
+
+async function getMessageCryptoKey(c: any): Promise<CryptoKey> {
+  const secret = String(c.env.MESSAGE_ENCRYPTION_KEY || '').trim();
+  if (!secret) {
+    throw new Error('MESSAGE_ENCRYPTION_KEY is not configured');
+  }
+
+  const digest = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(secret));
+  return crypto.subtle.importKey(
+    'raw',
+    digest,
+    { name: 'AES-GCM' },
+    false,
+    ['encrypt', 'decrypt']
+  );
+}
+
+async function encryptPrivateMessage(c: any, plainText: string): Promise<{ ciphertext: string; iv: string; keyVersion: string }> {
+  const key = await getMessageCryptoKey(c);
+  const iv = crypto.getRandomValues(new Uint8Array(12));
+  const encoded = new TextEncoder().encode(String(plainText || ''));
+  const encrypted = await crypto.subtle.encrypt({ name: 'AES-GCM', iv }, key, encoded);
+
+  return {
+    ciphertext: bytesToBase64(new Uint8Array(encrypted)),
+    iv: bytesToBase64(iv),
+    keyVersion: 'v1'
+  };
+}
+
+async function decryptPrivateMessage(c: any, row: any): Promise<string> {
+  try {
+    if (!row?.body_ciphertext || !row?.body_iv) {
+      return String(row?.body || '');
+    }
+
+    const key = await getMessageCryptoKey(c);
+    const decrypted = await crypto.subtle.decrypt(
+      { name: 'AES-GCM', iv: base64ToBytes(row.body_iv) },
+      key,
+      base64ToBytes(row.body_ciphertext)
+    );
+
+    return new TextDecoder().decode(decrypted);
+  } catch (error) {
+    console.error('Private message decrypt failed:', error);
+    return '[Unable to decrypt message]';
+  }
+}
+
 function isSupportedHeroImage(bytes: Uint8Array, type: string): boolean {
   if (type === 'image/jpeg') return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
   if (type === 'image/png') return bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
@@ -472,6 +539,20 @@ app.get('/api/health', (c) => {
   });
 });
 
+
+// GET /api/privacy/current
+app.get('/api/privacy/current', (c) => {
+  return c.json({
+    privacy_version: 'privacy_v1',
+    terms_version: 'terms_v1',
+    summary: {
+      en: 'Public posts may be visible to other users. Private messages are encrypted in storage and are not reviewed by admins unless reported for safety.',
+      ar: 'قد تكون المنشورات العامة مرئية للمستخدمين الآخرين. الرسائل الخاصة مشفرة في التخزين ولا يراجعها المشرفون إلا إذا تم الإبلاغ عنها لأسباب تتعلق بالسلامة.',
+      ku: 'بابەتە گشتییەکان لەوانەیە بۆ بەکارهێنەرانی تر دیار بن. نامە تایبەتییەکان لە کاتێکدا کە پاشەکەوت دەکرێن ڕەمزکراون و بەڕێوەبەران نایانخوێننەوە مەگەر ئەگەر بۆ سەلامەتی ڕاپۆرت کرابن.'
+    }
+  });
+});
+
 // ============================================================================
 // AUTHENTICATION ENDPOINTS
 // ============================================================================
@@ -479,11 +560,18 @@ app.get('/api/health', (c) => {
 // POST /api/auth/register
 app.post('/api/auth/register', async (c) => {
   try {
-    const { email, password, full_name, university_id, governorate, institution } = await c.req.json();
+    const { email, password, full_name, university_id, governorate, institution, privacy_consent, privacy_version, terms_version } = await c.req.json();
     
     if (!email || !password || !full_name) {
       return c.json({ error: 'Email, password, and full_name are required' }, 400);
     }
+    const privacyAccepted = privacy_consent === true || privacy_consent === 'true';
+    if (!privacyAccepted) {
+      return c.json({ error: 'Privacy consent is required before registration' }, 400);
+    }
+
+    const safePrivacyVersion = String(privacy_version || 'privacy_v1').replace(/[^a-zA-Z0-9_\-\.]/g, '').slice(0, 50) || 'privacy_v1';
+    const safeTermsVersion = String(terms_version || 'terms_v1').replace(/[^a-zA-Z0-9_\-\.]/g, '').slice(0, 50) || 'terms_v1';
     
     // Normalize email (trim and lowercase)
     const normalizedEmail = normalizeEmail(email);
@@ -1508,7 +1596,12 @@ app.get('/api/messages/threads/:threadId/messages', authMiddleware, async (c) =>
       'SELECT * FROM social_message_threads WHERE id = ?'
     ).bind(threadId).first();
     
-    return c.json({ thread, messages: messages.results || [] });
+    const decryptedMessages = await Promise.all(((messages.results || []) as any[]).map(async (message: any) => ({
+      ...message,
+      body: await decryptPrivateMessage(c, message)
+    })));
+
+    return c.json({ thread, messages: decryptedMessages });
   } catch (error: any) {
     console.error('Get thread messages error:', error);
     return c.json({ error: 'Failed to get thread messages' }, 500);
@@ -1555,7 +1648,8 @@ app.post('/api/messages/threads/:threadId/messages', authMiddleware, async (c) =
       WHERE sm.id = ?
     `).bind(messageId).first() as any;
     
-    return c.json({ message });
+    const safeMessage = message ? { ...message, body: await decryptPrivateMessage(c, message) } : message;
+    return c.json({ message: safeMessage });
   } catch (error: any) {
     console.error('Send message error:', error);
     return c.json({ error: 'Failed to send message' }, 500);
@@ -1834,6 +1928,7 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
+
 
 
 

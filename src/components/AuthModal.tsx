@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+﻿import React, { useState } from 'react';
 import { Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
@@ -21,6 +21,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
   const [username, setUsername] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [rememberMe, setRememberMe] = useState(true);
+  const [privacyConsent, setPrivacyConsent] = useState(false);
   
   // Interaction/Validation States
   const [error, setError] = useState('');
@@ -75,6 +76,11 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       setLoading(false);
       return;
     }
+    if (mode === 'register' && !privacyConsent) {
+      setError(language === 'ar' ? 'يرجى قبول إشعار الخصوصية وقواعد المجتمع قبل التسجيل.' : language === 'ku' ? 'تکایە پێش تۆمارکردن ئاگاداری تایبەتمەندی و یاساکانی کۆمەڵگا پەسەند بکە.' : 'Please accept the Privacy Notice and Community Rules before registering.');
+      setLoading(false);
+      return;
+    }
 
     if (mode !== 'forgot' && password.length < 6) {
       setError(getLabel('validationPasswordLen'));
@@ -87,7 +93,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       const payload = mode === 'forgot'
         ? { email: email.trim().toLowerCase() }
         : mode === 'register'
-          ? { email: email.trim().toLowerCase(), password, full_name: username.trim() }
+          ? { email: email.trim().toLowerCase(), password, full_name: username.trim(), privacy_consent: privacyConsent, privacy_version: 'privacy_v1', terms_version: 'terms_v1' }
           : { email: email.trim().toLowerCase(), password };
       const response = await fetch(`${BACKEND_URL}${endpoint}`, {
         method: 'POST',
@@ -235,6 +241,27 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
               </div>
             )}
 
+
+            {mode === 'register' && (
+              <label
+                className="flex items-start gap-2 rounded-2xl border border-blue-100 bg-blue-50/80 p-3 text-[10.5px] font-bold leading-relaxed text-slate-700 cursor-pointer"
+                id="auth-privacy-consent"
+              >
+                <input
+                  type="checkbox"
+                  checked={privacyConsent}
+                  onChange={e => setPrivacyConsent(e.target.checked)}
+                  className="mt-0.5 h-4 w-4 shrink-0 rounded border-slate-400 text-blue-600 focus:ring-blue-500"
+                />
+                <span>
+                  {language === 'ar'
+                    ? 'أوافق على إشعار الخصوصية وقواعد المجتمع. أفهم أن المنشورات العامة قد تكون مرئية للمستخدمين، وأن الرسائل الخاصة لا يراجعها المشرفون إلا إذا تم الإبلاغ عنها لأسباب تتعلق بالسلامة.'
+                    : language === 'ku'
+                      ? 'ڕازیم بە ئاگاداری تایبەتمەندی و یاساکانی کۆمەڵگا. تێدەگەم بابەتە گشتییەکان بۆ بەکارهێنەران دیارن، و نامە تایبەتییەکان لەلایەن بەڕێوەبەرانەوە ناخرێنەوە مەگەر ئەگەر بۆ سەلامەتی ڕاپۆرت کرابن.'
+                      : 'I agree to the Privacy Notice and Community Rules. I understand public posts may be visible to users, and private messages are not reviewed by admins unless reported for safety.'}
+                </span>
+              </label>
+            )}
             {/* Options Deck (Remember & forgot link) */}
             {mode === 'login' && (
               <div className="flex items-center justify-between text-[11px] font-bold text-slate-700 mt-1" id="auth-login-options">
@@ -340,3 +367,4 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     </AnimatePresence>
   );
 }
+
