@@ -317,7 +317,7 @@ function renderInstallButton() {
     }
 
     if (!deferredPrompt) {
-      alert('Install is being prepared. In Chrome/Edge, open the browser menu and choose “Install app” if the popup is not ready yet.');
+      showAndroidInstallHelp();
       return;
     }
 
@@ -369,4 +369,5 @@ export async function registerJamiaatiPwa() {
   setTimeout(renderInstallButton, 1200);
   setTimeout(renderInstallButton, 5000);
 }
+
 
