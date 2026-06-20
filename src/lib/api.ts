@@ -404,45 +404,135 @@ export const opportunityAutomation = {
 
 export async function getOpportunities(params?: { category?: string; page?: number; limit?: number; governorate?: string }, lang: Language = 'ar') {
   const { category, page = 1, limit = 50, governorate } = params || {};
-  let finalLang = lang;
 
-  const url = new URL(`${BACKEND_URL}/api/opportunities`);
-  if (category) url.searchParams.append('category', category);
-  if (governorate && governorate !== 'all') url.searchParams.append('governorate', governorate);
-  url.searchParams.append('page', page.toString());
-  url.searchParams.append('limit', limit.toString());
+  const publicCategories = ['job', 'scholarship', 'training', 'internship', 'event', 'exam', 'registration'];
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  const extractItems = (payload: any): any[] => {
+    if (!payload) return [];
+    if (Array.isArray(payload)) return payload;
 
-  try {
-    const res = await fetch(url.toString(), {
-      signal: controller.signal,
-      headers: getHeaders()
-    });
-    clearTimeout(timeoutId);
+    const candidates = [
+      payload.items,
+      payload.opportunities,
+      payload.data,
+      payload.results,
+      payload.value,
+      payload?.data?.items,
+      payload?.data?.opportunities,
+      payload?.data?.results,
+      payload?.pagination?.items,
+      payload?.pagination?.data,
+      payload?.meta?.items
+    ];
 
-    const data = await handleResponse(res, finalLang);
-
-    // Handle different backend response shapes
-    if (Array.isArray(data)) {
-      return { items: data, total: null };
-    }
-    if (data && typeof data === 'object') {
-      if (Array.isArray(data.value)) return { items: data.value, total: data.total || data.count || data.totalCount || null };
-      if (Array.isArray(data.data)) return { items: data.data, total: data.total || data.count || data.totalCount || null };
-      if (Array.isArray(data.items)) return { items: data.items, total: data.total || data.count || data.totalCount || null };
-      if (Array.isArray(data.results)) return { items: data.results, total: data.total || data.count || data.totalCount || null };
-      if (data.pagination && Array.isArray(data.pagination.items)) return { items: data.pagination.items, total: data.pagination.total || data.pagination.count || null };
+    for (const candidate of candidates) {
+      if (Array.isArray(candidate)) return candidate;
     }
 
-    return { items: [], total: null };
-  } catch (err: any) {
-    clearTimeout(timeoutId);
-    console.error('Error fetching opportunities:', err);
-    // Return empty array on error instead of throwing to prevent UI freeze
-    return { items: [], total: null };
+    return [];
+  };
+
+  const extractTotal = (payload: any, fallback: number): number | null => {
+    if (!payload || typeof payload !== 'object') return null;
+
+    const possibleTotals = [
+      payload.total,
+      payload.count,
+      payload.totalCount,
+      payload?.pagination?.total,
+      payload?.pagination?.count,
+      payload?.meta?.total,
+      payload?.meta?.count,
+      payload?.data?.total,
+      payload?.data?.count
+    ];
+
+    for (const value of possibleTotals) {
+      const num = Number(value);
+      if (Number.isFinite(num) && num > 0) return num;
+    }
+
+    return fallback > 0 ? null : null;
+  };
+
+  const fetchOneCategory = async (categoryToFetch?: string) => {
+    const url = new URL(`${BACKEND_URL}/api/opportunities`);
+
+    if (categoryToFetch && categoryToFetch !== 'all') {
+      url.searchParams.append('category', categoryToFetch);
+    }
+
+    if (governorate && governorate !== 'all') {
+      url.searchParams.append('governorate', governorate);
+    }
+
+    url.searchParams.append('page', String(page));
+
+    const smartLimit =
+      categoryToFetch === 'job'
+        ? Math.max(limit, 1200)
+        : categoryToFetch
+          ? Math.max(limit, 300)
+          : Math.max(limit, 1200);
+
+    url.searchParams.append('limit', String(smartLimit));
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 15000);
+
+    try {
+      const res = await fetch(url.toString(), {
+        signal: controller.signal,
+        headers: {
+          Accept: 'application/json'
+        }
+      });
+
+      clearTimeout(timeoutId);
+
+      const data = await handleResponse(res, lang);
+      const items = extractItems(data);
+      const total = extractTotal(data, items.length);
+
+      return { items, total };
+    } catch (err: any) {
+      clearTimeout(timeoutId);
+      console.error('Error fetching opportunities category:', categoryToFetch || 'all', err);
+      return { items: [], total: null };
+    }
+  };
+
+  // Important: the public backend works reliably by category.
+  // When the UI asks for "All", fetch the real categories in batches.
+  if (!category || category === 'all') {
+    const results = await Promise.all(publicCategories.map(fetchOneCategory));
+    const seen = new Set<string>();
+    const mergedItems: any[] = [];
+
+    for (const result of results) {
+      for (const item of result.items || []) {
+        const key = String(
+          item.id ||
+          item.source_url ||
+          item.original_source_url ||
+          item.application_link ||
+          item.apply_url ||
+          item.url ||
+          item.link ||
+          `${item.category || item.type || 'opportunity'}-${item.title || item.title_en || item.position_title || Math.random()}`
+        );
+
+        if (!seen.has(key)) {
+          seen.add(key);
+          mergedItems.push(item);
+        }
+      }
+    }
+
+    return { items: mergedItems, total: null };
   }
+
+  return fetchOneCategory(category);
 }
 
 export const outreachApi = {
@@ -739,6 +829,7 @@ export const socialApi = {
     return await handleResponse(res, lang);
   }
 };
+
 
 
 

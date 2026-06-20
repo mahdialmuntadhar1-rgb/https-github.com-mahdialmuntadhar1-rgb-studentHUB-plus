@@ -391,7 +391,7 @@ export default function FutureFeed({
       'job', 'internship', 'scholarship', 'training', 
       'part_time_job', 'full_time_job', 'volunteering', 
       'competition', 'graduation_project_support', 'fellowship',
-      'event', 'announcement', 'exam', 'registration', 'registration'
+      'event', 'announcement', 'exam', 'registration', 'registration', 'registration'
     ].includes(item.type) || !!item.opportunityCategory;
   };
 
@@ -1107,6 +1107,7 @@ export default function FutureFeed({
     </div>
   );
 }
+
 
 
 
