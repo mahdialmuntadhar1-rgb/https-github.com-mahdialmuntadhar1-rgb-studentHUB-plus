@@ -48,6 +48,82 @@ app.use('/*', cors({
 // UTILITY FUNCTIONS
 // ============================================================================
 
+
+function bytesMatchPrefix(bytes: Uint8Array, prefix: number[]): boolean {
+  if (bytes.length < prefix.length) return false;
+  return prefix.every((value, index) => bytes[index] === value);
+}
+
+function detectImageMimeFromBytes(bytes: Uint8Array): string | null {
+  // JPEG: FF D8 FF
+  if (bytesMatchPrefix(bytes, [0xff, 0xd8, 0xff])) {
+    return 'image/jpeg';
+  }
+
+  // PNG: 89 50 4E 47 0D 0A 1A 0A
+  if (bytesMatchPrefix(bytes, [0x89, 0x50, 0x4e, 0x47, 0x0d, 0x0a, 0x1a, 0x0a])) {
+    return 'image/png';
+  }
+
+  // WEBP: RIFF....WEBP
+  if (
+    bytes.length >= 12 &&
+    bytes[0] === 0x52 && bytes[1] === 0x49 && bytes[2] === 0x46 && bytes[3] === 0x46 &&
+    bytes[8] === 0x57 && bytes[9] === 0x45 && bytes[10] === 0x42 && bytes[11] === 0x50
+  ) {
+    return 'image/webp';
+  }
+
+  return null;
+}
+
+function safeUploadFileName(raw: any): string {
+  return String(raw || 'upload')
+    .replace(/[^\w.\-]+/g, '-')
+    .replace(/-+/g, '-')
+    .slice(0, 120);
+}
+
+async function validateUploadedImageFile(file: any): Promise<{ ok: boolean; type?: string; error?: string }> {
+  try {
+    if (!file || typeof file.arrayBuffer !== 'function') {
+      return { ok: false, error: 'No valid image file was uploaded.' };
+    }
+
+    const declaredType = String(file.type || '').toLowerCase();
+    const fileName = safeUploadFileName(file.name);
+    const fileSize = Number(file.size || 0);
+
+    if (!isSupportedHeroImage(file)) {
+      return { ok: false, error: 'Only JPG, PNG, and WEBP images up to 8MB are allowed.' };
+    }
+
+    if (/\.(svg|gif|html?|js|mjs|php|exe|bat|cmd|ps1|zip|rar|7z|pdf)$/i.test(fileName)) {
+      return { ok: false, error: 'This file type is not allowed for image upload.' };
+    }
+
+    if (!fileSize || fileSize <= 0) {
+      return { ok: false, error: 'Uploaded image is empty.' };
+    }
+
+    const firstBytes = new Uint8Array(await file.slice(0, 16).arrayBuffer());
+    const actualType = detectImageMimeFromBytes(firstBytes);
+
+    if (!actualType) {
+      return { ok: false, error: 'Uploaded file is not a valid JPG, PNG, or WEBP image.' };
+    }
+
+    if (declaredType && declaredType !== actualType) {
+      return { ok: false, error: 'Image file type does not match its content.' };
+    }
+
+    return { ok: true, type: actualType };
+  } catch (error) {
+    console.error('Image validation failed:', error);
+    return { ok: false, error: 'Could not validate uploaded image.' };
+  }
+}
+
 function generateId(): string {
   return `${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
 }
@@ -348,13 +424,21 @@ async function decryptPrivateMessage(c: any, row: any): Promise<string> {
   }
 }
 
-function isSupportedHeroImage(bytes: Uint8Array, type: string): boolean {
-  if (type === 'image/jpeg') return bytes[0] === 0xff && bytes[1] === 0xd8 && bytes[2] === 0xff;
-  if (type === 'image/png') return bytes[0] === 0x89 && bytes[1] === 0x50 && bytes[2] === 0x4e && bytes[3] === 0x47;
-  if (type === 'image/webp') {
-    return String.fromCharCode(...bytes.slice(0, 4)) === 'RIFF' && String.fromCharCode(...bytes.slice(8, 12)) === 'WEBP';
-  }
-  return false;
+const MAX_SAFE_IMAGE_UPLOAD_BYTES = 8 * 1024 * 1024;
+
+function isSupportedHeroImage(input: any): boolean {
+  const type = String(typeof input === 'string' ? input : input?.type || '').toLowerCase();
+  const size = Number(typeof input === 'string' ? 0 : input?.size || 0);
+
+  const allowed =
+    type === 'image/jpeg' ||
+    type === 'image/png' ||
+    type === 'image/webp';
+
+  if (!allowed) return false;
+  if (size && size > MAX_SAFE_IMAGE_UPLOAD_BYTES) return false;
+
+  return true;
 }
 
 function cleanHeroText(value: unknown, maxLength: number): string {
@@ -417,7 +501,12 @@ app.post('/api/admin/hero-images/upload', authMiddleware, adminMiddleware, async
   try {
     const formData = await c.req.formData();
     const file = formData.get('file');
-    if (!(file instanceof File)) return c.json({ error: 'Image file is required' }, 400);
+    
+    const heroImageValidation = await validateUploadedImageFile(file);
+    if (!heroImageValidation.ok) {
+      return c.json({ error: heroImageValidation.error || 'Invalid image upload' }, 400);
+    }
+if (!(file instanceof File)) return c.json({ error: 'Image file is required' }, 400);
 
     const allowedTypes: Record<string, string> = {
       'image/jpeg': 'jpg',
@@ -2214,6 +2303,7 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
+
 
 
 
