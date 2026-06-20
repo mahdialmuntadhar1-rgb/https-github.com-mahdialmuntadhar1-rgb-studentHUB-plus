@@ -6,6 +6,7 @@ import './styles/high-contrast-fix.css';
 import './styles/neon-purple-theme.css';
 import './styles/campus-light-purple-bg.css';
 import './styles/unified-light-purple-ui.css';
+import './styles/purple-3d-postcards.css';
 
 
 // STABILITY: unregister legacy service workers to prevent stale cached white screens.
@@ -25,6 +26,7 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 );
+
 
 
 
