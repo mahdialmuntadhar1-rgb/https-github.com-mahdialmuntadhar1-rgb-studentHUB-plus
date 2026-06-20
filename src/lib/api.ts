@@ -1,4 +1,5 @@
-﻿import { 
+﻿import { compressImageForUpload } from './imageCompression';
+import { 
   Language, 
   FriendRequestsResponse, 
   SendFriendRequestResponse, 
@@ -87,8 +88,16 @@ export const heroImagesApi = {
   },
 
   async upload(file: File, values: { title: string; altText: string; sortOrder?: number; replaceId?: string }, language: Language = 'en') {
+    const safeFile = await compressImageForUpload(file, {
+      maxWidth: 1600,
+      maxHeight: 1600,
+      quality: 0.82,
+      maxInputBytes: 8 * 1024 * 1024,
+      maxOutputBytes: 1600 * 1024,
+    });
+
     const formData = new FormData();
-    formData.append('file', file);
+    formData.append('file', safeFile);
     formData.append('title', values.title);
     formData.append('alt_text', values.altText);
     if (typeof values.sortOrder === 'number') formData.append('sort_order', String(values.sortOrder));
@@ -693,6 +702,7 @@ export const socialApi = {
     return await handleResponse(res, lang);
   }
 };
+
 
 
 
