@@ -1,4 +1,5 @@
 ﻿import { Governorate, University, FeedItem, UserProfile } from '../types';
+import { institutionsStatic } from './institutionsStatic';
 
 export const IraqiGovernorates: Governorate[] = [
   { id: 'baghdad', nameEN: 'Baghdad', nameAR: 'بغداد', nameKU: 'بەغدا' },
@@ -22,7 +23,7 @@ export const IraqiGovernorates: Governorate[] = [
   { id: 'halabja', nameEN: 'Halabja', nameAR: 'حلبجة', nameKU: 'هەڵەبجە' }
 ];
 
-export const IraqiUniversities: University[] = [];
+export const IraqiUniversities: University[] = [...institutionsStatic];
 
 export const defaultUserProfile: UserProfile = {
   id: '',
@@ -46,4 +47,5 @@ export const defaultUserProfile: UserProfile = {
 };
 
 export const initialFeedItems: FeedItem[] = [];
+
 

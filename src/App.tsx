@@ -318,7 +318,7 @@ export default function App() {
   }, [feedItems]);
 
   // Institutions Dynamic Loading States
-  const [institutions, setInstitutions] = useState<any[]>([]);
+  const [institutions, setInstitutions] = useState<any[]>(() => [...IraqiUniversities]);
   const [institutionsLoading, setInstitutionsLoading] = useState<boolean>(true);
   const [institutionsError, setInstitutionsError] = useState<string | null>(null);
 
@@ -498,13 +498,19 @@ export default function App() {
     };
 
     try {
-      let rawItems = await loadBackendInstitutions();
+      let rawItems = await loadCacheInstitutions();
 
       if (rawItems.length === 0) {
-        rawItems = await loadCacheInstitutions();
+        rawItems = await loadBackendInstitutions();
       }
 
       const mapped = mapInstitutions(rawItems);
+
+      if (mapped.length === 0 && IraqiUniversities.length > 0) {
+        setInstitutions([...IraqiUniversities]);
+        setInstitutionsError(null);
+        return;
+      }
 
       if (mapped.length === 0) {
         throw new Error('No institutions available from backend or cache.');
@@ -526,6 +532,9 @@ export default function App() {
         IraqiUniversities.length = 0;
         IraqiUniversities.push(...mappedCache);
         setInstitutions(mappedCache);
+        setInstitutionsError(null);
+      } else if (IraqiUniversities.length > 0) {
+        setInstitutions([...IraqiUniversities]);
         setInstitutionsError(null);
       } else {
         setInstitutions([]);
@@ -1581,6 +1590,7 @@ export default function App() {
     </div>
   );
 };
+
 
 
 
