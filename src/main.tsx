@@ -1,4 +1,5 @@
-﻿import { installRemoveOpportunitiesUI } from './utils/removeOpportunitiesUI';
+﻿import { installPoliceStickyTabs } from './utils/policeStickyTabs';
+import { installRemoveOpportunitiesUI } from './utils/removeOpportunitiesUI';
 import {StrictMode} from 'react';
 import {createRoot} from 'react-dom/client';
 import App from './App.tsx';
@@ -27,6 +28,7 @@ createRoot(document.getElementById('root')!).render(
     <App />
   </StrictMode>,
 );
+
 
 
 
