@@ -863,42 +863,65 @@ app.post('/api/auth/register', async (c) => {
 // POST /api/auth/login
 app.post('/api/auth/login', async (c) => {
   try {
-    const { email, password } = await c.req.json();
+    let body: any = {};
+    try {
+      body = await c.req.json();
+    } catch {
+      return c.json({ error: 'Invalid login request' }, 400);
+    }
+
+    const email = String(body.email || '').trim();
+    const password = String(body.password || '');
     
     if (!email || !password) {
       return c.json({ error: 'Email and password are required' }, 400);
     }
     
-    // Normalize email (trim and lowercase)
     const normalizedEmail = normalizeEmail(email);
     
-    // Find user in profiles table (using normalized email)
-    const user = await c.env.DB.prepare(
-      'SELECT * FROM profiles WHERE LOWER(TRIM(email)) = ?'
-    ).bind(normalizedEmail).first() as any;
+    let user: any = null;
+    try {
+      user = await c.env.DB.prepare(
+        'SELECT * FROM profiles WHERE LOWER(TRIM(email)) = ?'
+      ).bind(normalizedEmail).first() as any;
+    } catch (dbError) {
+      console.error('Login DB lookup error:', dbError);
+      return c.json({ error: 'Login temporarily unavailable' }, 503);
+    }
     
-    if (!user) {
+    // Do not reveal if the email exists.
+    if (!user || !user.password_hash) {
       return c.json({ error: 'Invalid email or password' }, 401);
     }
     
-    // Check if password is set (admin user might have empty password initially)
-    if (!user.password_hash) {
-      return c.json({ error: 'Password not set. Please contact admin.' }, 401);
+    let isValid = false;
+    try {
+      isValid = await verifyPassword(password, String(user.password_hash || ''));
+    } catch (verifyError) {
+      console.error('Login password verification error:', verifyError);
+      return c.json({ error: 'Invalid email or password' }, 401);
     }
-    
-    // Verify password
-    const isValid = await verifyPassword(password, user.password_hash);
+
     if (!isValid) {
       return c.json({ error: 'Invalid email or password' }, 401);
     }
     
-    // Update last login
-    await c.env.DB.prepare(
-      'UPDATE profiles SET updated_at = ? WHERE id = ?'
-    ).bind(new Date().toISOString(), user.id).run();
+    try {
+      await c.env.DB.prepare(
+        'UPDATE profiles SET updated_at = ? WHERE id = ?'
+      ).bind(new Date().toISOString(), user.id).run();
+    } catch (updateError) {
+      console.error('Login last-login update error:', updateError);
+      // Non-fatal. Continue login if credentials are valid.
+    }
     
-    // Generate JWT token
-    const token = await generateJWTToken(user.id, user.email, user.role, (c.env.JWT_SECRET || c.env.JWT_SECRET_V2 || ""));
+    const jwtSecret = String(c.env.JWT_SECRET || c.env.JWT_SECRET_V2 || '');
+    if (!jwtSecret) {
+      console.error('Login JWT secret missing');
+      return c.json({ error: 'Login temporarily unavailable' }, 503);
+    }
+
+    const token = await generateJWTToken(user.id, user.email, user.role || 'student', jwtSecret);
     
     return c.json({
       token,
@@ -916,8 +939,8 @@ app.post('/api/auth/login', async (c) => {
       }
     });
   } catch (error: any) {
-    console.error('Login error:', error);
-    return c.json({ error: 'Login failed' }, 500);
+    console.error('Login unexpected error:', error);
+    return c.json({ error: 'Login temporarily unavailable' }, 503);
   }
 });
 
@@ -2433,6 +2456,7 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
+
 
 
 
