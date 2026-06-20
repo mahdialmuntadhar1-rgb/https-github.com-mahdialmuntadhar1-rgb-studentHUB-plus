@@ -382,7 +382,7 @@ export default function HomeFeed({
       'scholarship': 'scholarship',
       'training': 'training',
       'internship': 'internship',
-      'admission': 'admission',
+      'admission': 'registration',
       'announcement': 'announcement',
       'news': 'news',
       'deadline': 'deadline'
@@ -1053,86 +1053,85 @@ export default function HomeFeed({
   }, [geoFilteredItems]);
 
   // Filtering for Opportunities Tab
-  const filteredOppsItems = useMemo(() => {
-    // Use backend opportunities when a specific category filter is selected
-    if (selectedOppFilter !== 'all' && backendOpportunities.length > 0) {
-      // Filter backend opportunities by governorate
-      const govFiltered = backendOpportunities.filter(item => {
-        const itemGovText = [
-          item.governorateId,
-          item.governorate,
-          item.location,
-          item.city,
-          Array.isArray(item.tags) ? item.tags.join(' ') : ''
-        ].filter(Boolean).join(' ');
-        const normalizedItemGov = normalizeHomeGovernorateId(itemGovText);
-        return selectedGov === 'all' || normalizedItemGov === 'all' || normalizedItemGov === selectedGov;
-      });
+    const filteredOppsItems = useMemo(() => {
+    const sourceItems = backendOpportunities.length > 0 ? backendOpportunities : allSeriousItems;
 
-      // Add Iraq-wide fallback if governorate has few results (less than 5)
-      if (selectedGov !== 'all' && govFiltered.length < 5 && govFiltered.length < backendOpportunities.length) {
-        // Add Iraq-wide jobs that aren't already in the filtered list
-        const iraqWideJobs = backendOpportunities.filter(item => {
-          const itemGovText = [
-            item.governorateId,
-            item.governorate,
-            item.location,
-            item.city,
-            Array.isArray(item.tags) ? item.tags.join(' ') : ''
-          ].filter(Boolean).join(' ');
-          const normalizedItemGov = normalizeHomeGovernorateId(itemGovText);
-          const isAlreadyIncluded = govFiltered.some(govItem => govItem.id === item.id);
-          return !isAlreadyIncluded && (normalizedItemGov === 'all' || normalizedItemGov !== selectedGov);
-        });
-        return [...govFiltered, ...iraqWideJobs];
+    const matchesSelectedCategory = (item: FeedItem) => {
+      const type = String(item.type || '').toLowerCase();
+      const tags = getSafeTags(item.tags).map(tag => tag.toLowerCase());
+      const oppCategory = String((item as any).opportunityCategory || '').toLowerCase();
+
+      if (selectedOppFilter === 'all') return true;
+
+      if (selectedOppFilter === 'job') {
+        return ['job', 'part_time_job', 'full_time_job'].includes(type) ||
+          oppCategory.includes('job') ||
+          tags.some(tag => tag.includes('job') || tag.includes('career'));
       }
 
-      return govFiltered;
+      if (selectedOppFilter === 'scholarship') {
+        return ['scholarship', 'fellowship'].includes(type) ||
+          oppCategory.includes('scholarship') ||
+          oppCategory.includes('fellowship') ||
+          tags.some(tag => tag.includes('scholarship') || tag.includes('fellowship'));
+      }
+
+      if (selectedOppFilter === 'training') {
+        return ['training', 'internship', 'graduation_project_support', 'volunteering', 'competition'].includes(type) ||
+          oppCategory.includes('training') ||
+          oppCategory.includes('internship') ||
+          tags.some(tag => tag.includes('training') || tag.includes('course') || tag.includes('intern'));
+      }
+
+      if (selectedOppFilter === 'admission') {
+        return ['admission', 'registration'].includes(type) ||
+          oppCategory.includes('registration') ||
+          oppCategory.includes('admission') ||
+          tags.some(tag => tag.includes('registration') || tag.includes('admission'));
+      }
+
+      if (selectedOppFilter === 'announcement') {
+        return type === 'announcement' || tags.some(tag => tag.includes('announcement'));
+      }
+
+      if (selectedOppFilter === 'news') {
+        return type === 'news' || type === 'announcement' || tags.some(tag => tag.includes('news'));
+      }
+
+      if (selectedOppFilter === 'deadline') {
+        return Boolean(item.deadline);
+      }
+
+      if (selectedOppFilter === 'internship') {
+        return type === 'internship' || oppCategory.includes('internship') || tags.some(tag => tag.includes('intern'));
+      }
+
+      return true;
+    };
+
+    const categoryItems = sourceItems.filter(matchesSelectedCategory);
+
+    const govFiltered = categoryItems.filter(item => {
+      const itemGovText = [
+        item.governorateId,
+        (item as any).governorate,
+        item.location,
+        (item as any).city,
+        Array.isArray(item.tags) ? item.tags.join(' ') : ''
+      ].filter(Boolean).join(' ');
+
+      const normalizedItemGov = normalizeHomeGovernorateId(itemGovText);
+      return selectedGov === 'all' || normalizedItemGov === 'all' || normalizedItemGov === selectedGov;
+    });
+
+    // If a governorate filter hides too much, still show Iraq-wide / other backend items.
+    if (selectedGov !== 'all' && govFiltered.length < 5 && categoryItems.length > govFiltered.length) {
+      const seen = new Set(govFiltered.map(item => String(item.id)));
+      const fallback = categoryItems.filter(item => !seen.has(String(item.id)));
+      return [...govFiltered, ...fallback];
     }
 
-    if (selectedOppFilter === 'all') {
-      return allSeriousItems;
-    }
-    if (selectedOppFilter === 'job') {
-      return allSeriousItems.filter(item =>
-        ['job', 'part_time_job', 'full_time_job', 'internship'].includes(item.type)
-      );
-    }
-    if (selectedOppFilter === 'scholarship') {
-      return allSeriousItems.filter(item =>
-        ['scholarship', 'fellowship'].includes(item.type)
-      );
-    }
-    if (selectedOppFilter === 'training') {
-      return allSeriousItems.filter(item =>
-        ['training', 'graduation_project_support', 'volunteering', 'competition'].includes(item.type)
-      );
-    }
-    if (selectedOppFilter === 'admission') {
-      return allSeriousItems.filter(item =>
-        ['admission', 'registration'].includes(item.type)
-      );
-    }
-    if (selectedOppFilter === 'announcement') {
-      return allSeriousItems.filter(item => item.type === 'announcement');
-    }
-    if (selectedOppFilter === 'news') {
-      return allSeriousItems.filter(item =>
-        item.type === 'news' ||
-        getSafeTags(item.tags).some(tag => tag.toLowerCase().includes('news')) ||
-        item.type === 'announcement'
-      );
-    }
-    if (selectedOppFilter === 'deadline') {
-      return allSeriousItems.filter(item => !!item.deadline);
-    }
-    if (selectedOppFilter === 'internship') {
-      return allSeriousItems.filter(item =>
-        item.type === 'internship' ||
-        getSafeTags(item.tags).some(tag => tag.toLowerCase().includes('intern'))
-      );
-    }
-    return allSeriousItems;
+    return govFiltered;
   }, [allSeriousItems, selectedOppFilter, backendOpportunities, selectedGov]);
 
   // Filtering for Campus Life Tab
@@ -2290,6 +2289,7 @@ export default function HomeFeed({
     </div>
   );
 }
+
 
 
 
