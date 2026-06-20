@@ -351,28 +351,97 @@ export default function App() {
   const fetchInstitutions = async () => {
     setInstitutionsLoading(true);
     setInstitutionsError(null);
-    try {
-      let all: any[] = [];
-      let offset = 0;
-      let limit = 200;
-      let hasMore = true;
-      let attempts = 0;
-      
-      while (hasMore && attempts < 15) {
-        attempts++;
-        const url = `${BACKEND_URL}/api/institutions?limit=${limit}&offset=${offset}`;
-        const res = await fetch(url);
-        if (!res.ok) {
-          throw new Error(`Failed to fetch: ${res.statusText}`);
-        }
-        const json = await res.json();
-        const list = json.institutions || [];
-        all = all.concat(list);
-        const pag = json.pagination || {};
-        offset += list.length;
-        hasMore = pag.hasMore && list.length > 0 && all.length < pag.total;
+
+    const extractInstitutionItems = (payload: any): any[] => {
+      if (!payload) return [];
+      if (Array.isArray(payload)) return payload;
+
+      const candidates = [
+        payload.institutions,
+        payload.items,
+        payload.data,
+        payload.results,
+        payload.value,
+        payload?.data?.institutions,
+        payload?.data?.items,
+        payload?.data?.results,
+        payload?.pagination?.items,
+        payload?.pagination?.data
+      ];
+
+      for (const candidate of candidates) {
+        if (Array.isArray(candidate)) return candidate;
       }
 
+      return [];
+    };
+
+    const loadCacheInstitutions = async (): Promise<any[]> => {
+      try {
+        const response = await fetch('/data/institutions-cache.json', {
+          headers: { Accept: 'application/json' }
+        });
+
+        if (!response.ok) return [];
+
+        const payload = await response.json();
+        return extractInstitutionItems(payload);
+      } catch (error) {
+        console.warn('Failed to load institutions cache:', error);
+        return [];
+      }
+    };
+
+    const loadBackendInstitutions = async (): Promise<any[]> => {
+      const all: any[] = [];
+      let offset = 0;
+      const limit = 500;
+      let hasMore = true;
+      let attempts = 0;
+
+      while (hasMore && attempts < 20) {
+        attempts += 1;
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        try {
+          const response = await fetch(`${BACKEND_URL}/api/institutions?limit=${limit}&offset=${offset}`, {
+            signal: controller.signal,
+            headers: { Accept: 'application/json' }
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch institutions: ${response.status}`);
+          }
+
+          const payload = await response.json();
+          const list = extractInstitutionItems(payload);
+
+          if (list.length === 0) {
+            hasMore = false;
+          } else {
+            all.push(...list);
+
+            const pagination = payload?.pagination || payload?.meta || {};
+            const total = Number(pagination.total || pagination.count || 0);
+            const backendHasMore = Boolean(pagination.hasMore || pagination.has_more);
+
+            offset += list.length;
+            hasMore = backendHasMore || (total > 0 && all.length < total);
+          }
+        } catch (error) {
+          clearTimeout(timeoutId);
+          throw error;
+        }
+      }
+
+      return all;
+    };
+
+    const mapInstitutions = (rawItems: any[]) => {
       const colors = [
         'from-blue-600 to-sky-500',
         'from-emerald-600 to-teal-500',
@@ -382,52 +451,86 @@ export default function App() {
         'from-cyan-600 to-blue-500'
       ];
 
-      const mapped = all.map((inst: any) => {
-        const govId = normalizeGovernorate(inst.governorate);
-        
-        let logo = '🎓';
-        const type = (inst.type || '').toLowerCase();
-        if (type.includes('private')) logo = '🏛️';
-        else if (type.includes('college')) logo = '📖';
-        else if (type.includes('school')) logo = '🏫';
-        else if (type.includes('division') || type.includes('department')) logo = '🔬';
-        else if (type.includes('institute') || type.includes('research')) logo = '🛡️';
-        
-        const charSum = inst.id.split('').reduce((sum: number, c: string) => sum + c.charCodeAt(0), 0);
-        const color = colors[charSum % colors.length];
+      const seen = new Set<string>();
 
-        const nameEN = inst.name_en?.trim() || inst.name_ar?.trim() || 'Unnamed Institution';
-        let nameAR = inst.name_ar?.trim() || inst.name_en?.trim() || 'مؤسسة غير معروفة';
-        let nameKU = inst.name_ku?.trim() || inst.name_en?.trim() || inst.name_ar?.trim() || 'مؤسسەی نەناسراو';
+      return rawItems
+        .map((inst: any, index: number) => {
+          const fallbackId = `institution-${index}`;
+          const id = String(inst.id || inst.slug || inst.name_en || inst.name_ar || inst.name || fallbackId)
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^\w-]/g, '') || fallbackId;
 
-        return {
-          id: inst.id,
-          nameEN,
-          nameAR,
-          nameKU,
-          governorateId: govId,
-          logo,
-          color
-        };
-      });
+          if (seen.has(id)) return null;
+          seen.add(id);
 
-      // Synchronize/overwrite the exported IraqiUniversities array in-place so all downstream imports access live data
+          const govId = normalizeGovernorate(inst.governorate || inst.governorate_name || inst.city || inst.location);
+
+          let logo = '🎓';
+          const type = String(inst.type || inst.institution_type || '').toLowerCase();
+          if (type.includes('private')) logo = '🏛️';
+          else if (type.includes('college')) logo = '📖';
+          else if (type.includes('school')) logo = '🏫';
+          else if (type.includes('division') || type.includes('department')) logo = '🔬';
+          else if (type.includes('institute') || type.includes('research')) logo = '🛡️';
+
+          const charSum = id.split('').reduce((sum: number, c: string) => sum + c.charCodeAt(0), 0);
+          const color = colors[charSum % colors.length];
+
+          const nameEN = String(inst.name_en || inst.nameEN || inst.name || inst.name_ar || 'Unnamed Institution').trim();
+          const nameAR = String(inst.name_ar || inst.nameAR || inst.name || inst.name_en || 'مؤسسة تعليمية').trim();
+          const nameKU = String(inst.name_ku || inst.nameKU || inst.name || inst.name_en || inst.name_ar || 'دەزگای خوێندن').trim();
+
+          return {
+            id,
+            nameEN,
+            nameAR,
+            nameKU,
+            governorateId: govId,
+            logo,
+            color,
+            website: inst.website || inst.url || inst.link || '',
+            type: inst.type || inst.institution_type || ''
+          };
+        })
+        .filter(Boolean);
+    };
+
+    try {
+      let rawItems = await loadBackendInstitutions();
+
+      if (rawItems.length === 0) {
+        rawItems = await loadCacheInstitutions();
+      }
+
+      const mapped = mapInstitutions(rawItems);
+
+      if (mapped.length === 0) {
+        throw new Error('No institutions available from backend or cache.');
+      }
+
       IraqiUniversities.length = 0;
       IraqiUniversities.push(...mapped);
 
-      // Synchronize/overwrite the exported IraqiGovernorates array in-place to reflect active governorates from dynamic loading
-      const activeGovIds = new Set(mapped.map(u => u.governorateId));
-      const originalGovs = [...IraqiGovernorates];
-      const activeGovsList = originalGovs.filter(g => activeGovIds.has(g.id));
-      if (activeGovsList.length > 0) {
-        IraqiGovernorates.length = 0;
-        IraqiGovernorates.push(...activeGovsList);
-      }
-
+      // Keep all 19 governorates visible. Do not shrink the governorate list based on loaded institutions.
       setInstitutions(mapped);
+      setInstitutionsError(null);
     } catch (err: any) {
       console.error('Failed to load institutions dynamically:', err);
-      setInstitutionsError(err.message || 'Unknown network error');
+
+      const cached = await loadCacheInstitutions();
+      const mappedCache = mapInstitutions(cached);
+
+      if (mappedCache.length > 0) {
+        IraqiUniversities.length = 0;
+        IraqiUniversities.push(...mappedCache);
+        setInstitutions(mappedCache);
+        setInstitutionsError(null);
+      } else {
+        setInstitutions([]);
+        setInstitutionsError(err?.message || 'Could not load institutions');
+      }
     } finally {
       setInstitutionsLoading(false);
     }
@@ -1478,6 +1581,7 @@ export default function App() {
     </div>
   );
 };
+
 
 
 
