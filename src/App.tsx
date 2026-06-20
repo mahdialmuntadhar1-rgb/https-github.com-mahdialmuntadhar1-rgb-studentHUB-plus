@@ -478,15 +478,41 @@ export default function App() {
     const fetchLiveFeed = async () => {
       try {
         const [oppsResponse, highlightsResponse] = await Promise.all([
-          fetch(`${BACKEND_URL}/api/opportunities`),
+          Promise.all(['job','scholarship','training','internship','event','exam','registration'].map(category =>
+            fetch(`${BACKEND_URL}/api/opportunities?category=${category}&limit=${category === "job" ? 1200 : 300}`)
+          )),
           fetch(`${BACKEND_URL}/api/highlights`)
         ]);
 
         let dbItems: FeedItem[] = [];
 
         // 1. Process Opportunities
-        if (oppsResponse.ok) {
-          const list = await oppsResponse.json();
+        let list: any[] = [];
+          if (Array.isArray(oppsResponse)) {
+            const categoryLists = await Promise.all(oppsResponse.map(async (response) => {
+              if (!response.ok) return [];
+              const data = await response.json();
+              return Array.isArray(data)
+                ? data
+                : Array.isArray(data?.items)
+                  ? data.items
+                  : Array.isArray(data?.opportunities)
+                    ? data.opportunities
+                    : [];
+            }));
+            list = categoryLists.flat();
+          } else if (oppsResponse.ok) {
+            const data = await oppsResponse.json();
+            list = Array.isArray(data)
+              ? data
+              : Array.isArray(data?.items)
+                ? data.items
+                : Array.isArray(data?.opportunities)
+                  ? data.opportunities
+                  : [];
+          }
+
+          if (list.length > 0) {
           if (Array.isArray(list)) {
             const mappedOpps = list.map((item: any) => ({
               id: String(item.id || `scraped-${Date.now()}-${Math.random()}`),
@@ -1452,6 +1478,7 @@ export default function App() {
     </div>
   );
 };
+
 
 
 

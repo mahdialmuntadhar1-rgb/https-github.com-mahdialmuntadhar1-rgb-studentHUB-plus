@@ -103,7 +103,7 @@ function getImageUrl(item: FeedItem): string {
 
   for (const candidate of candidates) {
     const url = String(candidate || '').trim();
-    if (/^https?:\/\//i.test(url) || /^data:image\//i.test(url) || /^\/campus-life\/post-\d{3}\.svg$/i.test(url)) {
+    if (/^https?:\/\//i.test(url) || /^data:image\//i.test(url) || /^\/campus-life\/post-\d{3}\.svg$/i.test(url) || /^\/designs\/campus-life\/campus-life-\d{2}\.(png|jpe?g|webp|svg)$/i.test(url)) {
       return url;
     }
   }
