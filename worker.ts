@@ -38,11 +38,141 @@ declare module 'hono' {
 }
 
 // CORS middleware
+const ALLOWED_ORIGINS = new Set([
+  'https://https-github.mahdialmuntadhar1.workers.dev',
+  'http://localhost:5173',
+  'http://localhost:3000',
+  'http://127.0.0.1:5173',
+  'http://127.0.0.1:3000',
+]);
+
+// CORS middleware: only trusted frontend origins are allowed.
 app.use('/*', cors({
-  origin: '*',
+  origin: (origin) => {
+    if (!origin) return 'https://https-github.mahdialmuntadhar1.workers.dev';
+    return ALLOWED_ORIGINS.has(origin) ? origin : '';
+  },
   allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
   allowHeaders: ['Content-Type', 'Authorization'],
+  credentials: true,
 }));
+
+
+// ============================================================================
+// API RATE LIMITING
+// ============================================================================
+
+function getClientIp(c: any): string {
+  return String(
+    c.req.header('CF-Connecting-IP') ||
+    c.req.header('x-forwarded-for') ||
+    c.req.header('x-real-ip') ||
+    'unknown'
+  ).split(',')[0].trim();
+}
+
+async function sha256HexValue(value: string): Promise<string> {
+  const bytes = new TextEncoder().encode(value || '');
+  const digest = await crypto.subtle.digest('SHA-256', bytes);
+  return Array.from(new Uint8Array(digest)).map(b => b.toString(16).padStart(2, '0')).join('');
+}
+
+function getRateLimitConfig(method: string, path: string): { bucket: string; limit: number; windowSeconds: number } | null {
+  const m = method.toUpperCase();
+
+  if (m === 'POST' && path === '/api/auth/login') {
+    return { bucket: 'auth_login', limit: 8, windowSeconds: 60 };
+  }
+
+  if (m === 'POST' && path === '/api/auth/register') {
+    return { bucket: 'auth_register', limit: 5, windowSeconds: 60 };
+  }
+
+  if (m === 'POST' && path.includes('/password-reset')) {
+    return { bucket: 'password_reset', limit: 4, windowSeconds: 60 };
+  }
+
+  if (m === 'POST' && path === '/api/message-requests') {
+    return { bucket: 'message_request', limit: 12, windowSeconds: 60 };
+  }
+
+  if (m === 'POST' && /^\/api\/messages\/threads\/[^/]+\/messages$/.test(path)) {
+    return { bucket: 'message_send', limit: 30, windowSeconds: 60 };
+  }
+
+  if (m === 'POST' && /^\/api\/messages\/[^/]+\/report$/.test(path)) {
+    return { bucket: 'message_report', limit: 10, windowSeconds: 60 };
+  }
+
+  if (m === 'POST' && path === '/api/admin/hero-images/upload') {
+    return { bucket: 'hero_upload', limit: 10, windowSeconds: 300 };
+  }
+
+  return null;
+}
+
+async function checkApiRateLimit(c: any, config: { bucket: string; limit: number; windowSeconds: number }) {
+  try {
+    const now = Math.floor(Date.now() / 1000);
+    const windowStart = Math.floor(now / config.windowSeconds) * config.windowSeconds;
+    const ipHash = await sha256HexValue(getClientIp(c));
+    const key = `${config.bucket}:${ipHash}:${windowStart}`;
+    const updatedAt = new Date().toISOString();
+
+    const existing = await c.env.DB.prepare(
+      'SELECT count FROM api_rate_limits WHERE key = ?'
+    ).bind(key).first() as any;
+
+    if (!existing) {
+      await c.env.DB.prepare(`
+        INSERT INTO api_rate_limits (key, bucket, ip_hash, window_start, count, created_at, updated_at)
+        VALUES (?, ?, ?, ?, 1, ?, ?)
+      `).bind(key, config.bucket, ipHash, windowStart, updatedAt, updatedAt).run();
+
+      return { allowed: true, remaining: config.limit - 1, retryAfter: config.windowSeconds };
+    }
+
+    const nextCount = Number(existing.count || 0) + 1;
+
+    if (nextCount > config.limit) {
+      return { allowed: false, remaining: 0, retryAfter: Math.max(1, windowStart + config.windowSeconds - now) };
+    }
+
+    await c.env.DB.prepare(
+      'UPDATE api_rate_limits SET count = ?, updated_at = ? WHERE key = ?'
+    ).bind(nextCount, updatedAt, key).run();
+
+    return { allowed: true, remaining: Math.max(0, config.limit - nextCount), retryAfter: config.windowSeconds };
+  } catch (error) {
+    console.error('Rate limit check failed:', error);
+    return { allowed: true, remaining: config.limit, retryAfter: config.windowSeconds };
+  }
+}
+
+app.use('/api/*', async (c, next) => {
+  const path = new URL(c.req.url).pathname;
+  const config = getRateLimitConfig(c.req.method, path);
+
+  if (!config) {
+    return next();
+  }
+
+  const result = await checkApiRateLimit(c, config);
+
+  c.header('X-RateLimit-Limit', String(config.limit));
+  c.header('X-RateLimit-Remaining', String(result.remaining));
+  c.header('X-RateLimit-Window', String(config.windowSeconds));
+
+  if (!result.allowed) {
+    c.header('Retry-After', String(result.retryAfter));
+    return c.json({
+      error: 'Too many requests. Please wait and try again.',
+      retry_after_seconds: result.retryAfter
+    }, 429);
+  }
+
+  return next();
+});
 
 // ============================================================================
 // UTILITY FUNCTIONS
@@ -2303,6 +2433,7 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
+
 
 
 
