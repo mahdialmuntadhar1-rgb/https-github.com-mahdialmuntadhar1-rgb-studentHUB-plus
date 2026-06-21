@@ -98,7 +98,7 @@ export default function App() {
 
   // Auth States
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    const token = localStorage.getItem('Talaba_token') || localStorage.getItem('admin_token');
+    const token = localStorage.getItem('Talaba_token') || localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
     const notLoggedOut = localStorage.getItem('Talaba_logged_in') !== 'false';
     return Boolean(token) && notLoggedOut;
   });
@@ -1336,6 +1336,9 @@ export default function App() {
               localStorage.setItem('Talaba_logged_in', 'false');
               localStorage.removeItem('Talaba_token');
               localStorage.removeItem('admin_token');
+              localStorage.removeItem('jamiaati_user_email');
+              localStorage.removeItem('jamiaati_auth_user');
+              localStorage.removeItem('jamiaati_token');
               localStorage.removeItem('Talaba_auth_user');
               localStorage.removeItem('Talaba_user_email');
               setUserProfile(prev => ({ ...prev, role: 'student' }));
@@ -1596,6 +1599,7 @@ export default function App() {
     </div>
   );
 };
+
 
 
 

@@ -28,7 +28,7 @@ function getHeaders() {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-  const token = localStorage.getItem('admin_token') || localStorage.getItem('jamiaati_token');
+  const token = localStorage.getItem('admin_token') || localStorage.getItem('Talaba_token');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -139,7 +139,7 @@ export const heroImagesApi = {
     formData.append('alt_text', values.altText);
     if (typeof values.sortOrder === 'number') formData.append('sort_order', String(values.sortOrder));
     if (values.replaceId) formData.append('replace_id', values.replaceId);
-    const token = localStorage.getItem('admin_token') || localStorage.getItem('jamiaati_token');
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('Talaba_token');
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
     const response = await fetch(`${API_BASE}/admin/hero-images/upload`, { method: 'POST', headers, body: formData });
     return handleResponse(response, language);
@@ -677,7 +677,7 @@ export const socialApi = {
   // Friend Requests
   async getFriendRequests(lang: Language = 'ar'): Promise<FriendRequestsResponse> {
     try {
-      const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+      const token = localStorage.getItem('Talaba_token') || localStorage.getItem('admin_token');
       if (!token || token.startsWith('mock_token_')) {
         return { incoming: [], outgoing: [] };
       }
@@ -747,7 +747,7 @@ export const socialApi = {
   // Message Requests
   async getMessageRequests(lang: Language = 'ar'): Promise<MessageRequestsResponse> {
     try {
-      const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+      const token = localStorage.getItem('Talaba_token') || localStorage.getItem('admin_token');
       if (!token || token.startsWith('mock_token_')) {
         return { incoming: [], outgoing: [] };
       }
@@ -804,7 +804,7 @@ export const socialApi = {
   // Direct Messages
   async getThreads(lang: Language = 'ar'): Promise<MessageThreadsResponse> {
     try {
-      const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+      const token = localStorage.getItem('Talaba_token') || localStorage.getItem('admin_token');
       if (!token || token.startsWith('mock_token_')) {
         return { threads: [] };
       }
@@ -824,7 +824,7 @@ export const socialApi = {
 
   async getThreadMessages(threadId: string, lang: Language = 'ar'): Promise<ThreadMessagesResponse> {
     try {
-      const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+      const token = localStorage.getItem('Talaba_token') || localStorage.getItem('admin_token');
       if (!token || token.startsWith('mock_token_')) {
         return { thread: {} as any, messages: [] };
       }
@@ -901,6 +901,8 @@ export const socialApi = {
     return await handleResponse(res, lang);
   }
 };
+
+
 
 
 

@@ -108,13 +108,18 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       } else {
         if (!data.token || !data.user) throw new Error('The server did not return a valid session.');
         localStorage.setItem('Talaba_token', data.token);
+        localStorage.setItem('jamiaati_token', data.token);
+        localStorage.setItem('Talaba_logged_in', 'true');
+        localStorage.setItem('jamiaati_logged_in', 'true');
         if (data.user.role === 'admin' || data.user.role === 'staff' || email.trim().toLowerCase() === 'mahdialmuntadhar1@gmail.com') {
           localStorage.setItem('admin_token', data.token);
         } else {
           localStorage.removeItem('admin_token');
         }
         localStorage.setItem('Talaba_auth_user', JSON.stringify(data.user));
+        localStorage.setItem('jamiaati_auth_user', JSON.stringify(data.user));
         localStorage.setItem('Talaba_user_email', data.user.email || email.trim().toLowerCase());
+        localStorage.setItem('jamiaati_user_email', data.user.email || email.trim().toLowerCase());
         setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
         onAuthSuccess(data.user.full_name || data.user.username || username || 'Student', data.user.email || email);
         onClose();
@@ -367,6 +372,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     </AnimatePresence>
   );
 }
+
 
 
 
