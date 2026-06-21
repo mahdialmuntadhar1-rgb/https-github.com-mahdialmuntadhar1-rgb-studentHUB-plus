@@ -9,6 +9,7 @@ import { createRoot } from 'react-dom/client';
 
 import App from './App.tsx';
 import './index.css';
+import './styles/talaba-font-size-fix.css';
 import './styles/talaba-auth-visibility-fix.css';
 import './styles/high-contrast-fix.css';
 import './styles/neon-purple-theme.css';
