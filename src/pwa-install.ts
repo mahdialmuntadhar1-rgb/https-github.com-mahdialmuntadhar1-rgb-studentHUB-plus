@@ -230,8 +230,8 @@ function showBrowserFallback() {
 
   const title = isIOS() ? 'لە Safari بکەرەوە' : 'لە Chrome بکەرەوە';
   const message = isIOS()
-    ? 'بۆ دابەزاندن، ئەم لینکە لە Safari بکەرەوە. پاشان ئەپەکە زیاد بکە بۆ سەرەکی مۆبایل.'
-    : 'بۆ دابەزاندنی ڕاستەوخۆ، ئەم لینکە لە Chrome یان Edge بکەرەوە. ئەم وێبگەڕە ئێستا دابەزاندنی ڕاستەوخۆی نەکردووەتەوە.';
+    ? 'بۆ Install، ئەم لینکە لە Safari بکەرەوە. پاشان ئەپەکە زیاد بکە بۆ سەرەکی مۆبایل.'
+    : 'بۆ Installی ڕاستەوخۆ، ئەم لینکە لە Chrome یان Edge بکەرەوە. ئەم وێبگەڕە ئێستا Installی ڕاستەوخۆی نەکردووەتەوە.';
 
   overlay.innerHTML = `
     <div class="Talaba-pwa-install__panel" role="dialog" aria-modal="true">
@@ -280,12 +280,12 @@ function renderInstallButton() {
   installBox = document.createElement('div');
   installBox.className = 'Talaba-pwa-install';
   installBox.setAttribute('role', 'button');
-  installBox.setAttribute('aria-label', 'دابەزاندنی Talaba');
+  installBox.setAttribute('aria-label', 'Installی Talaba');
 
   installBox.innerHTML = `
     <div class="Talaba-pwa-install__card">
       <div class="Talaba-pwa-install__icon">📲</div>
-      <div class="Talaba-pwa-install__title">دابەزاندن</div>
+      <div class="Talaba-pwa-install__title">Install</div>
       <button class="Talaba-pwa-install__close" type="button" aria-label="داخستن">×</button>
     </div>
   `;

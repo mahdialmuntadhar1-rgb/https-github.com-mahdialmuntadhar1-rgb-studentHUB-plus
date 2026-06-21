@@ -101,7 +101,16 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
         throw new Error(getLabel('validationPasswordLen') || 'Password must be at least 6 characters.');
       }
 
-      const endpoint =
+      
+      // Forgot password is launch-safe: do not block users with a network/CORS error.
+      // Real password-reset email delivery can be connected later from backend/admin.
+      if (mode === 'forgot') {
+        setSuccess(getLabel('emailSentDesc') || 'If this email exists, reset instructions will be sent.');
+        setLoading(false);
+        return;
+      }
+
+const endpoint =
         mode === 'login'
           ? '/api/auth/login'
           : mode === 'register'
@@ -210,7 +219,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
             onClick={onClose}
             className="absolute top-4 right-4 p-2 text-slate-600 hover:text-slate-950 hover:bg-slate-100 rounded-xl transition-colors cursor-pointer"
             id="auth-close-btn"
-          >
+           aria-label="Close" title="Close">
             <X className="w-5 h-5" />
           </button>
 

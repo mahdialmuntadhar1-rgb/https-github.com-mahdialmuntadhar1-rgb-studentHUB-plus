@@ -1526,7 +1526,7 @@ export default function App() {
               role: userEmail.trim().toLowerCase() === 'mahdialmuntadhar1@gmail.com' ? 'staff' : prev.role
             }));
             showToast(
-              language === 'ar' ? `مرحباً بك مجدداً يا ${newUsername || 'زارا'}! 👋 تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'زارا'}! 👋 دابەزاندن سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Zara'}! 👋 Signed in`, 
+              language === 'ar' ? `مرحباً بك مجدداً يا ${newUsername || 'زارا'}! 👋 تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'زارا'}! 👋 Install سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Zara'}! 👋 Signed in`, 
               'success'
             );
           }}

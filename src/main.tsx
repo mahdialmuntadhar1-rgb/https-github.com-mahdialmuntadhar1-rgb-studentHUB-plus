@@ -1,3 +1,4 @@
+import './talaba-public-browse-guard';
 ﻿import './talaba-production-runtime';
 import './talaba-final-shortcuts';
 import { StrictMode, Component } from 'react';

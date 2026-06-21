@@ -27,7 +27,7 @@ export default function ScholarshipDownload({ language }: ScholarshipDownloadPro
         {language === 'ar' 
           ? 'تحميل قائمة المنح' 
           : language === 'ku' 
-          ? 'داگرتنی لیستی خەڵاتەکان' 
+          ? 'Installی لیستی خەڵاتەکان' 
           : 'Download Scholarships List'}
       </span>
     </button>
