@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Language } from '../types';
 import { BookOpen, LogIn } from 'lucide-react';
 import { getTranslation } from '../data/translations';
@@ -18,17 +18,17 @@ export default function TopStrip({
 }: TopStripProps) {
   const getFlagEmoji = (lang: Language) => {
     switch (lang) {
-      case 'ar': return '🇮🇶';
-      case 'ku': return '🏴';
-      case 'en': return '🇺🇸';
-      default: return '🇺🇸';
+      case 'ar': return 'ðŸ‡®ðŸ‡¶';
+      case 'ku': return 'ðŸ´';
+      case 'en': return 'ðŸ‡ºðŸ‡¸';
+      default: return 'ðŸ‡ºðŸ‡¸';
     }
   };
 
   const getLanguageName = (lang: Language) => {
     switch (lang) {
-      case 'ar': return 'العربية';
-      case 'ku': return 'کوردی';
+      case 'ar': return 'Ø§Ù„Ø¹Ø±Ø¨ÙŠØ©';
+      case 'ku': return 'Ú©ÙˆØ±Ø¯ÛŒ';
       case 'en': return 'English';
       default: return 'English';
     }
@@ -44,10 +44,10 @@ export default function TopStrip({
           </div>
           <div className="flex flex-col">
             <span className="text-xl font-black text-white tracking-tight leading-none">
-              Jamiaati
+              Talaba
             </span>
             <span className="text-xs font-bold text-orange-100 leading-none mt-0.5">
-              جامعتي
+              Ø¬Ø§Ù…Ø¹ØªÙŠ
             </span>
           </div>
         </div>
@@ -78,7 +78,7 @@ export default function TopStrip({
           >
             <LogIn className="w-4 h-4" />
             <span className="hidden sm:inline">
-              {language === 'ar' ? 'تسجيل الدخول' : language === 'ku' ? 'چوونەژوورەوە' : 'Login'}
+              {language === 'ar' ? 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„' : language === 'ku' ? 'Ú†ÙˆÙˆÙ†Û•Ú˜ÙˆÙˆØ±Û•ÙˆÛ•' : 'Login'}
             </span>
           </button>
         )}
@@ -86,3 +86,4 @@ export default function TopStrip({
     </div>
   );
 }
+

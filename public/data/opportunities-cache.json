@@ -32322,7 +32322,7 @@
         "id":  "demo-two-tabs-simple-scholarship",
         "title":  "Demo Scholarship for Iraqi Students",
         "type":  "scholarship",
-        "institution_name":  "Jamiaati Demo Scholarship Office",
+        "institution_name":  "Talaba Demo Scholarship Office",
         "institution_logo":  null,
         "governorate":  "Iraq",
         "deadline":  "2026-07-12",
@@ -34047,3 +34047,4 @@
         "category":  "registration"
     }
 ]
+

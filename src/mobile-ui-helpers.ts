@@ -1,6 +1,6 @@
 ﻿export function startMobileUiEnhancements() {
   const applyEnhancements = () => {
-    document.documentElement.classList.add('jamiaati-readable-font');
+    document.documentElement.classList.add('Talaba-readable-font');
 
     const buttons = Array.from(document.querySelectorAll('button')) as HTMLButtonElement[];
 
@@ -25,7 +25,7 @@
     try {
       applyEnhancements();
     } catch (error) {
-      console.warn('Jamiaati mobile UI enhancement warning:', error);
+      console.warn('Talaba mobile UI enhancement warning:', error);
     }
   };
 
@@ -40,3 +40,4 @@
     subtree: true
   });
 }
+

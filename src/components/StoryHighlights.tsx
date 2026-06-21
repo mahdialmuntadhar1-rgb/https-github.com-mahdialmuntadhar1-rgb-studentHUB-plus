@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Language } from '../types';
 import { motion } from 'motion/react';
 
@@ -19,78 +19,78 @@ interface StoryItem {
 const storiesData: StoryItem[] = [
   {
     id: 'story-life',
-    emoji: '🎈',
+    emoji: 'ðŸŽˆ',
     labelEN: 'Campus Life',
-    labelAR: 'حياة الحرم',
-    labelKU: 'ژیانی زانکۆ',
+    labelAR: 'Ø­ÙŠØ§Ø© Ø§Ù„Ø­Ø±Ù…',
+    labelKU: 'Ú˜ÛŒØ§Ù†ÛŒ Ø²Ø§Ù†Ú©Û†',
     color: 'from-pink-550 from-pink-500 via-rose-500 to-yellow-500',
     tab: 'life',
     highlightTextEN: 'Backstage & fun moments',
-    highlightTextAR: 'كواليس ولحظات ممتعة',
-    highlightTextKU: 'کوالیس و کاتە خۆشەکان'
+    highlightTextAR: 'ÙƒÙˆØ§Ù„ÙŠØ³ ÙˆÙ„Ø­Ø¸Ø§Øª Ù…Ù…ØªØ¹Ø©',
+    highlightTextKU: 'Ú©ÙˆØ§Ù„ÛŒØ³ Ùˆ Ú©Ø§ØªÛ• Ø®Û†Ø´Û•Ú©Ø§Ù†'
   },
   {
     id: 'story-scholarships',
-    emoji: '🎓',
+    emoji: 'ðŸŽ“',
     labelEN: 'Scholarships',
-    labelAR: 'المنح الدراسية',
-    labelKU: 'منحەی خوێندن',
+    labelAR: 'Ø§Ù„Ù…Ù†Ø­ Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ©',
+    labelKU: 'Ù…Ù†Ø­Û•ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù†',
     color: 'from-purple-600 via-indigo-600 to-pink-550 to-pink-500',
     tab: 'future',
     filterType: 'scholarship',
     highlightTextEN: 'Fully funded tuition info',
-    highlightTextAR: 'معلومات المنح الممولة بالكامل',
-    highlightTextKU: 'زانیاری لەسەر منحەی خوێندن'
+    highlightTextAR: 'Ù…Ø¹Ù„ÙˆÙ…Ø§Øª Ø§Ù„Ù…Ù†Ø­ Ø§Ù„Ù…Ù…ÙˆÙ„Ø© Ø¨Ø§Ù„ÙƒØ§Ù…Ù„',
+    highlightTextKU: 'Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ Ù„Û•Ø³Û•Ø± Ù…Ù†Ø­Û•ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù†'
   },
   {
     id: 'story-internships',
-    emoji: '💼',
+    emoji: 'ðŸ’¼',
     labelEN: 'Internships',
-    labelAR: 'الفرص والتدريب',
-    labelKU: 'مەشق و ڕاهێنان',
+    labelAR: 'Ø§Ù„ÙØ±Øµ ÙˆØ§Ù„ØªØ¯Ø±ÙŠØ¨',
+    labelKU: 'Ù…Û•Ø´Ù‚ Ùˆ Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†',
     color: 'from-cyan-500 via-blue-600 to-indigo-600',
     tab: 'future',
     filterType: 'internship',
     highlightTextEN: 'Build tech & business skills',
-    highlightTextAR: 'تدريبات عملية حقيقية في عِراقنا',
-    highlightTextKU: 'مەشقی ڕاهێنانی پراکتیکی'
+    highlightTextAR: 'ØªØ¯Ø±ÙŠØ¨Ø§Øª Ø¹Ù…Ù„ÙŠØ© Ø­Ù‚ÙŠÙ‚ÙŠØ© ÙÙŠ Ø¹ÙØ±Ø§Ù‚Ù†Ø§',
+    highlightTextKU: 'Ù…Û•Ø´Ù‚ÛŒ Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†ÛŒ Ù¾Ø±Ø§Ú©ØªÛŒÚ©ÛŒ'
   },
   {
     id: 'story-events',
-    emoji: '🎟️',
+    emoji: 'ðŸŽŸï¸',
     labelEN: 'Events',
-    labelAR: 'الفعاليات وبغداد',
-    labelKU: 'چالاکییەکان',
+    labelAR: 'Ø§Ù„ÙØ¹Ø§Ù„ÙŠØ§Øª ÙˆØ¨ØºØ¯Ø§Ø¯',
+    labelKU: 'Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ•Ú©Ø§Ù†',
     color: 'from-amber-500 via-red-500 to-pink-500',
     tab: 'life',
     filterType: 'event',
     highlightTextEN: 'Hackathons and meetups today',
-    highlightTextAR: 'هاكاثونات ومؤتمرات تقنية',
-    highlightTextKU: 'هاکاتۆن و کۆنفرانسی تەکنەلۆژی'
+    highlightTextAR: 'Ù‡Ø§ÙƒØ§Ø«ÙˆÙ†Ø§Øª ÙˆÙ…Ø¤ØªÙ…Ø±Ø§Øª ØªÙ‚Ù†ÙŠØ©',
+    highlightTextKU: 'Ù‡Ø§Ú©Ø§ØªÛ†Ù† Ùˆ Ú©Û†Ù†ÙØ±Ø§Ù†Ø³ÛŒ ØªÛ•Ú©Ù†Û•Ù„Û†Ú˜ÛŒ'
   },
   {
     id: 'story-study',
-    emoji: '📖',
+    emoji: 'ðŸ“–',
     labelEN: 'Study Tips',
-    labelAR: 'نصائح دراسية',
-    labelKU: 'ئامۆژگاری زانستی',
+    labelAR: 'Ù†ØµØ§Ø¦Ø­ Ø¯Ø±Ø§Ø³ÙŠØ©',
+    labelKU: 'Ø¦Ø§Ù…Û†Ú˜Ú¯Ø§Ø±ÛŒ Ø²Ø§Ù†Ø³ØªÛŒ',
     color: 'from-emerald-450 from-emerald-500 via-teal-500 to-cyan-500',
     tab: 'ask',
     highlightTextEN: 'Top notes & AI assistance',
-    highlightTextAR: 'ملخصات ومساعدة بالذكاء الاصطناعي',
-    highlightTextKU: 'کورتکراوەکان و هاوکاری سەرچاوەکان'
+    highlightTextAR: 'Ù…Ù„Ø®ØµØ§Øª ÙˆÙ…Ø³Ø§Ø¹Ø¯Ø© Ø¨Ø§Ù„Ø°ÙƒØ§Ø¡ Ø§Ù„Ø§ØµØ·Ù†Ø§Ø¹ÙŠ',
+    highlightTextKU: 'Ú©ÙˆØ±ØªÚ©Ø±Ø§ÙˆÛ•Ú©Ø§Ù† Ùˆ Ù‡Ø§ÙˆÚ©Ø§Ø±ÛŒ Ø³Û•Ø±Ú†Ø§ÙˆÛ•Ú©Ø§Ù†'
   },
   {
     id: 'story-unis',
-    emoji: '🏛️',
+    emoji: 'ðŸ›ï¸',
     labelEN: 'Universities',
-    labelAR: 'الجامعات',
-    labelKU: 'زانکۆکان',
+    labelAR: 'Ø§Ù„Ø¬Ø§Ù…Ø¹Ø§Øª',
+    labelKU: 'Ø²Ø§Ù†Ú©Û†Ú©Ø§Ù†',
     color: 'from-indigo-500 via-purple-500 to-teal-400',
     tab: 'home',
     highlightTextEN: 'Iraqi institution guides',
-    highlightTextAR: 'دليل شامل للجامعات العراقية',
-    highlightTextKU: 'ڕێبەری گشتی زانکۆکانی عێراق'
+    highlightTextAR: 'Ø¯Ù„ÙŠÙ„ Ø´Ø§Ù…Ù„ Ù„Ù„Ø¬Ø§Ù…Ø¹Ø§Øª Ø§Ù„Ø¹Ø±Ø§Ù‚ÙŠØ©',
+    highlightTextKU: 'Ú•ÛŽØ¨Û•Ø±ÛŒ Ú¯Ø´ØªÛŒ Ø²Ø§Ù†Ú©Û†Ú©Ø§Ù†ÛŒ Ø¹ÛŽØ±Ø§Ù‚'
   }
 ];
 
@@ -106,14 +106,14 @@ export default function StoryHighlights({
   onSelectStory
 }: StoryHighlightsProps) {
   return (
-    <div className="w-full mt-2 mb-6 bg-white rounded-3xl border-2 border-[#E6E1F5] p-4.5 shadow-sm" id="jamiaati-stories-frame">
+    <div className="w-full mt-2 mb-6 bg-white rounded-3xl border-2 border-[#E6E1F5] p-4.5 shadow-sm" id="Talaba-stories-frame">
       <div className="flex items-center justify-between mb-4 px-1">
         <span className="text-[11px] font-black uppercase tracking-widest text-[#6B25C9] bg-[#6B25C9]/10 px-3 py-1 rounded-full leading-none">
-          {language === 'ar' ? 'أبرز القصص وبانوراما 📸' : language === 'ku' ? 'چیرۆکە دیارەکان 📸' : 'CAMPUS STORIES 📸'}
+          {language === 'ar' ? 'Ø£Ø¨Ø±Ø² Ø§Ù„Ù‚ØµØµ ÙˆØ¨Ø§Ù†ÙˆØ±Ø§Ù…Ø§ ðŸ“¸' : language === 'ku' ? 'Ú†ÛŒØ±Û†Ú©Û• Ø¯ÛŒØ§Ø±Û•Ú©Ø§Ù† ðŸ“¸' : 'CAMPUS STORIES ðŸ“¸'}
         </span>
         <span className="text-[9px] font-black text-[#6B25C9] animate-pulse flex items-center gap-1">
           <span className="w-2 h-2 rounded-full bg-[#FFD21F]" />
-          {language === 'ar' ? 'اسحب للمشاهدة' : language === 'ku' ? 'ڕابکێشە' : 'Swipe now'}
+          {language === 'ar' ? 'Ø§Ø³Ø­Ø¨ Ù„Ù„Ù…Ø´Ø§Ù‡Ø¯Ø©' : language === 'ku' ? 'Ú•Ø§Ø¨Ú©ÛŽØ´Û•' : 'Swipe now'}
         </span>
       </div>
       
@@ -147,7 +147,7 @@ export default function StoryHighlights({
 
                 {/* Sparkling tiny live indicator - bright yellow or red */}
                 <span className="absolute bottom-0 right-0 w-3.5 h-3.5 bg-[#FFD21F] border-2 border-white rounded-full shadow-sm flex items-center justify-center text-[7px]" title="Live Story">
-                  ✨
+                  âœ¨
                 </span>
               </div>
 
@@ -157,7 +157,7 @@ export default function StoryHighlights({
                   {label}
                 </span>
                 <span className="text-[7px] font-black uppercase text-[#6B25C9] bg-[#6B25C9]/5 px-1 py-0.2 rounded mt-0.5 scale-90">
-                  {story.emoji === '🎈' ? 'Live' : 'Hot'}
+                  {story.emoji === 'ðŸŽˆ' ? 'Live' : 'Hot'}
                 </span>
               </div>
             </div>
@@ -167,3 +167,4 @@ export default function StoryHighlights({
     </div>
   );
 }
+

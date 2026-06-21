@@ -263,12 +263,12 @@ export default function SocialHub({
     if (!isLoggedIn) return;
     
     const handleSwitchChat = () => {
-      const pendingRecipientId = localStorage.getItem('jamiaati_pending_chat_recipient_id');
-      const pendingRecipientName = localStorage.getItem('jamiaati_pending_chat_recipient_name');
+      const pendingRecipientId = localStorage.getItem('Talaba_pending_chat_recipient_id');
+      const pendingRecipientName = localStorage.getItem('Talaba_pending_chat_recipient_name');
       
       if (pendingRecipientId && pendingRecipientName) {
-        localStorage.removeItem('jamiaati_pending_chat_recipient_id');
-        localStorage.removeItem('jamiaati_pending_chat_recipient_name');
+        localStorage.removeItem('Talaba_pending_chat_recipient_id');
+        localStorage.removeItem('Talaba_pending_chat_recipient_name');
         
         const existingThread = threads.find(t => t.opponentId === pendingRecipientId || t.opponentName === pendingRecipientName || t.id?.includes(pendingRecipientId));
         if (existingThread) {
@@ -297,9 +297,9 @@ export default function SocialHub({
     };
 
     handleSwitchChat();
-    window.addEventListener('jamiaati_switch_chat', handleSwitchChat);
+    window.addEventListener('Talaba_switch_chat', handleSwitchChat);
     return () => {
-      window.removeEventListener('jamiaati_switch_chat', handleSwitchChat);
+      window.removeEventListener('Talaba_switch_chat', handleSwitchChat);
     };
   }, [isLoggedIn, threads, language]);
 
@@ -1248,5 +1248,6 @@ export default function SocialHub({
     </div>
   );
 }
+
 
 

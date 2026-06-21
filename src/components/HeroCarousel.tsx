@@ -11,7 +11,7 @@ const fallbackImages: HeroImageRecord[] = [
   {
     id: 'fallback-1',
     image_url: '/campus-life/post-001.svg',
-    alt_text: 'Jamiaati hero image',
+    alt_text: 'Talaba hero image',
     title: 'Hero 1',
     sort_order: 0,
     is_active: 1,
@@ -19,7 +19,7 @@ const fallbackImages: HeroImageRecord[] = [
   {
     id: 'fallback-2',
     image_url: '/campus-life/post-002.svg',
-    alt_text: 'Jamiaati hero image',
+    alt_text: 'Talaba hero image',
     title: 'Hero 2',
     sort_order: 1,
     is_active: 1,
@@ -155,3 +155,4 @@ export default function HeroCarousel(props: Props) {
     </div>
   );
 }
+

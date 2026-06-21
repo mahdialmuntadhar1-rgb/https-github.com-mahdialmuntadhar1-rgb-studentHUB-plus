@@ -1,4 +1,39 @@
-﻿import React, { useState } from 'react';
+﻿
+const talabaAllowedOrigins = new Set([
+  'https://jamiati.kaniq.org',
+  'https://https-github.mahdialmuntadhar1.workers.dev',
+  'http://localhost:5173',
+  'http://localhost:8787'
+]);
+
+function getTalabaCorsHeaders(requestOrOrigin: any = '') {
+  const origin =
+    typeof requestOrOrigin === 'string'
+      ? requestOrOrigin
+      : String(requestOrOrigin?.headers?.get?.('Origin') || requestOrOrigin?.headers?.origin || '');
+
+  const allowOrigin = talabaAllowedOrigins.has(origin) ? origin : 'https://jamiati.kaniq.org';
+
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, X-Talaba-Client',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin'
+  };
+}
+
+function talabaCorsJson(data: any, status = 200, requestOrOrigin: any = '') {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      ...getTalabaCorsHeaders(requestOrOrigin)
+    }
+  });
+}
+
+import React, { useState } from 'react';
 import { Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
@@ -119,7 +154,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
           : { email: email.trim().toLowerCase(), password };
       const response = await fetch(`${BACKEND_URL}${endpoint}`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 'Content-Type': 'application/json; charset=utf-8', ...getTalabaCorsHeaders(request) },
         body: JSON.stringify(payload),
       });
       const data = await response.json().catch(() => ({}));
@@ -394,6 +429,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     </AnimatePresence>
   );
 }
+
 
 
 

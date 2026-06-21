@@ -1,4 +1,39 @@
-﻿import React, { useState } from 'react';
+﻿
+const talabaAllowedOrigins = new Set([
+  'https://jamiati.kaniq.org',
+  'https://https-github.mahdialmuntadhar1.workers.dev',
+  'http://localhost:5173',
+  'http://localhost:8787'
+]);
+
+function getTalabaCorsHeaders(requestOrOrigin: any = '') {
+  const origin =
+    typeof requestOrOrigin === 'string'
+      ? requestOrOrigin
+      : String(requestOrOrigin?.headers?.get?.('Origin') || requestOrOrigin?.headers?.origin || '');
+
+  const allowOrigin = talabaAllowedOrigins.has(origin) ? origin : 'https://jamiati.kaniq.org';
+
+  return {
+    'Access-Control-Allow-Origin': allowOrigin,
+    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, X-Talaba-Client',
+    'Access-Control-Max-Age': '86400',
+    'Vary': 'Origin'
+  };
+}
+
+function talabaCorsJson(data: any, status = 200, requestOrOrigin: any = '') {
+  return new Response(JSON.stringify(data), {
+    status,
+    headers: {
+      'Content-Type': 'application/json; charset=utf-8',
+      ...getTalabaCorsHeaders(requestOrOrigin)
+    }
+  });
+}
+
+import React, { useState } from 'react';
 import { Heart, MessageSquare, Share2, Bookmark, UserPlus, Send, UserRound, X, MoreHorizontal } from 'lucide-react';
 import { BACKEND_URL } from '../lib/api';
 import { compressImageToDataUrl } from '../utils/imageCompression';
@@ -229,7 +264,7 @@ export default function FeedCard({
   const safeAuthorStudentYear = cleanText(safeAuthor.studentYear, '');
 
   // Campus Life reads like a social caption; it should not prepend a generic poster headline.
-  const title = isMockCampusPost ? '' : cleanText(getLocalizedContent(item, 'title', language), item.titleEN || 'Jamiaati Post');
+  const title = isMockCampusPost ? '' : cleanText(getLocalizedContent(item, 'title', language), item.titleEN || 'Talaba Post');
   const body = cleanText(getLocalizedContent(item, 'content', language), item.contentEN || '');
 
   const caption = (() => {
@@ -366,7 +401,7 @@ export default function FeedCard({
     onDeleteFeedItem?.(item.id);
     setShowManageMenu(false);
   };
-  const getAuthToken = () => localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token') || '';
+  const getAuthToken = () => localStorage.getItem('Talaba_token') || localStorage.getItem('admin_token') || '';
 
   const getTargetUserId = () => {
     const possibleId = String(
@@ -419,7 +454,7 @@ export default function FeedCard({
         },
         body: JSON.stringify({
           targetUserId,
-          message: `Hi ${item.author?.name || 'there'}, I would like to connect on Jamiaati.`
+          message: `Hi ${item.author?.name || 'there'}, I would like to connect on Talaba.`
         })
       });
 
@@ -460,7 +495,7 @@ export default function FeedCard({
         },
         body: JSON.stringify({
           targetUserId,
-          body: `Hi ${item.author?.name || 'there'}, I would like to connect with you on Jamiaati.`
+          body: `Hi ${item.author?.name || 'there'}, I would like to connect with you on Talaba.`
         })
       });
 
@@ -840,6 +875,8 @@ export default function FeedCard({
     </article>
   );
 }
+
+
 
 
 

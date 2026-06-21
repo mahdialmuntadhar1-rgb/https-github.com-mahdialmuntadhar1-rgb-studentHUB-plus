@@ -92,7 +92,7 @@ export default function HeroPhotoManager({ language, showToast }: HeroPhotoManag
       }, language);
       cancelPending();
       await loadImages();
-      window.dispatchEvent(new Event('jamiaati_hero_images_updated'));
+      window.dispatchEvent(new Event('Talaba_hero_images_updated'));
       showToast(replaced ? 'Hero image replaced and saved permanently.' : 'Hero image uploaded and saved permanently.', 'success');
     } catch (error: any) {
       showToast(error.message || 'Hero image could not be saved.', 'error');
@@ -111,7 +111,7 @@ export default function HeroPhotoManager({ language, showToast }: HeroPhotoManag
         is_active: Boolean(changes.is_active ?? image.is_active),
       }, language);
       await loadImages();
-      window.dispatchEvent(new Event('jamiaati_hero_images_updated'));
+      window.dispatchEvent(new Event('Talaba_hero_images_updated'));
     } catch (error: any) {
       showToast(error.message || 'Could not update hero image.', 'error');
     } finally {
@@ -131,7 +131,7 @@ export default function HeroPhotoManager({ language, showToast }: HeroPhotoManag
         heroImagesApi.update(other.id, { title: other.title, alt_text: other.alt_text, sort_order: current.sort_order, is_active: Boolean(other.is_active) }, language),
       ]);
       await loadImages();
-      window.dispatchEvent(new Event('jamiaati_hero_images_updated'));
+      window.dispatchEvent(new Event('Talaba_hero_images_updated'));
     } catch (error: any) {
       showToast(error.message || 'Could not reorder hero images.', 'error');
     } finally {
@@ -145,7 +145,7 @@ export default function HeroPhotoManager({ language, showToast }: HeroPhotoManag
     try {
       await heroImagesApi.remove(image.id, language);
       await loadImages();
-      window.dispatchEvent(new Event('jamiaati_hero_images_updated'));
+      window.dispatchEvent(new Event('Talaba_hero_images_updated'));
       showToast('Hero image deleted from R2 and D1.', 'success');
     } catch (error: any) {
       showToast(error.message || 'Could not delete hero image.', 'error');
@@ -220,5 +220,6 @@ export default function HeroPhotoManager({ language, showToast }: HeroPhotoManag
     </section>
   );
 }
+
 
 

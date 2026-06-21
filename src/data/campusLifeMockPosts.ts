@@ -54,7 +54,7 @@ export const campusLifeFeedItems = campusLifeDesignImages.map((imageUrl, index) 
     id: `campus-life-design-${String(number).padStart(2, '0')}`,
     type: 'post',
     category: 'campus-life',
-    source: 'jamiaati-campus-life',
+    source: 'Talaba-campus-life',
     featured: number <= 6,
     layout: 'rectangle-hero',
     cardStyle: 'hero',
@@ -69,7 +69,7 @@ export const campusLifeFeedItems = campusLifeDesignImages.map((imageUrl, index) 
     image_url: imageUrl,
     storyImage: imageUrl,
     imageAlt: `Campus Life rectangle hero design ${number}`,
-    authorName: 'Jamiaati Team',
+    authorName: 'Talaba Team',
     authorRole: 'Campus Life',
     universityName: 'Universities of Iraq',
     governorateName: 'Iraq',
@@ -79,7 +79,7 @@ export const campusLifeFeedItems = campusLifeDesignImages.map((imageUrl, index) 
     shares: 5 + number,
     createdAt: new Date(Date.now() - number * 3600 * 1000).toISOString(),
     timeAgo: `${number}h`,
-    tags: ['Campus Life', 'Jamiaati', 'StudentHUB'],
+    tags: ['Campus Life', 'Talaba', 'StudentHUB'],
   };
 });
 
@@ -95,3 +95,4 @@ export function generateCampusLifeMockPosts() {
 }
 
 export default campusLifeFeedItems;
+

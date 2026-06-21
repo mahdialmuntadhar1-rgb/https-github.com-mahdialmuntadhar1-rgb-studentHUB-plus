@@ -260,15 +260,15 @@ export default function StudentStories({
   // Read/Write active list including user stories
   const [stories, setStories] = useState<StudentStory[]>(() => {
     // Read seen status from local storage
-    const savedSeen = localStorage.getItem('jamiaati_seen_stories');
+    const savedSeen = localStorage.getItem('Talaba_seen_stories');
     const seenIds = savedSeen ? JSON.parse(savedSeen) : [];
     
     // Read custom stories contributed by user
-    const savedCustom = localStorage.getItem('jamiaati_custom_stories');
+    const savedCustom = localStorage.getItem('Talaba_custom_stories');
     const customStories: StudentStory[] = savedCustom ? JSON.parse(savedCustom) : [];
     
     // Merge administrator story modifications
-    const editedDefaultsStr = localStorage.getItem('jamiaati_edited_default_stories');
+    const editedDefaultsStr = localStorage.getItem('Talaba_edited_default_stories');
     const editedDefaults = editedDefaultsStr ? JSON.parse(editedDefaultsStr) : [];
     
     const preparedDefaultStories = studentStoriesMockData.map(defaultStory => {
@@ -301,13 +301,13 @@ export default function StudentStories({
   // Listen for administrator updates to story photos/text in real-time
   useEffect(() => {
     const handleSync = () => {
-      const savedSeen = localStorage.getItem('jamiaati_seen_stories');
+      const savedSeen = localStorage.getItem('Talaba_seen_stories');
       const seenIds = savedSeen ? JSON.parse(savedSeen) : [];
       
-      const savedCustom = localStorage.getItem('jamiaati_custom_stories');
+      const savedCustom = localStorage.getItem('Talaba_custom_stories');
       const customStories: StudentStory[] = savedCustom ? JSON.parse(savedCustom) : [];
       
-      const editedDefaultsStr = localStorage.getItem('jamiaati_edited_default_stories');
+      const editedDefaultsStr = localStorage.getItem('Talaba_edited_default_stories');
       const editedDefaults = editedDefaultsStr ? JSON.parse(editedDefaultsStr) : [];
       
       const preparedDefaultStories = studentStoriesMockData.map(defaultStory => {
@@ -337,9 +337,9 @@ export default function StudentStories({
       })));
     };
 
-    window.addEventListener('jamiaati_stories_updated', handleSync);
+    window.addEventListener('Talaba_stories_updated', handleSync);
     return () => {
-      window.removeEventListener('jamiaati_stories_updated', handleSync);
+      window.removeEventListener('Talaba_stories_updated', handleSync);
     };
   }, []);
 
@@ -352,7 +352,7 @@ export default function StudentStories({
   const [isCreatingStory, setIsCreatingStory] = useState(false);
   const [creatorName, setCreatorName] = useState(() => {
     try {
-      const p = localStorage.getItem('jamiaati_profile_v2');
+      const p = localStorage.getItem('Talaba_profile_v2');
       return p ? JSON.parse(p).name : '';
     } catch {
       return '';
@@ -456,10 +456,10 @@ export default function StudentStories({
     };
 
     // Save to localStorage list of custom stories
-    const savedCustom = localStorage.getItem('jamiaati_custom_stories');
+    const savedCustom = localStorage.getItem('Talaba_custom_stories');
     const existingCustom = savedCustom ? JSON.parse(savedCustom) : [];
     const updatedCustom = [...existingCustom, newStory];
-    localStorage.setItem('jamiaati_custom_stories', JSON.stringify(updatedCustom));
+    localStorage.setItem('Talaba_custom_stories', JSON.stringify(updatedCustom));
 
     // Update state directly
     setStories(prev => [newStory, ...prev]);
@@ -491,7 +491,7 @@ export default function StudentStories({
     setStories(prev => {
       const updated = prev.map(s => s.id === id ? { ...s, isSeen: true } : s);
       const seenIds = updated.filter(s => s.isSeen).map(s => s.id);
-      localStorage.setItem('jamiaati_seen_stories', JSON.stringify(seenIds));
+      localStorage.setItem('Talaba_seen_stories', JSON.stringify(seenIds));
       return updated;
     });
   };
@@ -1180,4 +1180,5 @@ export default function StudentStories({
     </div>
   );
 }
+
 
