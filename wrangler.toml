@@ -10,3 +10,8 @@ not_found_handling = "single-page-application"
 pattern = "talaba.kaniq.org"
 custom_domain = true
 
+routes = [
+  { pattern = "jamiati.kaniq.org", custom_domain = true },
+  { pattern = "talaba.kaniq.org", custom_domain = true }
+]
+
