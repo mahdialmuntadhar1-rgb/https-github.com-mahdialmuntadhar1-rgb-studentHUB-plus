@@ -35,14 +35,42 @@ const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
 // â”€â”€â”€ CORS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
+const TALABA_ALLOWED_ORIGINS = new Set([
+  'https://jamiati.kaniq.org',
+  'https://https-github.mahdialmuntadhar1.workers.dev',
+  'http://localhost:5173',
+  'http://localhost:8787'
+]);
+
 app.use(
   '*',
   cors({
-    origin: '*',
-    allowMethods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-    allowHeaders: ['Content-Type', 'Authorization'],
+    origin: (origin) => {
+      if (!origin) return 'https://jamiati.kaniq.org';
+      return TALABA_ALLOWED_ORIGINS.has(origin) ? origin : 'https://jamiati.kaniq.org';
+    },
+    allowMethods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
+    allowHeaders: ['Content-Type', 'Authorization', 'Accept', 'Origin', 'X-Talaba-Client'],
+    exposeHeaders: ['Content-Type'],
+    maxAge: 86400,
   })
 );
+
+app.options('*', (c) => {
+  const origin = c.req.header('Origin') || 'https://jamiati.kaniq.org';
+  const allowOrigin = TALABA_ALLOWED_ORIGINS.has(origin) ? origin : 'https://jamiati.kaniq.org';
+
+  return new Response(null, {
+    status: 204,
+    headers: {
+      'Access-Control-Allow-Origin': allowOrigin,
+      'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
+      'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, Origin, X-Talaba-Client',
+      'Access-Control-Max-Age': '86400',
+      'Vary': 'Origin'
+    }
+  });
+});
 
 // â”€â”€â”€ JWT HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
 
@@ -2174,11 +2202,11 @@ function renderOutreachTemplate(template: string, contact: OutreachContact, unsu
 }
 
 function appendOutreachFooter(html: string, text: string, unsubscribeUrl: string, env: Bindings) {
-  const org = escapeOutreachHtml(env.EMAIL_FROM_NAME || 'Jamiaati');
+  const org = escapeOutreachHtml(env.EMAIL_FROM_NAME || 'Talaba');
   const replyTo = escapeOutreachHtml(env.EMAIL_REPLY_TO || env.EMAIL_FROM_ADDRESS || '');
   return {
     html: `${html}<hr><p style="font-size:12px;color:#64748b">Sent by ${org}. Reply to ${replyTo}. <a href="${escapeOutreachHtml(unsubscribeUrl)}">Unsubscribe</a>.</p>`,
-    text: `${text}\n\n--\nSent by ${env.EMAIL_FROM_NAME || 'Jamiaati'}. Reply to ${env.EMAIL_REPLY_TO || env.EMAIL_FROM_ADDRESS || ''}.\nUnsubscribe: ${unsubscribeUrl}`,
+    text: `${text}\n\n--\nSent by ${env.EMAIL_FROM_NAME || 'Talaba'}. Reply to ${env.EMAIL_REPLY_TO || env.EMAIL_FROM_ADDRESS || ''}.\nUnsubscribe: ${unsubscribeUrl}`,
   };
 }
 
@@ -2213,7 +2241,7 @@ abstract class OutreachJsonProvider implements EmailProvider {
     }
   }
   protected from() {
-    return `${this.env.EMAIL_FROM_NAME || 'Jamiaati'} <${this.env.EMAIL_FROM_ADDRESS}>`;
+    return `${this.env.EMAIL_FROM_NAME || 'Talaba'} <${this.env.EMAIL_FROM_ADDRESS}>`;
   }
   abstract sendEmail(to: string, subject: string, html: string, text: string, metadata: Record<string, string>): Promise<{ messageId?: string }>;
   async handleWebhook(payload: any) {
@@ -2247,7 +2275,7 @@ class OutreachSendGridProvider extends OutreachJsonProvider {
       headers: { Authorization: `Bearer ${this.env.EMAIL_API_KEY}`, 'Content-Type': 'application/json' },
       body: JSON.stringify({
         personalizations: [{ to: [{ email: to }], custom_args: metadata }],
-        from: { email: this.env.EMAIL_FROM_ADDRESS, name: this.env.EMAIL_FROM_NAME || 'Jamiaati' },
+        from: { email: this.env.EMAIL_FROM_ADDRESS, name: this.env.EMAIL_FROM_NAME || 'Talaba' },
         reply_to: this.env.EMAIL_REPLY_TO ? { email: this.env.EMAIL_REPLY_TO } : undefined,
         subject,
         content: [{ type: 'text/plain', value: text }, { type: 'text/html', value: html }],
@@ -2265,7 +2293,7 @@ class OutreachBrevoProvider extends OutreachJsonProvider {
       method: 'POST',
       headers: { 'api-key': this.env.EMAIL_API_KEY || '', 'Content-Type': 'application/json' },
       body: JSON.stringify({
-        sender: { email: this.env.EMAIL_FROM_ADDRESS, name: this.env.EMAIL_FROM_NAME || 'Jamiaati' },
+        sender: { email: this.env.EMAIL_FROM_ADDRESS, name: this.env.EMAIL_FROM_NAME || 'Talaba' },
         to: [{ email: to }],
         replyTo: this.env.EMAIL_REPLY_TO ? { email: this.env.EMAIL_REPLY_TO } : undefined,
         subject,

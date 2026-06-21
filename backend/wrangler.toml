@@ -25,10 +25,10 @@ max_batch_size = 1
 # Set it with: npx wrangler secret put JWT_SECRET --config ./wrangler.toml
 R2_PUBLIC_URL = "https://pub-46ad7eec395049ed8054c8804be9d032.r2.dev"
 EMAIL_PROVIDER = "resend"
-EMAIL_FROM_NAME = "Jamiaati"
+EMAIL_FROM_NAME = "Talaba"
 EMAIL_FROM_ADDRESS = "outreach@jamiati.com"
 EMAIL_REPLY_TO = "outreach@jamiati.com"
-PUBLIC_APP_URL = "https://rafid-api.mahdialmuntadhar1.workers.dev"
+PUBLIC_APP_URL = "https://jamiati.kaniq.org"
 ADMIN_TEST_EMAIL = "admin@example.com"
 DRY_RUN = "true"
 TEST_MODE = "false"
