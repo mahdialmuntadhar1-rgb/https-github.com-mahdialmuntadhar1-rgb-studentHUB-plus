@@ -1,19 +1,19 @@
-﻿/* Talaba / STUDENTHUB
+﻿/* JAMIAATI / STUDENTHUB
    Purple 3D postcard polish.
    Richer light purple, raised cards, shiny edges.
    CSS-only: no database, no logic.
 */
 
 :root {
-  --Talaba-page-purple-1: #f0e4ff;
-  --Talaba-page-purple-2: #e0ccff;
-  --Talaba-page-purple-3: #c4a2ff;
-  --Talaba-card-purple-1: #fbf7ff;
-  --Talaba-card-purple-2: #f1e6ff;
-  --Talaba-card-purple-3: #e5d2ff;
-  --Talaba-edge-purple: rgba(145, 91, 255, 0.55);
-  --Talaba-edge-light: rgba(255, 255, 255, 0.85);
-  --Talaba-shadow-purple: rgba(98, 45, 180, 0.22);
+  --jamiaati-page-purple-1: #f0e4ff;
+  --jamiaati-page-purple-2: #e0ccff;
+  --jamiaati-page-purple-3: #c4a2ff;
+  --jamiaati-card-purple-1: #fbf7ff;
+  --jamiaati-card-purple-2: #f1e6ff;
+  --jamiaati-card-purple-3: #e5d2ff;
+  --jamiaati-edge-purple: rgba(145, 91, 255, 0.55);
+  --jamiaati-edge-light: rgba(255, 255, 255, 0.85);
+  --jamiaati-shadow-purple: rgba(98, 45, 180, 0.22);
 }
 
 /* Main page background: light but more saturated purple */
@@ -182,7 +182,7 @@ article[class*="opportunity-readable-card"] > * {
 }
 
 /* Sticky tabs: shiny and saturated, matching the cards */
-.Talaba-sticky-tabs,
+.jamiaati-sticky-tabs,
 .sticky-tabs,
 [data-sticky-tabs],
 .section-tabs,
@@ -203,7 +203,7 @@ article[class*="opportunity-readable-card"] > * {
 }
 
 /* Tab buttons */
-.Talaba-sticky-tabs button,
+.jamiaati-sticky-tabs button,
 .sticky-tabs button,
 [data-sticky-tabs] button,
 .section-tabs button,
@@ -215,22 +215,22 @@ article[class*="opportunity-readable-card"] > * {
 }
 
 /* Active selected tab: brighter 3D pill */
-.Talaba-sticky-tabs button[aria-selected="true"],
+.jamiaati-sticky-tabs button[aria-selected="true"],
 .sticky-tabs button[aria-selected="true"],
 [data-sticky-tabs] button[aria-selected="true"],
 .section-tabs button[aria-selected="true"],
 .feed-tabs button[aria-selected="true"],
-.Talaba-sticky-tabs button[aria-pressed="true"],
+.jamiaati-sticky-tabs button[aria-pressed="true"],
 .sticky-tabs button[aria-pressed="true"],
 [data-sticky-tabs] button[aria-pressed="true"],
 .section-tabs button[aria-pressed="true"],
 .feed-tabs button[aria-pressed="true"],
-.Talaba-sticky-tabs button[data-active="true"],
+.jamiaati-sticky-tabs button[data-active="true"],
 .sticky-tabs button[data-active="true"],
 [data-sticky-tabs] button[data-active="true"],
 .section-tabs button[data-active="true"],
 .feed-tabs button[data-active="true"],
-.Talaba-sticky-tabs .active,
+.jamiaati-sticky-tabs .active,
 .sticky-tabs .active,
 [data-sticky-tabs] .active,
 .section-tabs .active,
@@ -274,7 +274,7 @@ textarea::placeholder {
       0 0 0 1px rgba(255,255,255,0.5) !important;
   }
 
-  .Talaba-sticky-tabs,
+  .jamiaati-sticky-tabs,
   .sticky-tabs,
   [data-sticky-tabs],
   .section-tabs,
@@ -282,4 +282,3 @@ textarea::placeholder {
     top: 6px !important;
   }
 }
-

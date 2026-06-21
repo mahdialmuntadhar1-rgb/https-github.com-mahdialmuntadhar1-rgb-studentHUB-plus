@@ -19,7 +19,7 @@ export default function AdminHeroPhotoManager({ language }: Props) {
   const [images, setImages] = useState<HeroImage[]>([]);
   const [file, setFile] = useState<File | null>(null);
   const [replaceId, setReplaceId] = useState('');
-  const [title, setTitle] = useState('Talaba hero image');
+  const [title, setTitle] = useState('Jamiaati hero image');
   const [altText, setAltText] = useState('Students and universities across Iraq');
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
@@ -41,7 +41,7 @@ export default function AdminHeroPhotoManager({ language }: Props) {
     noImages: language === 'ar' ? 'لا توجد صور بعد. ارفع أول صورة الآن.' : language === 'ku' ? 'هێشتا وێنە نییە. یەکەم وێنە بار بکە.' : 'No hero photos yet. Upload the first one now.',
   };
 
-  const getToken = () => localStorage.getItem('admin_token') || localStorage.getItem('Talaba_token') || '';
+  const getToken = () => localStorage.getItem('admin_token') || localStorage.getItem('jamiaati_token') || '';
 
   const getHeaders = (): HeadersInit => {
     const token = getToken();
@@ -316,4 +316,3 @@ export default function AdminHeroPhotoManager({ language }: Props) {
     </section>
   );
 }
-

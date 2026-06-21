@@ -1,10 +1,10 @@
 ﻿@import url("https://fonts.googleapis.com/css2?family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap");
 
 :root {
-  --Talaba-readable-font: "Noto Sans Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
-  --Talaba-loadmore-bg: linear-gradient(135deg, #1f0a00 0%, #5b1900 45%, #ff7a00 100%);
-  --Talaba-loadmore-text: #fffaf3;
-  --Talaba-loadmore-border: #ffb04a;
+  --jamiaati-readable-font: "Noto Sans Arabic", "IBM Plex Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+  --jamiaati-loadmore-bg: linear-gradient(135deg, #1f0a00 0%, #5b1900 45%, #ff7a00 100%);
+  --jamiaati-loadmore-text: #fffaf3;
+  --jamiaati-loadmore-border: #ffb04a;
 }
 
 html,
@@ -16,7 +16,7 @@ select,
 [lang="ar"],
 [lang="ku"],
 [lang="ckb"] {
-  font-family: var(--Talaba-readable-font) !important;
+  font-family: var(--jamiaati-readable-font) !important;
 }
 
 html {
@@ -25,9 +25,9 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
-.Talaba-readable-font,
-.Talaba-readable-font * {
-  font-family: var(--Talaba-readable-font) !important;
+.jamiaati-readable-font,
+.jamiaati-readable-font * {
+  font-family: var(--jamiaati-readable-font) !important;
 }
 
 .show-details-btn {
@@ -40,9 +40,9 @@ html {
 .load-more-btn {
   min-height: 56px !important;
   border-radius: 18px !important;
-  background: var(--Talaba-loadmore-bg) !important;
-  color: var(--Talaba-loadmore-text) !important;
-  border: 2px solid var(--Talaba-loadmore-border) !important;
+  background: var(--jamiaati-loadmore-bg) !important;
+  color: var(--jamiaati-loadmore-text) !important;
+  border: 2px solid var(--jamiaati-loadmore-border) !important;
   box-shadow: 0 12px 30px rgba(77, 24, 0, 0.32) !important;
   font-size: 18px !important;
   font-weight: 900 !important;
@@ -157,4 +157,3 @@ html {
     min-height: 58px !important;
   }
 }
-

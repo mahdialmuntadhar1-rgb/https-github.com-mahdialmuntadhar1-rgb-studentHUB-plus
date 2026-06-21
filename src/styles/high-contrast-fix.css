@@ -1,5 +1,5 @@
 ﻿@import url('https://fonts.googleapis.com/css2?family=Noto+Kufi+Arabic:wght@500;600;700;800;900&family=Noto+Sans+Arabic:wght@400;500;600;700;800;900&display=swap');
-/* Talaba global contrast safety patch.
+/* Jamiaati global contrast safety patch.
    Prevents white text on white/light backgrounds across auth, language, cards, forms, and scholarship/opportunity cards. */
 
 :root {
@@ -405,5 +405,4 @@ html body .opportunity-duty-station-badge div {
   -webkit-text-fill-color: #ffffff !important;
   background-color: transparent !important;
 }
-
 

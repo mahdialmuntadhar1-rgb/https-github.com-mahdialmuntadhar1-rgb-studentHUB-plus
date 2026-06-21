@@ -73,7 +73,7 @@ interface HomeFeedProps {
 // Global reuseable beautiful pulse Skeleton Loader
 export function SkeletonLoader() {
   return (
-    <div className="flex flex-col gap-4 w-full select-none" id="Talaba-skeleton-loader">
+    <div className="flex flex-col gap-4 w-full select-none" id="jamiaati-skeleton-loader">
       {[1, 2].map(i => (
         <div 
           key={i} 
@@ -695,10 +695,10 @@ export default function HomeFeed({
     };
     void syncImages();
     const handleUpdate = () => void syncImages();
-    window.addEventListener('Talaba_hero_images_updated', handleUpdate);
+    window.addEventListener('jamiaati_hero_images_updated', handleUpdate);
     return () => {
       active = false;
-      window.removeEventListener('Talaba_hero_images_updated', handleUpdate);
+      window.removeEventListener('jamiaati_hero_images_updated', handleUpdate);
     };
   }, []);
 
@@ -921,9 +921,9 @@ const filteredAndSearchedUnis = useMemo(() => {
     };
 
     try {
-      const raw = sessionStorage.getItem('Talaba_pending_filter');
+      const raw = sessionStorage.getItem('jamiaati_pending_filter');
       if (raw) {
-        sessionStorage.removeItem('Talaba_pending_filter');
+        sessionStorage.removeItem('jamiaati_pending_filter');
         applyShortcutFilter(JSON.parse(raw));
       }
     } catch {}
@@ -932,8 +932,8 @@ const filteredAndSearchedUnis = useMemo(() => {
       applyShortcutFilter((event as CustomEvent).detail);
     };
 
-    window.addEventListener('Talaba-shortcut-filter', handler as EventListener);
-    return () => window.removeEventListener('Talaba-shortcut-filter', handler as EventListener);
+    window.addEventListener('jamiaati-shortcut-filter', handler as EventListener);
+    return () => window.removeEventListener('jamiaati-shortcut-filter', handler as EventListener);
   }, []);
 
 // New post publisher collapsible state
@@ -2386,7 +2386,6 @@ setSelectedOppFilter(shortcut.id as any);
     </div>
   );
 }
-
 
 
 

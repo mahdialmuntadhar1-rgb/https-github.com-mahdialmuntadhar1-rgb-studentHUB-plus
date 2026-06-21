@@ -637,7 +637,7 @@ async function fetchLiveJobsFromSources(governorateId: string, governorateName: 
 }
 
 function getJobCacheKey(governorateId: string, sourceName: string) {
-  return `Talaba_live_jobs_${governorateId}_${sourceName}`;
+  return `jamiaati_live_jobs_${governorateId}_${sourceName}`;
 }
 
 function readCachedLiveJobs(cacheKey: string): FeedItem[] | null {
@@ -1206,7 +1206,6 @@ export default function SectionView({
     </div>
   );
 }
-
 
 
 

@@ -1,38 +1,3 @@
-﻿
-const talabaAllowedOrigins = new Set([
-  'https://jamiati.kaniq.org',
-  'https://https-github.mahdialmuntadhar1.workers.dev',
-  'http://localhost:5173',
-  'http://localhost:8787'
-]);
-
-function getTalabaCorsHeaders(requestOrOrigin: any = '') {
-  const origin =
-    typeof requestOrOrigin === 'string'
-      ? requestOrOrigin
-      : String(requestOrOrigin?.headers?.get?.('Origin') || requestOrOrigin?.headers?.origin || '');
-
-  const allowOrigin = talabaAllowedOrigins.has(origin) ? origin : 'https://jamiati.kaniq.org';
-
-  return {
-    'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, X-Talaba-Client',
-    'Access-Control-Max-Age': '86400',
-    'Vary': 'Origin'
-  };
-}
-
-function talabaCorsJson(data: any, status = 200, requestOrOrigin: any = '') {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      ...getTalabaCorsHeaders(requestOrOrigin)
-    }
-  });
-}
-
 import React, { useState } from 'react';
 import { Language } from '../types';
 import { socialApi } from '../lib/api';
@@ -86,33 +51,33 @@ export default function UserProfileModal({
 
   // Standard static local Iraqi-styled bios and majors if they are not provided (fallbacks for rich experience)
   const fallbackBio = language === 'ar' 
-    ? "Ø·Ø§Ù„Ø¨ Ø´ØºÙˆÙ ÙŠØ³Ø¹Ù‰ Ù„Ù„ØªÙˆØ§ØµÙ„ ÙˆØ§Ù„ØªØ¬Ù…Ø¹ Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠ Ù„Ù…Ø³Ø§Ø¹Ø¯Ø© Ø§Ù„Ø²Ù…Ù„Ø§Ø¡ ÙˆØ¨Ù†Ø§Ø¡ Ø§Ù„Ù…Ø³ØªÙ‚Ø¨Ù„ ðŸ‡®ðŸ‡¶âœ¨"
+    ? "طالب شغوف يسعى للتواصل والتجمع الأكاديمي لمساعدة الزملاء وبناء المستقبل 🇮🇶✨"
     : language === 'ku'
-    ? "Ù‚ÙˆØªØ§Ø¨ÛŒÛŒÛ•Ú©ÛŒ Ú†Ø§Ù„Ø§Ú© Ú©Û• Ù‡Û•ÙˆÚµØ¯Û•Ø¯Ø§Øª Ø¨Û† Ù¾Û•ÛŒÙˆÛ•Ù†Ø¯ÛŒ Ùˆ ÛŒØ§Ø±Ù…Û•ØªÛŒØ¯Ø§Ù†ÛŒ Ù‡Ø§ÙˆÚ•ÛŽÛŒØ§Ù† ðŸ‡®ðŸ‡¶âœ¨"
-    : "Active university student passionate about tech, networking, and academic collaboration ðŸ‡®ðŸ‡¶âœ¨";
+    ? "قوتابییەکی چالاک کە هەوڵدەدات بۆ پەیوەندی و یارمەتیدانی هاوڕێیان 🇮🇶✨"
+    : "Active university student passionate about tech, networking, and academic collaboration 🇮🇶✨";
     
   const fallbackMajor = language === 'ar'
-    ? "Ø¬Ø§Ù…Ø¹Ø© Ø¨ØºØ¯Ø§Ø¯ / ÙƒÙ„ÙŠØ© Ù‡Ù†Ø¯Ø³Ø© Ø§Ù„Ø¨Ø±Ù…Ø¬ÙŠØ§Øª"
+    ? "جامعة بغداد / كلية هندسة البرمجيات"
     : language === 'ku'
-    ? "Ø²Ø§Ù†Ú©Û†ÛŒ Ø¨Û•ØºØ¯Ø§Ø¯ / Ø¦Û•Ù†Ø¯Ø§Ø²ÛŒØ§Ø±ÛŒ Ù†Û•Ø±Ù…Û•Ú©Ø§ÚµØ§"
+    ? "زانکۆی بەغداد / ئەندازیاری نەرمەکاڵا"
     : "University of Baghdad / Engineering";
 
   const t = {
-    title: { en: 'Student Profile', ar: 'Ø§Ù„Ù…Ù„Ù Ø§Ù„Ø´Ø®ØµÙŠ Ù„Ù„Ø·Ø§Ù„Ø¨', ku: 'Ù¾Ú•Û†ÙØ§ÛŒÙ„ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±' },
-    sendFriend: { en: 'Send Friend Request', ar: 'Ø¥Ø±Ø³Ø§Ù„ Ø·Ù„Ø¨ ØµØ¯Ø§Ù‚Ø©', ku: 'Ù†Ø§Ø±Ø¯Ù†ÛŒ Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒ Ù‡Ø§ÙˆÚ•ÛŽÛŒÛ•ØªÛŒ' },
-    sendMessageReq: { en: 'Send Message Request', ar: 'Ø¥Ø±Ø³Ø§Ù„ Ø·Ù„Ø¨ Ù…Ø±Ø§Ø³Ù„Ø©', ku: 'Ù†Ø§Ø±Ø¯Ù†ÛŒ Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒ Ù†Ø§Ù…Û•' },
-    directChat: { en: 'Direct Chat', ar: 'Ù…Ø±Ø§Ø³Ù„Ø© Ù…Ø¨Ø§Ø´Ø±Ø©', ku: 'Ù†Ø§Ù…Û•ÛŒ Ú•Ø§Ø³ØªÛ•ÙˆØ®Û†' },
-    youLabel: { en: 'This is you (My Account)', ar: 'Ù‡Ø°Ø§ Ø£Ù†Øª (Ø­Ø³Ø§Ø¨ÙŠ Ø§Ù„Ø´Ø®ØµÙŠ)', ku: 'Ø¦Û•Ù…Û• ØªÛ†ÛŒ (Ù‡Û•Ú˜Ù…Ø§Ø±ÛŒ Ù…Ù†)' },
-    optionalMsg: { en: 'Add optional greeting message:', ar: 'Ø£Ø¶Ù Ø±Ø³Ø§Ù„Ø© ØªØ±Ø­ÙŠØ¨ÙŠØ© Ø§Ø®ØªÙŠØ§Ø±ÙŠØ© (Ø§Ø®ØªÙŠØ§Ø±ÙŠ):', ku: 'Ù†Ø§Ù…Û•ÛŒÛ•Ú©ÛŒ Ú©ÙˆØ±Øª Ø¨Ù†ÙˆÙˆØ³Û• (Ø¦Ø§Ø±Û•Ø²ÙˆÙˆÙ…Û•Ù†Ø¯Ø§Ù†Û•):' },
-    msgBody: { en: 'Type your message request:', ar: 'Ø§ÙƒØªØ¨ Ù†Øµ Ø·Ù„Ø¨ Ø§Ù„Ù…Ø±Ø§Ø³Ù„Ø© Ø§Ù„Ø£ÙˆÙ„ÙŠØ©:', ku: 'Ù†Ø§Ù…Û•ÛŒ Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒÛŒÛ•Ú©Û• Ù„ÛŽØ±Û• Ø¨Ù†ÙˆÙˆØ³Û•:' },
-    placeholderFriend: { en: 'Hi! Let\'s connect...', ar: 'Ù…Ø±Ø­Ø¨Ø§Ù‹! Ø¯Ø¹Ù†Ø§ Ù†ØªÙˆØ§ØµÙ„ ÙƒØ£ØµØ¯Ù‚Ø§Ø¡ ÙÙŠ Ø§Ù„ÙƒÙ„ÙŠØ©...', ku: 'Ø³ÚµØ§Ùˆ! Ø¨Ø§ Ù„Û• Ø²Ø§Ù†Ú©Û† Ø¨Ø¨ÛŒÙ† Ø¨Û• Ù‡Ø§ÙˆÚ•ÛŽ...' },
-    placeholderMsg: { en: 'Hello, I wanted to ask about...', ar: 'Ù…Ø±Ø­Ø¨Ø§Ù‹ØŒ Ø£ÙˆØ¯ Ø§Ù„Ø§Ø³ØªÙØ³Ø§Ø± Ø¨Ø®ØµÙˆØµ Ø§Ù„Ù…Ù„Ø§Ø²Ù… Ø£Ùˆ Ø§Ù„Ù…ÙˆØ§Ø¯ Ø§Ù„ØªØ¯Ø±ÙŠØ¨ÙŠØ©...', ku: 'Ø³ÚµØ§ÙˆØŒ Ø¯Û•Ù…ÙˆÛŒØ³Øª Ù¾Ø±Ø³ÛŒØ§Ø± Ø¨Ú©Û•Ù… Ø³Û•Ø¨Ø§Ø±Û•Øª Ø¨Û•...' },
-    submit: { en: 'Submit Request', ar: 'Ø¥Ø±Ø³Ø§Ù„ Ø§Ù„Ø·Ù„Ø¨ Ø§Ù„Ø¢Ù†', ku: 'Ù†Ø§Ø±Ø¯Ù†ÛŒ Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒ' },
-    cancel: { en: 'Cancel', ar: 'Ø¥Ù„ØºØ§Ø¡', ku: 'Ù¾Ø§Ø´Ú¯Û•Ø²Ø¨ÙˆÙˆÙ†Û•ÙˆÛ•' },
-    guestMsg: { en: 'Sign in to connect and send messages to other students!', ar: 'Ø³Ø¬Ù„ Ø¯Ø®ÙˆÙ„Ùƒ Ù„ØªØªÙ…ÙƒÙ† Ù…Ù† Ø§Ù„ØªÙˆØ§ØµÙ„ ÙˆÙ…Ø±Ø§Ø³Ù„ØªØ© Ø²Ù…Ù„Ø§Ø¦Ùƒ ÙÙŠ Ø§Ù„Ø¬Ø§Ù…Ø¹Ø©!', ku: 'Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ• Ø¨Û† Ù†Ø§Ø±Ø¯Ù†ÛŒ Ù†Ø§Ù…Û• Ø¨Û† Ù‚ÙˆØªØ§Ø¨ÛŒØ§Ù†ÛŒ ØªØ±!' },
-    signInBtn: { en: 'Sign In Now', ar: 'Ø³Ø¬Ù„ Ø¯Ø®ÙˆÙ„Ùƒ Ø§Ù„Ø¢Ù† ðŸ”', ku: 'Ø¦ÛŽØ³ØªØ§ Ø¨Ú†Û† Ú˜ÙˆÙˆØ±Û•ÙˆÛ• ðŸ”' },
-    successFriend: { en: 'Friend request sent successfully!', ar: 'ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø·Ù„Ø¨ Ø§Ù„ØµØ¯Ø§Ù‚Ø© Ø¨Ù†Ø¬Ø§Ø­! ðŸŽ‰', ku: 'Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒ Ù‡Ø§ÙˆÚ•ÛŽÛŒÛ•ØªÛŒ Ø¨Û• Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆÛŒÛŒ Ù†ÛŽØ±Ø¯Ø±Ø§! ðŸŽ‰' },
-    successMsgReq: { en: 'Message request sent successfully!', ar: 'ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø·Ù„Ø¨ Ø§Ù„Ù…Ø±Ø§Ø³Ù„Ø© Ø¨Ù†Ø¬Ø§Ø­! âœ‰ï¸', ku: 'Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒ Ù†Ø§Ù…Û• Ø¨Û• Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆÛŒÛŒ Ù†ÛŽØ±Ø¯Ø±Ø§! âœ‰ï¸' },
+    title: { en: 'Student Profile', ar: 'الملف الشخصي للطالب', ku: 'پڕۆفایلی خوێندکار' },
+    sendFriend: { en: 'Send Friend Request', ar: 'إرسال طلب صداقة', ku: 'ناردنی داواکاری هاوڕێیەتی' },
+    sendMessageReq: { en: 'Send Message Request', ar: 'إرسال طلب مراسلة', ku: 'ناردنی داواکاری نامە' },
+    directChat: { en: 'Direct Chat', ar: 'مراسلة مباشرة', ku: 'نامەی ڕاستەوخۆ' },
+    youLabel: { en: 'This is you (My Account)', ar: 'هذا أنت (حسابي الشخصي)', ku: 'ئەمە تۆی (هەژماری من)' },
+    optionalMsg: { en: 'Add optional greeting message:', ar: 'أضف رسالة ترحيبية اختيارية (اختياري):', ku: 'نامەیەکی کورت بنووسە (ئارەزوومەندانە):' },
+    msgBody: { en: 'Type your message request:', ar: 'اكتب نص طلب المراسلة الأولية:', ku: 'نامەی داواکارییەکە لێرە بنووسە:' },
+    placeholderFriend: { en: 'Hi! Let\'s connect...', ar: 'مرحباً! دعنا نتواصل كأصدقاء في الكلية...', ku: 'سڵاو! با لە زانکۆ ببین بە هاوڕێ...' },
+    placeholderMsg: { en: 'Hello, I wanted to ask about...', ar: 'مرحباً، أود الاستفسار بخصوص الملازم أو المواد التدريبية...', ku: 'سڵاو، دەمویست پرسیار بکەم سەبارەت بە...' },
+    submit: { en: 'Submit Request', ar: 'إرسال الطلب الآن', ku: 'ناردنی داواکاری' },
+    cancel: { en: 'Cancel', ar: 'إلغاء', ku: 'پاشگەزبوونەوە' },
+    guestMsg: { en: 'Sign in to connect and send messages to other students!', ar: 'سجل دخولك لتتمكن من التواصل ومراسلتة زملائك في الجامعة!', ku: 'بچۆ ژوورەوە بۆ ناردنی نامە بۆ قوتابیانی تر!' },
+    signInBtn: { en: 'Sign In Now', ar: 'سجل دخولك الآن 🔐', ku: 'ئێستا بچۆ ژوورەوە 🔐' },
+    successFriend: { en: 'Friend request sent successfully!', ar: 'تم إرسال طلب الصداقة بنجاح! 🎉', ku: 'داواکاری هاوڕێیەتی بە سەرکەوتوویی نێردرا! 🎉' },
+    successMsgReq: { en: 'Message request sent successfully!', ar: 'تم إرسال طلب المراسلة بنجاح! ✉️', ku: 'داواکاری نامە بە سەرکەوتوویی نێردرا! ✉️' },
   };
 
   const getLabel = (key: keyof typeof t) => {
@@ -144,7 +109,7 @@ export default function UserProfileModal({
       return;
     }
     if (!messageRequestText.trim()) {
-      showToast(language === 'ar' ? 'ÙŠØ±Ø¬Ù‰ ÙƒØªØ§Ø¨Ø© Ù†Øµ Ø§Ù„Ø±Ø³Ø§Ù„Ø© Ø£ÙˆÙ„Ø§Ù‹' : 'Message text is required', 'error');
+      showToast(language === 'ar' ? 'يرجى كتابة نص الرسالة أولاً' : 'Message text is required', 'error');
       return;
     }
     setLoading(true);
@@ -214,7 +179,7 @@ export default function UserProfileModal({
             </h3>
 
             <span className="text-[10px] uppercase font-black text-cyan-400 bg-cyan-400/10 px-2.5 py-0.5 rounded-lg border border-cyan-400/20 mt-2 inline-block leading-none">
-              {user.role ? (user.role === 'student' ? (language === 'ar' ? 'Ø·Ø§Ù„Ø¨ Ø¬Ø§Ù…Ø¹ÙŠ' : language === 'ku' ? 'Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±ÛŒ Ø²Ø§Ù†Ú©Û†' : 'University Student') : user.role) : 'Student'}
+              {user.role ? (user.role === 'student' ? (language === 'ar' ? 'طالب جامعي' : language === 'ku' ? 'خوێندکاری زانکۆ' : 'University Student') : user.role) : 'Student'}
             </span>
 
             {/* University & Major info */}
@@ -252,7 +217,7 @@ export default function UserProfileModal({
               // This is current logged in user
               <div className="text-center py-2 bg-cyan-500/10 border border-cyan-400/25 rounded-2xl p-3">
                 <span className="text-[11px] font-black text-cyan-400 block">
-                  âœ¨ {getLabel('youLabel')}
+                  ✨ {getLabel('youLabel')}
                 </span>
               </div>
             ) : activeAction === 'none' ? (
@@ -349,4 +314,3 @@ export default function UserProfileModal({
     </AnimatePresence>
   );
 }
-

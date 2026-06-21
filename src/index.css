@@ -235,12 +235,12 @@ select option {
 }
 
 /* Overriding typography classes for readability and high contrast */
-#Talaba-portal h1,
-#Talaba-portal h2,
-#Talaba-portal h3,
-#Talaba-portal h4,
-#Talaba-portal h5,
-#Talaba-portal h6 {
+#jamiaati-portal h1,
+#jamiaati-portal h2,
+#jamiaati-portal h3,
+#jamiaati-portal h4,
+#jamiaati-portal h5,
+#jamiaati-portal h6 {
   font-family: 'Outfit', 'Cairo', sans-serif !important;
   color: var(--text-custom, #F3F4F6) !important;
 }
@@ -363,11 +363,11 @@ select option {
   border-color: var(--border-custom) !important;
 }
 
-#Talaba-portal p,
-#Talaba-portal span,
-#Talaba-portal label,
-#Talaba-portal textarea,
-#Talaba-portal select {
+#jamiaati-portal p,
+#jamiaati-portal span,
+#jamiaati-portal label,
+#jamiaati-portal textarea,
+#jamiaati-portal select {
   font-family: 'Cairo', 'Outfit', sans-serif !important;
 }
 
@@ -620,7 +620,7 @@ span[id^="live-time-ticker"] {
 }
 
 
-/* === Talaba SOCIAL + MOBILE FIX === */
+/* === JAMIAATI SOCIAL + MOBILE FIX === */
 
 #home-hero-carousel [class*="bg-gradient-to-t"],
 #home-hero-carousel [class*="text-left"][class*="z-10"] {
@@ -2025,5 +2025,4 @@ section:has(#section-cards-feed.section-job-grid) .rounded-\[32px\] {
     min-height: 24px !important;
   }
 }
-
 

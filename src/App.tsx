@@ -1,39 +1,4 @@
-﻿
-const talabaAllowedOrigins = new Set([
-  'https://jamiati.kaniq.org',
-  'https://https-github.mahdialmuntadhar1.workers.dev',
-  'http://localhost:5173',
-  'http://localhost:8787'
-]);
-
-function getTalabaCorsHeaders(requestOrOrigin: any = '') {
-  const origin =
-    typeof requestOrOrigin === 'string'
-      ? requestOrOrigin
-      : String(requestOrOrigin?.headers?.get?.('Origin') || requestOrOrigin?.headers?.origin || '');
-
-  const allowOrigin = talabaAllowedOrigins.has(origin) ? origin : 'https://jamiati.kaniq.org';
-
-  return {
-    'Access-Control-Allow-Origin': allowOrigin,
-    'Access-Control-Allow-Methods': 'GET, POST, PUT, PATCH, DELETE, OPTIONS',
-    'Access-Control-Allow-Headers': 'Content-Type, Authorization, Accept, X-Talaba-Client',
-    'Access-Control-Max-Age': '86400',
-    'Vary': 'Origin'
-  };
-}
-
-function talabaCorsJson(data: any, status = 200, requestOrOrigin: any = '') {
-  return new Response(JSON.stringify(data), {
-    status,
-    headers: {
-      'Content-Type': 'application/json; charset=utf-8',
-      ...getTalabaCorsHeaders(requestOrOrigin)
-    }
-  });
-}
-
-import React, { useState, useEffect } from 'react';
+﻿import React, { useState, useEffect } from 'react';
 import './styles/high-contrast-fix.css';
 import { Language, FeedItem, UserProfile, Comment } from './types';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from './data/mockData';
@@ -1634,7 +1599,6 @@ export default function App() {
     </div>
   );
 };
-
 
 
 
