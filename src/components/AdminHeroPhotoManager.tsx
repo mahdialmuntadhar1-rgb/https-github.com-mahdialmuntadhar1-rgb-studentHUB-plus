@@ -316,4 +316,3 @@ export default function AdminHeroPhotoManager({ language }: Props) {
     </section>
   );
 }
-

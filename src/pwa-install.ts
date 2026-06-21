@@ -6,7 +6,7 @@
 let deferredPrompt: BeforeInstallPromptEvent | null = null;
 let installBox: HTMLDivElement | null = null;
 
-const APP_URL = 'https://talaba.kaniq.org/?source=pwa-install';
+const APP_URL = 'https://jamiati.kaniq.org/?source=pwa-install';
 
 function isStandalone(): boolean {
   return window.matchMedia('(display-mode: standalone)').matches ||
@@ -354,5 +354,4 @@ export async function registerTalabaPwa() {
   setTimeout(renderInstallButton, 3000);
   setTimeout(renderInstallButton, 7000);
 }
-
 
