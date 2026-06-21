@@ -8,6 +8,9 @@ type Bindings = {
   R2_PUBLIC_URL: string;
   OUTREACH_QUEUE?: Queue<OutreachQueueMessage>;
   EMAIL_PROVIDER?: string;
+  PASSWORD_RESET_FROM_EMAIL?: string;
+  RESEND_API_KEY?: string;
+  BREVO_API_KEY?: string;
   EMAIL_API_KEY?: string;
   EMAIL_FROM_NAME?: string;
   EMAIL_FROM_ADDRESS?: string;
@@ -222,7 +225,7 @@ async function verifyPasswordAgainstStoredHash(password: string, storedHash: str
   return false;
 }
 
-async function sendPasswordResetEmail(env: Bindings, email: string, resetUrl: string): Promise<boolean> {
+async function sendPasswordResetEmailLegacy(env: Bindings, email: string, resetUrl: string): Promise<boolean> {
   const provider = String(env.EMAIL_PROVIDER || '').toLowerCase();
   const apiKey = env.EMAIL_API_KEY;
   const fromAddress = env.EMAIL_FROM_ADDRESS || 'outreach@jamiati.com';
@@ -462,6 +465,99 @@ app.post('/api/auth/send-verification-email', rateLimitMiddleware, async (c) => 
 
   return c.json({ message: 'Ã˜ÂªÃ™â€¦ Ã˜Â¥Ã˜Â±Ã˜Â³Ã˜Â§Ã™â€ž Ã˜Â±Ã˜Â§Ã˜Â¨Ã˜Â· Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â­Ã™â€šÃ™â€š Ã˜Â¥Ã™â€žÃ™â€° Ã˜Â¨Ã˜Â±Ã™Å Ã˜Â¯Ã™Æ’ Ã˜Â§Ã™â€žÃ˜Â¥Ã™â€žÃ™Æ’Ã˜ÂªÃ˜Â±Ã™Ë†Ã™â€ Ã™Å ' });
 });
+
+
+async function sendPasswordResetEmail(env: Bindings, email: string, resetUrl: string): Promise<boolean> {
+  // TALABA_EMAIL_PROVIDER_FALLBACK
+  const provider = String(env.EMAIL_PROVIDER || '').toLowerCase();
+  const fromAddress = env.EMAIL_FROM_ADDRESS || env.PASSWORD_RESET_FROM_EMAIL || 'outreach@kaniq.org';
+  const fromName = env.EMAIL_FROM_NAME || 'Talaba';
+
+  const brevoKey = env.EMAIL_API_KEY || env.BREVO_API_KEY;
+  const resendKey = env.RESEND_API_KEY || (provider === 'resend' ? env.EMAIL_API_KEY : undefined);
+
+  const html = `
+    <div style="font-family:Arial,sans-serif;line-height:1.6;color:#111">
+      <h2>Talaba Password Reset</h2>
+      <p>You requested a password reset.</p>
+      <p>
+        <a href="${resetUrl}" style="background:#6B25C9;color:white;padding:12px 18px;text-decoration:none;border-radius:10px;display:inline-block">
+          Reset password
+        </a>
+      </p>
+      <p>If the button does not work, copy this link:</p>
+      <p>${resetUrl}</p>
+      <p>If you did not request this, you can ignore this email.</p>
+    </div>
+  `;
+
+  async function sendWithBrevo(apiKey: string): Promise<boolean> {
+    const response = await fetch('https://api.brevo.com/v3/smtp/email', {
+      method: 'POST',
+      headers: {
+        'api-key': apiKey,
+        'Content-Type': 'application/json',
+        'Accept': 'application/json'
+      },
+      body: JSON.stringify({
+        sender: { name: fromName, email: fromAddress },
+        to: [{ email }],
+        subject: 'Talaba password reset',
+        htmlContent: html
+      })
+    });
+
+    if (!response.ok) {
+      console.log('[PASSWORD RESET] Brevo failed:', response.status, await response.text().catch(() => ''));
+      return false;
+    }
+
+    return true;
+  }
+
+  async function sendWithResend(apiKey: string): Promise<boolean> {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: `${fromName} <${fromAddress}>`,
+        to: [email],
+        subject: 'Talaba password reset',
+        html
+      })
+    });
+
+    if (!response.ok) {
+      console.log('[PASSWORD RESET] Resend failed:', response.status, await response.text().catch(() => ''));
+      return false;
+    }
+
+    return true;
+  }
+
+  try {
+    if (provider === 'brevo' && brevoKey) {
+      return await sendWithBrevo(brevoKey);
+    }
+
+    if (resendKey) {
+      return await sendWithResend(resendKey);
+    }
+
+    if (brevoKey) {
+      return await sendWithBrevo(brevoKey);
+    }
+
+    console.log('[PASSWORD RESET] No usable email secret found. Need EMAIL_API_KEY/BREVO_API_KEY or RESEND_API_KEY. Reset URL:', resetUrl);
+    return false;
+  } catch (error: any) {
+    console.log('[PASSWORD RESET] send failed:', error?.message || error);
+    return false;
+  }
+}
 
 app.post('/api/auth/forgot-password', rateLimitMiddleware, async (c) => {
   const genericMessage = 'If the email exists, password reset instructions will be sent.';
@@ -4491,6 +4587,7 @@ export default {
     }
   },
 };
+
 
 
 
