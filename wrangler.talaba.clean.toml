@@ -1,4 +1,4 @@
-name = "https-github"
+﻿name = "https-github"
 main = "src/talaba-edge-worker.ts"
 compatibility_date = "2026-06-21"
 

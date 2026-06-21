@@ -1,5 +1,4 @@
-
-function corsHeaders(origin: string) {
+﻿function corsHeaders(origin: string) {
   return {
     'Access-Control-Allow-Origin': origin || '*',
     'Access-Control-Allow-Methods': 'GET,POST,PUT,PATCH,DELETE,OPTIONS',
@@ -12,9 +11,8 @@ function corsHeaders(origin: string) {
 
 function withCors(response: Response, origin: string) {
   const headers = new Headers(response.headers);
-  const cors = corsHeaders(origin);
 
-  Object.entries(cors).forEach(([key, value]) => {
+  Object.entries(corsHeaders(origin)).forEach(([key, value]) => {
     headers.set(key, value);
   });
 

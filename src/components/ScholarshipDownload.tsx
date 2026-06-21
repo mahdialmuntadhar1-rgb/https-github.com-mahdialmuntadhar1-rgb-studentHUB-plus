@@ -1,4 +1,4 @@
-import React from 'react';
+﻿import React from 'react';
 import { Download } from 'lucide-react';
 import { getTranslation } from '../data/translations';
 import { Language } from '../types';
@@ -33,3 +33,4 @@ export default function ScholarshipDownload({ language }: ScholarshipDownloadPro
     </button>
   );
 }
+
