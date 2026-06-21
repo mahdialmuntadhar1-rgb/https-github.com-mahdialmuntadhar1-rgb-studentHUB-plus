@@ -38,11 +38,10 @@ function createInstallStyles() {
       align-items: center;
       justify-content: center;
       gap: 7px;
-      min-width: 118px;
-      max-width: 132px;
-      height: 46px;
-      padding: 7px 11px;
-      border-radius: 14px;
+      min-width: 108px;
+      height: 43px;
+      padding: 6px 10px;
+      border-radius: 13px;
       color: white;
       background:
         radial-gradient(circle at 20% 15%, rgba(255,255,255,.42), transparent 26%),
@@ -55,40 +54,27 @@ function createInstallStyles() {
         0 12px 30px rgba(37,99,235,.30);
       backdrop-filter: blur(14px);
       animation: jamiaatiPwaPulse 1.65s ease-in-out infinite;
+      cursor: pointer;
     }
 
     .jamiaati-pwa-install__icon {
-      width: 27px;
-      height: 27px;
-      min-width: 27px;
-      border-radius: 9px;
+      width: 24px;
+      height: 24px;
+      min-width: 24px;
+      border-radius: 8px;
       display: grid;
       place-items: center;
       background: rgba(255,255,255,.16);
-      font-size: 16px;
+      font-size: 14px;
       box-shadow: 0 0 0 1px rgba(255,255,255,.20) inset;
     }
 
-    .jamiaati-pwa-install__text {
-      flex: initial;
-      min-width: 0;
-      line-height: 1;
-    }
-
     .jamiaati-pwa-install__title {
-      font-size: 14px;
+      font-size: 13px;
       font-weight: 1000;
       letter-spacing: 0;
       white-space: nowrap;
       line-height: 1;
-    }
-
-    .jamiaati-pwa-install__subtitle {
-      display: none !important;
-    }
-
-    .jamiaati-pwa-install__button {
-      display: none !important;
     }
 
     .jamiaati-pwa-install__close {
@@ -106,77 +92,6 @@ function createInstallStyles() {
       line-height: 1;
       cursor: pointer;
       box-shadow: 0 4px 12px rgba(0,0,0,.20);
-    }
-
-    .jamiaati-pwa-install__ios {
-      position: fixed;
-      inset: 0;
-      z-index: 2147483100;
-      display: grid;
-      place-items: center;
-      background: rgba(16, 10, 40, .52);
-      padding: 18px;
-      font-family: "Noto Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
-    }
-
-    .jamiaati-pwa-install__ios-card {
-      width: min(380px, 100%);
-      background: white;
-      color: #20103f;
-      border-radius: 26px;
-      padding: 20px;
-      box-shadow: 0 26px 90px rgba(22, 10, 70, .42);
-      text-align: center;
-      direction: rtl;
-    }
-
-    .jamiaati-pwa-install__ios-card h3 {
-      margin: 0 0 8px;
-      font-size: 22px;
-      font-weight: 1000;
-    }
-
-    .jamiaati-pwa-install__ios-card p {
-      margin: 0 0 14px;
-      color: #5c5271;
-      font-size: 15px;
-      line-height: 1.7;
-      font-weight: 800;
-    }
-
-    .jamiaati-pwa-install__ios-card ol {
-      margin: 0;
-      padding-inline-start: 22px;
-      text-align: right;
-      font-size: 15px;
-      line-height: 2;
-      font-weight: 900;
-    }
-
-    .jamiaati-pwa-install__ios-actions {
-      display: flex;
-      gap: 10px;
-      margin-top: 18px;
-    }
-
-    .jamiaati-pwa-install__ios-actions button {
-      flex: 1;
-      border: 0;
-      border-radius: 16px;
-      padding: 13px 12px;
-      font-weight: 1000;
-      cursor: pointer;
-      font-size: 15px;
-    }
-
-    .jamiaati-pwa-install__primary {
-      background: #5b2fd6;
-      color: white;
-    }
-
-    .jamiaati-pwa-install__secondary {
-      background: #f0eafd;
-      color: #4420b8;
     }
 
     @keyframes jamiaatiPwaPulse {
@@ -197,71 +112,20 @@ function createInstallStyles() {
           0 16px 36px rgba(37,99,235,.34);
       }
     }
-
-    @media (max-width: 430px) {
-      .jamiaati-pwa-install {
-        left: 8px;
-        top: 52%;
-      }
-
-      .jamiaati-pwa-install__card {
-        min-width: 108px;
-        max-width: 118px;
-        height: 43px;
-        border-radius: 13px;
-        padding: 6px 9px;
-      }
-
-      .jamiaati-pwa-install__icon {
-        width: 24px;
-        height: 24px;
-        min-width: 24px;
-        font-size: 14px;
-      }
-
-      .jamiaati-pwa-install__title {
-        font-size: 13px;
-      }
-    }
   `;
   document.head.appendChild(style);
 }
 
-function showInstallHelp() {
-  if (document.querySelector('.jamiaati-pwa-install__ios')) return;
-
-  const overlay = document.createElement('div');
-  overlay.className = 'jamiaati-pwa-install__ios';
-  overlay.innerHTML = `
-    <div class="jamiaati-pwa-install__ios-card" role="dialog" aria-modal="true">
-      <h3>دابەزاندنی Jamiaati</h3>
-      <p>ئەگەر پەنجەرەی دابەزاندن خۆکارانە دەرنەکەوت، لە مێنیوی وێبگەڕەکەت Add to Home screen / Install app هەڵبژێرە.</p>
-      <ol>
-        <li>مێنیو <strong>⋮</strong> بکەرەوە</li>
-        <li><strong>Install app</strong> یان <strong>Add to Home screen</strong> هەڵبژێرە</li>
-        <li><strong>Add</strong> بکە</li>
-      </ol>
-      <div class="jamiaati-pwa-install__ios-actions">
-        <button class="jamiaati-pwa-install__secondary" type="button" data-close-ios>داخستن</button>
-        <button class="jamiaati-pwa-install__primary" type="button" data-close-ios>تێگەیشتم</button>
-      </div>
-    </div>
-  `;
-
-  overlay.addEventListener('click', (event) => {
-    const target = event.target as HTMLElement;
-    if (target === overlay || target.hasAttribute('data-close-ios')) {
-      overlay.remove();
-    }
-  });
-
-  document.body.appendChild(overlay);
+function removeInstallButton() {
+  installBox?.remove();
+  installBox = null;
 }
 
 function renderInstallButton() {
-  if (isStandalone()) {
-    installBox?.remove();
-    installBox = null;
+  // Important: show button only when real browser install prompt is ready.
+  // This avoids confusing menu/help messages.
+  if (isStandalone() || isIOS() || !deferredPrompt) {
+    removeInstallButton();
     return;
   }
 
@@ -277,11 +141,7 @@ function renderInstallButton() {
   installBox.innerHTML = `
     <div class="jamiaati-pwa-install__card">
       <div class="jamiaati-pwa-install__icon">📲</div>
-      <div class="jamiaati-pwa-install__text">
-        <div class="jamiaati-pwa-install__title">دابەزاندن</div>
-        <div class="jamiaati-pwa-install__subtitle">Jamiaati</div>
-      </div>
-      <button class="jamiaati-pwa-install__button" type="button">دابەزاندن</button>
+      <div class="jamiaati-pwa-install__title">دابەزاندن</div>
       <button class="jamiaati-pwa-install__close" type="button" aria-label="داخستن">×</button>
     </div>
   `;
@@ -290,30 +150,30 @@ function renderInstallButton() {
   const closeBtn = installBox.querySelector('.jamiaati-pwa-install__close') as HTMLButtonElement;
 
   card.addEventListener('click', async () => {
-    if (deferredPrompt && !isIOS()) {
-      const promptEvent = deferredPrompt;
-      deferredPrompt = null;
-
-      await promptEvent.prompt();
-      const choice = await promptEvent.userChoice;
-
-      if (choice.outcome === 'accepted') {
-        installBox?.remove();
-        installBox = null;
-      } else {
-        setTimeout(renderInstallButton, 1800);
-      }
-
+    if (!deferredPrompt) {
+      removeInstallButton();
       return;
     }
 
-    showInstallHelp();
+    const promptEvent = deferredPrompt;
+    deferredPrompt = null;
+
+    await promptEvent.prompt();
+    const choice = await promptEvent.userChoice;
+
+    if (choice.outcome === 'accepted') {
+      removeInstallButton();
+    } else {
+      setTimeout(() => {
+        deferredPrompt = promptEvent;
+        renderInstallButton();
+      }, 1800);
+    }
   });
 
   closeBtn.addEventListener('click', (event) => {
     event.stopPropagation();
-    installBox?.remove();
-    installBox = null;
+    removeInstallButton();
     setTimeout(renderInstallButton, 1000 * 60 * 20);
   });
 
@@ -337,12 +197,11 @@ export async function registerJamiaatiPwa() {
   });
 
   window.addEventListener('appinstalled', () => {
-    installBox?.remove();
-    installBox = null;
     deferredPrompt = null;
+    removeInstallButton();
   });
 
-  setTimeout(renderInstallButton, 900);
-  setTimeout(renderInstallButton, 3000);
-  setTimeout(renderInstallButton, 6000);
+  setTimeout(renderInstallButton, 1200);
+  setTimeout(renderInstallButton, 4000);
+  setTimeout(renderInstallButton, 8000);
 }
