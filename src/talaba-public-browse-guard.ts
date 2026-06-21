@@ -74,8 +74,13 @@ document.addEventListener('click', event => {
 
   if (!text) return;
 
-  if (isBrowseClick(text) && !isInteractionClick(text)) {
-    window.__talabaSuppressAuthUntil = Date.now() + 2500;
+  if (isInteractionClick(text)) {
+    window.__talabaSuppressAuthUntil = 0;
+    return;
+  }
+
+  if (isBrowseClick(text)) {
+    window.__talabaSuppressAuthUntil = Date.now() + 60000;
   }
 }, true);
 

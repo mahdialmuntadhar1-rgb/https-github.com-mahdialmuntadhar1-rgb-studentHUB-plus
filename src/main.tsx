@@ -1,3 +1,5 @@
+import './talaba-remove-ziada';
+import './talaba-install-guard';
 import './talaba-public-browse-guard';
 ﻿import './talaba-production-runtime';
 import './talaba-final-shortcuts';
@@ -7,6 +9,7 @@ import { createRoot } from 'react-dom/client';
 
 import App from './App.tsx';
 import './index.css';
+import './styles/talaba-auth-visibility-fix.css';
 import './styles/high-contrast-fix.css';
 import './styles/neon-purple-theme.css';
 import './styles/campus-light-purple-bg.css';

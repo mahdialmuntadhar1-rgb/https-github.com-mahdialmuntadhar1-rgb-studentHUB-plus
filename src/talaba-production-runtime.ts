@@ -1,4 +1,8 @@
-﻿const TALABA_API_BASE = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
+
+const TALABA_API_BASE =
+  typeof window !== 'undefined'
+    ? window.location.origin
+    : 'https://talaba.kaniq.org';
 
 declare global {
   interface Window {
@@ -32,20 +36,15 @@ function normalizeTalabaApiUrl(input: RequestInfo | URL): RequestInfo | URL {
     const url = new URL(raw, window.location.origin);
     const isApiPath = url.pathname.startsWith('/api/');
 
-    const isFrontendApi =
-      (url.hostname === 'talaba.kaniq.org' || url.hostname === 'jamiati.kaniq.org') &&
-      isApiPath;
+    const isKnownApiHost =
+      url.hostname === 'talaba.kaniq.org' ||
+      url.hostname === 'jamiati.kaniq.org' ||
+      url.hostname === 'rafid-api.mahdialmuntadhar1.workers.dev' ||
+      url.hostname === 'https-github.mahdialmuntadhar1.workers.dev' ||
+      url.hostname === 'localhost' ||
+      url.hostname === '127.0.0.1';
 
-    const isOldWorkerApi =
-      url.hostname.endsWith('.mahdialmuntadhar1.workers.dev') &&
-      url.hostname !== 'rafid-api.mahdialmuntadhar1.workers.dev' &&
-      isApiPath;
-
-    const isLocalApi =
-      (url.hostname === 'localhost' || url.hostname === '127.0.0.1') &&
-      isApiPath;
-
-    if (isApiPath && (isFrontendApi || isOldWorkerApi || isLocalApi || raw.startsWith('/api/'))) {
+    if (isApiPath && (isKnownApiHost || raw.startsWith('/api/'))) {
       return TALABA_API_BASE + url.pathname + url.search;
     }
   } catch {
@@ -74,7 +73,7 @@ if (!window.__TALABA_FETCH_PATCHED__) {
 
     const nextInit: RequestInit = { ...(init || {}) };
 
-    if (urlText.startsWith(TALABA_API_BASE)) {
+    if (urlText.startsWith(TALABA_API_BASE + '/api/')) {
       const headers = new Headers(nextInit.headers || {});
       headers.set('Accept', 'application/json');
 
@@ -90,7 +89,7 @@ if (!window.__TALABA_FETCH_PATCHED__) {
     return originalFetch(normalizedInput as any, nextInit);
   };
 
-  console.info('[Talaba] API router active:', TALABA_API_BASE);
+  console.info('[Talaba] same-origin API router active:', TALABA_API_BASE);
 }
 
 export {};

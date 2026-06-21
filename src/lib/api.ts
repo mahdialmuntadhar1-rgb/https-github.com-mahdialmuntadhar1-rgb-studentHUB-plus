@@ -9,7 +9,7 @@ import {
   MessageItem 
 } from '../types';
 
-export const BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
+export const BACKEND_URL = typeof window !== 'undefined' ? window.location.origin : 'https://talaba.kaniq.org';
 const API_BASE = `${BACKEND_URL}/api`;
 
 export interface HeroImageRecord {
