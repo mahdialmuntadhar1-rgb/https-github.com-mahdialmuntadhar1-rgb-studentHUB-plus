@@ -1,64 +1,57 @@
-const CACHE_NAME = 'jamiaati-pwa-fixed-20260620-231201';
-const APP_SHELL = [
-  '/',
-  '/offline.html',
-  '/manifest.webmanifest',
-  '/icons/icon-192.png',
-  '/icons/icon-512.png',
-  '/icons/maskable-512.png',
-  '/icons/apple-touch-icon.png'
-];
+﻿const TALABA_CACHE_VERSION = 'talaba-final-20260621-095057';
+const STATIC_CACHE = TALABA_CACHE_VERSION + '-static';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then((cache) => cache.addAll(APP_SHELL).catch(() => undefined))
+    caches.keys().then(keys =>
+      Promise.all(keys.map(key => caches.delete(key)))
+    )
   );
 });
 
 self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then((keys) => Promise.all(keys.filter((key) => key !== CACHE_NAME).map((key) => caches.delete(key))))
+      .then(keys => Promise.all(keys.map(key => caches.delete(key))))
       .then(() => self.clients.claim())
+      .then(() => self.clients.matchAll({ type: 'window', includeUncontrolled: true }))
+      .then(clients => {
+        clients.forEach(client => {
+          client.postMessage({
+            type: 'TALABA_CACHE_REFRESHED',
+            version: TALABA_CACHE_VERSION
+          });
+        });
+      })
   );
 });
 
 self.addEventListener('fetch', (event) => {
-  const req = event.request;
-  if (req.method !== 'GET') return;
+  const request = event.request;
+  const url = new URL(request.url);
 
-  const url = new URL(req.url);
+  if (request.method !== 'GET') {
+    return;
+  }
 
-  if (req.mode === 'navigate') {
+  if (
+    request.mode === 'navigate' ||
+    url.pathname.endsWith('.js') ||
+    url.pathname.endsWith('.css') ||
+    url.pathname === '/' ||
+    url.pathname === '/index.html' ||
+    url.pathname === '/manifest.webmanifest'
+  ) {
     event.respondWith(
-      fetch(req)
-        .then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put('/', copy)).catch(() => undefined);
-          return res;
-        })
-        .catch(async () => {
-          return (await caches.match('/')) || (await caches.match('/offline.html'));
-        })
+      fetch(request, { cache: 'no-store' })
+        .then(response => response)
+        .catch(() => caches.match(request))
     );
     return;
   }
 
-  if (url.origin === location.origin && (
-    url.pathname.startsWith('/assets/') ||
-    url.pathname.startsWith('/icons/') ||
-    url.pathname === '/manifest.webmanifest' ||
-    url.pathname === '/offline.html'
-  )) {
-    event.respondWith(
-      caches.match(req).then((cached) => {
-        return cached || fetch(req).then((res) => {
-          const copy = res.clone();
-          caches.open(CACHE_NAME).then((cache) => cache.put(req, copy)).catch(() => undefined);
-          return res;
-        });
-      })
-    );
-  }
+  event.respondWith(
+    fetch(request).catch(() => caches.match(request))
+  );
 });
