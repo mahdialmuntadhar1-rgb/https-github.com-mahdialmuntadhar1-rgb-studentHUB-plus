@@ -1,4 +1,5 @@
-﻿import './talaba-home-shortcuts';
+﻿import './talaba-hero-clean';
+import './talaba-home-shortcuts';
 import { runTalabaCacheRefresh } from './talaba-cache-refresh';
 import { StrictMode, Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
@@ -150,5 +151,6 @@ if (!rootElement) {
 
 
 runTalabaCacheRefresh();
+
 
 
