@@ -1,0 +1,11 @@
+﻿name = "https-github"
+main = "worker-static.js"
+compatibility_date = "2025-06-01"
+
+[assets]
+directory = "./dist"
+binding = "ASSETS"
+not_found_handling = "single-page-application"
+[[routes]]
+pattern = "jamiati.kaniq.org"
+custom_domain = true
