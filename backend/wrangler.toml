@@ -1,4 +1,4 @@
-name = "rafid-api"
+﻿name = "rafid-api"
 main = "src/index.ts"
 compatibility_date = "2024-09-23"
 compatibility_flags = ["nodejs_compat"]
@@ -24,7 +24,7 @@ max_batch_size = 1
 # JWT_SECRET is intentionally not stored in this file.
 # Set it with: npx wrangler secret put JWT_SECRET --config ./wrangler.toml
 R2_PUBLIC_URL = "https://pub-46ad7eec395049ed8054c8804be9d032.r2.dev"
-EMAIL_PROVIDER = "resend"
+EMAIL_PROVIDER = "brevo"
 EMAIL_FROM_NAME = "Talaba"
 EMAIL_FROM_ADDRESS = "outreach@jamiati.com"
 EMAIL_REPLY_TO = "outreach@jamiati.com"
@@ -39,3 +39,4 @@ DRY_RUN_AUTOMATION = "true"
 
 [triggers]
 crons = ["0 */6 * * *", "0 2 * * *"]
+

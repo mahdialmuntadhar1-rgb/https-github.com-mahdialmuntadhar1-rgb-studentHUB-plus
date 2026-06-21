@@ -1,4 +1,4 @@
-import { Hono } from 'hono';
+﻿rnrnrnrnimport { Hono } from 'hono';
 import { cors } from 'hono/cors';
 
 type Bindings = {
@@ -33,7 +33,7 @@ type OutreachQueueMessage = {
 
 const app = new Hono<{ Bindings: Bindings; Variables: Variables }>();
 
-// â”€â”€â”€ CORS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ CORS Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const TALABA_ALLOWED_ORIGINS = new Set([
   'https://jamiati.kaniq.org',
@@ -72,7 +72,7 @@ app.options('*', (c) => {
   });
 });
 
-// â”€â”€â”€ JWT HELPERS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ JWT HELPERS Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 async function signJWT(payload: Record<string, unknown>, secret: string): Promise<string> {
   if (!secret) {
@@ -169,7 +169,108 @@ function createResetToken(): string {
   return bytesToBase64Url(bytes);
 }
 
-// â”€â”€â”€ AUTH MIDDLEWARE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+async function verifyPasswordAgainstStoredHash(password: string, storedHash: string): Promise<boolean> {
+  if (!storedHash) return false;
+
+  const currentHash = await hashPassword(password);
+  if (storedHash === currentHash) return true;
+
+  // Legacy compatibility:
+  // Some older app builds used plain SHA-256 hex or mixed stored formats.
+  const shaBytes = await crypto.subtle.digest('SHA-256', new TextEncoder().encode(password));
+  const shaHex = Array.from(new Uint8Array(shaBytes)).map(b => b.toString(16).padStart(2, '0')).join('');
+  if (storedHash === shaHex) return true;
+
+  // PBKDF2-style compatibility for common salt:hash formats.
+  // If the stored hash is not in this format, this safely returns false.
+  try {
+    const parts = storedHash.split(':');
+    if (parts.length >= 2) {
+      const salt = parts[parts.length - 2];
+      const expected = parts[parts.length - 1];
+
+      const keyMaterial = await crypto.subtle.importKey(
+        'raw',
+        new TextEncoder().encode(password),
+        { name: 'PBKDF2' },
+        false,
+        ['deriveBits']
+      );
+
+      const derivedBits = await crypto.subtle.deriveBits(
+        {
+          name: 'PBKDF2',
+          salt: new TextEncoder().encode(salt),
+          iterations: 100000,
+          hash: 'SHA-256'
+        },
+        keyMaterial,
+        256
+      );
+
+      const derivedHex = Array.from(new Uint8Array(derivedBits)).map(b => b.toString(16).padStart(2, '0')).join('');
+      const derivedBase64Url = bytesToBase64Url(new Uint8Array(derivedBits));
+
+      if (expected === derivedHex || expected === derivedBase64Url || storedHash.endsWith(derivedHex) || storedHash.endsWith(derivedBase64Url)) {
+        return true;
+      }
+    }
+  } catch {
+    // Ignore legacy parse failures.
+  }
+
+  return false;
+}
+
+async function sendPasswordResetEmail(env: Bindings, email: string, resetUrl: string): Promise<boolean> {
+  const provider = String(env.EMAIL_PROVIDER || '').toLowerCase();
+  const apiKey = env.EMAIL_API_KEY;
+  const fromAddress = env.EMAIL_FROM_ADDRESS || 'outreach@jamiati.com';
+  const fromName = env.EMAIL_FROM_NAME || 'Talaba';
+
+  if (!apiKey) {
+    console.log('[PASSWORD RESET] EMAIL_API_KEY missing. Reset URL:', resetUrl);
+    return false;
+  }
+
+  if (provider === 'resend') {
+    const response = await fetch('https://api.resend.com/emails', {
+      method: 'POST',
+      headers: {
+        'Authorization': `Bearer ${apiKey}`,
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({
+        from: `${fromName} <${fromAddress}>`,
+        to: [email],
+        subject: 'Talaba password reset',
+        html: `
+          <div style="font-family:Arial,sans-serif;line-height:1.6">
+            <h2>Talaba Password Reset</h2>
+            <p>Click the button below to reset your password.</p>
+            <p><a href="${resetUrl}" style="background:#6B25C9;color:white;padding:12px 18px;text-decoration:none;border-radius:10px;display:inline-block">Reset password</a></p>
+            <p>If the button does not work, copy this link:</p>
+            <p>${resetUrl}</p>
+            <p>This link expires soon.</p>
+          </div>
+        `
+      })
+    });
+
+    if (!response.ok) {
+      console.log('[PASSWORD RESET] Resend failed:', response.status, await response.text().catch(() => ''));
+      return false;
+    }
+
+    return true;
+  }
+
+  console.log('[PASSWORD RESET] Unsupported EMAIL_PROVIDER:', provider, 'Reset URL:', resetUrl);
+  return false;
+}
+
+
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ AUTH MIDDLEWARE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const authMiddleware = async (c: any, next: any) => {
   const authHeader = c.req.header('Authorization');
@@ -185,7 +286,7 @@ const authMiddleware = async (c: any, next: any) => {
   await next();
 };
 
-// â”€â”€â”€ ADMIN MIDDLEWARE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ ADMIN MIDDLEWARE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const adminMiddleware = async (c: any, next: any) => {
   const userId = c.get('userId');
@@ -201,7 +302,7 @@ const adminMiddleware = async (c: any, next: any) => {
   await next();
 };
 
-// â”€â”€â”€ RATE LIMITING MIDDLEWARE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ RATE LIMITING MIDDLEWARE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const rateLimitMiddleware = async (c: any, next: any) => {
   const ip = c.req.header('CF-Connecting-IP') || c.req.header('X-Forwarded-For') || 'unknown';
@@ -254,7 +355,7 @@ const rateLimitMiddleware = async (c: any, next: any) => {
   }
 };
 
-// â”€â”€â”€ AUTH ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ AUTH ROUTES Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 app.post('/api/auth/register', rateLimitMiddleware, async (c) => {
   try {
@@ -264,14 +365,14 @@ app.post('/api/auth/register', rateLimitMiddleware, async (c) => {
     const fullName = String(body.full_name || body.name || body.fullName || body.displayName || '').trim();
 
     if (!email || !password || !fullName) {
-      return c.json({ error: 'Ø§Ù„Ø§Ø³Ù… ÙˆØ§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ ÙˆÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ù…Ø·Ù„ÙˆØ¨Ø©' }, 400);
+      return c.json({ error: 'Ã˜Â§Ã™â€žÃ˜Â§Ã˜Â³Ã™â€¦ Ã™Ë†Ã˜Â§Ã™â€žÃ˜Â¨Ã˜Â±Ã™Å Ã˜Â¯ Ã˜Â§Ã™â€žÃ˜Â¥Ã™â€žÃ™Æ’Ã˜ÂªÃ˜Â±Ã™Ë†Ã™â€ Ã™Å  Ã™Ë†Ã™Æ’Ã™â€žÃ™â€¦Ã˜Â© Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â±Ã™Ë†Ã˜Â± Ã™â€¦Ã˜Â·Ã™â€žÃ™Ë†Ã˜Â¨Ã˜Â©' }, 400);
     }
 
     const existing = await c.env.DB.prepare('SELECT id FROM profiles WHERE lower(email) = lower(?)')
       .bind(email)
       .first();
     if (existing) {
-      return c.json({ error: 'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ù…Ø³ØªØ®Ø¯Ù… Ù…Ø³Ø¨Ù‚Ø§Ù‹' }, 409);
+      return c.json({ error: 'Ã˜Â§Ã™â€žÃ˜Â¨Ã˜Â±Ã™Å Ã˜Â¯ Ã˜Â§Ã™â€žÃ˜Â¥Ã™â€žÃ™Æ’Ã˜ÂªÃ˜Â±Ã™Ë†Ã™â€ Ã™Å  Ã™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã™â€¦Ã˜Â³Ã˜Â¨Ã™â€šÃ˜Â§Ã™â€¹' }, 409);
     }
 
     const id = crypto.randomUUID();
@@ -296,9 +397,9 @@ app.post('/api/auth/register', rateLimitMiddleware, async (c) => {
   } catch (e: any) {
     console.error('Auth register error:', e?.message || e);
     if (e.message?.includes('UNIQUE')) {
-      return c.json({ error: 'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ù…Ø³ØªØ®Ø¯Ù… Ù…Ø³Ø¨Ù‚Ø§Ù‹' }, 409);
+      return c.json({ error: 'Ã˜Â§Ã™â€žÃ˜Â¨Ã˜Â±Ã™Å Ã˜Â¯ Ã˜Â§Ã™â€žÃ˜Â¥Ã™â€žÃ™Æ’Ã˜ÂªÃ˜Â±Ã™Ë†Ã™â€ Ã™Å  Ã™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã™â€¦Ã˜Â³Ã˜Â¨Ã™â€šÃ˜Â§Ã™â€¹' }, 409);
     }
-    return c.json({ error: 'ÙØ´Ù„ Ø¥Ù†Ø´Ø§Ø¡ Ø§Ù„Ø­Ø³Ø§Ø¨ØŒ Ø­Ø§ÙˆÙ„ Ù…Ø¬Ø¯Ø¯Ø§Ù‹' }, 500);
+    return c.json({ error: 'Ã™ÂÃ˜Â´Ã™â€ž Ã˜Â¥Ã™â€ Ã˜Â´Ã˜Â§Ã˜Â¡ Ã˜Â§Ã™â€žÃ˜Â­Ã˜Â³Ã˜Â§Ã˜Â¨Ã˜Å’ Ã˜Â­Ã˜Â§Ã™Ë†Ã™â€ž Ã™â€¦Ã˜Â¬Ã˜Â¯Ã˜Â¯Ã˜Â§Ã™â€¹' }, 500);
   }
 });
 
@@ -309,27 +410,28 @@ app.post('/api/auth/login', rateLimitMiddleware, async (c) => {
     const password = String(body.password || '');
 
     if (!email || !password) {
-      return c.json({ error: 'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ ÙˆÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ù…Ø·Ù„ÙˆØ¨Ø§Ù†' }, 400);
+      return c.json({ error: 'Email and password are required' }, 400);
     }
 
-    const passwordHash = await hashPassword(password);
     const user = await c.env.DB.prepare(
-      `SELECT id, email, full_name, governorate, institution, institution_id,
+      `SELECT id, email, password_hash, full_name, governorate, institution, institution_id,
               stage, interests, bio, avatar_url, role
-       FROM profiles WHERE lower(email) = lower(?) AND password_hash = ?`
+       FROM profiles WHERE lower(email) = lower(?)`
     )
-      .bind(email, passwordHash)
+      .bind(email)
       .first() as any;
 
-    if (!user) {
-      return c.json({ error: 'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ø£Ùˆ ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ØºÙŠØ± ØµØ­ÙŠØ­Ø©' }, 401);
+    if (!user || !(await verifyPasswordAgainstStoredHash(password, String(user.password_hash || '')))) {
+      return c.json({ error: 'Email or password is incorrect' }, 401);
     }
 
     const token = await signJWT({ userId: user.id, email: user.email }, c.env.JWT_SECRET);
+    delete user.password_hash;
+
     return c.json({ success: true, token, user });
   } catch (e: any) {
     console.error('Auth login error:', e?.message || e);
-    return c.json({ error: 'ÙØ´Ù„ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„ØŒ Ø­Ø§ÙˆÙ„ Ù„Ø§Ø­Ù‚Ø§Ù‹' }, 500);
+    return c.json({ error: 'Login failed, please try again later' }, 500);
   }
 });
 
@@ -348,25 +450,25 @@ app.get('/api/auth/me', authMiddleware, async (c) => {
     return c.json({ success: true, user });
   } catch (e: any) {
     console.error('Auth me error:', e?.message || e);
-    return c.json({ error: 'ÙØ´Ù„ Ø¬Ù„Ø¨ Ø¨ÙŠØ§Ù†Ø§Øª Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…' }, 500);
+    return c.json({ error: 'Ã™ÂÃ˜Â´Ã™â€ž Ã˜Â¬Ã™â€žÃ˜Â¨ Ã˜Â¨Ã™Å Ã˜Â§Ã™â€ Ã˜Â§Ã˜Âª Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦' }, 500);
   }
 });
 
 app.post('/api/auth/send-verification-email', rateLimitMiddleware, async (c) => {
   const { email } = await c.req.json();
   if (!email) {
-    return c.json({ error: 'Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ù…Ø·Ù„ÙˆØ¨' }, 400);
+    return c.json({ error: 'Ã˜Â§Ã™â€žÃ˜Â¨Ã˜Â±Ã™Å Ã˜Â¯ Ã˜Â§Ã™â€žÃ˜Â¥Ã™â€žÃ™Æ’Ã˜ÂªÃ˜Â±Ã™Ë†Ã™â€ Ã™Å  Ã™â€¦Ã˜Â·Ã™â€žÃ™Ë†Ã˜Â¨' }, 400);
   }
 
   // Mock: Log to console instead of sending real email
   console.log(`[EMAIL SERVICE] Verification email would be sent to: ${email}`);
   console.log(`[EMAIL SERVICE] Verification link: https://rafid.mahdialmuntadhar1.workers.dev/verify?email=${encodeURIComponent(email)}&token=mock-token`);
 
-  return c.json({ message: 'ØªÙ… Ø¥Ø±Ø³Ø§Ù„ Ø±Ø§Ø¨Ø· Ø§Ù„ØªØ­Ù‚Ù‚ Ø¥Ù„Ù‰ Ø¨Ø±ÙŠØ¯Ùƒ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ' });
+  return c.json({ message: 'Ã˜ÂªÃ™â€¦ Ã˜Â¥Ã˜Â±Ã˜Â³Ã˜Â§Ã™â€ž Ã˜Â±Ã˜Â§Ã˜Â¨Ã˜Â· Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â­Ã™â€šÃ™â€š Ã˜Â¥Ã™â€žÃ™â€° Ã˜Â¨Ã˜Â±Ã™Å Ã˜Â¯Ã™Æ’ Ã˜Â§Ã™â€žÃ˜Â¥Ã™â€žÃ™Æ’Ã˜ÂªÃ˜Â±Ã™Ë†Ã™â€ Ã™Å ' });
 });
 
 app.post('/api/auth/forgot-password', rateLimitMiddleware, async (c) => {
-  const genericMessage = 'Ø¥Ø°Ø§ ÙƒØ§Ù† Ø§Ù„Ø¨Ø±ÙŠØ¯ Ù…ÙˆØ¬ÙˆØ¯Ø§Ù‹ØŒ Ø³ÙŠØªÙ… Ø¥Ø±Ø³Ø§Ù„ ØªØ¹Ù„ÙŠÙ…Ø§Øª Ø§Ù„Ø§Ø³ØªØ¹Ø§Ø¯Ø© Ø¹Ù†Ø¯ ØªÙØ¹ÙŠÙ„ Ø®Ø¯Ù…Ø© Ø§Ù„Ø¨Ø±ÙŠØ¯.';
+  const genericMessage = 'If the email exists, password reset instructions will be sent.';
 
   try {
     const body = await c.req.json().catch(() => ({}));
@@ -395,8 +497,11 @@ app.post('/api/auth/forgot-password', rateLimitMiddleware, async (c) => {
         .bind(email, tokenHash, expiresAt)
         .run();
 
-      // TODO: Send resetToken via a configured transactional email provider.
-      console.log('Password reset requested for existing account; email provider is not configured yet.');
+      const baseUrl = c.env.PUBLIC_APP_URL || 'https://jamiati.kaniq.org';
+      const resetUrl = `${baseUrl}/?resetToken=${encodeURIComponent(resetToken)}#/reset-password`;
+
+      const sent = await sendPasswordResetEmail(c.env, email, resetUrl);
+      console.log('[PASSWORD RESET] requested:', email, 'emailSent:', sent);
     }
 
     return c.json({ success: true, message: genericMessage });
@@ -413,11 +518,11 @@ app.post('/api/auth/reset-password', rateLimitMiddleware, async (c) => {
     const newPassword = String(body.password || body.new_password || body.newPassword || '').trim();
 
     if (!token || !newPassword) {
-      return c.json({ error: 'Ø§Ù„Ø±Ù…Ø² ÙˆÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø§Ù„Ø¬Ø¯ÙŠØ¯Ø© Ù…Ø·Ù„ÙˆØ¨Ø§Ù†' }, 400);
+      return c.json({ error: 'Ã˜Â§Ã™â€žÃ˜Â±Ã™â€¦Ã˜Â² Ã™Ë†Ã™Æ’Ã™â€žÃ™â€¦Ã˜Â© Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â±Ã™Ë†Ã˜Â± Ã˜Â§Ã™â€žÃ˜Â¬Ã˜Â¯Ã™Å Ã˜Â¯Ã˜Â© Ã™â€¦Ã˜Â·Ã™â€žÃ™Ë†Ã˜Â¨Ã˜Â§Ã™â€ ' }, 400);
     }
 
     if (newPassword.length < 8) {
-      return c.json({ error: 'ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ÙŠØ¬Ø¨ Ø£Ù† ØªÙƒÙˆÙ† 8 Ø£Ø­Ø±Ù Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„' }, 400);
+      return c.json({ error: 'Ã™Æ’Ã™â€žÃ™â€¦Ã˜Â© Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â±Ã™Ë†Ã˜Â± Ã™Å Ã˜Â¬Ã˜Â¨ Ã˜Â£Ã™â€  Ã˜ÂªÃ™Æ’Ã™Ë†Ã™â€  8 Ã˜Â£Ã˜Â­Ã˜Â±Ã™Â Ã˜Â¹Ã™â€žÃ™â€° Ã˜Â§Ã™â€žÃ˜Â£Ã™â€šÃ™â€ž' }, 400);
     }
 
     const tokenHash = await hashResetToken(token);
@@ -428,7 +533,7 @@ app.post('/api/auth/reset-password', rateLimitMiddleware, async (c) => {
       .first() as any;
 
     if (!reset) {
-      return c.json({ error: 'Ø±Ù…Ø² Ø¥Ø¹Ø§Ø¯Ø© ØªØ¹ÙŠÙŠÙ† ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± ØºÙŠØ± ØµØ§Ù„Ø­ Ø£Ùˆ Ù…Ù†ØªÙ‡ÙŠ Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ©' }, 400);
+      return c.json({ error: 'Ã˜Â±Ã™â€¦Ã˜Â² Ã˜Â¥Ã˜Â¹Ã˜Â§Ã˜Â¯Ã˜Â© Ã˜ÂªÃ˜Â¹Ã™Å Ã™Å Ã™â€  Ã™Æ’Ã™â€žÃ™â€¦Ã˜Â© Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â±Ã™Ë†Ã˜Â± Ã˜ÂºÃ™Å Ã˜Â± Ã˜ÂµÃ˜Â§Ã™â€žÃ˜Â­ Ã˜Â£Ã™Ë† Ã™â€¦Ã™â€ Ã˜ÂªÃ™â€¡Ã™Å  Ã˜Â§Ã™â€žÃ˜ÂµÃ™â€žÃ˜Â§Ã˜Â­Ã™Å Ã˜Â©' }, 400);
     }
 
     const passwordHash = await hashPassword(newPassword);
@@ -439,17 +544,17 @@ app.post('/api/auth/reset-password', rateLimitMiddleware, async (c) => {
         .bind(tokenHash)
     ]);
 
-    return c.json({ success: true, message: 'ØªÙ… ØªØ­Ø¯ÙŠØ« ÙƒÙ„Ù…Ø© Ø§Ù„Ù…Ø±ÙˆØ± Ø¨Ù†Ø¬Ø§Ø­' });
+    return c.json({ success: true, message: 'Ã˜ÂªÃ™â€¦ Ã˜ÂªÃ˜Â­Ã˜Â¯Ã™Å Ã˜Â« Ã™Æ’Ã™â€žÃ™â€¦Ã˜Â© Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â±Ã™Ë†Ã˜Â± Ã˜Â¨Ã™â€ Ã˜Â¬Ã˜Â§Ã˜Â­' });
   } catch (e: any) {
     console.error('Reset password error:', e?.message || e);
-    return c.json({ error: 'Ø§Ù„Ø®Ø¯Ù…Ø© ØºÙŠØ± Ù…ØªØ§Ø­Ø© Ø­Ø§Ù„ÙŠØ§Ù‹ØŒ Ø­Ø§ÙˆÙ„ Ù„Ø§Ø­Ù‚Ø§Ù‹' }, 500);
+    return c.json({ error: 'Ã˜Â§Ã™â€žÃ˜Â®Ã˜Â¯Ã™â€¦Ã˜Â© Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂªÃ˜Â§Ã˜Â­Ã˜Â© Ã˜Â­Ã˜Â§Ã™â€žÃ™Å Ã˜Â§Ã™â€¹Ã˜Å’ Ã˜Â­Ã˜Â§Ã™Ë†Ã™â€ž Ã™â€žÃ˜Â§Ã˜Â­Ã™â€šÃ˜Â§Ã™â€¹' }, 500);
   }
 });
 
 app.post('/api/auth/verify-email', async (c) => {
   const { token } = await c.req.json();
   if (!token) {
-    return c.json({ error: 'Ø±Ù…Ø² Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ø·Ù„ÙˆØ¨' }, 400);
+    return c.json({ error: 'Ã˜Â±Ã™â€¦Ã˜Â² Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â­Ã™â€šÃ™â€š Ã™â€¦Ã˜Â·Ã™â€žÃ™Ë†Ã˜Â¨' }, 400);
   }
 
   const user = await c.env.DB.prepare(
@@ -459,7 +564,7 @@ app.post('/api/auth/verify-email', async (c) => {
     .first();
 
   if (!user) {
-    return c.json({ error: 'Ø±Ù…Ø² Ø§Ù„ØªØ­Ù‚Ù‚ ØºÙŠØ± ØµØ§Ù„Ø­ Ø£Ùˆ Ù…Ù†ØªÙ‡ÙŠ Ø§Ù„ØµÙ„Ø§Ø­ÙŠØ©' }, 400);
+    return c.json({ error: 'Ã˜Â±Ã™â€¦Ã˜Â² Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â­Ã™â€šÃ™â€š Ã˜ÂºÃ™Å Ã˜Â± Ã˜ÂµÃ˜Â§Ã™â€žÃ˜Â­ Ã˜Â£Ã™Ë† Ã™â€¦Ã™â€ Ã˜ÂªÃ™â€¡Ã™Å  Ã˜Â§Ã™â€žÃ˜ÂµÃ™â€žÃ˜Â§Ã˜Â­Ã™Å Ã˜Â©' }, 400);
   }
 
   await c.env.DB.prepare(
@@ -468,10 +573,10 @@ app.post('/api/auth/verify-email', async (c) => {
     .bind(user.id)
     .run();
 
-  return c.json({ message: 'ØªÙ… Ø§Ù„ØªØ­Ù‚Ù‚ Ù…Ù† Ø§Ù„Ø¨Ø±ÙŠØ¯ Ø§Ù„Ø¥Ù„ÙƒØªØ±ÙˆÙ†ÙŠ Ø¨Ù†Ø¬Ø§Ø­' });
+  return c.json({ message: 'Ã˜ÂªÃ™â€¦ Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â­Ã™â€šÃ™â€š Ã™â€¦Ã™â€  Ã˜Â§Ã™â€žÃ˜Â¨Ã˜Â±Ã™Å Ã˜Â¯ Ã˜Â§Ã™â€žÃ˜Â¥Ã™â€žÃ™Æ’Ã˜ÂªÃ˜Â±Ã™Ë†Ã™â€ Ã™Å  Ã˜Â¨Ã™â€ Ã˜Â¬Ã˜Â§Ã˜Â­' });
 });
 
-// â”€â”€â”€ PROFILE ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ PROFILE ROUTES Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 app.put('/api/profile', authMiddleware, async (c) => {
   const userId = c.get('userId');
@@ -513,7 +618,7 @@ app.put('/api/profile', authMiddleware, async (c) => {
   return c.json(user);
 });
 
-// â”€â”€â”€ POSTS ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ POSTS ROUTES Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 app.get('/api/posts', rateLimitMiddleware, async (c) => {
   const governorate = c.req.query('governorate');
@@ -642,7 +747,7 @@ app.post('/api/posts', authMiddleware, rateLimitMiddleware, async (c) => {
     await c.req.json();
 
   if (!content || !type || !governorate || !institution) {
-    return c.json({ error: 'Ù†ÙˆØ¹ Ø§Ù„Ù…Ù†Ø´ÙˆØ± ÙˆØ§Ù„Ù…Ø­ØªÙˆÙ‰ ÙˆØ§Ù„Ù…Ø­Ø§ÙØ¸Ø© ÙˆØ§Ù„Ù…Ø¤Ø³Ø³Ø© Ù…Ø·Ù„ÙˆØ¨Ø©' }, 400);
+    return c.json({ error: 'Ã™â€ Ã™Ë†Ã˜Â¹ Ã˜Â§Ã™â€žÃ™â€¦Ã™â€ Ã˜Â´Ã™Ë†Ã˜Â± Ã™Ë†Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â­Ã˜ÂªÃ™Ë†Ã™â€° Ã™Ë†Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â­Ã˜Â§Ã™ÂÃ˜Â¸Ã˜Â© Ã™Ë†Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â¤Ã˜Â³Ã˜Â³Ã˜Â© Ã™â€¦Ã˜Â·Ã™â€žÃ™Ë†Ã˜Â¨Ã˜Â©' }, 400);
   }
 
   const id = crypto.randomUUID();
@@ -726,11 +831,11 @@ app.put('/api/posts/:id', authMiddleware, rateLimitMiddleware, async (c) => {
     .first<{ author_id: string }>();
 
   if (!post) {
-    return c.json({ error: 'Ø§Ù„Ù…Ù†Ø´ÙˆØ± ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯' }, 404);
+    return c.json({ error: 'Ã˜Â§Ã™â€žÃ™â€¦Ã™â€ Ã˜Â´Ã™Ë†Ã˜Â± Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã™Ë†Ã˜Â¬Ã™Ë†Ã˜Â¯' }, 404);
   }
 
   if (post.author_id !== userId) {
-    return c.json({ error: 'ØºÙŠØ± Ù…ØµØ±Ø­ Ù„Ùƒ Ø¨ØªØ¹Ø¯ÙŠÙ„ Ù‡Ø°Ø§ Ø§Ù„Ù…Ù†Ø´ÙˆØ±' }, 403);
+    return c.json({ error: 'Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­ Ã™â€žÃ™Æ’ Ã˜Â¨Ã˜ÂªÃ˜Â¹Ã˜Â¯Ã™Å Ã™â€ž Ã™â€¡Ã˜Â°Ã˜Â§ Ã˜Â§Ã™â€žÃ™â€¦Ã™â€ Ã˜Â´Ã™Ë†Ã˜Â±' }, 403);
   }
 
   // Build update query dynamically
@@ -751,7 +856,7 @@ app.put('/api/posts/:id', authMiddleware, rateLimitMiddleware, async (c) => {
   }
 
   if (updates.length === 0) {
-    return c.json({ error: 'Ù„Ù… ÙŠØªÙ… ØªÙˆÙÙŠØ± Ø£ÙŠ Ø­Ù‚ÙˆÙ„ Ù„Ù„ØªØ­Ø¯ÙŠØ«' }, 400);
+    return c.json({ error: 'Ã™â€žÃ™â€¦ Ã™Å Ã˜ÂªÃ™â€¦ Ã˜ÂªÃ™Ë†Ã™ÂÃ™Å Ã˜Â± Ã˜Â£Ã™Å  Ã˜Â­Ã™â€šÃ™Ë†Ã™â€ž Ã™â€žÃ™â€žÃ˜ÂªÃ˜Â­Ã˜Â¯Ã™Å Ã˜Â«' }, 400);
   }
 
   params.push(postId);
@@ -779,11 +884,11 @@ app.delete('/api/posts/:id', authMiddleware, rateLimitMiddleware, async (c) => {
     .first<{ author_id: string }>();
 
   if (!post) {
-    return c.json({ error: 'Ø§Ù„Ù…Ù†Ø´ÙˆØ± ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯' }, 404);
+    return c.json({ error: 'Ã˜Â§Ã™â€žÃ™â€¦Ã™â€ Ã˜Â´Ã™Ë†Ã˜Â± Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã™Ë†Ã˜Â¬Ã™Ë†Ã˜Â¯' }, 404);
   }
 
   if (post.author_id !== userId) {
-    return c.json({ error: 'ØºÙŠØ± Ù…ØµØ±Ø­ Ù„Ùƒ Ø¨Ø­Ø°Ù Ù‡Ø°Ø§ Ø§Ù„Ù…Ù†Ø´ÙˆØ±' }, 403);
+    return c.json({ error: 'Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­ Ã™â€žÃ™Æ’ Ã˜Â¨Ã˜Â­Ã˜Â°Ã™Â Ã™â€¡Ã˜Â°Ã˜Â§ Ã˜Â§Ã™â€žÃ™â€¦Ã™â€ Ã˜Â´Ã™Ë†Ã˜Â±' }, 403);
   }
 
   // Cascade delete: likes, comments, then post
@@ -799,10 +904,10 @@ app.delete('/api/posts/:id', authMiddleware, rateLimitMiddleware, async (c) => {
     .bind(postId)
     .run();
 
-  return c.json({ message: 'ØªÙ… Ø­Ø°Ù Ø§Ù„Ù…Ù†Ø´ÙˆØ± Ø¨Ù†Ø¬Ø§Ø­' });
+  return c.json({ message: 'Ã˜ÂªÃ™â€¦ Ã˜Â­Ã˜Â°Ã™Â Ã˜Â§Ã™â€žÃ™â€¦Ã™â€ Ã˜Â´Ã™Ë†Ã˜Â± Ã˜Â¨Ã™â€ Ã˜Â¬Ã˜Â§Ã˜Â­' });
 });
 
-// â”€â”€â”€ COMMENTS ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ COMMENTS ROUTES Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 app.get('/api/posts/:id/comments', async (c) => {
   const postId = c.req.param('id');
@@ -822,7 +927,7 @@ app.post('/api/posts/:id/comments', authMiddleware, async (c) => {
   const { content } = await c.req.json();
 
   if (!content?.trim()) {
-    return c.json({ error: 'Ù…Ø­ØªÙˆÙ‰ Ø§Ù„ØªØ¹Ù„ÙŠÙ‚ Ù…Ø·Ù„ÙˆØ¨' }, 400);
+    return c.json({ error: 'Ã™â€¦Ã˜Â­Ã˜ÂªÃ™Ë†Ã™â€° Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â¹Ã™â€žÃ™Å Ã™â€š Ã™â€¦Ã˜Â·Ã™â€žÃ™Ë†Ã˜Â¨' }, 400);
   }
 
   const id = crypto.randomUUID();
@@ -857,15 +962,15 @@ app.put('/api/comments/:id', authMiddleware, async (c) => {
     .first<{ author_id: string; post_id: string }>();
 
   if (!comment) {
-    return c.json({ error: 'Ø§Ù„ØªØ¹Ù„ÙŠÙ‚ ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯' }, 404);
+    return c.json({ error: 'Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â¹Ã™â€žÃ™Å Ã™â€š Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã™Ë†Ã˜Â¬Ã™Ë†Ã˜Â¯' }, 404);
   }
 
   if (comment.author_id !== userId) {
-    return c.json({ error: 'ØºÙŠØ± Ù…ØµØ±Ø­ Ù„Ùƒ Ø¨ØªØ¹Ø¯ÙŠÙ„ Ù‡Ø°Ø§ Ø§Ù„ØªØ¹Ù„ÙŠÙ‚' }, 403);
+    return c.json({ error: 'Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­ Ã™â€žÃ™Æ’ Ã˜Â¨Ã˜ÂªÃ˜Â¹Ã˜Â¯Ã™Å Ã™â€ž Ã™â€¡Ã˜Â°Ã˜Â§ Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â¹Ã™â€žÃ™Å Ã™â€š' }, 403);
   }
 
   if (!content?.trim()) {
-    return c.json({ error: 'Ù…Ø­ØªÙˆÙ‰ Ø§Ù„ØªØ¹Ù„ÙŠÙ‚ Ù…Ø·Ù„ÙˆØ¨' }, 400);
+    return c.json({ error: 'Ã™â€¦Ã˜Â­Ã˜ÂªÃ™Ë†Ã™â€° Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â¹Ã™â€žÃ™Å Ã™â€š Ã™â€¦Ã˜Â·Ã™â€žÃ™Ë†Ã˜Â¨' }, 400);
   }
 
   await c.env.DB.prepare('UPDATE comments SET content = ? WHERE id = ?')
@@ -892,11 +997,11 @@ app.delete('/api/comments/:id', authMiddleware, async (c) => {
     .first<{ author_id: string; post_id: string }>();
 
   if (!comment) {
-    return c.json({ error: 'Ø§Ù„ØªØ¹Ù„ÙŠÙ‚ ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯' }, 404);
+    return c.json({ error: 'Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â¹Ã™â€žÃ™Å Ã™â€š Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã™Ë†Ã˜Â¬Ã™Ë†Ã˜Â¯' }, 404);
   }
 
   if (comment.author_id !== userId) {
-    return c.json({ error: 'ØºÙŠØ± Ù…ØµØ±Ø­ Ù„Ùƒ Ø¨Ø­Ø°Ù Ù‡Ø°Ø§ Ø§Ù„ØªØ¹Ù„ÙŠÙ‚' }, 403);
+    return c.json({ error: 'Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã˜ÂµÃ˜Â±Ã˜Â­ Ã™â€žÃ™Æ’ Ã˜Â¨Ã˜Â­Ã˜Â°Ã™Â Ã™â€¡Ã˜Â°Ã˜Â§ Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â¹Ã™â€žÃ™Å Ã™â€š' }, 403);
   }
 
   await c.env.DB.prepare('DELETE FROM comments WHERE id = ?')
@@ -907,17 +1012,17 @@ app.delete('/api/comments/:id', authMiddleware, async (c) => {
     .bind(comment.post_id)
     .run();
 
-  return c.json({ message: 'ØªÙ… Ø­Ø°Ù Ø§Ù„ØªØ¹Ù„ÙŠÙ‚ Ø¨Ù†Ø¬Ø§Ø­' });
+  return c.json({ message: 'Ã˜ÂªÃ™â€¦ Ã˜Â­Ã˜Â°Ã™Â Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â¹Ã™â€žÃ™Å Ã™â€š Ã˜Â¨Ã™â€ Ã˜Â¬Ã˜Â§Ã˜Â­' });
 });
 
-// â”€â”€â”€ FOLLOW ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ FOLLOW ROUTES Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 app.post('/api/follow/:userId', authMiddleware, async (c) => {
   const followerId = c.get('userId');
   const followeeId = c.req.param('userId');
 
   if (followerId === followeeId) {
-    return c.json({ error: 'Ù„Ø§ ÙŠÙ…ÙƒÙ† Ù…ØªØ§Ø¨Ø¹Ø© Ù†ÙØ³Ùƒ' }, 400);
+    return c.json({ error: 'Ã™â€žÃ˜Â§ Ã™Å Ã™â€¦Ã™Æ’Ã™â€  Ã™â€¦Ã˜ÂªÃ˜Â§Ã˜Â¨Ã˜Â¹Ã˜Â© Ã™â€ Ã™ÂÃ˜Â³Ã™Æ’' }, 400);
   }
 
   // Check if followee exists
@@ -926,7 +1031,7 @@ app.post('/api/follow/:userId', authMiddleware, async (c) => {
     .first();
 
   if (!followee) {
-    return c.json({ error: 'Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯' }, 404);
+    return c.json({ error: 'Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã™Ë†Ã˜Â¬Ã™Ë†Ã˜Â¯' }, 404);
   }
 
   // Check if already following
@@ -937,7 +1042,7 @@ app.post('/api/follow/:userId', authMiddleware, async (c) => {
     .first();
 
   if (existing) {
-    return c.json({ error: 'Ø£Ù†Øª ØªØªØ§Ø¨Ø¹ Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø¨Ø§Ù„ÙØ¹Ù„' }, 400);
+    return c.json({ error: 'Ã˜Â£Ã™â€ Ã˜Âª Ã˜ÂªÃ˜ÂªÃ˜Â§Ã˜Â¨Ã˜Â¹ Ã™â€¡Ã˜Â°Ã˜Â§ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã˜Â¨Ã˜Â§Ã™â€žÃ™ÂÃ˜Â¹Ã™â€ž' }, 400);
   }
 
   const id = crypto.randomUUID();
@@ -947,7 +1052,7 @@ app.post('/api/follow/:userId', authMiddleware, async (c) => {
     .bind(id, followerId, followeeId)
     .run();
 
-  return c.json({ message: 'ØªÙ…Øª Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø© Ø¨Ù†Ø¬Ø§Ø­', following: true }, 201);
+  return c.json({ message: 'Ã˜ÂªÃ™â€¦Ã˜Âª Ã˜Â§Ã™â€žÃ™â€¦Ã˜ÂªÃ˜Â§Ã˜Â¨Ã˜Â¹Ã˜Â© Ã˜Â¨Ã™â€ Ã˜Â¬Ã˜Â§Ã˜Â­', following: true }, 201);
 });
 
 app.delete('/api/follow/:userId', authMiddleware, async (c) => {
@@ -961,13 +1066,13 @@ app.delete('/api/follow/:userId', authMiddleware, async (c) => {
     .run();
 
   if (result.meta.changes === 0) {
-    return c.json({ error: 'Ø£Ù†Øª Ù„Ø§ ØªØªØ§Ø¨Ø¹ Ù‡Ø°Ø§ Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù…' }, 400);
+    return c.json({ error: 'Ã˜Â£Ã™â€ Ã˜Âª Ã™â€žÃ˜Â§ Ã˜ÂªÃ˜ÂªÃ˜Â§Ã˜Â¨Ã˜Â¹ Ã™â€¡Ã˜Â°Ã˜Â§ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦' }, 400);
   }
 
-  return c.json({ message: 'ØªÙ… Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ù…ØªØ§Ø¨Ø¹Ø© Ø¨Ù†Ø¬Ø§Ø­', following: false });
+  return c.json({ message: 'Ã˜ÂªÃ™â€¦ Ã˜Â¥Ã™â€žÃ˜ÂºÃ˜Â§Ã˜Â¡ Ã˜Â§Ã™â€žÃ™â€¦Ã˜ÂªÃ˜Â§Ã˜Â¨Ã˜Â¹Ã˜Â© Ã˜Â¨Ã™â€ Ã˜Â¬Ã˜Â§Ã˜Â­', following: false });
 });
 
-// â”€â”€â”€ HIGHLIGHTS AUTOMATION SYSTEM â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ HIGHLIGHTS AUTOMATION SYSTEM Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const HIGHLIGHT_CATEGORIES = ['event', 'job', 'internship', 'scholarship', 'student_club'] as const;
 type HighlightCategory = typeof HIGHLIGHT_CATEGORIES[number];
@@ -975,25 +1080,25 @@ const PUBLIC_HIGHLIGHT_CATEGORIES = ['event', 'news', 'announcement', 'exam', 'r
 const PUBLIC_OPPORTUNITY_TYPES = ['job', 'scholarship', 'internship', 'training', 'fellowship', 'volunteering', 'competition'] as const;
 
 const GOVERNORATE_ALIASES: Record<string, string[]> = {
-  Baghdad: ['baghdad', 'Ø¨ØºØ¯Ø§Ø¯'],
-  Basra: ['basra', 'basrah', 'Ø§Ù„Ø¨ØµØ±Ø©', 'Ø¨ØµØ±Ø©'],
-  Erbil: ['erbil', 'arbil', 'hawler', 'Ø£Ø±Ø¨ÙŠÙ„', 'Ø§Ø±Ø¨ÙŠÙ„', 'Ù‡Û•ÙˆÙ„ÛŽØ±'],
-  Sulaymaniyah: ['sulaymaniyah', 'sulaimani', 'slemani', 'Ø§Ù„Ø³Ù„ÙŠÙ…Ø§Ù†ÙŠØ©', 'Ø³Ù„ÛŽÙ…Ø§Ù†ÛŒ'],
-  Duhok: ['duhok', 'dohuk', 'Ø¯Ù‡ÙˆÙƒ', 'Ø¯Ù‡Û†Ùƒ'],
-  Halabja: ['halabja', 'Ø­Ù„Ø¨Ø¬Ø©', 'Ù‡Û•ÚµÛ•Ø¨Ø¬Û•'],
-  Nineveh: ['nineveh', 'mosul', 'Ù†ÙŠÙ†ÙˆÙ‰', 'Ù†ÙŠÙ†ÙˆÙŠ', 'Ø§Ù„Ù…ÙˆØµÙ„'],
-  Kirkuk: ['kirkuk', 'ÙƒØ±ÙƒÙˆÙƒ', 'Ú©Û•Ø±Ú©ÙˆÙˆÚ©'],
-  Anbar: ['anbar', 'Ø§Ù„Ø£Ù†Ø¨Ø§Ø±', 'Ø§Ù„Ø§Ù†Ø¨Ø§Ø±'],
-  Salahaddin: ['salahaddin', 'salah al-din', 'salahaldeen', 'ØµÙ„Ø§Ø­ Ø§Ù„Ø¯ÙŠÙ†'],
-  Diyala: ['diyala', 'Ø¯ÙŠØ§Ù„Ù‰', 'Ø¯ÙŠØ§Ù„ÙŠ'],
-  Babil: ['babil', 'babylon', 'Ø¨Ø§Ø¨Ù„'],
-  Karbala: ['karbala', 'ÙƒØ±Ø¨Ù„Ø§Ø¡', 'Ú©Ø±Ø¨Ù„Ø§'],
-  Najaf: ['najaf', 'Ø§Ù„Ù†Ø¬Ù', 'Ù†Ø¬Ù'],
-  Qadisiyah: ['qadisiyah', 'diwaniyah', 'Ø§Ù„Ù‚Ø§Ø¯Ø³ÙŠØ©', 'Ø§Ù„Ø¯ÙŠÙˆØ§Ù†ÙŠØ©'],
-  Wasit: ['wasit', 'ÙˆØ§Ø³Ø·'],
-  'Dhi Qar': ['dhi qar', 'dhiqar', 'thi qar', 'Ø°ÙŠ Ù‚Ø§Ø±', 'Ø°ÙŠÙ‚Ø§Ø±'],
-  Maysan: ['maysan', 'Ù…ÙŠØ³Ø§Ù†'],
-  Muthanna: ['muthanna', 'Ø§Ù„Ù…Ø«Ù†Ù‰', 'Ù…Ø«Ù†Ù‰'],
+  Baghdad: ['baghdad', 'Ã˜Â¨Ã˜ÂºÃ˜Â¯Ã˜Â§Ã˜Â¯'],
+  Basra: ['basra', 'basrah', 'Ã˜Â§Ã™â€žÃ˜Â¨Ã˜ÂµÃ˜Â±Ã˜Â©', 'Ã˜Â¨Ã˜ÂµÃ˜Â±Ã˜Â©'],
+  Erbil: ['erbil', 'arbil', 'hawler', 'Ã˜Â£Ã˜Â±Ã˜Â¨Ã™Å Ã™â€ž', 'Ã˜Â§Ã˜Â±Ã˜Â¨Ã™Å Ã™â€ž', 'Ã™â€¡Ã›â€¢Ã™Ë†Ã™â€žÃ›Å½Ã˜Â±'],
+  Sulaymaniyah: ['sulaymaniyah', 'sulaimani', 'slemani', 'Ã˜Â§Ã™â€žÃ˜Â³Ã™â€žÃ™Å Ã™â€¦Ã˜Â§Ã™â€ Ã™Å Ã˜Â©', 'Ã˜Â³Ã™â€žÃ›Å½Ã™â€¦Ã˜Â§Ã™â€ Ã›Å’'],
+  Duhok: ['duhok', 'dohuk', 'Ã˜Â¯Ã™â€¡Ã™Ë†Ã™Æ’', 'Ã˜Â¯Ã™â€¡Ã›â€ Ã™Æ’'],
+  Halabja: ['halabja', 'Ã˜Â­Ã™â€žÃ˜Â¨Ã˜Â¬Ã˜Â©', 'Ã™â€¡Ã›â€¢ÃšÂµÃ›â€¢Ã˜Â¨Ã˜Â¬Ã›â€¢'],
+  Nineveh: ['nineveh', 'mosul', 'Ã™â€ Ã™Å Ã™â€ Ã™Ë†Ã™â€°', 'Ã™â€ Ã™Å Ã™â€ Ã™Ë†Ã™Å ', 'Ã˜Â§Ã™â€žÃ™â€¦Ã™Ë†Ã˜ÂµÃ™â€ž'],
+  Kirkuk: ['kirkuk', 'Ã™Æ’Ã˜Â±Ã™Æ’Ã™Ë†Ã™Æ’', 'ÃšÂ©Ã›â€¢Ã˜Â±ÃšÂ©Ã™Ë†Ã™Ë†ÃšÂ©'],
+  Anbar: ['anbar', 'Ã˜Â§Ã™â€žÃ˜Â£Ã™â€ Ã˜Â¨Ã˜Â§Ã˜Â±', 'Ã˜Â§Ã™â€žÃ˜Â§Ã™â€ Ã˜Â¨Ã˜Â§Ã˜Â±'],
+  Salahaddin: ['salahaddin', 'salah al-din', 'salahaldeen', 'Ã˜ÂµÃ™â€žÃ˜Â§Ã˜Â­ Ã˜Â§Ã™â€žÃ˜Â¯Ã™Å Ã™â€ '],
+  Diyala: ['diyala', 'Ã˜Â¯Ã™Å Ã˜Â§Ã™â€žÃ™â€°', 'Ã˜Â¯Ã™Å Ã˜Â§Ã™â€žÃ™Å '],
+  Babil: ['babil', 'babylon', 'Ã˜Â¨Ã˜Â§Ã˜Â¨Ã™â€ž'],
+  Karbala: ['karbala', 'Ã™Æ’Ã˜Â±Ã˜Â¨Ã™â€žÃ˜Â§Ã˜Â¡', 'ÃšÂ©Ã˜Â±Ã˜Â¨Ã™â€žÃ˜Â§'],
+  Najaf: ['najaf', 'Ã˜Â§Ã™â€žÃ™â€ Ã˜Â¬Ã™Â', 'Ã™â€ Ã˜Â¬Ã™Â'],
+  Qadisiyah: ['qadisiyah', 'diwaniyah', 'Ã˜Â§Ã™â€žÃ™â€šÃ˜Â§Ã˜Â¯Ã˜Â³Ã™Å Ã˜Â©', 'Ã˜Â§Ã™â€žÃ˜Â¯Ã™Å Ã™Ë†Ã˜Â§Ã™â€ Ã™Å Ã˜Â©'],
+  Wasit: ['wasit', 'Ã™Ë†Ã˜Â§Ã˜Â³Ã˜Â·'],
+  'Dhi Qar': ['dhi qar', 'dhiqar', 'thi qar', 'Ã˜Â°Ã™Å  Ã™â€šÃ˜Â§Ã˜Â±', 'Ã˜Â°Ã™Å Ã™â€šÃ˜Â§Ã˜Â±'],
+  Maysan: ['maysan', 'Ã™â€¦Ã™Å Ã˜Â³Ã˜Â§Ã™â€ '],
+  Muthanna: ['muthanna', 'Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â«Ã™â€ Ã™â€°', 'Ã™â€¦Ã˜Â«Ã™â€ Ã™â€°'],
 };
 
 function normalizeGovernorate(input?: string | null): string | null {
@@ -1029,11 +1134,11 @@ function detectLanguage(text: string): string {
 
 function classifyHighlight(text: string, fallback: HighlightCategory): HighlightCategory {
   const lower = text.toLowerCase();
-  if (/(scholarship|grant|Ù…Ù†Ø­Ø©|Ø²Ù…Ø§Ù„Ø©|Ø¨ÙˆØ±Ø³ÛŒÙ‡)/.test(lower)) return 'scholarship';
-  if (/(internship|ØªØ¯Ø±ÙŠØ¨|ØªØ¯Ø±ÙŠØ¨ ØµÙŠÙÙŠ|Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†)/.test(lower)) return 'internship';
-  if (/(job|career|vacancy|ÙˆØ¸ÙŠÙØ©|ÙØ±ØµØ© Ø¹Ù…Ù„|Ú©Ø§Ø±)/.test(lower)) return 'job';
-  if (/(club|Ù†Ø§Ø¯ÙŠ|ÙØ±ÙŠÙ‚ Ø·Ù„Ø§Ø¨ÙŠ|ÛŒØ§Ù†Û•)/.test(lower)) return 'student_club';
-  if (/(event|workshop|conference|seminar|ÙØ¹Ø§Ù„ÙŠØ©|ÙˆØ±Ø´Ø©|Ù…Ø¤ØªÙ…Ø±|Ù†Ø¯ÙˆØ©)/.test(lower)) return 'event';
+  if (/(scholarship|grant|Ã™â€¦Ã™â€ Ã˜Â­Ã˜Â©|Ã˜Â²Ã™â€¦Ã˜Â§Ã™â€žÃ˜Â©|Ã˜Â¨Ã™Ë†Ã˜Â±Ã˜Â³Ã›Å’Ã™â€¡)/.test(lower)) return 'scholarship';
+  if (/(internship|Ã˜ÂªÃ˜Â¯Ã˜Â±Ã™Å Ã˜Â¨|Ã˜ÂªÃ˜Â¯Ã˜Â±Ã™Å Ã˜Â¨ Ã˜ÂµÃ™Å Ã™ÂÃ™Å |Ãšâ€¢Ã˜Â§Ã™â€¡Ã›Å½Ã™â€ Ã˜Â§Ã™â€ )/.test(lower)) return 'internship';
+  if (/(job|career|vacancy|Ã™Ë†Ã˜Â¸Ã™Å Ã™ÂÃ˜Â©|Ã™ÂÃ˜Â±Ã˜ÂµÃ˜Â© Ã˜Â¹Ã™â€¦Ã™â€ž|ÃšÂ©Ã˜Â§Ã˜Â±)/.test(lower)) return 'job';
+  if (/(club|Ã™â€ Ã˜Â§Ã˜Â¯Ã™Å |Ã™ÂÃ˜Â±Ã™Å Ã™â€š Ã˜Â·Ã™â€žÃ˜Â§Ã˜Â¨Ã™Å |Ã›Å’Ã˜Â§Ã™â€ Ã›â€¢)/.test(lower)) return 'student_club';
+  if (/(event|workshop|conference|seminar|Ã™ÂÃ˜Â¹Ã˜Â§Ã™â€žÃ™Å Ã˜Â©|Ã™Ë†Ã˜Â±Ã˜Â´Ã˜Â©|Ã™â€¦Ã˜Â¤Ã˜ÂªÃ™â€¦Ã˜Â±|Ã™â€ Ã˜Â¯Ã™Ë†Ã˜Â©)/.test(lower)) return 'event';
   return fallback;
 }
 
@@ -1099,7 +1204,7 @@ function extractHighlightCandidates(source: any, html: string): any[] {
     normalizeSpace(text.slice(0, 90));
   const summary = normalizeSpace(text.slice(0, 280));
   const sourceUrl = source.source_url;
-  const applyMatch = html.match(/<a[^>]+href=["']([^"']+)["'][^>]*>(?:\s|.){0,80}?(apply|register|Ù‚Ø¯Ù…|Ø³Ø¬Ù„|Ø§Ù„ØªÙ‚Ø¯ÙŠÙ…|Ø§Ù„ØªØ³Ø¬ÙŠÙ„)(?:\s|.){0,80}?<\/a>/i);
+  const applyMatch = html.match(/<a[^>]+href=["']([^"']+)["'][^>]*>(?:\s|.){0,80}?(apply|register|Ã™â€šÃ˜Â¯Ã™â€¦|Ã˜Â³Ã˜Â¬Ã™â€ž|Ã˜Â§Ã™â€žÃ˜ÂªÃ™â€šÃ˜Â¯Ã™Å Ã™â€¦|Ã˜Â§Ã™â€žÃ˜ÂªÃ˜Â³Ã˜Â¬Ã™Å Ã™â€ž)(?:\s|.){0,80}?<\/a>/i);
   const firstLink = html.match(/<a[^>]+href=["']([^"']+)["']/i);
   const applyUrl = absoluteUrl(sourceUrl, applyMatch?.[1] || firstLink?.[1]) || sourceUrl;
   const date = parseDateCandidate(text);
@@ -1546,7 +1651,7 @@ app.post('/api/admin/highlight-import/run', authMiddleware, adminMiddleware, asy
   return c.json({ success: true, ...result });
 });
 
-// â”€â”€â”€ OPPORTUNITIES ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ OPPORTUNITIES ROUTES Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 app.get('/api/opportunities', async (c) => {
   const type = (c.req.query('type') || c.req.query('category'))?.trim();
@@ -1626,7 +1731,7 @@ app.post('/api/opportunities', authMiddleware, async (c) => {
     await c.req.json();
 
   if (!title || !type || !institution_name) {
-    return c.json({ error: 'Ø§Ù„Ø¹Ù†ÙˆØ§Ù† ÙˆØ§Ù„Ù†ÙˆØ¹ ÙˆØ§Ø³Ù… Ø§Ù„Ù…Ø¤Ø³Ø³Ø© Ù…Ø·Ù„ÙˆØ¨Ø©' }, 400);
+    return c.json({ error: 'Ã˜Â§Ã™â€žÃ˜Â¹Ã™â€ Ã™Ë†Ã˜Â§Ã™â€  Ã™Ë†Ã˜Â§Ã™â€žÃ™â€ Ã™Ë†Ã˜Â¹ Ã™Ë†Ã˜Â§Ã˜Â³Ã™â€¦ Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â¤Ã˜Â³Ã˜Â³Ã˜Â© Ã™â€¦Ã˜Â·Ã™â€žÃ™Ë†Ã˜Â¨Ã˜Â©' }, 400);
   }
 
   const id = crypto.randomUUID();
@@ -1653,12 +1758,12 @@ app.post('/api/opportunities', authMiddleware, async (c) => {
   return c.json(opp, 201);
 });
 
-// â”€â”€â”€ SEARCH ROUTE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ SEARCH ROUTE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 app.get('/api/search', rateLimitMiddleware, async (c) => {
   const query = c.req.query('q');
   if (!query || query.length < 2) {
-    return c.json({ error: 'ÙƒÙ„Ù…Ø© Ø§Ù„Ø¨Ø­Ø« Ù…Ø·Ù„ÙˆØ¨Ø© (Ø­Ø±ÙÙŠÙ† Ø¹Ù„Ù‰ Ø§Ù„Ø£Ù‚Ù„)' }, 400);
+    return c.json({ error: 'Ã™Æ’Ã™â€žÃ™â€¦Ã˜Â© Ã˜Â§Ã™â€žÃ˜Â¨Ã˜Â­Ã˜Â« Ã™â€¦Ã˜Â·Ã™â€žÃ™Ë†Ã˜Â¨Ã˜Â© (Ã˜Â­Ã˜Â±Ã™ÂÃ™Å Ã™â€  Ã˜Â¹Ã™â€žÃ™â€° Ã˜Â§Ã™â€žÃ˜Â£Ã™â€šÃ™â€ž)' }, 400);
   }
 
   const searchTerm = `%${query}%`;
@@ -1747,7 +1852,7 @@ app.get('/api/search', rateLimitMiddleware, async (c) => {
   return c.json(results);
 });
 
-// â”€â”€â”€ ADMIN ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ ADMIN ROUTES Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 app.get('/api/admin/stats', authMiddleware, adminMiddleware, async (c) => {
   const userRole = (c as any).get('userRole');
@@ -1804,7 +1909,7 @@ app.delete('/api/admin/posts/:id', authMiddleware, adminMiddleware, async (c) =>
       .first<{ author_id: string }>();
 
     if (!post) {
-      return c.json({ error: 'Ø§Ù„Ù…Ù†Ø´ÙˆØ± ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯' }, 404);
+      return c.json({ error: 'Ã˜Â§Ã™â€žÃ™â€¦Ã™â€ Ã˜Â´Ã™Ë†Ã˜Â± Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã™Ë†Ã˜Â¬Ã™Ë†Ã˜Â¯' }, 404);
     }
 
     const author = await c.env.DB.prepare('SELECT role FROM profiles WHERE id = ?')
@@ -1829,7 +1934,7 @@ app.delete('/api/admin/posts/:id', authMiddleware, adminMiddleware, async (c) =>
     .bind(postId)
     .run();
 
-  return c.json({ message: 'ØªÙ… Ø­Ø°Ù Ø§Ù„Ù…Ù†Ø´ÙˆØ± Ø¨Ù†Ø¬Ø§Ø­' });
+  return c.json({ message: 'Ã˜ÂªÃ™â€¦ Ã˜Â­Ã˜Â°Ã™Â Ã˜Â§Ã™â€žÃ™â€¦Ã™â€ Ã˜Â´Ã™Ë†Ã˜Â± Ã˜Â¨Ã™â€ Ã˜Â¬Ã˜Â§Ã˜Â­' });
 });
 
 app.put('/api/admin/users/:id/role', authMiddleware, adminMiddleware, async (c) => {
@@ -1858,7 +1963,7 @@ app.put('/api/admin/users/:id/role', authMiddleware, adminMiddleware, async (c) 
     .first<{ id: string; role: string }>();
 
   if (!targetUser) {
-    return c.json({ error: 'Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… ØºÙŠØ± Ù…ÙˆØ¬ÙˆØ¯' }, 404);
+    return c.json({ error: 'Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã˜ÂºÃ™Å Ã˜Â± Ã™â€¦Ã™Ë†Ã˜Â¬Ã™Ë†Ã˜Â¯' }, 404);
   }
 
   // Update role
@@ -1866,10 +1971,10 @@ app.put('/api/admin/users/:id/role', authMiddleware, adminMiddleware, async (c) 
     .bind(role, targetUserId)
     .run();
 
-  return c.json({ message: 'ØªÙ… ØªØ­Ø¯ÙŠØ« Ø§Ù„Ø¯ÙˆØ± Ø¨Ù†Ø¬Ø§Ø­', newRole: role });
+  return c.json({ message: 'Ã˜ÂªÃ™â€¦ Ã˜ÂªÃ˜Â­Ã˜Â¯Ã™Å Ã˜Â« Ã˜Â§Ã™â€žÃ˜Â¯Ã™Ë†Ã˜Â± Ã˜Â¨Ã™â€ Ã˜Â¬Ã˜Â§Ã˜Â­', newRole: role });
 });
 
-// â”€â”€â”€ CHAT ROUTES â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ CHAT ROUTES Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 app.get('/api/chat/rooms', authMiddleware, async (c) => {
   const userId = c.get('userId');
@@ -1901,7 +2006,7 @@ app.post('/api/chat/rooms', authMiddleware, async (c) => {
   const { other_user_id } = await c.req.json();
 
   if (!other_user_id) {
-    return c.json({ error: 'Ù…Ø¹Ø±Ù Ø§Ù„Ù…Ø³ØªØ®Ø¯Ù… Ø§Ù„Ø¢Ø®Ø± Ù…Ø·Ù„ÙˆØ¨' }, 400);
+    return c.json({ error: 'Ã™â€¦Ã˜Â¹Ã˜Â±Ã™Â Ã˜Â§Ã™â€žÃ™â€¦Ã˜Â³Ã˜ÂªÃ˜Â®Ã˜Â¯Ã™â€¦ Ã˜Â§Ã™â€žÃ˜Â¢Ã˜Â®Ã˜Â± Ã™â€¦Ã˜Â·Ã™â€žÃ™Ë†Ã˜Â¨' }, 400);
   }
 
   // Check if room already exists
@@ -1951,7 +2056,7 @@ app.post('/api/chat/rooms/:roomId/messages', authMiddleware, async (c) => {
   const { content } = await c.req.json();
 
   if (!content?.trim()) {
-    return c.json({ error: 'Ù…Ø­ØªÙˆÙ‰ Ø§Ù„Ø±Ø³Ø§Ù„Ø© Ù…Ø·Ù„ÙˆØ¨' }, 400);
+    return c.json({ error: 'Ã™â€¦Ã˜Â­Ã˜ÂªÃ™Ë†Ã™â€° Ã˜Â§Ã™â€žÃ˜Â±Ã˜Â³Ã˜Â§Ã™â€žÃ˜Â© Ã™â€¦Ã˜Â·Ã™â€žÃ™Ë†Ã˜Â¨' }, 400);
   }
 
   const id = crypto.randomUUID();
@@ -1972,7 +2077,7 @@ app.post('/api/chat/rooms/:roomId/messages', authMiddleware, async (c) => {
   return c.json(message, 201);
 });
 
-// â”€â”€â”€ UPLOAD (R2) â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ UPLOAD (R2) Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 app.post('/api/upload', authMiddleware, async (c) => {
   if (!c.env.BUCKET) {
@@ -1982,7 +2087,7 @@ app.post('/api/upload', authMiddleware, async (c) => {
   const formData = await c.req.formData();
   const file = formData.get('file');
 
-  if (!file || typeof file === 'string') return c.json({ error: 'Ù„Ù… ÙŠØªÙ… Ø¥Ø±ÙØ§Ù‚ Ù…Ù„Ù' }, 400);
+  if (!file || typeof file === 'string') return c.json({ error: 'Ã™â€žÃ™â€¦ Ã™Å Ã˜ÂªÃ™â€¦ Ã˜Â¥Ã˜Â±Ã™ÂÃ˜Â§Ã™â€š Ã™â€¦Ã™â€žÃ™Â' }, 400);
 
   const fileObj = file as File;
   const ext = fileObj.name.split('.').pop() || 'jpg';
@@ -1996,7 +2101,7 @@ app.post('/api/upload', authMiddleware, async (c) => {
   return c.json({ url });
 });
 
-// â”€â”€â”€ GOVERNORATES & INSTITUTIONS â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ GOVERNORATES & INSTITUTIONS Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 app.get('/api/governorates', async (c) => {
   const governorates = await c.env.DB.prepare(
@@ -2049,7 +2154,7 @@ app.get('/api/institutions', async (c) => {
   });
 });
 
-// â”€â”€â”€ OUTREACH EMAIL ADMIN MODULE â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ OUTREACH EMAIL ADMIN MODULE Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 const OUTREACH_PLACEHOLDERS = [
   'institution_name',
@@ -2616,7 +2721,7 @@ function toOutreachCsv(rows: any[]): string {
   return [headers.join(','), ...rows.map((row) => headers.map((header) => `"${String(row[header] ?? '').replaceAll('"', '""')}"`).join(','))].join('\n');
 }
 
-// â”€â”€â”€ OPPORTUNITY AUTOMATION â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ OPPORTUNITY AUTOMATION Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 // Helper functions for opportunity automation
 function normalizeWhitespace(text: string): string {
@@ -2659,16 +2764,16 @@ function classifyOpportunity(title: string, description: string): string {
   const text = `${title} ${description}`.toLowerCase();
 
   const keywords: Record<string, string[]> = {
-    job: ['job', 'jobs', 'vacancy', 'vacancies', 'hiring', 'career', 'careers', 'position', 'positions', 'وظيفة', 'وظائف', 'تعيين', 'تعيينات', 'فرصة عمل', 'فرص عمل'],
-    scholarship: ['scholarship', 'scholarships', 'grant', 'funding', 'منحة', 'منح', 'زمالة'],
-    fellowship: ['fellowship', 'fellowships', 'زمالة', 'زمالات'],
-    internship: ['internship', 'internships', 'تدريب عملي', 'تدريب صيفي'],
-    training: ['training', 'course', 'workshop', 'دورة', 'تدريب', 'ورشة'],
-    event: ['event', 'events', 'conference', 'seminar', 'مؤتمر', 'ندوة', 'فعالية'],
-    volunteering: ['volunteer', 'volunteering', 'تطوع', 'متطوع'],
-    competition: ['competition', 'contest', 'مسابقة', 'تنافس'],
-    exam: ['exam', 'exams', 'امتحان', 'امتحانات', 'اختبار'],
-    registration: ['registration', 'admission', 'deadline', 'تسجيل', 'قبول', 'استمارة']
+    job: ['job', 'jobs', 'vacancy', 'vacancies', 'hiring', 'career', 'careers', 'position', 'positions', 'ÙˆØ¸ÙŠÙØ©', 'ÙˆØ¸Ø§Ø¦Ù', 'ØªØ¹ÙŠÙŠÙ†', 'ØªØ¹ÙŠÙŠÙ†Ø§Øª', 'ÙØ±ØµØ© Ø¹Ù…Ù„', 'ÙØ±Øµ Ø¹Ù…Ù„'],
+    scholarship: ['scholarship', 'scholarships', 'grant', 'funding', 'Ù…Ù†Ø­Ø©', 'Ù…Ù†Ø­', 'Ø²Ù…Ø§Ù„Ø©'],
+    fellowship: ['fellowship', 'fellowships', 'Ø²Ù…Ø§Ù„Ø©', 'Ø²Ù…Ø§Ù„Ø§Øª'],
+    internship: ['internship', 'internships', 'ØªØ¯Ø±ÙŠØ¨ Ø¹Ù…Ù„ÙŠ', 'ØªØ¯Ø±ÙŠØ¨ ØµÙŠÙÙŠ'],
+    training: ['training', 'course', 'workshop', 'Ø¯ÙˆØ±Ø©', 'ØªØ¯Ø±ÙŠØ¨', 'ÙˆØ±Ø´Ø©'],
+    event: ['event', 'events', 'conference', 'seminar', 'Ù…Ø¤ØªÙ…Ø±', 'Ù†Ø¯ÙˆØ©', 'ÙØ¹Ø§Ù„ÙŠØ©'],
+    volunteering: ['volunteer', 'volunteering', 'ØªØ·ÙˆØ¹', 'Ù…ØªØ·ÙˆØ¹'],
+    competition: ['competition', 'contest', 'Ù…Ø³Ø§Ø¨Ù‚Ø©', 'ØªÙ†Ø§ÙØ³'],
+    exam: ['exam', 'exams', 'Ø§Ù…ØªØ­Ø§Ù†', 'Ø§Ù…ØªØ­Ø§Ù†Ø§Øª', 'Ø§Ø®ØªØ¨Ø§Ø±'],
+    registration: ['registration', 'admission', 'deadline', 'ØªØ³Ø¬ÙŠÙ„', 'Ù‚Ø¨ÙˆÙ„', 'Ø§Ø³ØªÙ…Ø§Ø±Ø©']
   };
 
   for (const [category, words] of Object.entries(keywords)) {
@@ -2782,14 +2887,14 @@ const OPPORTUNITY_KEYWORDS = [
   'apply', 'application', 'deadline', 'scholarship', 'scholarships', 'grant', 'fellowship',
   'internship', 'training', 'course', 'workshop', 'event', 'conference', 'seminar',
   'competition', 'contest', 'volunteer', 'registration', 'admission',
-  'وظيفة', 'وظائف', 'تعيين', 'تعيينات', 'فرصة عمل', 'فرص عمل', 'منحة', 'منح', 'زمالة',
-  'تدريب', 'دورة', 'ورشة', 'فعالية', 'مؤتمر', 'ندوة', 'مسابقة', 'تطوع', 'تسجيل', 'قبول', 'استمارة', 'موعد'
+  'ÙˆØ¸ÙŠÙØ©', 'ÙˆØ¸Ø§Ø¦Ù', 'ØªØ¹ÙŠÙŠÙ†', 'ØªØ¹ÙŠÙŠÙ†Ø§Øª', 'ÙØ±ØµØ© Ø¹Ù…Ù„', 'ÙØ±Øµ Ø¹Ù…Ù„', 'Ù…Ù†Ø­Ø©', 'Ù…Ù†Ø­', 'Ø²Ù…Ø§Ù„Ø©',
+  'ØªØ¯Ø±ÙŠØ¨', 'Ø¯ÙˆØ±Ø©', 'ÙˆØ±Ø´Ø©', 'ÙØ¹Ø§Ù„ÙŠØ©', 'Ù…Ø¤ØªÙ…Ø±', 'Ù†Ø¯ÙˆØ©', 'Ù…Ø³Ø§Ø¨Ù‚Ø©', 'ØªØ·ÙˆØ¹', 'ØªØ³Ø¬ÙŠÙ„', 'Ù‚Ø¨ÙˆÙ„', 'Ø§Ø³ØªÙ…Ø§Ø±Ø©', 'Ù…ÙˆØ¹Ø¯'
 ];
 
 const LINK_DISCOVERY_KEYWORDS = [
   'jobs', 'careers', 'vacancies', 'opportunities', 'scholarships', 'fellowships',
   'internships', 'training', 'events', 'announcements', 'admissions', 'registration',
-  'وظائف', 'تعيينات', 'فرص', 'منح', 'تدريب', 'دورات', 'اعلانات', 'إعلانات', 'قبول', 'تسجيل'
+  'ÙˆØ¸Ø§Ø¦Ù', 'ØªØ¹ÙŠÙŠÙ†Ø§Øª', 'ÙØ±Øµ', 'Ù…Ù†Ø­', 'ØªØ¯Ø±ÙŠØ¨', 'Ø¯ÙˆØ±Ø§Øª', 'Ø§Ø¹Ù„Ø§Ù†Ø§Øª', 'Ø¥Ø¹Ù„Ø§Ù†Ø§Øª', 'Ù‚Ø¨ÙˆÙ„', 'ØªØ³Ø¬ÙŠÙ„'
 ];
 
 const GENERIC_PATH_SEGMENTS = [
@@ -2887,7 +2992,7 @@ function normalizeCrawlerText(text: string): string {
 function normalizeTitleForComparison(title: string): string {
   return normalizeCrawlerText(title)
     .replace(/\s*\|\s*Salahaddin University-Erbil\s*$/i, '')
-    .replace(/\s*[-–—]\s*Salahaddin University-Erbil\s*$/i, '')
+    .replace(/\s*[-â€“â€”]\s*Salahaddin University-Erbil\s*$/i, '')
     .toLowerCase();
 }
 
@@ -2918,7 +3023,7 @@ function isGenericArchivePage(url: string, title: string): boolean {
 function cleanExtractedTitle(title: string): string {
   return normalizeCrawlerText(title)
     .replace(/\s*\|\s*Salahaddin University-Erbil\s*$/i, '')
-    .replace(/\s*[-–—]\s*Salahaddin University-Erbil\s*$/i, '')
+    .replace(/\s*[-â€“â€”]\s*Salahaddin University-Erbil\s*$/i, '')
     .replace(/\s+/g, ' ')
     .trim()
     .slice(0, 180);
@@ -3029,8 +3134,8 @@ function deriveOpportunityTitle(html: string, text: string): { title: string; de
 
 function hasMojibake(text: string): boolean {
   const normalized = text || '';
-  if (/[╪┘Γ�ØÙ█âêû]/.test(normalized)) return true;
-  const corruptedMatches = normalized.match(/[╪┘Γ�ØÙ█âêû]/g) || [];
+  if (/[â•ªâ”˜Î“ï¿½Ã˜Ã™â–ˆÃ¢ÃªÃ»]/.test(normalized)) return true;
+  const corruptedMatches = normalized.match(/[â•ªâ”˜Î“ï¿½Ã˜Ã™â–ˆÃ¢ÃªÃ»]/g) || [];
   const boxDrawingMatches = normalized.match(/[\u2500-\u257f]/g) || [];
   return corruptedMatches.length >= 3 || boxDrawingMatches.length >= 3;
 }
@@ -3056,11 +3161,11 @@ function hasDateOrDeadlineSignal(text: string): boolean {
     || lower.includes('deadline')
     || lower.includes('closing date')
     || lower.includes('last date')
-    || lower.includes('آخر موعد')
-    || lower.includes('اخر موعد')
-    || lower.includes('الموعد النهائي')
-    || lower.includes('ينتهي')
-    || lower.includes('يغلق');
+    || lower.includes('Ø¢Ø®Ø± Ù…ÙˆØ¹Ø¯')
+    || lower.includes('Ø§Ø®Ø± Ù…ÙˆØ¹Ø¯')
+    || lower.includes('Ø§Ù„Ù…ÙˆØ¹Ø¯ Ø§Ù„Ù†Ù‡Ø§Ø¦ÙŠ')
+    || lower.includes('ÙŠÙ†ØªÙ‡ÙŠ')
+    || lower.includes('ÙŠØºÙ„Ù‚');
 }
 
 function sourceLooksLikeHonJob(source?: AutomationSourceRow): boolean {
@@ -3113,9 +3218,9 @@ function isLikelyDetailOpportunityUrl(url: string, category?: string, source?: A
 
     if (isBlockedOpportunityUrl(url, source)) return false;
     if (sourceLooksLikeHonJob(source)) return isHonJobSpecificPublicJobUrl(url);
-    if (category === 'job' && !/job|vacanc|career|position|فرصة|وظيفة|تعيين/.test(path)) return false;
+    if (category === 'job' && !/job|vacanc|career|position|ÙØ±ØµØ©|ÙˆØ¸ÙŠÙØ©|ØªØ¹ÙŠÙŠÙ†/.test(path)) return false;
 
-    return segments.length >= 2 && /\/\d{4}\/|\/20[2-9][0-9]|id=|p=|node\/|news20|_news|job|vacanc|career|scholar|training|course|event|admission|registration|اعلان|وظيفة|منحة|تدريب|قبول|تسجيل/.test(path + parsed.search.toLowerCase());
+    return segments.length >= 2 && /\/\d{4}\/|\/20[2-9][0-9]|id=|p=|node\/|news20|_news|job|vacanc|career|scholar|training|course|event|admission|registration|Ø§Ø¹Ù„Ø§Ù†|ÙˆØ¸ÙŠÙØ©|Ù…Ù†Ø­Ø©|ØªØ¯Ø±ÙŠØ¨|Ù‚Ø¨ÙˆÙ„|ØªØ³Ø¬ÙŠÙ„/.test(path + parsed.search.toLowerCase());
   } catch {
     return false;
   }
@@ -3135,22 +3240,22 @@ function isRestrictedOrLoginRequiredText(text: string): boolean {
     /login to view this page/i,
     /registered users only/i,
     /login\s*\/\s*register/i,
-    /الدخول\s*\/\s*التسجيل/,
-    /تسجيل الدخول/,
-    /يرجى تسجيل الدخول/,
-    /الرجاء تسجيل الدخول/,
-    /يجب تسجيل الدخول/,
-    /هذه الصفحة مقيدة/,
-    /هذه الصفحة للمستخدمين المسجلين/,
-    /نشر الوظيفة\s+الدخول\s*\/\s*التسجيل/,
+    /Ø§Ù„Ø¯Ø®ÙˆÙ„\s*\/\s*Ø§Ù„ØªØ³Ø¬ÙŠÙ„/,
+    /ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„/,
+    /ÙŠØ±Ø¬Ù‰ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„/,
+    /Ø§Ù„Ø±Ø¬Ø§Ø¡ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„/,
+    /ÙŠØ¬Ø¨ ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„/,
+    /Ù‡Ø°Ù‡ Ø§Ù„ØµÙØ­Ø© Ù…Ù‚ÙŠØ¯Ø©/,
+    /Ù‡Ø°Ù‡ Ø§Ù„ØµÙØ­Ø© Ù„Ù„Ù…Ø³ØªØ®Ø¯Ù…ÙŠÙ† Ø§Ù„Ù…Ø³Ø¬Ù„ÙŠÙ†/,
+    /Ù†Ø´Ø± Ø§Ù„ÙˆØ¸ÙŠÙØ©\s+Ø§Ù„Ø¯Ø®ÙˆÙ„\s*\/\s*Ø§Ù„ØªØ³Ø¬ÙŠÙ„/,
     /\bdashboard\b/i,
     /\bmy account\b/i,
-    /لوحة القياس/,
-    /لوحة التحكم/
+    /Ù„ÙˆØ­Ø© Ø§Ù„Ù‚ÙŠØ§Ø³/,
+    /Ù„ÙˆØ­Ø© Ø§Ù„ØªØ­ÙƒÙ…/
   ];
   if (hardRestrictedPatterns.some((pattern) => pattern.test(text))) return true;
 
-  const loginSignals = ['login', 'register', 'sign in', 'my account', 'dashboard', 'تسجيل الدخول', 'التسجيل', 'الدخول'];
+  const loginSignals = ['login', 'register', 'sign in', 'my account', 'dashboard', 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„', 'Ø§Ù„ØªØ³Ø¬ÙŠÙ„', 'Ø§Ù„Ø¯Ø®ÙˆÙ„'];
   const opportunitySignals = OPPORTUNITY_KEYWORDS.filter((keyword) => normalized.includes(keyword.toLowerCase())).length;
   const loginSignalCount = loginSignals.filter((signal) => normalized.includes(signal.toLowerCase())).length;
   const shortText = normalized.length < 900;
@@ -3164,7 +3269,7 @@ function hasUsefulOpportunityBody(text: string): boolean {
   if (isRestrictedOrLoginRequiredText(normalized)) return false;
 
   const lower = normalized.toLowerCase();
-  const navSignals = ['home', 'menu', 'login', 'register', 'dashboard', 'privacy policy', 'terms', 'copyright', 'الرئيسية', 'القائمة', 'تسجيل الدخول'];
+  const navSignals = ['home', 'menu', 'login', 'register', 'dashboard', 'privacy policy', 'terms', 'copyright', 'Ø§Ù„Ø±Ø¦ÙŠØ³ÙŠØ©', 'Ø§Ù„Ù‚Ø§Ø¦Ù…Ø©', 'ØªØ³Ø¬ÙŠÙ„ Ø§Ù„Ø¯Ø®ÙˆÙ„'];
   const navSignalCount = navSignals.filter((signal) => lower.includes(signal.toLowerCase())).length;
   if (navSignalCount >= 5 && normalized.length < 1200) return false;
 
@@ -3177,12 +3282,12 @@ function hasMeaningfulOpportunitySignals(url: string, title: string, text: strin
   let signals = 0;
 
   if (source?.name && !['unknown', 'source'].includes(source.name.toLowerCase())) signals++;
-  if (source?.governorate_scope || /\b(baghdad|basra|erbil|najaf|karbala|mosul|duhok|sulaymaniyah|iraq)\b|بغداد|البصرة|اربيل|أربيل|النجف|كربلاء|الموصل|دهوك|السليمانية/.test(lower)) signals++;
+  if (source?.governorate_scope || /\b(baghdad|basra|erbil|najaf|karbala|mosul|duhok|sulaymaniyah|iraq)\b|Ø¨ØºØ¯Ø§Ø¯|Ø§Ù„Ø¨ØµØ±Ø©|Ø§Ø±Ø¨ÙŠÙ„|Ø£Ø±Ø¨ÙŠÙ„|Ø§Ù„Ù†Ø¬Ù|ÙƒØ±Ø¨Ù„Ø§Ø¡|Ø§Ù„Ù…ÙˆØµÙ„|Ø¯Ù‡ÙˆÙƒ|Ø§Ù„Ø³Ù„ÙŠÙ…Ø§Ù†ÙŠØ©/.test(lower)) signals++;
   if (hasDateOrDeadlineSignal(normalized)) signals++;
-  if (/\b(salary|paid|funding|stipend|grant)\b|راتب|أجر|تمويل|منحة|مكافأة/.test(lower)) signals++;
-  if (/\b(apply|application|submit|send cv|email|form|apply now)\b|قدم|التقديم|استمارة|ارسل|إرسال|البريد/.test(lower) || /https?:\/\/|mailto:/.test(text)) signals++;
+  if (/\b(salary|paid|funding|stipend|grant)\b|Ø±Ø§ØªØ¨|Ø£Ø¬Ø±|ØªÙ…ÙˆÙŠÙ„|Ù…Ù†Ø­Ø©|Ù…ÙƒØ§ÙØ£Ø©/.test(lower)) signals++;
+  if (/\b(apply|application|submit|send cv|email|form|apply now)\b|Ù‚Ø¯Ù…|Ø§Ù„ØªÙ‚Ø¯ÙŠÙ…|Ø§Ø³ØªÙ…Ø§Ø±Ø©|Ø§Ø±Ø³Ù„|Ø¥Ø±Ø³Ø§Ù„|Ø§Ù„Ø¨Ø±ÙŠØ¯/.test(lower) || /https?:\/\/|mailto:/.test(text)) signals++;
   if (normalized.length >= 700) signals++;
-  if (/\b(company|organization|employer|department|university|institute|ngo)\b|شركة|منظمة|جهة|جامعة|مؤسسة|قسم/.test(lower)) signals++;
+  if (/\b(company|organization|employer|department|university|institute|ngo)\b|Ø´Ø±ÙƒØ©|Ù…Ù†Ø¸Ù…Ø©|Ø¬Ù‡Ø©|Ø¬Ø§Ù…Ø¹Ø©|Ù…Ø¤Ø³Ø³Ø©|Ù‚Ø³Ù…/.test(lower)) signals++;
   if (isLikelyDetailOpportunityUrl(url, classifyOpportunity(title, text), source) && hasOpportunitySignal(`${title} ${text}`)) signals++;
 
   return signals >= 2;
@@ -3219,17 +3324,17 @@ function hasIraqRelevance(text: string): boolean {
 
   // Arabic Iraq relevance signals
   const arabicSignals = [
-    'العراق', 'عراقي', 'عراقية', 'بغداد', 'البصرة', 'أربيل', 'اربيل', 'هەولێر',
-    'السليمانية', 'سليمانية', 'دهوك', 'الموصل', 'نينوى', 'النجف', 'كربلاء', 'كركوك',
-    'الأنبار', 'الانبار', 'ديالى', 'واسط', 'بابل', 'ميسان', 'المثنى', 'القادسية',
-    'الديوانية', 'ذي قار', 'الناصرية', 'صلاح الدين', 'تكريت', 'حلبجة',
-    'إقليم كردستان', 'اقليم كردستان', 'كردستان العراق'
+    'Ø§Ù„Ø¹Ø±Ø§Ù‚', 'Ø¹Ø±Ø§Ù‚ÙŠ', 'Ø¹Ø±Ø§Ù‚ÙŠØ©', 'Ø¨ØºØ¯Ø§Ø¯', 'Ø§Ù„Ø¨ØµØ±Ø©', 'Ø£Ø±Ø¨ÙŠÙ„', 'Ø§Ø±Ø¨ÙŠÙ„', 'Ù‡Û•ÙˆÙ„ÛŽØ±',
+    'Ø§Ù„Ø³Ù„ÙŠÙ…Ø§Ù†ÙŠØ©', 'Ø³Ù„ÙŠÙ…Ø§Ù†ÙŠØ©', 'Ø¯Ù‡ÙˆÙƒ', 'Ø§Ù„Ù…ÙˆØµÙ„', 'Ù†ÙŠÙ†ÙˆÙ‰', 'Ø§Ù„Ù†Ø¬Ù', 'ÙƒØ±Ø¨Ù„Ø§Ø¡', 'ÙƒØ±ÙƒÙˆÙƒ',
+    'Ø§Ù„Ø£Ù†Ø¨Ø§Ø±', 'Ø§Ù„Ø§Ù†Ø¨Ø§Ø±', 'Ø¯ÙŠØ§Ù„Ù‰', 'ÙˆØ§Ø³Ø·', 'Ø¨Ø§Ø¨Ù„', 'Ù…ÙŠØ³Ø§Ù†', 'Ø§Ù„Ù…Ø«Ù†Ù‰', 'Ø§Ù„Ù‚Ø§Ø¯Ø³ÙŠØ©',
+    'Ø§Ù„Ø¯ÙŠÙˆØ§Ù†ÙŠØ©', 'Ø°ÙŠ Ù‚Ø§Ø±', 'Ø§Ù„Ù†Ø§ØµØ±ÙŠØ©', 'ØµÙ„Ø§Ø­ Ø§Ù„Ø¯ÙŠÙ†', 'ØªÙƒØ±ÙŠØª', 'Ø­Ù„Ø¨Ø¬Ø©',
+    'Ø¥Ù‚Ù„ÙŠÙ… ÙƒØ±Ø¯Ø³ØªØ§Ù†', 'Ø§Ù‚Ù„ÙŠÙ… ÙƒØ±Ø¯Ø³ØªØ§Ù†', 'ÙƒØ±Ø¯Ø³ØªØ§Ù† Ø§Ù„Ø¹Ø±Ø§Ù‚'
   ];
 
   // Kurdish Sorani Iraq relevance signals
   const kurdishSignals = [
-    'عێراق', 'عیراق', 'هەولێر', 'سلێمانی', 'سلێمانیی', 'دهۆک', 'کەرکووک',
-    'هەڵەبجە', 'موسڵ', 'بەغدا', 'بەسرە', 'هەرێمی کوردستان'
+    'Ø¹ÛŽØ±Ø§Ù‚', 'Ø¹ÛŒØ±Ø§Ù‚', 'Ù‡Û•ÙˆÙ„ÛŽØ±', 'Ø³Ù„ÛŽÙ…Ø§Ù†ÛŒ', 'Ø³Ù„ÛŽÙ…Ø§Ù†ÛŒÛŒ', 'Ø¯Ù‡Û†Ú©', 'Ú©Û•Ø±Ú©ÙˆÙˆÚ©',
+    'Ù‡Û•ÚµÛ•Ø¨Ø¬Û•', 'Ù…ÙˆØ³Úµ', 'Ø¨Û•ØºØ¯Ø§', 'Ø¨Û•Ø³Ø±Û•', 'Ù‡Û•Ø±ÛŽÙ…ÛŒ Ú©ÙˆØ±Ø¯Ø³ØªØ§Ù†'
   ];
 
   const allSignals = [...englishSignals, ...arabicSignals, ...kurdishSignals];
@@ -3280,7 +3385,7 @@ function isRemoteOpenToIraq(text: string): boolean {
 
   // Remote/work from home signals
   const remoteSignals = [
-    'remote', 'online', 'work from home', 'عن بعد', 'أونلاين', 'لە دوورەوە'
+    'remote', 'online', 'work from home', 'Ø¹Ù† Ø¨Ø¹Ø¯', 'Ø£ÙˆÙ†Ù„Ø§ÙŠÙ†', 'Ù„Û• Ø¯ÙˆÙˆØ±Û•ÙˆÛ•'
   ];
 
   const hasRemote = remoteSignals.some(signal => normalized.includes(signal));
@@ -3291,7 +3396,7 @@ function isRemoteOpenToIraq(text: string): boolean {
   const iraqEligibilitySignals = [
     'iraq', 'iraqi', 'open to iraq', 'iraqis', 'arabic speakers in iraq',
     'mena including iraq', 'middle east including iraq',
-    'العراق', 'عراقي', 'عیراق', 'عێراق'
+    'Ø§Ù„Ø¹Ø±Ø§Ù‚', 'Ø¹Ø±Ø§Ù‚ÙŠ', 'Ø¹ÛŒØ±Ø§Ù‚', 'Ø¹ÛŽØ±Ø§Ù‚'
   ];
 
   return iraqEligibilitySignals.some(signal => normalized.includes(signal));
@@ -3313,8 +3418,8 @@ function isInternationalOpportunityEligibleForIraqis(text: string, category: str
     'international applicants', 'open to international', 'global applicants',
     'worldwide', 'all nationalities', 'any nationality',
     'international students', 'open to all countries',
-    'المتقدمين الدوليين', 'للمتقدمين من جميع الدول', 'طلاب دوليين',
-    'عالمي', 'جميع الجنسيات'
+    'Ø§Ù„Ù…ØªÙ‚Ø¯Ù…ÙŠÙ† Ø§Ù„Ø¯ÙˆÙ„ÙŠÙŠÙ†', 'Ù„Ù„Ù…ØªÙ‚Ø¯Ù…ÙŠÙ† Ù…Ù† Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø¯ÙˆÙ„', 'Ø·Ù„Ø§Ø¨ Ø¯ÙˆÙ„ÙŠÙŠÙ†',
+    'Ø¹Ø§Ù„Ù…ÙŠ', 'Ø¬Ù…ÙŠØ¹ Ø§Ù„Ø¬Ù†Ø³ÙŠØ§Øª'
   ];
 
   const hasInternationalSignal = internationalSignals.some(signal => normalized.includes(signal));
@@ -4374,7 +4479,7 @@ app.get('/api/opportunity-automation/stats', authMiddleware, adminMiddleware, as
   });
 });
 
-// â”€â”€â”€ HEALTH â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+// Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬ HEALTH Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬Ã¢â€â‚¬
 
 app.get('/api/health', (c) => c.json({ status: 'ok', service: 'rafid-api' }));
 
@@ -4390,3 +4495,7 @@ export default {
     }
   },
 };
+
+
+
+
