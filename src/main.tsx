@@ -1,4 +1,5 @@
-﻿import './talaba-global-api-fix';
+﻿import './talaba-blank-recovery';
+import './talaba-global-api-fix';
 import './talaba-hero-clean';
 import './talaba-home-shortcuts';
 import { runTalabaCacheRefresh } from './talaba-cache-refresh';
@@ -152,6 +153,7 @@ if (!rootElement) {
 
 
 runTalabaCacheRefresh();
+
 
 
 

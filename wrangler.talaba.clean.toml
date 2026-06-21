@@ -1,0 +1,8 @@
+﻿name = "https-github"
+compatibility_date = "2026-06-21"
+
+assets = { directory = "./dist", not_found_handling = "single-page-application" }
+
+routes = [
+  { pattern = "talaba.kaniq.org", custom_domain = true, zone_name = "kaniq.org" }
+]
