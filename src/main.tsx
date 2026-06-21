@@ -1,7 +1,4 @@
-﻿import './talaba-global-api-fix';
-import './talaba-hero-clean';
-import './talaba-home-shortcuts';
-import { runTalabaCacheRefresh } from './talaba-cache-refresh';
+﻿import { runTalabaCacheRefresh } from './talaba-cache-refresh';
 import { StrictMode, Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -152,6 +149,7 @@ if (!rootElement) {
 
 
 runTalabaCacheRefresh();
+
 
 
 
