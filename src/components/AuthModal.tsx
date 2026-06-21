@@ -86,70 +86,97 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     setSuccess('');
     setLoading(true);
 
-    // Simple robust validation simulation
-    if (!email.includes('@')) {
-      setError(getLabel('validationAcademicEmail'));
-      setLoading(false);
-      return;
-    }
-
-    if (mode === 'register' && !username.trim()) {
-      setError(getLabel('validationNameEmpty'));
-      setLoading(false);
-      return;
-    }
-    if (mode === 'register' && !privacyConsent) {
-      setError(language === 'ar' ? 'يرجى قبول إشعار الخصوصية وقواعد المجتمع قبل التسجيل.' : language === 'ku' ? 'تکایە پێش تۆمارکردن ئاگاداری تایبەتمەندی و یاساکانی کۆمەڵگا پەسەند بکە.' : 'Please accept the Privacy Notice and Community Rules before registering.');
-      setLoading(false);
-      return;
-    }
-
-    if (mode !== 'forgot' && password.length < 6) {
-      setError(getLabel('validationPasswordLen'));
-      setLoading(false);
-      return;
-    }
-
     try {
-      const endpoint = mode === 'forgot' ? '/api/auth/forgot-password' : mode === 'register' ? '/api/auth/register' : '/api/auth/login';
-      const payload = mode === 'forgot'
-        ? { email: email.trim().toLowerCase() }
-        : mode === 'register'
-          ? { email: email.trim().toLowerCase(), password, full_name: username.trim(), privacy_consent: privacyConsent, privacy_version: 'privacy_v1', terms_version: 'terms_v1' }
-          : { email: email.trim().toLowerCase(), password };
-      const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+      const cleanEmail = email.trim().toLowerCase();
+
+      if (!cleanEmail.includes('@')) {
+        throw new Error(getLabel('validationAcademicEmail') || 'Please enter a valid email.');
+      }
+
+      if (mode === 'register' && !username.trim()) {
+        throw new Error(getLabel('validationNameEmpty') || 'Please enter your name.');
+      }
+
+      if (mode !== 'forgot' && password.length < 6) {
+        throw new Error(getLabel('validationPasswordLen') || 'Password must be at least 6 characters.');
+      }
+
+      const endpoint =
+        mode === 'login'
+          ? '/api/auth/login'
+          : mode === 'register'
+            ? '/api/auth/register'
+            : '/api/auth/forgot-password';
+
+      const payload =
+        mode === 'register'
+          ? { email: cleanEmail, password: password, full_name: username.trim(), name: username.trim(), username: username.trim() }
+          : mode === 'forgot'
+            ? { email: cleanEmail }
+            : { email: cleanEmail, password: password };
+
+      const response = await fetch(BACKEND_URL + endpoint, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        headers: { 'Content-Type': 'application/json', 'Accept': 'application/json' },
+        body: JSON.stringify(payload)
       });
+
       const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || data.message || 'Authentication failed');
+
+      if (!response.ok) {
+        throw new Error(
+          data?.message ||
+          data?.error ||
+          (mode === 'forgot'
+            ? 'Password reset request failed.'
+            : mode === 'register'
+              ? 'Registration failed.'
+              : 'Login failed. Please check your email and password.')
+        );
+      }
 
       if (mode === 'forgot') {
-        setSuccess(getLabel('emailSentDesc'));
-      } else {
-        if (!data.token || !data.user) throw new Error('The server did not return a valid session.');
-        localStorage.setItem('Talaba_token', data.token);
-        localStorage.setItem('Talaba_token', data.token);
-        localStorage.setItem('Talaba_logged_in', 'true');
-        localStorage.setItem('Talaba_logged_in', 'true');
-        if (data.user.role === 'admin' || data.user.role === 'staff' || email.trim().toLowerCase() === 'mahdialmuntadhar1@gmail.com') {
-          localStorage.setItem('admin_token', data.token);
-        } else {
-          localStorage.removeItem('admin_token');
-        }
-        localStorage.setItem('Talaba_auth_user', JSON.stringify(data.user));
-        localStorage.setItem('Talaba_auth_user', JSON.stringify(data.user));
-        localStorage.setItem('Talaba_user_email', data.user.email || email.trim().toLowerCase());
-        localStorage.setItem('Talaba_user_email', data.user.email || email.trim().toLowerCase());
-        setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
-        onAuthSuccess(data.user.full_name || data.user.username || username || 'Student', data.user.email || email);
-        onClose();
+        setSuccess(data?.emailSent === false
+          ? 'Reset request received, but email delivery is not configured yet.'
+          : (getLabel('emailSentDesc') || 'If this email exists, reset instructions will be sent.'));
+        setLoading(false);
+        return;
       }
-    } catch (authError: any) {
-      setError(getNetworkFriendlyError(authError.message || 'Authentication failed'));
-    } finally {
+
+      const token = data.token || data.jwt || data.access_token || data.accessToken;
+
+      if (!token || typeof token !== 'string') {
+        throw new Error('Login/register succeeded but no token was returned by backend.');
+      }
+
+      const user = data.user || {};
+      const displayName = user.full_name || user.name || username.trim() || cleanEmail;
+
+      localStorage.setItem('rafid_token', token);
+      localStorage.setItem('talaba_token', token);
+      localStorage.setItem('jamiaati_token', token);
+      localStorage.setItem('auth_token', token);
+
+      if (user.role === 'admin' || user.role === 'staff') {
+        localStorage.setItem('admin_token', token);
+      }
+
+      localStorage.setItem('jamiaati_logged_in', 'true');
+      localStorage.setItem('talaba_user', JSON.stringify(user));
+      localStorage.setItem('jamiaati_auth_user', JSON.stringify(user));
+
+      setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
       setLoading(false);
+
+      window.dispatchEvent(new CustomEvent('talaba-auth-changed', { detail: { user, token } }));
+
+      setTimeout(() => {
+        (onAuthSuccess as any)(displayName, cleanEmail, user);
+        onClose();
+      }, 500);
+    } catch (err: any) {
+      setLoading(false);
+      setError(err?.message || 'Authentication failed.');
     }
   };
 
@@ -394,6 +421,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     </AnimatePresence>
   );
 }
+
 
 
 

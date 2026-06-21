@@ -1,4 +1,5 @@
-﻿import './talaba-final-shortcuts';
+﻿import './talaba-production-runtime';
+import './talaba-final-shortcuts';
 import { StrictMode, Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -142,6 +143,7 @@ if (!rootElement) {
   void registerTalabaPwa();
   startMobileUiEnhancements();
 }
+
 
 
 
