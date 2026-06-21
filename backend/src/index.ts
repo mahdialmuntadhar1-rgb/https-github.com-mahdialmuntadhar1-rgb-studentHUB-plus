@@ -414,9 +414,7 @@ app.post('/api/auth/login', rateLimitMiddleware, async (c) => {
     }
 
     const user = await c.env.DB.prepare(
-      `SELECT id, email, password_hash, full_name, governorate, institution, institution_id,
-              stage, interests, bio, avatar_url, role
-       FROM profiles WHERE lower(email) = lower(?)`
+      `SELECT id, email, password_hash, full_name, role FROM profiles WHERE lower(email) = lower(?)`
     )
       .bind(email)
       .first() as any;
@@ -439,9 +437,7 @@ app.get('/api/auth/me', authMiddleware, async (c) => {
   try {
     const userId = c.get('userId');
     const user = await c.env.DB.prepare(
-      `SELECT id, email, full_name, governorate, institution, institution_id,
-              stage, interests, bio, avatar_url, role, is_verified
-       FROM profiles WHERE id = ?`
+      `SELECT id, email, full_name, role FROM profiles WHERE id = ?`
     )
       .bind(userId)
       .first();
@@ -4495,6 +4491,7 @@ export default {
     }
   },
 };
+
 
 
 
