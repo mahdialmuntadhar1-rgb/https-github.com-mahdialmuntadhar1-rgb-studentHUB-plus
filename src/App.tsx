@@ -7,7 +7,6 @@ import { brandingThemes } from './data/themes';
 import Header from './components/Header';
 import HomeFeed from './components/HomeFeed';
 import LifeFeed from './components/LifeFeed';
-import FutureFeed from './components/FutureFeed';
 import AskFeed from './components/AskFeed';
 import ProfileView from './components/ProfileView';
 import SectionView from './components/SectionView';
@@ -20,7 +19,7 @@ import UserProfileModal from './components/UserProfileModal';
 import UniversitiesList from './components/UniversitiesList';
 import { BACKEND_URL, socialApi } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
-import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
+import { Home, Sparkles, HelpCircle, User, Compass, Info, FileText } from 'lucide-react';
 
 export default function App() {
   // Locale States
@@ -557,7 +556,8 @@ export default function App() {
     const handleHash = () => {
       const hash = window.location.hash;
       if (hash === '#/opportunities' || hash === '#opportunities') {
-        setActiveTab('future');
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        setActiveTab('home');
         setSelectedSection(null);
       } else if (hash.startsWith('#/section/')) {
         const sec = hash.substring('#/section/'.length);
@@ -1278,28 +1278,6 @@ export default function App() {
             onUserClick={setSelectedUserForProfileCard}
           />
         );
-      case 'future':
-        return (
-          <FutureFeed
-            feedItems={filteredFeedItems}
-            language={language}
-            selectedGov={selectedGov}
-            selectedUni={selectedUni}
-            onLike={handleLike}
-            onSave={handleSave}
-            onVote={handleVote}
-            onApply={handleApply}
-            onRsvp={handleRsvp}
-            onJoinGroup={handleJoinGroup}
-            onAddComment={handleAddComment}
-            onBackToHome={handleBackToHomeFuture}
-            isFeedLoading={isFeedLoading}
-            onEditFeedItem={handleEditFeedItem}
-            onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={hasAuthenticatedAdminAccess}
-            onUserClick={setSelectedUserForProfileCard}
-          />
-        );
       case 'profile':
         return (
           <ProfileView
@@ -1434,24 +1412,7 @@ export default function App() {
               <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
             )}
           </button>
-
-          {/* TAB 2: Opportunities */}
-          <button
-            onClick={() => setActiveTab('future')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
-              activeTab === 'future' 
-                ? 'text-orange-600 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
-            }`}
-          >
-            <Briefcase className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-bold">{getTranslation('opportunitiesTabLabel', language)}</span>
-            {activeTab === 'future' && (
-              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
-            )}
-          </button>
-
-          {/* TAB 3: Campus */}
+          {/* TAB 2: Campus */}
           <button
             onClick={() => setActiveTab('life')}
             className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
@@ -1595,6 +1556,7 @@ export default function App() {
     </div>
   );
 };
+
 
 
 
