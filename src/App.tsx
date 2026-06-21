@@ -555,17 +555,55 @@ export default function App() {
     // Support hash-based back-navigation routing
     const handleHash = () => {
       const hash = window.location.hash;
-      if (hash === '#/opportunities' || hash === '#opportunities') {
-        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+
+      const routeToRealFeed = (lane: 'opportunities' | 'campus_life', filter: string) => {
+        try {
+          sessionStorage.setItem('jamiaati_pending_filter', JSON.stringify({ lane, filter }));
+        } catch {}
+
         setActiveTab('home');
         setSelectedSection(null);
-      } else if (hash.startsWith('#/section/')) {
+
+        window.setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('jamiaati-shortcut-filter', {
+            detail: { lane, filter }
+          }));
+        }, 160);
+      };
+
+      if (hash === '#/opportunities' || hash === '#opportunities') {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        routeToRealFeed('opportunities', 'all');
+        return;
+      }
+
+      if (hash.startsWith('#/section/')) {
         const sec = hash.substring('#/section/'.length);
+
+        if (['jobs', 'job', 'careers', 'career'].includes(sec)) {
+          routeToRealFeed('opportunities', 'job');
+          return;
+        }
+
+        if (['scholarships', 'scholarship'].includes(sec)) {
+          routeToRealFeed('opportunities', 'scholarship');
+          return;
+        }
+
+        if (['events', 'event'].includes(sec)) {
+          routeToRealFeed('campus_life', 'event');
+          return;
+        }
+
         setSelectedSection(sec || null);
-      } else if (hash === '' || hash === '#/') {
+        return;
+      }
+
+      if (hash === '' || hash === '#/') {
         setSelectedSection(null);
       }
     };
+
     window.addEventListener('hashchange', handleHash);
     handleHash(); // Run on initial load
     return () => window.removeEventListener('hashchange', handleHash);
@@ -1556,6 +1594,7 @@ export default function App() {
     </div>
   );
 };
+
 
 
 
