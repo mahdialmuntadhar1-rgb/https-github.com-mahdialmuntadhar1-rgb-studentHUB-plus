@@ -9,6 +9,8 @@ type ShortcutItem = {
   emoji: string;
 };
 
+type LoadedItem = Record<string, any>;
+
 const shortcutItems: ShortcutItem[] = [
   { key: 'all', category: '', ar: 'الكل', ku: 'هەموو', en: 'All', emoji: '🌐' },
   { key: 'job', category: 'job', ar: 'فرص العمل', ku: 'دەرفەتی کار', en: 'Jobs', emoji: '💼' },
@@ -19,6 +21,8 @@ const shortcutItems: ShortcutItem[] = [
   { key: 'internship', category: 'internship', ar: 'التدريب العملي', ku: 'مەشق', en: 'Internships', emoji: '🧪' },
   { key: 'exam', category: 'exam', ar: 'الامتحانات والتسجيل', ku: 'تاقیکردنەوە و تۆمارکردن', en: 'Exams / Registration', emoji: '📝' },
 ];
+
+const allCategories = ['job', 'scholarship', 'training', 'internship', 'event', 'news', 'exam', 'registration'];
 
 const governorates = [
   'All Iraq',
@@ -42,19 +46,19 @@ const governorates = [
   'Qadisiyyah',
 ];
 
-type RenderState = {
-  item: ShortcutItem;
-  governorate: string;
-  limit: number;
-};
-
-let renderState: RenderState | null = null;
+let activeItem: ShortcutItem | null = null;
+let activeGovernorate = 'All Iraq';
+let activePage = 0;
+let activeItems: LoadedItem[] = [];
+let activeHasMore = true;
+let activeLoading = false;
 
 function injectStyles() {
   if (document.getElementById('talaba-home-shortcuts-style')) return;
 
   const style = document.createElement('style');
   style.id = 'talaba-home-shortcuts-style';
+
   style.textContent = `
     .talaba-hidden-old-tabs {
       display: none !important;
@@ -181,7 +185,7 @@ function injectStyles() {
       margin: 4px 12px 16px;
       padding: 12px;
       border-radius: 24px;
-      background: rgba(255,255,255,.94);
+      background: rgba(255,255,255,.95);
       box-shadow: 0 20px 48px rgba(17,24,39,.18);
       color: #111827;
       direction: rtl;
@@ -244,6 +248,18 @@ function injectStyles() {
     .talaba-home-btn {
       background: #111827;
       color: white;
+    }
+
+    .talaba-count-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      border-radius: 999px;
+      padding: 8px 11px;
+      background: #eef2ff;
+      color: #3730a3;
+      font-size: 12px;
+      font-weight: 950;
     }
 
     .talaba-load-more-btn {
@@ -437,21 +453,54 @@ function normalizeGovernorate(value: string): string {
   return v;
 }
 
-async function fetchShortcutItems(item: ShortcutItem, governorate: string, limit: number) {
-  const params = new URLSearchParams();
+function extractList(data: any): LoadedItem[] {
+  const list = Array.isArray(data)
+    ? data
+    : data?.items || data?.opportunities || data?.results || data?.data || data?.rows || [];
 
-  if (item.category) {
-    params.set('category', item.category);
+  return Array.isArray(list) ? list : [];
+}
+
+function uniqueKey(item: LoadedItem): string {
+  return String(
+    item.id ||
+    item.url ||
+    item.source_url ||
+    item.apply_url ||
+    item.link ||
+    `${item.title || item.name || item.position || ''}-${item.organization || item.company || ''}-${item.governorate || item.location || ''}`
+  ).toLowerCase();
+}
+
+function dedupe(items: LoadedItem[]): LoadedItem[] {
+  const seen = new Set<string>();
+  const out: LoadedItem[] = [];
+
+  for (const item of items) {
+    const key = uniqueKey(item);
+    if (seen.has(key)) continue;
+    seen.add(key);
+    out.push(item);
   }
 
-  params.set('limit', String(limit));
+  return out;
+}
+
+async function fetchOneCategory(category: string, governorate: string, page: number, pageSize: number): Promise<LoadedItem[]> {
+  const params = new URLSearchParams();
+
+  if (category) params.set('category', category);
+
+  params.set('limit', String(pageSize));
+  params.set('offset', String(page * pageSize));
+  params.set('page', String(page + 1));
 
   const gov = normalizeGovernorate(governorate);
   if (gov) params.set('governorate', gov);
 
   const url = `${TALABA_API_BASE}/api/opportunities?${params.toString()}`;
 
-  const res = await fetch(url, {
+  const response = await fetch(url, {
     method: 'GET',
     cache: 'no-store',
     headers: {
@@ -460,19 +509,35 @@ async function fetchShortcutItems(item: ShortcutItem, governorate: string, limit
     },
   });
 
-  if (!res.ok) {
-    throw new Error(`API ${res.status}`);
+  if (!response.ok) {
+    throw new Error(`API ${response.status}`);
   }
 
-  const data = await res.json().catch(() => ({}));
-  const list = Array.isArray(data) ? data : (data.items || data.opportunities || data.results || data.data || []);
-
-  return Array.isArray(list) ? list : [];
+  const data = await response.json().catch(() => ({}));
+  return extractList(data);
 }
 
-function renderResults(container: HTMLElement, item: ShortcutItem, governorate: string, limit = 30) {
-  renderState = { item, governorate, limit };
+async function fetchShortcutPage(item: ShortcutItem, governorate: string, page: number, pageSize: number): Promise<LoadedItem[]> {
+  if (item.key !== 'all') {
+    return fetchOneCategory(item.category, governorate, page, pageSize);
+  }
 
+  const categoryResults = await Promise.allSettled(
+    allCategories.map((category) => fetchOneCategory(category, governorate, page, Math.max(8, Math.ceil(pageSize / 3))))
+  );
+
+  const merged: LoadedItem[] = [];
+
+  for (const result of categoryResults) {
+    if (result.status === 'fulfilled') {
+      merged.push(...result.value);
+    }
+  }
+
+  return dedupe(merged);
+}
+
+function renderShell(container: HTMLElement, item: ShortcutItem, governorate: string) {
   container.innerHTML = `
     <div class="talaba-shortcut-results-head">
       <div class="talaba-shortcut-results-title">${item.emoji} ${item.ar} / ${item.ku}</div>
@@ -485,72 +550,133 @@ function renderResults(container: HTMLElement, item: ShortcutItem, governorate: 
     </div>
     <div class="talaba-results-actions">
       <button class="talaba-home-btn" type="button" id="talaba-back-home">العودة للرئيسية / گەڕانەوە بۆ سەرەکی</button>
+      <span class="talaba-count-pill" id="talaba-count-pill">0</span>
     </div>
-    <div class="talaba-shortcut-grid">
+    <div class="talaba-shortcut-grid" id="talaba-shortcut-grid">
       <div class="talaba-empty">جاري التحميل... / چاوەڕوان بە...</div>
     </div>
   `;
 
   const select = container.querySelector('#talaba-shortcut-governorate') as HTMLSelectElement | null;
+
   select?.addEventListener('change', () => {
-    renderResults(container, item, select.value, 30);
+    startShortcut(container, item, select.value);
   });
 
   const homeBtn = container.querySelector('#talaba-back-home') as HTMLButtonElement | null;
+
   homeBtn?.addEventListener('click', () => {
     container.style.display = 'none';
     container.innerHTML = '';
     document.querySelectorAll('.talaba-shortcut-btn').forEach((x) => x.classList.remove('is-active'));
-    renderState = null;
+    activeItem = null;
+    activeGovernorate = 'All Iraq';
+    activePage = 0;
+    activeItems = [];
+    activeHasMore = true;
     hideOldTabsAndOpenCampusLife();
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
+}
 
-  const grid = container.querySelector('.talaba-shortcut-grid') as HTMLElement;
+function renderCards(container: HTMLElement) {
+  const grid = container.querySelector('#talaba-shortcut-grid') as HTMLElement | null;
+  const count = container.querySelector('#talaba-count-pill') as HTMLElement | null;
 
-  fetchShortcutItems(item, governorate, limit)
-    .then((items) => {
-      if (!items.length) {
-        grid.innerHTML = `<div class="talaba-empty">لا توجد نتائج حالياً لهذه المحافظة. / بۆ ئەم پارێزگایە ئەنجام نییە.</div>`;
-        return;
-      }
+  if (!grid) return;
 
-      grid.innerHTML = items.map((x: any) => {
-        const title = x.title || x.name || x.position || x.job_title || 'Opportunity';
-        const org = x.organization || x.company || x.source_name || x.university || '';
-        const gov = x.governorate || x.location || x.city || '';
-        const type = x.category || x.type || item.en || '';
-        const desc = x.description || x.summary || x.details || '';
-        const link = x.url || x.source_url || x.apply_url || x.link || '';
+  if (count) {
+    count.textContent = `المعروض: ${activeItems.length} / پیشاندراو: ${activeItems.length}`;
+  }
 
-        return `
-          <article class="talaba-mini-card">
-            <div class="talaba-mini-card-title">${escapeHtml(title)}</div>
-            <div class="talaba-mini-card-meta">${escapeHtml([type, org, gov].filter(Boolean).join(' • '))}</div>
-            ${desc ? `<div class="talaba-mini-card-desc">${escapeHtml(String(desc).slice(0, 220))}</div>` : ''}
-            ${link ? `<a class="talaba-mini-card-link" href="${escapeAttribute(link)}" target="_blank" rel="noreferrer">فتح التفاصيل</a>` : ''}
-          </article>
-        `;
-      }).join('');
+  if (!activeItems.length) {
+    grid.innerHTML = `<div class="talaba-empty">لا توجد نتائج حالياً لهذه المحافظة. / بۆ ئەم پارێزگایە ئەنجام نییە.</div>`;
+    return;
+  }
 
-      const loadMore = document.createElement('button');
-      loadMore.className = 'talaba-load-more-btn';
-      loadMore.type = 'button';
-      loadMore.textContent = 'تحميل المزيد / زیاتر پیشان بدە / Load more';
+  grid.innerHTML = activeItems.map((x: any) => {
+    const title = x.title || x.name || x.position || x.job_title || 'Opportunity';
+    const org = x.organization || x.company || x.source_name || x.university || '';
+    const gov = x.governorate || x.location || x.city || '';
+    const type = x.category || x.type || activeItem?.en || '';
+    const desc = x.description || x.summary || x.details || '';
+    const link = x.url || x.source_url || x.apply_url || x.link || '';
 
-      loadMore.addEventListener('click', () => {
-        loadMore.disabled = true;
-        loadMore.textContent = 'جاري التحميل... / چاوەڕوان بە...';
+    return `
+      <article class="talaba-mini-card">
+        <div class="talaba-mini-card-title">${escapeHtml(title)}</div>
+        <div class="talaba-mini-card-meta">${escapeHtml([type, org, gov].filter(Boolean).join(' • '))}</div>
+        ${desc ? `<div class="talaba-mini-card-desc">${escapeHtml(String(desc).slice(0, 240))}</div>` : ''}
+        ${link ? `<a class="talaba-mini-card-link" href="${escapeAttribute(link)}" target="_blank" rel="noreferrer">فتح التفاصيل</a>` : ''}
+      </article>
+    `;
+  }).join('');
 
-        const nextLimit = (renderState?.limit || limit) + 30;
-        renderResults(container, item, governorate, nextLimit);
-      });
+  if (activeHasMore) {
+    const loadBtn = document.createElement('button');
+    loadBtn.className = 'talaba-load-more-btn';
+    loadBtn.type = 'button';
+    loadBtn.textContent = 'تحميل المزيد / زیاتر پیشان بدە / Load more';
 
-      grid.appendChild(loadMore);
-    })
-    .catch((error) => {
-      grid.innerHTML = `<div class="talaba-empty">حدث خطأ في تحميل النتائج. / هەڵەیەک ڕوویدا. ${escapeHtml(error.message || '')}</div>`;
-    });
+    loadBtn.addEventListener('click', () => loadMore(container));
+
+    grid.appendChild(loadBtn);
+  } else {
+    const end = document.createElement('div');
+    end.className = 'talaba-empty';
+    end.textContent = 'تم عرض كل النتائج المتاحة / هەموو ئەنجامە بەردەستەکان پیشان دران';
+    grid.appendChild(end);
+  }
+}
+
+async function loadMore(container: HTMLElement) {
+  if (!activeItem || activeLoading || !activeHasMore) return;
+
+  activeLoading = true;
+
+  const grid = container.querySelector('#talaba-shortcut-grid') as HTMLElement | null;
+  const oldButton = grid?.querySelector('.talaba-load-more-btn') as HTMLButtonElement | null;
+
+  if (oldButton) {
+    oldButton.disabled = true;
+    oldButton.textContent = 'جاري التحميل... / چاوەڕوان بە...';
+  }
+
+  const pageSize = 30;
+
+  try {
+    const newItems = await fetchShortcutPage(activeItem, activeGovernorate, activePage, pageSize);
+    const before = activeItems.length;
+
+    activeItems = dedupe([...activeItems, ...newItems]);
+
+    if (newItems.length < 3 || activeItems.length === before) {
+      activeHasMore = false;
+    } else {
+      activePage += 1;
+    }
+
+    renderCards(container);
+  } catch (error: any) {
+    if (grid) {
+      grid.innerHTML += `<div class="talaba-empty">حدث خطأ في تحميل النتائج. / هەڵەیەک ڕوویدا. ${escapeHtml(error?.message || '')}</div>`;
+    }
+  } finally {
+    activeLoading = false;
+  }
+}
+
+function startShortcut(container: HTMLElement, item: ShortcutItem, governorate: string) {
+  activeItem = item;
+  activeGovernorate = governorate || 'All Iraq';
+  activePage = 0;
+  activeItems = [];
+  activeHasMore = true;
+  activeLoading = false;
+
+  container.style.display = 'block';
+  renderShell(container, item, activeGovernorate);
+  loadMore(container);
 }
 
 function escapeHtml(value: string): string {
@@ -601,10 +727,8 @@ function createShortcutShell(): HTMLElement {
       const item = shortcutItems.find((x) => x.key === key);
       if (!item) return;
 
-      results.style.display = 'block';
-
       const gov = getTopGovernorate();
-      renderResults(results, item, gov && gov !== 'All Iraq' ? gov : 'All Iraq', 30);
+      startShortcut(results, item, gov && gov !== 'All Iraq' ? gov : 'All Iraq');
 
       setTimeout(() => {
         results.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
