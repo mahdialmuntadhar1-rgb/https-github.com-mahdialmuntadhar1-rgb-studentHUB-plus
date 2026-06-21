@@ -29,13 +29,13 @@ export default function App() {
 
   // Branding Theme state initialized from localStorage (defaulting to iraq-local)
   const [selectedTheme, setSelectedTheme] = useState<string>(() => {
-    return localStorage.getItem('jamiaati_theme') || 'iraq-local';
+    return localStorage.getItem('Talaba_theme') || 'iraq-local';
   });
 
   // Dynamic root CSS variables updates on theme selection
   useEffect(() => {
     const theme = brandingThemes.find(t => t.id === selectedTheme) || brandingThemes[0];
-    localStorage.setItem('jamiaati_theme', selectedTheme);
+    localStorage.setItem('Talaba_theme', selectedTheme);
     const root = document.documentElement;
     root.style.setProperty('--primary', theme.primary);
     root.style.setProperty('--secondary', theme.secondary);
@@ -98,8 +98,8 @@ export default function App() {
 
   // Auth States
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
-    const notLoggedOut = localStorage.getItem('jamiaati_logged_in') !== 'false';
+    const token = localStorage.getItem('Talaba_token') || localStorage.getItem('admin_token');
+    const notLoggedOut = localStorage.getItem('Talaba_logged_in') !== 'false';
     return Boolean(token) && notLoggedOut;
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -143,9 +143,9 @@ export default function App() {
 
   // Feed database state - strong browser persistence for Campus Life custom posts
   const CUSTOM_FEED_STORAGE_KEYS = [
-    'jamiaati_feed_v2',
-    'jamiaati_feed_v2_backup',
-    'jamiaati_custom_feed_backup'
+    'Talaba_feed_v2',
+    'Talaba_feed_v2_backup',
+    'Talaba_custom_feed_backup'
   ];
 
   const cleanCustomFeedItemForStorage = (item: any): FeedItem | null => {
@@ -255,17 +255,17 @@ export default function App() {
 
   // User profile state (gamification & badges tracker)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('jamiaati_profile_v2');
+    const saved = localStorage.getItem('Talaba_profile_v2');
     return saved ? JSON.parse(saved) : defaultUserProfile;
   });
 
   // UI authorization follows the authenticated API identity, not the locally
   // editable profile role used by the demo/gamification controls.
   const hasAuthenticatedAdminAccess = (() => {
-    if (!isLoggedIn || !localStorage.getItem('jamiaati_token')) return false;
+    if (!isLoggedIn || !localStorage.getItem('Talaba_token')) return false;
     try {
-      const authUser = JSON.parse(localStorage.getItem('jamiaati_auth_user') || 'null');
-      const email = String(authUser?.email || localStorage.getItem('jamiaati_user_email') || '').trim().toLowerCase();
+      const authUser = JSON.parse(localStorage.getItem('Talaba_auth_user') || 'null');
+      const email = String(authUser?.email || localStorage.getItem('Talaba_user_email') || '').trim().toLowerCase();
       return authUser?.role === 'admin' || authUser?.role === 'staff' || email === 'mahdialmuntadhar1@gmail.com';
     } catch {
       return false;
@@ -299,9 +299,9 @@ export default function App() {
       .map(stripLargeInlineImages);
 
     try {
-      localStorage.setItem('jamiaati_feed_v2', JSON.stringify(customOnly));
+      localStorage.setItem('Talaba_feed_v2', JSON.stringify(customOnly));
     } catch (error) {
-      console.warn('jamiaati_feed_v2 was too large. Saving text-only posts instead.', error);
+      console.warn('Talaba_feed_v2 was too large. Saving text-only posts instead.', error);
 
       try {
         const textOnly = customOnly.map((item: any) => ({
@@ -309,9 +309,9 @@ export default function App() {
           imageUrl: undefined,
           imageAlt: item.imageAlt || ''
         }));
-        localStorage.setItem('jamiaati_feed_v2', JSON.stringify(textOnly));
+        localStorage.setItem('Talaba_feed_v2', JSON.stringify(textOnly));
       } catch {
-        localStorage.removeItem('jamiaati_feed_v2');
+        localStorage.removeItem('Talaba_feed_v2');
       }
     }
   }, [feedItems]);
@@ -558,14 +558,14 @@ export default function App() {
 
       const routeToRealFeed = (lane: 'opportunities' | 'campus_life', filter: string) => {
         try {
-          sessionStorage.setItem('jamiaati_pending_filter', JSON.stringify({ lane, filter }));
+          sessionStorage.setItem('Talaba_pending_filter', JSON.stringify({ lane, filter }));
         } catch {}
 
         setActiveTab('home');
         setSelectedSection(null);
 
         window.setTimeout(() => {
-          window.dispatchEvent(new CustomEvent('jamiaati-shortcut-filter', {
+          window.dispatchEvent(new CustomEvent('Talaba-shortcut-filter', {
             detail: { lane, filter }
           }));
         }, 160);
@@ -782,7 +782,7 @@ export default function App() {
   }, [activeTab]);
 
   useEffect(() => {
-    localStorage.setItem('jamiaati_profile_v2', JSON.stringify(userProfile));
+    localStorage.setItem('Talaba_profile_v2', JSON.stringify(userProfile));
   }, [userProfile]);
 
   // Adjust application alignment automatically based on language direction
@@ -1081,14 +1081,14 @@ export default function App() {
       titleAR = title;
       contentAR = body;
       titleEN = `${title} (Auto-translated)`;
-      contentEN = `${body}\n\n[Auto-translated to English via Jamiaati Translate Engine]`;
+      contentEN = `${body}\n\n[Auto-translated to English via Talaba Translate Engine]`;
       titleKU = `${title} (وەرگێڕدراو)`;
       contentKU = `${body}\n\n[بە شیوازێکی ئۆتۆماتیکی وەرگێڕدراوە بۆ کوردی]`;
     } else if (language === 'ku') {
       titleKU = title;
       contentKU = body;
       titleEN = `${title} (Auto-translated)`;
-      contentEN = `${body}\n\n[Auto-translated to English via Jamiaati Translate Engine]`;
+      contentEN = `${body}\n\n[Auto-translated to English via Talaba Translate Engine]`;
       titleAR = `${title} (مترجم للطلاب)`;
       contentAR = `${body}\n\n[تم الترجمة تلقائياً إلى العربية عبر خادم الطلاب]`;
     }
@@ -1333,11 +1333,11 @@ export default function App() {
             isLoggedIn={isLoggedIn}
             onLogout={() => {
               setIsLoggedIn(false);
-              localStorage.setItem('jamiaati_logged_in', 'false');
-              localStorage.removeItem('jamiaati_token');
+              localStorage.setItem('Talaba_logged_in', 'false');
+              localStorage.removeItem('Talaba_token');
               localStorage.removeItem('admin_token');
-              localStorage.removeItem('jamiaati_auth_user');
-              localStorage.removeItem('jamiaati_user_email');
+              localStorage.removeItem('Talaba_auth_user');
+              localStorage.removeItem('Talaba_user_email');
               setUserProfile(prev => ({ ...prev, role: 'student' }));
               showToast(
                 language === 'ar' ? 'تم تسجيل خروجك بنجاح. نراك قريباً! 👋' : language === 'ku' ? 'خۆتۆمارکردنەکەت کۆتایی پێهات. بە هیوای دیدار! 👋' : 'Logged out successfully. See you! 👋', 
@@ -1408,7 +1408,7 @@ export default function App() {
   };
 
   return (
-    <div id="jamiaati-portal" className="bg-[#FAF9FF] min-h-screen text-slate-800 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'} lang={language}>
+    <div id="Talaba-portal" className="bg-[#FAF9FF] min-h-screen text-slate-800 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'} lang={language}>
       {/* Centered device presentation mock */}
       <div className="w-full max-w-md mx-auto min-h-screen bg-slate-50 shadow-2xl relative flex flex-col border-x border-slate-205">
         
@@ -1419,6 +1419,8 @@ export default function App() {
             language={language}
             setLanguage={setLanguage}
             currentUserAvatar={userProfile.avatar}
+            isLoggedIn={isLoggedIn}
+            onLoginClick={() => setIsAuthModalOpen(true)}
             onProfileClick={() => setActiveTab('profile')}
             onChatsClick={() => {
               setSocialSubTab('threads');
@@ -1513,8 +1515,8 @@ export default function App() {
           language={language}
           onAuthSuccess={(newUsername, userEmail) => {
             setIsLoggedIn(true);
-            localStorage.setItem('jamiaati_logged_in', 'true');
-            localStorage.setItem('jamiaati_user_email', userEmail);
+            localStorage.setItem('Talaba_logged_in', 'true');
+            localStorage.setItem('Talaba_user_email', userEmail);
             setUserProfile(prev => ({
               ...prev,
               name: newUsername || '',
@@ -1542,10 +1544,10 @@ export default function App() {
               onOpenDirectChat={(recipientId, recipientName) => {
                 setSelectedUserForProfileCard(null);
                 setActiveTab('chats');
-                localStorage.setItem('jamiaati_pending_chat_recipient_id', recipientId);
-                localStorage.setItem('jamiaati_pending_chat_recipient_name', recipientName);
+                localStorage.setItem('Talaba_pending_chat_recipient_id', recipientId);
+                localStorage.setItem('Talaba_pending_chat_recipient_name', recipientName);
                 // Dispatch a storage event or tab change notification
-                window.dispatchEvent(new Event('jamiaati_switch_chat'));
+                window.dispatchEvent(new Event('Talaba_switch_chat'));
               }}
             />
           )}
@@ -1594,6 +1596,8 @@ export default function App() {
     </div>
   );
 };
+
+
 
 
 

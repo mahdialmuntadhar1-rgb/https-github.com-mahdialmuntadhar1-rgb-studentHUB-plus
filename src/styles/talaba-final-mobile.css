@@ -1,0 +1,57 @@
+﻿/* TALABA FINAL MOBILE READABILITY
+   Bigger text inside opportunity postcards and feed cards on phones.
+   Keeps Campus Life layout intact; only improves readability. */
+
+@media (max-width: 640px) {
+  #home-feed-container {
+    font-size: 15px;
+  }
+
+  #mixed-feed-items-list article,
+  #mixed-feed-items-list [data-feed-card],
+  #mixed-feed-items-list .feed-card,
+  #mixed-feed-items-list .opportunity-card,
+  #mixed-feed-items-list [class*="rounded-3xl"][class*="border"],
+  #mixed-feed-items-list [class*="rounded-2xl"][class*="border"] {
+    font-size: 15px !important;
+    line-height: 1.55 !important;
+  }
+
+  #mixed-feed-items-list h1,
+  #mixed-feed-items-list h2,
+  #mixed-feed-items-list h3,
+  #mixed-feed-items-list [class*="font-black"] {
+    font-size: clamp(15px, 4.1vw, 18px) !important;
+    line-height: 1.35 !important;
+  }
+
+  #mixed-feed-items-list p,
+  #mixed-feed-items-list li,
+  #mixed-feed-items-list [class*="text-xs"],
+  #mixed-feed-items-list [class*="text-[10px]"],
+  #mixed-feed-items-list [class*="text-[11px]"],
+  #mixed-feed-items-list [class*="text-[12px]"] {
+    font-size: 13.5px !important;
+    line-height: 1.6 !important;
+  }
+
+  #mixed-feed-items-list button,
+  #mixed-feed-items-list a,
+  .show-details-btn,
+  .load-more-btn {
+    font-size: 13px !important;
+    line-height: 1.25 !important;
+    min-height: 38px;
+  }
+
+  #opp-shortcuts-circles button span,
+  #campus-shortcuts-circles button span {
+    font-size: 11px !important;
+    line-height: 1.2 !important;
+  }
+
+  #feed-items-live-search-bar input {
+    font-size: 14px !important;
+    min-height: 42px;
+  }
+}

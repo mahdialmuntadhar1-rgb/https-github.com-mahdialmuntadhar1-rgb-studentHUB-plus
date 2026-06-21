@@ -1,7 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { Governorate, University, Language } from '../types';
 import { IraqiGovernorates, IraqiUniversities } from '../data/mockData';
-import { MapPin, School, Bell, Languages, Check, BookOpen, Palette, MessageSquare } from 'lucide-react';
+import { MapPin, School, Bell, Languages, Check, BookOpen, Palette, MessageSquare, LogIn } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getTranslation } from '../data/translations';
 import { brandingThemes } from '../data/themes';
@@ -15,6 +15,8 @@ interface HeaderProps {
   setLanguage: (lang: Language) => void;
   currentUserAvatar: string;
   onProfileClick: () => void;
+  onLoginClick?: () => void;
+  isLoggedIn?: boolean;
   onChatsClick?: () => void;
   selectedTheme: string;
   setSelectedTheme: (themeId: string) => void;
@@ -27,6 +29,8 @@ export default function Header({
   setLanguage,
   currentUserAvatar,
   onProfileClick,
+  onLoginClick,
+  isLoggedIn = false,
   onChatsClick,
   incomingFriendRequestsCount = 0,
   incomingMessageRequestsCount = 0
@@ -40,9 +44,9 @@ export default function Header({
   const [showNotifications, setShowNotifications] = useState(false);
 
   const getLanguageMeta = (lang: Language) => {
-    if (lang === 'ar') return { flag: '🇮🇶', label: 'Arabic', short: 'Arabic' };
-    if (lang === 'ku') return { flag: '☀️', label: 'Kurdish', short: 'Kurdish' };
-    return { flag: '🇺🇸', label: 'English', short: 'English' };
+    if (lang === 'ar') return { flag: '🇮🇶', label: 'العربية', short: 'AR' };
+    if (lang === 'ku') return { flag: '☀️', label: 'کوردی', short: 'KU' };
+    return { flag: '🇺🇸', label: 'English', short: 'EN' };
   };
 
   return (
@@ -57,11 +61,9 @@ export default function Header({
           </div>
           <div className="flex flex-col">
             <div className="flex items-center gap-1">
-              <span className="text-[15px] text-orange-600 font-black tracking-tight leading-none">Jamiaati</span>
+              <span className="text-[16px] text-orange-600 font-black tracking-tight leading-none">Talaba</span>
               <span className="text-[10px] text-slate-300 font-bold leading-none">|</span>
-              <h1 className="text-xs font-black tracking-tight leading-none text-[#1E293B]" id="header-app-name-ar">
-                جامعتي
-              </h1>
+              <h1 className="text-xs font-black tracking-tight leading-none text-[#1E293B]" id="header-app-name-ar">طلبة</h1>
             </div>
             <p className="text-[9px] text-slate-500 font-semibold leading-tight mt-0.5">
               {language === 'ar' 
@@ -93,7 +95,7 @@ export default function Header({
                   title={meta.label}
                   aria-label={`Switch language to ${meta.label}`}
                 >
-                  <span className="hidden text-sm leading-none sm:inline">{meta.flag}</span>
+                  <span className="text-base leading-none">{meta.flag}</span>
                   <span>{meta.short}</span>
                 </button>
               );
@@ -168,21 +170,35 @@ export default function Header({
               )}
             </button>
           )}
-
-          {/* Profile Avatar */}
-          <button
-            id="profile-avatar-trigger"
-            onClick={onProfileClick}
-            className="w-7' w-7 h-7 rounded-lg border border-orange-500/40 overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer shrink-0"
-          >
-            <img src={currentUserAvatar} alt=" Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
-          </button>
+          {/* Login / Profile Trigger */}
+          {isLoggedIn ? (
+            <button
+              id="profile-avatar-trigger"
+              onClick={onProfileClick}
+              className="w-8 h-8 rounded-xl border border-orange-500/40 overflow-hidden transition-all hover:scale-105 active:scale-95 shadow-sm cursor-pointer shrink-0 bg-white"
+              title="Profile"
+            >
+              <img src={currentUserAvatar} alt="Profile" className="w-full h-full object-cover" referrerPolicy="no-referrer" />
+            </button>
+          ) : (
+            <button
+              id="header-login-trigger"
+              onClick={onLoginClick || onProfileClick}
+              className="flex items-center gap-1.5 rounded-xl px-2.5 py-2 text-[10px] font-black text-slate-800 hover:text-orange-600 hover:bg-orange-50 transition-all cursor-pointer shrink-0"
+              title="Login"
+            >
+              <LogIn className="w-4 h-4" />
+              <span>{language === 'ar' ? 'دخول' : language === 'ku' ? 'چوونەژوورەوە' : 'Login'}</span>
+            </button>
+          )}
         </div>
 
       </div>
     </header>
   );
 }
+
+
 
 
 

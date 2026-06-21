@@ -50,7 +50,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     validationNameEmpty: { en: 'Please enter your name.', ar: 'يرجى كتابة الاسم الكامل.', ku: 'تکایە ناوی خۆت بنووسە.' },
     emailSentTitle: { en: 'Instruction Sent', ar: 'تم إرسال التعليمات', ku: 'ڕێنمایی نێردران' },
     emailSentDesc: { en: 'A secure recovery code has been sent to your inbox.', ar: 'تم إرسال رمز إعادة التعيين الآمن لبريدك الإلكتروني.', ku: 'کۆدی سەرلەنوێ ڕێکخستنەوە نێردرا بۆ ئیمەیڵەکەت.' },
-    registerSuccess: { en: 'Welcome to Jamiaati!', ar: 'أهلاً بك في منصة جامعتي!', ku: 'بەخێربێیت بۆ جامەعەتی!' },
+    registerSuccess: { en: 'Welcome to Talaba!', ar: 'أهلاً بك في منصة طلبة!', ku: 'بەخێربێیت بۆ تەڵەبە!' },
     loginSuccess: { en: 'Welcome back!', ar: 'أهلاً بعودتك مجدداً!', ku: 'بەخێربێیتەوە!' }
   };
 
@@ -107,14 +107,14 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
         setSuccess(getLabel('emailSentDesc'));
       } else {
         if (!data.token || !data.user) throw new Error('The server did not return a valid session.');
-        localStorage.setItem('jamiaati_token', data.token);
+        localStorage.setItem('Talaba_token', data.token);
         if (data.user.role === 'admin' || data.user.role === 'staff' || email.trim().toLowerCase() === 'mahdialmuntadhar1@gmail.com') {
           localStorage.setItem('admin_token', data.token);
         } else {
           localStorage.removeItem('admin_token');
         }
-        localStorage.setItem('jamiaati_auth_user', JSON.stringify(data.user));
-        localStorage.setItem('jamiaati_user_email', data.user.email || email.trim().toLowerCase());
+        localStorage.setItem('Talaba_auth_user', JSON.stringify(data.user));
+        localStorage.setItem('Talaba_user_email', data.user.email || email.trim().toLowerCase());
         setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
         onAuthSuccess(data.user.full_name || data.user.username || username || 'Student', data.user.email || email);
         onClose();
@@ -169,7 +169,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
               {getLabel(mode)}
             </h3>
             <p className="text-[10px] uppercase font-bold text-blue-700 font-mono tracking-widest mt-1">
-              Jamiaati Portal • بَوّابَتُنا
+              Talaba Portal • بَوّابَتُنا
             </p>
           </div>
 
@@ -367,4 +367,6 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     </AnimatePresence>
   );
 }
+
+
 

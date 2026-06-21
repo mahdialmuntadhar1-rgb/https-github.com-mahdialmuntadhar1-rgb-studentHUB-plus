@@ -28,12 +28,12 @@ function isInAppBrowser(): boolean {
 }
 
 function createInstallStyles() {
-  if (document.getElementById('jamiaati-pwa-install-style')) return;
+  if (document.getElementById('Talaba-pwa-install-style')) return;
 
   const style = document.createElement('style');
-  style.id = 'jamiaati-pwa-install-style';
+  style.id = 'Talaba-pwa-install-style';
   style.textContent = `
-    .jamiaati-pwa-install {
+    .Talaba-pwa-install {
       position: fixed;
       left: 10px;
       top: 50%;
@@ -43,7 +43,7 @@ function createInstallStyles() {
       font-family: "Noto Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
     }
 
-    .jamiaati-pwa-install__card {
+    .Talaba-pwa-install__card {
       pointer-events: auto;
       display: flex;
       align-items: center;
@@ -64,11 +64,11 @@ function createInstallStyles() {
         0 0 32px rgba(14,165,233,.55),
         0 12px 30px rgba(37,99,235,.30);
       backdrop-filter: blur(14px);
-      animation: jamiaatiPwaPulse 1.65s ease-in-out infinite;
+      animation: TalabaPwaPulse 1.65s ease-in-out infinite;
       cursor: pointer;
     }
 
-    .jamiaati-pwa-install__icon {
+    .Talaba-pwa-install__icon {
       width: 24px;
       height: 24px;
       min-width: 24px;
@@ -80,7 +80,7 @@ function createInstallStyles() {
       box-shadow: 0 0 0 1px rgba(255,255,255,.20) inset;
     }
 
-    .jamiaati-pwa-install__title {
+    .Talaba-pwa-install__title {
       font-size: 13px;
       font-weight: 1000;
       letter-spacing: 0;
@@ -88,7 +88,7 @@ function createInstallStyles() {
       line-height: 1;
     }
 
-    .jamiaati-pwa-install__close {
+    .Talaba-pwa-install__close {
       position: absolute;
       top: -9px;
       right: -9px;
@@ -105,7 +105,7 @@ function createInstallStyles() {
       box-shadow: 0 4px 12px rgba(0,0,0,.20);
     }
 
-    .jamiaati-pwa-install__overlay {
+    .Talaba-pwa-install__overlay {
       position: fixed;
       inset: 0;
       z-index: 2147483100;
@@ -116,7 +116,7 @@ function createInstallStyles() {
       font-family: "Noto Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
     }
 
-    .jamiaati-pwa-install__panel {
+    .Talaba-pwa-install__panel {
       width: min(390px, 100%);
       background: white;
       color: #20103f;
@@ -127,13 +127,13 @@ function createInstallStyles() {
       direction: rtl;
     }
 
-    .jamiaati-pwa-install__panel h3 {
+    .Talaba-pwa-install__panel h3 {
       margin: 0 0 10px;
       font-size: 24px;
       font-weight: 1000;
     }
 
-    .jamiaati-pwa-install__panel p {
+    .Talaba-pwa-install__panel p {
       margin: 0 0 14px;
       color: #5c5271;
       font-size: 16px;
@@ -141,13 +141,13 @@ function createInstallStyles() {
       font-weight: 850;
     }
 
-    .jamiaati-pwa-install__actions {
+    .Talaba-pwa-install__actions {
       display: grid;
       gap: 10px;
       margin-top: 18px;
     }
 
-    .jamiaati-pwa-install__actions button {
+    .Talaba-pwa-install__actions button {
       border: 0;
       border-radius: 16px;
       padding: 14px 12px;
@@ -157,22 +157,22 @@ function createInstallStyles() {
       font-family: inherit;
     }
 
-    .jamiaati-pwa-install__primary {
+    .Talaba-pwa-install__primary {
       background: #5b2fd6;
       color: white;
     }
 
-    .jamiaati-pwa-install__secondary {
+    .Talaba-pwa-install__secondary {
       background: #f0eafd;
       color: #4420b8;
     }
 
-    .jamiaati-pwa-install__ghost {
+    .Talaba-pwa-install__ghost {
       background: #f6f2ff;
       color: #4b3b70;
     }
 
-    @keyframes jamiaatiPwaPulse {
+    @keyframes TalabaPwaPulse {
       0%, 100% {
         transform: translateY(0) scale(1);
         box-shadow:
@@ -223,10 +223,10 @@ function openInChrome() {
 }
 
 function showBrowserFallback() {
-  if (document.querySelector('.jamiaati-pwa-install__overlay')) return;
+  if (document.querySelector('.Talaba-pwa-install__overlay')) return;
 
   const overlay = document.createElement('div');
-  overlay.className = 'jamiaati-pwa-install__overlay';
+  overlay.className = 'Talaba-pwa-install__overlay';
 
   const title = isIOS() ? 'لە Safari بکەرەوە' : 'لە Chrome بکەرەوە';
   const message = isIOS()
@@ -234,13 +234,13 @@ function showBrowserFallback() {
     : 'بۆ دابەزاندنی ڕاستەوخۆ، ئەم لینکە لە Chrome یان Edge بکەرەوە. ئەم وێبگەڕە ئێستا دابەزاندنی ڕاستەوخۆی نەکردووەتەوە.';
 
   overlay.innerHTML = `
-    <div class="jamiaati-pwa-install__panel" role="dialog" aria-modal="true">
+    <div class="Talaba-pwa-install__panel" role="dialog" aria-modal="true">
       <h3>${title}</h3>
       <p>${message}</p>
-      <div class="jamiaati-pwa-install__actions">
-        ${isAndroid() ? '<button class="jamiaati-pwa-install__primary" type="button" data-open-chrome>کردنەوە لە Chrome</button>' : ''}
-        <button class="jamiaati-pwa-install__secondary" type="button" data-copy-link>کۆپی کردنی لینک</button>
-        <button class="jamiaati-pwa-install__ghost" type="button" data-close-guide>داخستن</button>
+      <div class="Talaba-pwa-install__actions">
+        ${isAndroid() ? '<button class="Talaba-pwa-install__primary" type="button" data-open-chrome>کردنەوە لە Chrome</button>' : ''}
+        <button class="Talaba-pwa-install__secondary" type="button" data-copy-link>کۆپی کردنی لینک</button>
+        <button class="Talaba-pwa-install__ghost" type="button" data-close-guide>داخستن</button>
       </div>
     </div>
   `;
@@ -278,20 +278,20 @@ function renderInstallButton() {
   if (installBox) return;
 
   installBox = document.createElement('div');
-  installBox.className = 'jamiaati-pwa-install';
+  installBox.className = 'Talaba-pwa-install';
   installBox.setAttribute('role', 'button');
-  installBox.setAttribute('aria-label', 'دابەزاندنی Jamiaati');
+  installBox.setAttribute('aria-label', 'دابەزاندنی Talaba');
 
   installBox.innerHTML = `
-    <div class="jamiaati-pwa-install__card">
-      <div class="jamiaati-pwa-install__icon">📲</div>
-      <div class="jamiaati-pwa-install__title">دابەزاندن</div>
-      <button class="jamiaati-pwa-install__close" type="button" aria-label="داخستن">×</button>
+    <div class="Talaba-pwa-install__card">
+      <div class="Talaba-pwa-install__icon">📲</div>
+      <div class="Talaba-pwa-install__title">دابەزاندن</div>
+      <button class="Talaba-pwa-install__close" type="button" aria-label="داخستن">×</button>
     </div>
   `;
 
-  const card = installBox.querySelector('.jamiaati-pwa-install__card') as HTMLDivElement;
-  const closeBtn = installBox.querySelector('.jamiaati-pwa-install__close') as HTMLButtonElement;
+  const card = installBox.querySelector('.Talaba-pwa-install__card') as HTMLDivElement;
+  const closeBtn = installBox.querySelector('.Talaba-pwa-install__close') as HTMLButtonElement;
 
   card.addEventListener('click', async () => {
     // Priority 1: real native PWA install prompt.
@@ -327,14 +327,14 @@ function renderInstallButton() {
   document.body.appendChild(installBox);
 }
 
-export async function registerJamiaatiPwa() {
+export async function registerTalabaPwa() {
   try {
     if ('serviceWorker' in navigator) {
       const registration = await navigator.serviceWorker.register('/sw.js', { scope: '/' });
       await registration.update().catch(() => undefined);
     }
   } catch (error) {
-    console.warn('Jamiaati PWA service worker registration failed:', error);
+    console.warn('Talaba PWA service worker registration failed:', error);
   }
 
   window.addEventListener('beforeinstallprompt', (event) => {
@@ -354,3 +354,4 @@ export async function registerJamiaatiPwa() {
   setTimeout(renderInstallButton, 3000);
   setTimeout(renderInstallButton, 7000);
 }
+
