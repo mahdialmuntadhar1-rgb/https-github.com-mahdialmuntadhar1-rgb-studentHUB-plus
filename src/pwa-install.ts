@@ -36,11 +36,13 @@ function createInstallStyles() {
     .Talaba-pwa-install {
       position: fixed;
       left: 10px;
-      top: 50%;
-      transform: translateY(-50%);
+      top: auto;
+      bottom: 104px;
+      transform: none;
       z-index: 2147483000;
       pointer-events: none;
       font-family: "Noto Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+      /* MVP_INSTALL_POSITION_PATCH_20260622 */
     }
 
     .Talaba-pwa-install__card {
@@ -49,10 +51,10 @@ function createInstallStyles() {
       align-items: center;
       justify-content: center;
       gap: 7px;
-      min-width: 108px;
-      height: 43px;
-      padding: 6px 10px;
-      border-radius: 13px;
+      min-width: 82px;
+      height: 34px;
+      padding: 5px 8px;
+      border-radius: 12px;
       color: white;
       background:
         radial-gradient(circle at 20% 15%, rgba(255,255,255,.42), transparent 26%),
@@ -69,19 +71,19 @@ function createInstallStyles() {
     }
 
     .Talaba-pwa-install__icon {
-      width: 24px;
-      height: 24px;
-      min-width: 24px;
+      width: 18px;
+      height: 18px;
+      min-width: 18px;
       border-radius: 8px;
       display: grid;
       place-items: center;
       background: rgba(255,255,255,.16);
-      font-size: 14px;
+      font-size: 11px;
       box-shadow: 0 0 0 1px rgba(255,255,255,.20) inset;
     }
 
     .Talaba-pwa-install__title {
-      font-size: 13px;
+      font-size: 11px;
       font-weight: 1000;
       letter-spacing: 0;
       white-space: nowrap;
@@ -92,9 +94,9 @@ function createInstallStyles() {
       position: absolute;
       top: -9px;
       right: -9px;
-      width: 22px;
-      height: 22px;
-      min-width: 22px;
+      width: 20px;
+      height: 20px;
+      min-width: 20px;
       border: 0;
       border-radius: 999px;
       background: rgba(16, 10, 40, .74);
@@ -114,6 +116,7 @@ function createInstallStyles() {
       background: rgba(16, 10, 40, .55);
       padding: 18px;
       font-family: "Noto Sans Arabic", "Segoe UI", Tahoma, Arial, sans-serif;
+      /* MVP_INSTALL_POSITION_PATCH_20260622 */
     }
 
     .Talaba-pwa-install__panel {
@@ -354,6 +357,7 @@ export async function registerTalabaPwa() {
   setTimeout(renderInstallButton, 3000);
   setTimeout(renderInstallButton, 7000);
 }
+
 
 
 
