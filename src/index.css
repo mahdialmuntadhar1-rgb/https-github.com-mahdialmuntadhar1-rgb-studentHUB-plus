@@ -3238,3 +3238,100 @@ textarea {
     padding: 10px 12px !important;
   }
 }
+
+/* MVP_DYNAMIC_STATS_ROW_20260622
+   Makes the opportunity stats row precise, vertical, compact, and mobile-safe.
+   No backend/auth/database changes. */
+
+#talaba-opportunity-ticker {
+  overflow-x: auto !important;
+  overflow-y: hidden !important;
+  -webkit-overflow-scrolling: touch !important;
+  background: linear-gradient(135deg, #ffffff, #fff7ed) !important;
+  border: 2px solid rgba(251,146,60,0.36) !important;
+  box-shadow:
+    0 16px 36px rgba(124,58,237,0.12),
+    inset 0 1px 0 rgba(255,255,255,0.92) !important;
+}
+
+#talaba-opportunity-ticker::-webkit-scrollbar {
+  display: none !important;
+}
+
+#talaba-opportunity-ticker .talaba-ticker-track {
+  display: grid !important;
+  grid-auto-flow: column !important;
+  grid-auto-columns: minmax(96px, 1fr) !important;
+  width: max-content !important;
+  min-width: 100% !important;
+  gap: 10px !important;
+  padding: 10px !important;
+  animation: none !important;
+  transform: none !important;
+}
+
+#talaba-opportunity-ticker .talaba-ticker-pill {
+  min-width: 96px !important;
+  height: 104px !important;
+  padding: 10px 8px !important;
+  border-radius: 22px !important;
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  gap: 5px !important;
+  white-space: normal !important;
+  text-align: center !important;
+  background: linear-gradient(180deg, #ffffff, #fff7ed) !important;
+  border: 2px solid rgba(251,146,60,0.46) !important;
+  box-shadow:
+    0 10px 22px rgba(15,23,42,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.86) !important;
+}
+
+#talaba-opportunity-ticker .talaba-ticker-emoji {
+  font-size: 19px !important;
+  line-height: 1 !important;
+}
+
+#talaba-opportunity-ticker .talaba-ticker-value {
+  display: block !important;
+  color: #ea580c !important;
+  font-size: 20px !important;
+  font-weight: 1000 !important;
+  line-height: 1 !important;
+  letter-spacing: -0.04em !important;
+}
+
+#talaba-opportunity-ticker .talaba-ticker-label {
+  display: block !important;
+  max-width: 82px !important;
+  color: #1f1308 !important;
+  font-size: 9.5px !important;
+  font-weight: 1000 !important;
+  line-height: 1.15 !important;
+  overflow-wrap: anywhere !important;
+}
+
+@media (max-width: 420px) {
+  #talaba-opportunity-ticker .talaba-ticker-track {
+    grid-auto-columns: minmax(88px, 1fr) !important;
+    gap: 8px !important;
+    padding: 9px !important;
+  }
+
+  #talaba-opportunity-ticker .talaba-ticker-pill {
+    min-width: 88px !important;
+    height: 100px !important;
+    border-radius: 20px !important;
+  }
+
+  #talaba-opportunity-ticker .talaba-ticker-value {
+    font-size: 18px !important;
+  }
+
+  #talaba-opportunity-ticker .talaba-ticker-label {
+    max-width: 76px !important;
+    font-size: 9px !important;
+  }
+}

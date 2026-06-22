@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FeedItem, Language, University } from '../types';
 import { getTranslation } from '../data/translations';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from '../data/mockData';
@@ -150,6 +150,126 @@ export default function HomeFeed({
   const [backendOpportunities, setBackendOpportunities] = useState<FeedItem[]>([]);
   const [isLoadingBackend, setIsLoadingBackend] = useState(false);
   const [backendError, setBackendError] = useState<string | null>(null);
+  // MVP_DYNAMIC_STATS_ROW_20260622
+  // Live safe counts from the public opportunities API. Never blocks the feed.
+  const [opportunityStats, setOpportunityStats] = useState<Record<'job' | 'scholarship' | 'training' | 'registration', number | null>>({
+    job: null,
+    scholarship: null,
+    training: null,
+    registration: null
+  });
+
+  const formatOpportunityCount = (value: number | null, fallback: string) => {
+    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return fallback;
+    return value.toLocaleString('en-US');
+  };
+
+  const opportunityTickerItems = [
+    { emoji: '💼', value: formatOpportunityCount(opportunityStats.job, '1,200+'), en: 'Job Opportunities', ar: 'فرص عمل', ku: 'هەلی کار', filter: 'job' as const },
+    { emoji: '🎓', value: formatOpportunityCount(opportunityStats.scholarship, '200+'), en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ', filter: 'scholarship' as const },
+    { emoji: '🚀', value: formatOpportunityCount(opportunityStats.training, '300+'), en: 'Training', ar: 'تدريب', ku: 'ڕاهێنان', filter: 'training' as const },
+    { emoji: '📌', value: formatOpportunityCount(opportunityStats.registration, '0'), en: 'Admissions', ar: 'قبول وتسجيل', ku: 'وەرگرتن', filter: 'admission' as const }
+  ];
+
+  useEffect(() => {
+    let alive = true;
+    const categories = ['job', 'scholarship', 'training', 'registration'] as const;
+
+    const extractItemsFromPayload = (payload: any): any[] => {
+      if (!payload) return [];
+      if (Array.isArray(payload)) return payload;
+
+      const candidates = [
+        payload.items,
+        payload.opportunities,
+        payload.data,
+        payload.results,
+        payload.value,
+        payload?.data?.items,
+        payload?.data?.opportunities,
+        payload?.data?.results,
+        payload?.pagination?.items,
+        payload?.pagination?.data,
+        payload?.meta?.items
+      ];
+
+      for (const candidate of candidates) {
+        if (Array.isArray(candidate)) return candidate;
+      }
+
+      return [];
+    };
+
+    const extractTotalFromPayload = (payload: any, fallback: number): number | null => {
+      if (!payload || typeof payload !== 'object') return fallback > 0 ? fallback : null;
+
+      const possibleTotals = [
+        payload.total,
+        payload.count,
+        payload.totalCount,
+        payload?.pagination?.total,
+        payload?.pagination?.count,
+        payload?.meta?.total,
+        payload?.meta?.count,
+        payload?.data?.total,
+        payload?.data?.count
+      ];
+
+      for (const value of possibleTotals) {
+        const num = Number(value);
+        if (Number.isFinite(num) && num > 0) return num;
+      }
+
+      return fallback > 0 ? fallback : null;
+    };
+
+    const loadOpportunityStats = async () => {
+      const controller = new AbortController();
+      const timeoutId = window.setTimeout(() => controller.abort(), 12000);
+
+      try {
+        const rows = await Promise.all(categories.map(async (category) => {
+          const response = await fetch(`/api/opportunities?category=${encodeURIComponent(category)}&page=1&limit=2000`, {
+            signal: controller.signal,
+            headers: { Accept: 'application/json' }
+          });
+
+          if (!response.ok) return [category, null] as const;
+
+          const payload = await response.json();
+          const items = extractItemsFromPayload(payload);
+          const total = extractTotalFromPayload(payload, items.length);
+
+          return [category, total] as const;
+        }));
+
+        if (!alive) return;
+
+        const next: Record<'job' | 'scholarship' | 'training' | 'registration', number | null> = {
+          job: null,
+          scholarship: null,
+          training: null,
+          registration: null
+        };
+
+        rows.forEach(([category, total]) => {
+          next[category] = total;
+        });
+
+        setOpportunityStats(next);
+      } catch (error) {
+        console.warn('Could not load live opportunity stats. Using safe fallback labels.', error);
+      } finally {
+        window.clearTimeout(timeoutId);
+      }
+    };
+
+    void loadOpportunityStats();
+
+    return () => {
+      alive = false;
+    };
+  }, []);
   const INITIAL_OPPORTUNITY_LIMIT = 12;
   const INITIAL_CAMPUS_LIMIT = 8;
   const LOAD_MORE_STEP = 12;
@@ -1469,30 +1589,14 @@ const filteredAndSearchedUnis = useMemo(() => {
       {/* Safe lightweight opportunity ticker - no fetch, no localStorage, no heavy render */}
       <div id="talaba-opportunity-ticker" className="mb-5 overflow-hidden rounded-3xl border border-violet-100 bg-white shadow-sm">
         <div className="talaba-ticker-track">
-          {[
-            { emoji: '💼', value: '1,000', en: 'Job Vacancies', ar: 'فرصة عمل', ku: 'هەلی کار' },
-            { emoji: '🎓', value: '200+', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
-            { emoji: '🚀', value: '300+', en: 'Internships', ar: 'تدريبات وفرص تدريب', ku: 'ڕاهێنان و ئینتەرنشپ' },
-            { emoji: '🏛️', value: '19', en: 'Governorates', ar: 'محافظة', ku: 'پارێزگا' }
-          ].concat([
-            { emoji: '💼', value: '1,000', en: 'Job Vacancies', ar: 'فرصة عمل', ku: 'هەلی کار' },
-            { emoji: '🎓', value: '200+', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
-            { emoji: '🚀', value: '300+', en: 'Internships', ar: 'تدريبات وفرص تدريب', ku: 'ڕاهێنان و ئینتەرنشپ' },
-            { emoji: '🏛️', value: '19', en: 'Governorates', ar: 'محافظة', ku: 'پارێزگا' }
-          ]).map((item, idx) => (
+          {opportunityTickerItems.concat(opportunityTickerItems).map((item, idx) => (
             <button
               key={`${item.en}-${idx}`}
               type="button"
               onClick={() => {
-                if (item.en.includes('Job')) {
+                if (item.filter) {
                   setSelectedFeedTab('opportunities');
-                  setSelectedOppFilter('job');
-                } else if (item.en.includes('Scholarship')) {
-                  setSelectedFeedTab('opportunities');
-                  setSelectedOppFilter('scholarship');
-                } else if (item.en.includes('Internship')) {
-                  setSelectedFeedTab('opportunities');
-                  setSelectedOppFilter('internship');
+                  setSelectedOppFilter(item.filter as any);
                 }
                 const tabs = document.getElementById('home-feed-tabs-selector');
                 if (tabs) tabs.scrollIntoView({ behavior: 'smooth', block: 'start' });
