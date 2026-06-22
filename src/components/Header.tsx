@@ -1,7 +1,7 @@
 ﻿import React, { useState } from 'react';
 import { Governorate, University, Language } from '../types';
 import { IraqiGovernorates, IraqiUniversities } from '../data/mockData';
-import { MapPin, School, Bell, Languages, Check, BookOpen, Palette, MessageSquare, LogIn } from 'lucide-react';
+import { MapPin, School, Bell, Languages, Check, BookOpen, Palette, LogIn } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { getTranslation } from '../data/translations';
 import { brandingThemes } from '../data/themes';
@@ -17,11 +17,8 @@ interface HeaderProps {
   onProfileClick: () => void;
   onLoginClick?: () => void;
   isLoggedIn?: boolean;
-  onChatsClick?: () => void;
   selectedTheme: string;
   setSelectedTheme: (themeId: string) => void;
-  incomingFriendRequestsCount?: number;
-  incomingMessageRequestsCount?: number;
 }
 
 export default function Header({
@@ -31,9 +28,6 @@ export default function Header({
   onProfileClick,
   onLoginClick,
   isLoggedIn = false,
-  onChatsClick,
-  incomingFriendRequestsCount = 0,
-  incomingMessageRequestsCount = 0
 }: Omit<HeaderProps, 'selectedGov' | 'setSelectedGov' | 'selectedUni' | 'setSelectedUni' | 'selectedTheme' | 'setSelectedTheme'> & Partial<HeaderProps>) {
   const [showNotificationCount, setShowNotificationCount] = useState(true);
   const [notifications, setNotifications] = useState([
@@ -151,25 +145,6 @@ export default function Header({
               )}
             </AnimatePresence>
           </div>
-
-          {/* Chats / Social Hub Trigger */}
-          {onChatsClick && (
-            <button
-              onClick={onChatsClick}
-              className="p-1 px-1.5 text-slate-700 hover:text-orange-600 hover:bg-[#F3F7FF] rounded-lg transition-colors cursor-pointer relative"
-              title="Inbox & Chats"
-              id="header-chats-trigger"
-            >
-              <MessageSquare className="w-4 h-4" />
-              {(incomingFriendRequestsCount + incomingMessageRequestsCount) > 0 ? (
-                <span className="absolute -top-1 -right-1 bg-cyan-500 text-slate-900 text-[8px] font-black h-3.5 px-1 rounded-full flex items-center justify-center min-w-3.5 shadow-sm border border-white shrink-0">
-                  {incomingFriendRequestsCount + incomingMessageRequestsCount}
-                </span>
-              ) : (
-                <span className="absolute top-0.5 right-1 w-1.5 h-1.5 bg-cyan-400 rounded-full" />
-              )}
-            </button>
-          )}
           {/* Login / Profile Trigger */}
           {isLoggedIn ? (
             <button
@@ -197,6 +172,7 @@ export default function Header({
     </header>
   );
 }
+
 
 
 

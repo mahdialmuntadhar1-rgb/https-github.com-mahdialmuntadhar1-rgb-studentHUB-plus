@@ -14,10 +14,8 @@ import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
 import AdminModeration from './components/AdminModeration';
-import SocialHub from './components/SocialHub';
-import UserProfileModal from './components/UserProfileModal';
 import UniversitiesList from './components/UniversitiesList';
-import { BACKEND_URL, socialApi } from './lib/api';
+import { BACKEND_URL } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, User, Compass, Info, FileText } from 'lucide-react';
 
@@ -77,7 +75,8 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'chats' | 'admin' | 'universities'>('home');
 
   // Interactive student profile details overlay state
-  const [selectedUserForProfileCard, setSelectedUserForProfileCard] = useState<any | null>(null);
+  const selectedUserForProfileCard = null as any;
+  const setSelectedUserForProfileCard = (_user: any) => {};
 
   // Selected Section state for horizontal stories
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
@@ -85,7 +84,7 @@ export default function App() {
   // Clear selected section when switching top-level tabs
   useEffect(() => {
     setSelectedSection(null);
-  }, [activeTab]);
+  }, []);
 
   // Brief dynamic feed loading skeleton simulator
   const [isFeedLoading, setIsFeedLoading] = useState(false);
@@ -103,43 +102,10 @@ export default function App() {
     return Boolean(token) && notLoggedOut;
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-
-  // Social Badge Counts (Friend/Connection Requests & Messages)
-  const [friendRequestsCount, setFriendRequestsCount] = useState<number>(0);
-  const [messageRequestsCount, setMessageRequestsCount] = useState<number>(0);
-  const [socialSubTab, setSocialSubTab] = useState<'threads' | 'requests' | 'discover'>('threads');
-
-  const updateSocialBadgeCounts = async () => {
-    if (!isLoggedIn) {
-      setFriendRequestsCount(0);
-      setMessageRequestsCount(0);
-      return;
-    }
-    try {
-      const [fReqs, mReqs] = await Promise.all([
-        socialApi.getFriendRequests(language).catch(() => ({ incoming: [] })),
-        socialApi.getMessageRequests(language).catch(() => ({ incoming: [] }))
-      ]);
-      const fCount = fReqs && Array.isArray(fReqs.incoming) ? fReqs.incoming.length : 0;
-      const mCount = mReqs && Array.isArray(mReqs.incoming) ? mReqs.incoming.length : 0;
-      setFriendRequestsCount(fCount);
-      setMessageRequestsCount(mCount);
-    } catch (e) {
-      console.warn("Failed to load badge counts.", e);
-    }
-  };
-
-  useEffect(() => {
-    if (isLoggedIn) {
-      updateSocialBadgeCounts();
-      // Periodically update the badge counts silently every 30 seconds
-      const interval = setInterval(updateSocialBadgeCounts, 30000);
-      return () => clearInterval(interval);
-    } else {
-      setFriendRequestsCount(0);
-      setMessageRequestsCount(0);
-    }
-  }, [isLoggedIn, language, activeTab]);
+  // Social/chat removed for MVP stability.
+  // No friend request polling, no message request polling, no chat badges.
+  const friendRequestsCount = 0;
+  const messageRequestsCount = 0;
 
   // Feed database state - strong browser persistence for Campus Life custom posts
   const CUSTOM_FEED_STORAGE_KEYS = [
@@ -255,8 +221,13 @@ export default function App() {
 
   // User profile state (gamification & badges tracker)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('Talaba_profile_v2');
-    return saved ? JSON.parse(saved) : defaultUserProfile;
+    try {
+      const saved = localStorage.getItem('Talaba_profile_v2');
+      return saved ? JSON.parse(saved) : defaultUserProfile;
+    } catch {
+      localStorage.removeItem('Talaba_profile_v2');
+      return defaultUserProfile;
+    }
   });
 
   // UI authorization follows the authenticated API identity, not the locally
@@ -394,11 +365,11 @@ export default function App() {
     const loadBackendInstitutions = async (): Promise<any[]> => {
       const all: any[] = [];
       let offset = 0;
-      const limit = 500;
+      const limit = 100;
       let hasMore = true;
       let attempts = 0;
 
-      while (hasMore && attempts < 20) {
+      while (hasMore && attempts < 4) {
         attempts += 1;
 
         const controller = new AbortController();
@@ -779,7 +750,7 @@ export default function App() {
       }
     };
     fetchLiveFeed();
-  }, [activeTab]);
+  }, []);
 
   useEffect(() => {
     localStorage.setItem('Talaba_profile_v2', JSON.stringify(userProfile));
@@ -1353,12 +1324,6 @@ export default function App() {
             onDeleteFeedItem={handleDeleteFeedItem}
             isAdminMode={hasAuthenticatedAdminAccess}
             onUserClick={setSelectedUserForProfileCard}
-            onNavigateToSocialTab={(tabType) => {
-              setSocialSubTab(tabType);
-              setActiveTab('chats');
-            }}
-            incomingFriendRequestsCount={friendRequestsCount}
-            incomingMessageRequestsCount={messageRequestsCount}
           />
         );
       case 'universities':
@@ -1424,92 +1389,10 @@ export default function App() {
             currentUserAvatar={userProfile.avatar}
             isLoggedIn={isLoggedIn}
             onLoginClick={() => setIsAuthModalOpen(true)}
-            onProfileClick={() => setActiveTab('profile')}
-            onChatsClick={() => {
-              setSocialSubTab('threads');
-              setActiveTab('chats');
-            }}
-            incomingFriendRequestsCount={friendRequestsCount}
-            incomingMessageRequestsCount={messageRequestsCount}
+            onProfileClick={() => setIsAuthModalOpen(true)}
           />
           {renderActiveView()}
         </main>
-
-        {/* Bottom Persistent Navigation Bar: Visible at all times */}
-        <nav 
-          id="persistent-bottom-navbar"
-          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 border-t border-slate-200 px-2 py-3 flex justify-around items-center backdrop-blur-md z-40 shadow-lg pointer-events-auto"
-        >
-          {/* TAB 1: Home */}
-          <button
-            onClick={() => setActiveTab('home')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
-              activeTab === 'home' 
-                ? 'text-orange-600 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
-            }`}
-          >
-            <Home className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-bold">{getTranslation('navHome', language)}</span>
-            {activeTab === 'home' && (
-              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
-            )}
-          </button>
-          {/* TAB 2: Campus */}
-          <button
-            onClick={() => setActiveTab('life')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
-              activeTab === 'life' 
-                ? 'text-orange-600 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
-            }`}
-          >
-            <Compass className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-bold">{getTranslation('campusLifeTabLabel', language)}</span>
-            {activeTab === 'life' && (
-              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
-            )}
-          </button>
-
-          {/* TAB 4: Universities */}
-          <button
-            onClick={() => setActiveTab('universities')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
-              activeTab === 'universities' 
-                ? 'text-orange-600 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
-            }`}
-          >
-            <Sparkles className="w-5 h-5 shrink-0 text-orange-500" />
-            <span className="text-[10px] leading-none font-bold">
-              {language === 'ar' ? 'الجامعات' : language === 'ku' ? 'زانکۆکان' : 'Universities'}
-            </span>
-            {activeTab === 'universities' && (
-              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
-            )}
-          </button>
-
-          {/* TAB 5: Profile */}
-          <button
-            onClick={() => setActiveTab('profile')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
-              activeTab === 'profile' 
-                ? 'text-orange-600 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
-            }`}
-          >
-            <div className="relative">
-              <User className="w-5 h-5 shrink-0" />
-              {isLoggedIn && (friendRequestsCount + messageRequestsCount) > 0 && (
-                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white animate-pulse" />
-              )}
-            </div>
-            <span className="text-[10px] leading-none font-bold">{getTranslation('navProfile', language)}</span>
-            {activeTab === 'profile' && (
-              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
-            )}
-          </button>
-        </nav>
 
         {/* Global Auth Modal Portal */}
         <AuthModal
@@ -1531,30 +1414,6 @@ export default function App() {
             );
           }}
         />
-
-        {/* User Profile Details Modal (Student Discovery) */}
-        <AnimatePresence>
-          {selectedUserForProfileCard && (
-            <UserProfileModal
-              isOpen={true}
-              user={selectedUserForProfileCard}
-              currentUser={isLoggedIn ? userProfile : null}
-              onClose={() => setSelectedUserForProfileCard(null)}
-              language={language}
-              isLoggedIn={isLoggedIn}
-              onTriggerAuth={() => setIsAuthModalOpen(true)}
-              showToast={showToast}
-              onOpenDirectChat={(recipientId, recipientName) => {
-                setSelectedUserForProfileCard(null);
-                setActiveTab('chats');
-                localStorage.setItem('Talaba_pending_chat_recipient_id', recipientId);
-                localStorage.setItem('Talaba_pending_chat_recipient_name', recipientName);
-                // Dispatch a storage event or tab change notification
-                window.dispatchEvent(new Event('Talaba_switch_chat'));
-              }}
-            />
-          )}
-        </AnimatePresence>
 
         {/* Floating Toast Notification Center */}
         <div className="fixed top-18 left-1/2 -translate-x-1/2 z-50 w-full max-w-[340px] flex flex-col gap-2 pointer-events-none">
@@ -1599,6 +1458,7 @@ export default function App() {
     </div>
   );
 };
+
 
 
 
