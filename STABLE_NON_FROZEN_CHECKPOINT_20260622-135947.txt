@@ -1,0 +1,24 @@
+﻿STABLE NON-FROZEN CHECKPOINT
+
+Date: 20260622-135947
+
+Live URL tested:
+https://talaba.kaniq.org/?fresh=20260622135357
+
+What fixed the freeze:
+1. Reduced first-load opportunities from job=1200 and others=300 to 20 per category.
+2. Added Load More batching.
+3. Disabled stale service worker cache.
+4. Added browser cache cleanup guard.
+
+Current stable commits:
+8cb6331 Add safe feed batching and load more
+dfb5705 Disable stale service worker cache during stabilization
+
+Recovery branch:
+stable/non-frozen-feed-batching-20260622-135947
+
+Recovery tag:
+stable-non-frozen-20260622-20260622-135947
+
+Do not overwrite this checkpoint unless intentionally creating a newer stable checkpoint.
