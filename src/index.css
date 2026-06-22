@@ -2340,3 +2340,182 @@ article[id^="feed-card-custom-"]::after {
     font-size: 8px;
   }
 }
+
+/* TALABA HEADER POLISH 20260622
+   CSS-only. No backend changes. No auth changes. No feed changes. */
+
+#app-header-container {
+  position: sticky !important;
+  top: 0 !important;
+  z-index: 45 !important;
+  border-bottom: 1px solid rgba(226,232,240,0.82) !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.94), rgba(250,245,255,0.90)),
+    rgba(255,255,255,0.92) !important;
+  backdrop-filter: blur(16px) saturate(1.15);
+  -webkit-backdrop-filter: blur(16px) saturate(1.15);
+  box-shadow:
+    0 12px 34px rgba(15,23,42,0.08),
+    inset 0 1px 0 rgba(255,255,255,0.9) !important;
+}
+
+#header-top-row {
+  min-height: 48px;
+}
+
+#header-brand-logo {
+  min-width: 0;
+  padding-inline-end: 6px;
+}
+
+#header-brand-logo > div:first-child {
+  width: 38px !important;
+  height: 38px !important;
+  border-radius: 16px !important;
+  background:
+    radial-gradient(circle at 30% 20%, rgba(255,255,255,0.50), transparent 36%),
+    linear-gradient(135deg, #7c3aed, #f97316) !important;
+  box-shadow:
+    0 12px 22px rgba(124,58,237,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.55) !important;
+}
+
+#header-brand-logo span.text-\[16px\] {
+  color: #6d28d9 !important;
+  letter-spacing: -0.035em !important;
+  text-shadow: 0 1px 0 rgba(255,255,255,0.9);
+}
+
+#header-app-name-ar {
+  color: #f97316 !important;
+  font-size: 13px !important;
+}
+
+#header-brand-logo p {
+  max-width: 170px;
+  color: #64748b !important;
+  font-weight: 800 !important;
+}
+
+#header-actions {
+  gap: 6px !important;
+  flex-shrink: 0;
+}
+
+#inline-language-bar {
+  border-radius: 18px !important;
+  padding: 4px !important;
+  border: 1px solid rgba(255,255,255,0.60) !important;
+  background:
+    linear-gradient(135deg, #6d28d9 0%, #2563eb 52%, #f97316 100%) !important;
+  box-shadow:
+    0 10px 24px rgba(67,56,202,0.18),
+    inset 0 1px 0 rgba(255,255,255,0.45) !important;
+}
+
+#inline-language-bar button {
+  min-width: 38px;
+  border-radius: 14px !important;
+}
+
+#inline-language-bar button.bg-\[\#FFD21F\] {
+  background:
+    linear-gradient(135deg, #fff7ad, #ffd21f) !important;
+  box-shadow:
+    0 8px 18px rgba(245,158,11,0.22),
+    inset 0 1px 0 rgba(255,255,255,0.8) !important;
+}
+
+#notif-bell,
+#header-chats-trigger,
+#header-login-trigger,
+#profile-avatar-trigger {
+  min-height: 36px !important;
+  border-radius: 15px !important;
+  border: 1px solid rgba(226,232,240,0.86) !important;
+  background: rgba(255,255,255,0.72) !important;
+  box-shadow:
+    0 8px 18px rgba(15,23,42,0.055),
+    inset 0 1px 0 rgba(255,255,255,0.85) !important;
+}
+
+#notif-bell:hover,
+#header-chats-trigger:hover,
+#header-login-trigger:hover,
+#profile-avatar-trigger:hover {
+  background: rgba(255,247,237,0.94) !important;
+  transform: translateY(-1px);
+}
+
+#header-login-trigger {
+  padding-inline: 10px !important;
+  color: #1e293b !important;
+}
+
+#profile-avatar-trigger {
+  width: 36px !important;
+  height: 36px !important;
+  border-color: rgba(249,115,22,0.35) !important;
+}
+
+#app-header-container .absolute.right-0.mt-2 {
+  border-radius: 22px !important;
+  border: 1px solid rgba(124,58,237,0.16) !important;
+  box-shadow:
+    0 22px 50px rgba(15,23,42,0.16),
+    inset 0 1px 0 rgba(255,255,255,0.9) !important;
+}
+
+@media (max-width: 420px) {
+  #app-header-container {
+    padding-inline: 10px !important;
+  }
+
+  #header-top-row {
+    gap: 6px !important;
+  }
+
+  #header-brand-logo > div:first-child {
+    width: 34px !important;
+    height: 34px !important;
+    border-radius: 14px !important;
+  }
+
+  #header-brand-logo span.text-\[16px\] {
+    font-size: 14px !important;
+  }
+
+  #header-app-name-ar {
+    font-size: 11px !important;
+  }
+
+  #header-brand-logo p {
+    max-width: 128px;
+    font-size: 8px !important;
+  }
+
+  #inline-language-bar {
+    transform: scale(0.94);
+    transform-origin: center right;
+  }
+
+  #inline-language-bar button {
+    min-width: 31px;
+    padding-inline: 6px !important;
+  }
+
+  #inline-language-bar button span:first-child {
+    font-size: 12px !important;
+  }
+
+  #notif-bell,
+  #header-chats-trigger,
+  #header-login-trigger,
+  #profile-avatar-trigger {
+    min-height: 32px !important;
+  }
+
+  #header-login-trigger span {
+    display: none;
+  }
+}
