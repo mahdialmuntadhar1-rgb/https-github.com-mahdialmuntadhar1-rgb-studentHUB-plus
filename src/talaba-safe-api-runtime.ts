@@ -37,7 +37,7 @@ function rewriteApiUrl(input: RequestInfo | URL): RequestInfo | URL {
 
     const knownApiHost =
       url.hostname === 'talaba.kaniq.org' ||
-      url.hostname === 'jamiati.kaniq.org' ||
+      url.hostname === 'talaba.kaniq.org' ||
       url.hostname === 'rafid-api.mahdialmuntadhar1.workers.dev' ||
       url.hostname === 'https-github.mahdialmuntadhar1.workers.dev' ||
       url.hostname === 'localhost' ||
@@ -92,3 +92,4 @@ if (!window.__TALABA_SAFE_API_PATCHED__) {
 }
 
 export {};
+
