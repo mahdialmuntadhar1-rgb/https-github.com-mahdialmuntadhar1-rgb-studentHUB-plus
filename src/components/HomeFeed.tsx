@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+﻿import React, { useState, useEffect, useMemo } from 'react';
 import { FeedItem, Language, University } from '../types';
 import { getTranslation } from '../data/translations';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from '../data/mockData';
@@ -150,126 +150,6 @@ export default function HomeFeed({
   const [backendOpportunities, setBackendOpportunities] = useState<FeedItem[]>([]);
   const [isLoadingBackend, setIsLoadingBackend] = useState(false);
   const [backendError, setBackendError] = useState<string | null>(null);
-  // MVP_DYNAMIC_STATS_ROW_20260622
-  // Live safe counts from the public opportunities API. Never blocks the feed.
-  const [opportunityStats, setOpportunityStats] = useState<Record<'job' | 'scholarship' | 'training' | 'registration', number | null>>({
-    job: null,
-    scholarship: null,
-    training: null,
-    registration: null
-  });
-
-  const formatOpportunityCount = (value: number | null, fallback: string) => {
-    if (typeof value !== 'number' || !Number.isFinite(value) || value <= 0) return fallback;
-    return value.toLocaleString('en-US');
-  };
-
-  const opportunityTickerItems = [
-    { emoji: 'ðŸ’¼', value: formatOpportunityCount(opportunityStats.job, '1,200+'), en: 'Job Opportunities', ar: 'ÙØ±Øµ Ø¹Ù…Ù„', ku: 'Ù‡Û•Ù„ÛŒ Ú©Ø§Ø±', filter: 'job' as const },
-    { emoji: 'ðŸŽ“', value: formatOpportunityCount(opportunityStats.scholarship, '200+'), en: 'Scholarships', ar: 'Ù…Ù†Ø­ Ø¯Ø±Ø§Ø³ÙŠØ©', ku: 'Ø³Ú©Û†Ù„Û•Ø±Ø´ÛŒÙ¾', filter: 'scholarship' as const },
-    { emoji: 'ðŸš€', value: formatOpportunityCount(opportunityStats.training, '300+'), en: 'Training', ar: 'ØªØ¯Ø±ÙŠØ¨', ku: 'Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†', filter: 'training' as const },
-    { emoji: 'ðŸ“Œ', value: formatOpportunityCount(opportunityStats.registration, '0'), en: 'Admissions', ar: 'Ù‚Ø¨ÙˆÙ„ ÙˆØªØ³Ø¬ÙŠÙ„', ku: 'ÙˆÛ•Ø±Ú¯Ø±ØªÙ†', filter: 'admission' as const }
-  ];
-
-  useEffect(() => {
-    let alive = true;
-    const categories = ['job', 'scholarship', 'training', 'registration'] as const;
-
-    const extractItemsFromPayload = (payload: any): any[] => {
-      if (!payload) return [];
-      if (Array.isArray(payload)) return payload;
-
-      const candidates = [
-        payload.items,
-        payload.opportunities,
-        payload.data,
-        payload.results,
-        payload.value,
-        payload?.data?.items,
-        payload?.data?.opportunities,
-        payload?.data?.results,
-        payload?.pagination?.items,
-        payload?.pagination?.data,
-        payload?.meta?.items
-      ];
-
-      for (const candidate of candidates) {
-        if (Array.isArray(candidate)) return candidate;
-      }
-
-      return [];
-    };
-
-    const extractTotalFromPayload = (payload: any, fallback: number): number | null => {
-      if (!payload || typeof payload !== 'object') return fallback > 0 ? fallback : null;
-
-      const possibleTotals = [
-        payload.total,
-        payload.count,
-        payload.totalCount,
-        payload?.pagination?.total,
-        payload?.pagination?.count,
-        payload?.meta?.total,
-        payload?.meta?.count,
-        payload?.data?.total,
-        payload?.data?.count
-      ];
-
-      for (const value of possibleTotals) {
-        const num = Number(value);
-        if (Number.isFinite(num) && num > 0) return num;
-      }
-
-      return fallback > 0 ? fallback : null;
-    };
-
-    const loadOpportunityStats = async () => {
-      const controller = new AbortController();
-      const timeoutId = window.setTimeout(() => controller.abort(), 12000);
-
-      try {
-        const rows = await Promise.all(categories.map(async (category) => {
-          const response = await fetch(`/api/opportunities?category=${encodeURIComponent(category)}&page=1&limit=2000`, {
-            signal: controller.signal,
-            headers: { Accept: 'application/json' }
-          });
-
-          if (!response.ok) return [category, null] as const;
-
-          const payload = await response.json();
-          const items = extractItemsFromPayload(payload);
-          const total = extractTotalFromPayload(payload, items.length);
-
-          return [category, total] as const;
-        }));
-
-        if (!alive) return;
-
-        const next: Record<'job' | 'scholarship' | 'training' | 'registration', number | null> = {
-          job: null,
-          scholarship: null,
-          training: null,
-          registration: null
-        };
-
-        rows.forEach(([category, total]) => {
-          next[category] = total;
-        });
-
-        setOpportunityStats(next);
-      } catch (error) {
-        console.warn('Could not load live opportunity stats. Using safe fallback labels.', error);
-      } finally {
-        window.clearTimeout(timeoutId);
-      }
-    };
-
-    void loadOpportunityStats();
-
-    return () => {
-      alive = false;
-    };
-  }, []);
   const INITIAL_OPPORTUNITY_LIMIT = 12;
   const INITIAL_CAMPUS_LIMIT = 8;
   const LOAD_MORE_STEP = 12;
@@ -287,25 +167,25 @@ export default function HomeFeed({
     if (!text || text === 'all' || text === 'iraq' || text === 'all iraq' || text === 'iraq-wide') return 'all';
 
     const aliases: Record<string, string[]> = {
-      baghdad: ['baghdad', 'Ø¨ØºØ¯Ø§Ø¯'],
-      erbil: ['erbil', 'hawler', 'Ù‡Û•ÙˆÙ„ÛŽØ±', 'Ø§Ø±Ø¨ÙŠÙ„', 'Ø£Ø±Ø¨ÙŠÙ„'],
-      basra: ['basra', 'basrah', 'Ø§Ù„Ø¨ØµØ±Ø©'],
-      sulaymaniyah: ['sulaymaniyah', 'sulaimani', 'sulaimaniyah', 'slemani', 'Ø³Ù„ÛŽÙ…Ø§Ù†ÛŒ', 'Ø§Ù„Ø³Ù„ÙŠÙ…Ø§Ù†ÙŠØ©'],
-      nineveh: ['nineveh', 'mosul', 'ninhava', 'Ù†ÙŠÙ†ÙˆÙ‰', 'Ø§Ù„Ù…ÙˆØµÙ„'],
-      duhok: ['duhok', 'dohuk', 'Ø¯Ù‡ÙˆÙƒ', 'Ø¯Ù‡Û†Ú©'],
-      kirkuk: ['kirkuk', 'ÙƒØ±ÙƒÙˆÙƒ'],
-      anbar: ['anbar', 'Ø§Ù„Ø§Ù†Ø¨Ø§Ø±', 'Ø§Ù„Ø£Ù†Ø¨Ø§Ø±'],
-      diyala: ['diyala', 'Ø¯ÙŠØ§Ù„Ù‰'],
-      salah_al_din: ['salah', 'salah al-din', 'ØµÙ„Ø§Ø­ Ø§Ù„Ø¯ÙŠÙ†'],
-      najaf: ['najaf', 'Ø§Ù„Ù†Ø¬Ù'],
-      karbala: ['karbala', 'kerbala', 'ÙƒØ±Ø¨Ù„Ø§Ø¡'],
-      babil: ['babil', 'babylon', 'Ø¨Ø§Ø¨Ù„'],
-      wasit: ['wasit', 'ÙˆØ§Ø³Ø·'],
-      maysan: ['maysan', 'missan', 'Ù…ÙŠØ³Ø§Ù†'],
-      dhi_qar: ['dhi qar', 'thi qar', 'Ø°ÙŠ Ù‚Ø§Ø±'],
-      muthanna: ['muthanna', 'Ø§Ù„Ù…Ø«Ù†Ù‰'],
-      al_qadisiyah: ['qadisiyah', 'qadisiyyah', 'diwaniyah', 'Ø§Ù„Ù‚Ø§Ø¯Ø³ÙŠØ©', 'Ø§Ù„Ø¯ÙŠÙˆØ§Ù†ÙŠØ©'],
-      halabja: ['halabja', 'Ø­Ù„Ø¨Ø¬Ø©', 'Ù‡Û•ÚµÛ•Ø¨Ø¬Û•']
+      baghdad: ['baghdad', 'بغداد'],
+      erbil: ['erbil', 'hawler', 'هەولێر', 'اربيل', 'أربيل'],
+      basra: ['basra', 'basrah', 'البصرة'],
+      sulaymaniyah: ['sulaymaniyah', 'sulaimani', 'sulaimaniyah', 'slemani', 'سلێمانی', 'السليمانية'],
+      nineveh: ['nineveh', 'mosul', 'ninhava', 'نينوى', 'الموصل'],
+      duhok: ['duhok', 'dohuk', 'دهوك', 'دهۆک'],
+      kirkuk: ['kirkuk', 'كركوك'],
+      anbar: ['anbar', 'الانبار', 'الأنبار'],
+      diyala: ['diyala', 'ديالى'],
+      salah_al_din: ['salah', 'salah al-din', 'صلاح الدين'],
+      najaf: ['najaf', 'النجف'],
+      karbala: ['karbala', 'kerbala', 'كربلاء'],
+      babil: ['babil', 'babylon', 'بابل'],
+      wasit: ['wasit', 'واسط'],
+      maysan: ['maysan', 'missan', 'ميسان'],
+      dhi_qar: ['dhi qar', 'thi qar', 'ذي قار'],
+      muthanna: ['muthanna', 'المثنى'],
+      al_qadisiyah: ['qadisiyah', 'qadisiyyah', 'diwaniyah', 'القادسية', 'الديوانية'],
+      halabja: ['halabja', 'حلبجة', 'هەڵەبجە']
     };
 
     for (const [govId, names] of Object.entries(aliases)) {
@@ -462,7 +342,7 @@ export default function HomeFeed({
         avatar: safeImageUrl || '',
         verified: true
       },
-      date: item.published_date ? `Posted on ${item.published_date}` : 'Recently posted ðŸ””',
+      date: item.published_date ? `Posted on ${item.published_date}` : 'Recently posted 🔔',
       likes: Number(item.likes || 12),
       likedByUser: false,
       savedCount: Number(item.saved_count || 15),
@@ -528,216 +408,216 @@ export default function HomeFeed({
   }, [selectedFeedTab, selectedOppFilter, language]);
 
   const campusLifeCategories = [
-    { id: 'campus_guide', labelEN: 'Campus Guide', labelAR: 'Ø¯Ù„ÙŠÙ„ Ø§Ù„Ø­Ø±Ù…', labelKU: 'Ú•ÛŽØ¨Û•Ø±ÛŒ Ú©Û•Ù…Ù¾Û•Ø³', emoji: 'ðŸ›ï¸', color: 'bg-emerald-500', bg: 'from-emerald-400 to-teal-500' },
-    { id: 'clubs', labelEN: 'Clubs & Groups', labelAR: 'Ø§Ù„Ù†ÙˆØ§Ø¯ÙŠ ÙˆØ§Ù„Ø£Ù†Ø´Ø·Ø©', labelKU: 'Ú©Û†Ù…Û•ÚµÛ• Ùˆ ÛŒØ§Ù†Û•Ú©Ø§Ù†', emoji: 'ðŸ¤', color: 'bg-orange-500', bg: 'from-orange-400 to-amber-500' },
-    { id: 'event', labelEN: 'Events', labelAR: 'Ø§Ù„ÙØ¹Ø§Ù„ÙŠØ§Øª', labelKU: 'Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ•Ú©Ø§Ù†', emoji: 'ðŸ“…', color: 'bg-rose-500', bg: 'from-rose-400 to-pink-500' },
-    { id: 'student_tip', labelEN: 'Student Tips', labelAR: 'Ù†ØµØ§Ø¦Ø­ Ø§Ù„Ø·Ù„Ø§Ø¨', labelKU: 'Ø¦Ø§Ù…Û†Ú˜Ú¯Ø§Ø±ÛŒ Ù‚ÙˆØªØ§Ø¨ÛŒ', emoji: 'ðŸ’¡', color: 'bg-amber-500', bg: 'from-amber-400 to-yellow-500' },
-    { id: 'volunteering', labelEN: 'Volunteering', labelAR: 'Ø§Ù„ØªØ·ÙˆØ¹', labelKU: 'Ø®Û†Ø¨Û•Ø®Ø´ÛŒ', emoji: 'ðŸŒ±', color: 'bg-[#2F7CCB]', bg: 'from-blue-400 to-indigo-500' },
-    { id: 'exams', labelEN: 'Exams & Registration', labelAR: 'Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†Ø§Øª ÙˆØ§Ù„ØªØ³Ø¬ÙŠÙ„', labelKU: 'ØªØ§Ù‚ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•Ú©Ø§Ù†', emoji: 'ðŸ“', color: 'bg-violet-500', bg: 'from-violet-400 to-purple-500' },
-    { id: 'career_prep', labelEN: 'Career Prep', labelAR: 'Ø§Ù„ØªØ·ÙˆÙŠØ± Ø§Ù„Ù…Ù‡Ù†ÙŠ', labelKU: 'Ø¦Ø§Ù…Ø§Ø¯Û•Ú©Ø§Ø±ÛŒ Ú©Ø§Ø±', emoji: 'ðŸš€', color: 'bg-teal-500', bg: 'from-teal-400 to-cyan-500' },
-    { id: 'university_services', labelEN: 'Uni Services', labelAR: 'Ø§Ù„Ø®Ø¯Ù…Ø§Øª Ù„Ø·Ù„Ø§Ø¨', labelKU: 'Ø®Ø²Ù…Û•ØªÚ¯ÙˆØ²Ø§Ø±ÛŒ Ø²Ø§Ù†Ú©Û†', emoji: 'ðŸ«', color: 'bg-indigo-500', bg: 'from-indigo-400 to-violet-500' }
+    { id: 'campus_guide', labelEN: 'Campus Guide', labelAR: 'دليل الحرم', labelKU: 'ڕێبەری کەمپەس', emoji: '🏛️', color: 'bg-emerald-500', bg: 'from-emerald-400 to-teal-500' },
+    { id: 'clubs', labelEN: 'Clubs & Groups', labelAR: 'النوادي والأنشطة', labelKU: 'کۆمەڵە و یانەکان', emoji: '🤝', color: 'bg-orange-500', bg: 'from-orange-400 to-amber-500' },
+    { id: 'event', labelEN: 'Events', labelAR: 'الفعاليات', labelKU: 'چالاکییەکان', emoji: '📅', color: 'bg-rose-500', bg: 'from-rose-400 to-pink-500' },
+    { id: 'student_tip', labelEN: 'Student Tips', labelAR: 'نصائح الطلاب', labelKU: 'ئامۆژگاری قوتابی', emoji: '💡', color: 'bg-amber-500', bg: 'from-amber-400 to-yellow-500' },
+    { id: 'volunteering', labelEN: 'Volunteering', labelAR: 'التطوع', labelKU: 'خۆبەخشی', emoji: '🌱', color: 'bg-[#2F7CCB]', bg: 'from-blue-400 to-indigo-500' },
+    { id: 'exams', labelEN: 'Exams & Registration', labelAR: 'الامتحانات والتسجيل', labelKU: 'تاقیکردنەوەکان', emoji: '📝', color: 'bg-violet-500', bg: 'from-violet-400 to-purple-500' },
+    { id: 'career_prep', labelEN: 'Career Prep', labelAR: 'التطوير المهني', labelKU: 'ئامادەکاری کار', emoji: '🚀', color: 'bg-teal-500', bg: 'from-teal-400 to-cyan-500' },
+    { id: 'university_services', labelEN: 'Uni Services', labelAR: 'الخدمات لطلاب', labelKU: 'خزمەتگوزاری زانکۆ', emoji: '🏫', color: 'bg-indigo-500', bg: 'from-indigo-400 to-violet-500' }
   ];
 
   const studentsToDiscover_old = useMemo(() => [
     {
       id: 'stu-sarah-ahmed',
       nameEN: 'Sarah Ahmed',
-      nameAR: 'Ø³Ø§Ø±Ø© Ø£Ø­Ù…Ø¯',
-      nameKU: 'Ø³Ø§Ø±Ø§ Ø¦Û•Ø­Ù…Û•Ø¯',
+      nameAR: 'سارة أحمد',
+      nameKU: 'سارا ئەحمەد',
       role: 'student',
       avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?auto=format&fit=crop&q=80&w=200',
       universityEN: 'University of Baghdad',
-      universityAR: 'Ø¬Ø§Ù…Ø¹Ø© Ø¨ØºØ¯Ø§Ø¯',
-      universityKU: 'Ø²Ø§Ù†Ú©Û†ÛŒ Ø¨Û•ØºØ¯Ø§',
+      universityAR: 'جامعة بغداد',
+      universityKU: 'زانکۆی بەغدا',
       bioEN: 'Computer engineering undergarduate. Passionate about algorithms and software architecture.',
-      bioAR: 'Ø·Ø§Ù„Ø¨Ø© Ù‡Ù†Ø¯Ø³Ø© Ø­Ø§Ø³Ø¨Ø§Øª. Ø´ØºÙˆÙØ© Ø¨Ø§Ù„Ø®ÙˆØ§Ø±Ø²Ù…ÙŠØ§Øª ÙˆÙ‡ÙŠÙƒÙ„Ø© Ø§Ù„Ø¨Ø±Ù…Ø¬ÙŠØ§Øª.',
-      bioKU: 'Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±ÛŒ Ø¦Û•Ù†Ø¯Ø§Ø²ÛŒØ§Ø±ÛŒ Ú©Û†Ù…Ù¾ÛŒÙˆØªÛ•Ø±. Ø®ÙˆÙ„ÛŒØ§ÛŒ Ø²Û†Ø±Ù… Ø¨Û† Ø¯Û†Ø²ÛŒÙ†Û•ÙˆÛ•ÛŒ Ú†Ø§Ø±Û•Ø³Û•Ø±ÛŒ Ø²ÛŒØ±Û•Ú© Ù‡Û•ÛŒÛ•.',
+      bioAR: 'طالبة هندسة حاسبات. شغوفة بالخوارزميات وهيكلة البرمجيات.',
+      bioKU: 'خوێندکاری ئەندازیاری کۆمپیوتەر. خولیای زۆرم بۆ دۆزینەوەی چارەسەری زیرەک هەیە.',
       majorEN: 'Computer Engineering',
-      majorAR: 'Ù‡Ù†Ø¯Ø³Ø© Ø­Ø§Ø³ÙˆØ¨',
-      majorKU: 'Ø¦Û•Ù†Ø¯Ø§Ø²ÛŒØ§Ø±ÛŒ Ú©Û†Ù…Ù¾ÛŒÙˆØªÛ•Ø±',
+      majorAR: 'هندسة حاسوب',
+      majorKU: 'ئەندازیاری کۆمپیوتەر',
       isOnline: true,
       statusEN: 'Online',
-      statusAR: 'Ù…ØªØµÙ„ Ø§Ù„Ø¢Ù†',
-      statusKU: 'Ø¦ÛŽØ³ØªØ§ Ù„Û•Ø³Û•Ø± Ù‡ÛŽÚµÛ•',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە',
       storyImage: 'https://images.unsplash.com/photo-1523240795612-9a054b0db644?auto=format&fit=crop&q=80&w=600',
       storyCaptionEN: 'Study group marathon with hot coffee before the final exams! Wish us luck!',
-      storyCaptionAR: 'Ù…Ø§Ø±Ø§Ø«ÙˆÙ† Ø¯Ø±Ø§Ø³ÙŠ Ø±Ø§Ø¦Ø¹ Ù…Ø¹ ÙÙ†Ø¬Ø§Ù† Ù‚Ù‡ÙˆØ© Ø³Ø§Ø®Ù† Ù‚Ø¨Ù„ Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†! Ø¯Ø¹ÙˆØ§ØªÙƒÙ… Ù„Ù†Ø§ Ø¨Ø§Ù„Ù†Ø¬Ø§Ø­!',
-      storyCaptionKU: 'Ø®ÙˆÛŽÙ†Ø¯Ù†ÛŒ Ø¨Û•Ú©Û†Ù…Û•Úµ Ù¾ÛŽØ´ ØªØ§Ù‚ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•Ú©Ø§Ù† Ù„Û•Ú¯Û•Úµ Ù‚Ø§ÙˆÛ•ÛŒÛ•Ú©ÛŒ Ú¯Û•Ø±Ù…! Ù‡ÛŒÙˆØ§ÛŒ Ø³Û•Ø±Ú©Û•ÙˆØªÙ† Ø¨Û† Ù‡Û•Ù…ÙˆÙˆØ§Ù†!'
+      storyCaptionAR: 'ماراثون دراسي رائع مع فنجان قهوة ساخن قبل الامتحان! دعواتكم لنا بالنجاح!',
+      storyCaptionKU: 'خوێندنی بەکۆمەڵ پێش تاقیکردنەوەکان لەگەڵ قاوەیەکی گەرم! هیوای سەرکەوتن بۆ هەمووان!'
     },
     {
       id: 'stu-ali-hassan',
       nameEN: 'Ali Hassan',
-      nameAR: 'Ø¹Ù„ÙŠ Ø­Ø³Ù†',
-      nameKU: 'Ø¹Û•Ù„ÛŒ Ø­Û•Ø³Û•Ù†',
+      nameAR: 'علي حسن',
+      nameKU: 'عەلی حەسەن',
       role: 'student',
       avatar: 'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?auto=format&fit=crop&q=80&w=200',
       universityEN: 'University of Mosul',
-      universityAR: 'Ø¬Ø§Ù…Ø¹Ø© Ø§Ù„Ù…ÙˆØµÙ„',
-      universityKU: 'Ø²Ø§Ù†Ú©Û†ÛŒ Ù…ÙˆØ³Úµ',
+      universityAR: 'جامعة الموصل',
+      universityKU: 'زانکۆی موسڵ',
       bioEN: 'Civil engineering student looking to connect for joint graduation project preparation.',
-      bioAR: 'Ø·Ø§Ù„Ø¨ Ù‡Ù†Ø¯Ø³Ø© Ù…Ø¯Ù†ÙŠØ©ØŒ ÙŠØªØ·Ù„Ø¹ Ù„Ù„Ù…Ø´Ø§Ø±ÙƒØ© ÙˆØ¨Ù†Ø§Ø¡ Ù…Ø´Ø§Ø±ÙŠØ¹ ØªØ®Ø±Ø¬ Ø¥Ø¨Ø¯Ø§Ø¹ÙŠØ© Ù…Ø´ØªØ±ÙƒØ©.',
-      bioKU: 'Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±ÛŒ Ø¦Û•Ù†Ø¯Ø§Ø²ÛŒØ§Ø±ÛŒ Ø´Ø§Ø±Ø³ØªØ§Ù†ÛŒØŒ Ø¨Û•Ø¯ÙˆØ§ÛŒ Ø¯Û•Ø±ÙÛ•ØªÛŒ Ù‡Ø§ÙˆØ¨Û•Ø´ Ø¯Û•Ú¯Û•Ú•ÛŽÙ… Ø¨Û† Ú©Ø§Ø±ÛŒ Ù¾Ú•Û†Ú˜Û•.',
+      bioAR: 'طالب هندسة مدنية، يتطلع للمشاركة وبناء مشاريع تخرج إبداعية مشتركة.',
+      bioKU: 'خوێندکاری ئەندازیاری شارستانی، بەدوای دەرفەتی هاوبەش دەگەڕێم بۆ کاری پڕۆژە.',
       majorEN: 'Civil Engineering',
-      majorAR: 'Ø§Ù„Ù‡Ù†Ø¯Ø³Ø© Ø§Ù„Ù…Ø¯Ù†ÙŠØ©',
-      majorKU: 'Ø¦Û•Ù†Ø¯Ø§Ø²ÛŒØ§Ø±ÛŒ Ø´Ø§Ø±Ø³ØªØ§Ù†ÛŒ',
+      majorAR: 'الهندسة المدنية',
+      majorKU: 'ئەندازیاری شارستانی',
       isOnline: true,
       statusEN: 'Online',
-      statusAR: 'Ù…ØªØµÙ„ Ø§Ù„Ø¢Ù†',
-      statusKU: 'Ø¦ÛŽØ³ØªØ§ Ù„Û•Ø³Û•Ø± Ù‡ÛŽÚµÛ•',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە',
       storyImage: 'https://images.unsplash.com/photo-1541888946425-d81bb19240f5?auto=format&fit=crop&q=80&w=600',
       storyCaptionEN: 'Testing soil samples for our civil engineering graduation project at Mosul campus!',
-      storyCaptionAR: 'ÙØ­Øµ Ø¹ÙŠÙ†Ø§Øª Ø§Ù„ØªØ±Ø¨Ø© Ù„Ù…Ø´Ø±ÙˆØ¹ ØªØ®Ø±Ø¬ Ø§Ù„Ù‡Ù†Ø¯Ø³Ø© Ø§Ù„Ù…Ø¯Ù†ÙŠØ© ÙÙŠ Ø¬Ø§Ù…Ø¹Ø© Ø§Ù„Ù…ÙˆØµÙ„ Ø§Ù„ÙŠÙˆÙ…!',
-      storyCaptionKU: 'ØªØ§Ù‚ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•ÛŒ Ø³Ø§Ù…Ù¾ÚµÛ•Ú©Ø§Ù†ÛŒ Ø®Ø§Ú© Ø¨Û† Ù¾Ú•Û†Ú˜Û•ÛŒ Ú©Û†ØªØ§ÛŒÛŒ Ø¦Û•Ù†Ø¯Ø§Ø²ÛŒØ§Ø±ÛŒ Ø´Ø§Ø±Ø³ØªØ§Ù†ÛŒ Ù„Û• Ø²Ø§Ù†Ú©Û†ÛŒ Ù…ÙˆØ³Úµ!'
+      storyCaptionAR: 'فحص عينات التربة لمشروع تخرج الهندسة المدنية في جامعة الموصل اليوم!',
+      storyCaptionKU: 'تاقیکردنەوەی سامپڵەکانی خاک بۆ پڕۆژەی کۆتایی ئەندازیاری شارستانی لە زانکۆی موسڵ!'
     },
     {
       id: 'stu-sara-suli',
       nameEN: 'Sara Ahmed',
-      nameAR: 'Ø³Ø§Ø±Ø§ Ø£Ø­Ù…Ø¯',
-      nameKU: 'Ø³Ø§Ø±Ø§ Ø¦Û•Ø­Ù…Û•Ø¯',
+      nameAR: 'سارا أحمد',
+      nameKU: 'سارا ئەحمەد',
       role: 'student',
       avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&q=80&w=200',
       universityEN: 'University of Sulaimani',
-      universityAR: 'Ø¬Ø§Ù…Ø¹Ø© Ø§Ù„Ø³Ù„ÙŠÙ…Ø§Ù†ÙŠØ©',
-      universityKU: 'Ø²Ø§Ù†Ú©Û†ÛŒ Ø³Ù„ÛŽÙ…Ø§Ù†ÛŒ',
+      universityAR: 'جامعة السليمانية',
+      universityKU: 'زانکۆی سلێمانی',
       bioEN: 'Undergraduate student in translation. Friendly peer mentor eager to assist you with linguistics.',
-      bioAR: 'Ø·Ø§Ù„Ø¨Ø© ØªØ±Ø¬Ù…Ø© Ù„ØºØ§Øª. Ù…Ø±Ø´Ø¯Ø© Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ© Ù…Ø³ØªØ¹Ø¯Ø© Ù„ØªÙ‚Ø¯ÙŠÙ… Ø§Ù„Ù…Ø³Ø§Ø¹Ø¯Ø© ÙÙŠ Ø§Ù„Ù„Ø³Ø§Ù†ÙŠØ§Øª.',
-      bioKU: 'Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±ÛŒ Ø¨Û•Ø´ÛŒ ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø§Ù†. Ø¦Ø§Ù…Ø§Ø¯Û•Ù… Ø¨Û† ÛŒØ§Ø±Ù…Û•ØªÛŒØ¯Ø§Ù†ÛŒ Ù‡Ø§ÙˆÚ•ÛŽÛŒØ§Ù† Ù„Û• Ø¨ÙˆØ§Ø±ÛŒ Ø²Ù…Ø§Ù†Û•ÙˆØ§Ù†ÛŒ.',
+      bioAR: 'طالبة ترجمة لغات. مرشدة أكاديمية مستعدة لتقديم المساعدة في اللسانيات.',
+      bioKU: 'خوێندکاری بەشی وەرگێڕان. ئامادەم بۆ یارمەتیدانی هاوڕێیان لە بواری زمانەوانی.',
       majorEN: 'Translation & English',
-      majorAR: 'Ø§Ù„ØªØ±Ø¬Ù…Ø© ÙˆØ§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠØ©',
-      majorKU: 'ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø§Ù† Ùˆ Ø¦ÛŒÙ†Ú¯Ù„ÛŒØ²ÛŒ',
+      majorAR: 'الترجمة والإنجليزية',
+      majorKU: 'وەرگێڕان و ئینگلیزی',
       isOnline: true,
       statusEN: 'Online',
-      statusAR: 'Ù…ØªØµÙ„ Ø§Ù„Ø¢Ù†',
-      statusKU: 'Ø¦ÛŽØ³ØªØ§ Ù„Û•Ø³Û•Ø± Ù‡ÛŽÚµÛ•',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە',
       storyImage: 'https://images.unsplash.com/photo-1517245386807-bb43f82c33c4?auto=format&fit=crop&q=80&w=600',
       storyCaptionEN: 'Translating modern prose literature under the library study lighting today.',
-      storyCaptionAR: 'ØªØ±Ø¬Ù…Ø© Ø§Ù„Ù†Ø«Ø± ÙˆØ§Ù„Ù‚ØµØ§Ø¦Ø¯ Ø§Ù„Ø£Ø¯Ø¨ÙŠØ© Ø§Ù„Ø­Ø¯ÙŠØ«Ø© ØªØ­Øª Ø£Ø¶ÙˆØ§Ø¡ Ù…ÙƒØªØ¨Ø© Ø§Ù„Ø¬Ø§Ù…Ø¹Ø© Ø§Ù„Ù‡Ø§Ø¯Ø¦Ø©.',
-      storyCaptionKU: 'ÙˆÛ•Ø±Ú¯ÛŽÚ•Ø§Ù†ÛŒ ØªÛŽÚ©Ø³ØªÛ• Ø¦Û•Ø¯Û•Ø¨ÛŒÛŒÛ• Ù†ÙˆÛŽÛŒÛ•Ú©Ø§Ù† Ù„Û• Ú˜ÛŽØ± Ú•ÙˆÙˆÙ†Ø§Ú©ÛŒ Ø¦Ø§Ø±Ø§Ù…ÛŒ Ú©ØªÛŽØ¨Ø®Ø§Ù†Û•ÛŒ Ø²Ø§Ù†Ú©Û†.'
+      storyCaptionAR: 'ترجمة النثر والقصائد الأدبية الحديثة تحت أضواء مكتبة الجامعة الهادئة.',
+      storyCaptionKU: 'وەرگێڕانی تێکستە ئەدەبییە نوێیەکان لە ژێر ڕووناکی ئارامی کتێبخانەی زانکۆ.'
     },
     {
       id: 'stu-mohammed-kareem',
       nameEN: 'Mohammed Kareem',
-      nameAR: 'Ù…Ø­Ù…Ø¯ ÙƒØ±ÙŠÙ…',
-      nameKU: 'Ù…Ø­Û•Ù…Û•Ø¯ Ú©Û•Ø±ÛŒÙ…',
+      nameAR: 'محمد كريم',
+      nameKU: 'محەمەد کەریم',
       role: 'student',
       avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&q=80&w=200',
       universityEN: 'University of Technology',
-      universityAR: 'Ø§Ù„Ø¬Ø§Ù…Ø¹Ø© Ø§Ù„ØªÙƒÙ†ÙˆÙ„ÙˆØ¬ÙŠØ©',
-      universityKU: 'Ø²Ø§Ù†Ú©Û†ÛŒ ØªÛ•Ú©Ù†Û•Ù„Û†Ø¬ÛŒØ§',
+      universityAR: 'الجامعة التكنولوجية',
+      universityKU: 'زانکۆی تەکنەلۆجیا',
       bioEN: 'Electrical systems engineer. Building IoT hardware prototypes and solar automation modules.',
-      bioAR: 'Ù‡Ù†Ø¯Ø³Ø© Ù†Ø¸Ù… ÙƒÙ‡Ø±Ø¨Ø§Ø¦ÙŠØ©ØŒ Ø´ØºÙˆÙ Ø¨Ø¥Ù†Ø´Ø§Ø¡ Ù†Ù…Ø§Ø°Ø¬ Ø¥Ù†ØªØ±Ù†Øª Ø§Ù„Ø£Ø´ÙŠØ§Ø¡ ÙˆØ§Ù„ØªØ­ÙƒÙ… Ø§Ù„Ø¢Ù„ÙŠ Ø¨Ø§Ù„Ø·Ø§Ù‚Ø© Ø§Ù„Ø´Ù…Ø³ÙŠØ©.',
-      bioKU: 'Ø¦Û•Ù†Ø¯Ø§Ø²ÛŒØ§Ø±ÛŒ Ø³ÛŒØ³ØªÛ•Ù…ÛŒ Ú©Ø§Ø±Û•Ø¨Ø§. Ú©Ø§Ø± Ù„Û•Ø³Û•Ø± Ù¾Ø±Û†Ú˜Û•ÛŒ Ù…Û†Ø¯ÛŽØ±Ù†ÛŒ Ø¦Û†ØªÛ†Ù…Ø§ØªÛŒÚ© Ø¯Û•Ú©Û•Ù….',
+      bioAR: 'هندسة نظم كهربائية، شغوف بإنشاء نماذج إنترنت الأشياء والتحكم الآلي بالطاقة الشمسية.',
+      bioKU: 'ئەندازیاری سیستەمی کارەبا. کار لەسەر پرۆژەی مۆدێرنی ئۆتۆماتیک دەکەم.',
       majorEN: 'Electrical Engineering',
-      majorAR: 'Ø§Ù„Ù‡Ù†Ø¯Ø³Ø© Ø§Ù„ÙƒÙ‡Ø±Ø¨Ø§Ø¦ÙŠØ©',
-      majorKU: 'Ø¦Û•Ù†Ø¯Ø§Ø²ÛŒØ§Ø±ÛŒ Ú©Ø§Ø±Û•Ø¨Ø§',
+      majorAR: 'الهندسة الكهربائية',
+      majorKU: 'ئەندازیاری کارەبا',
       isOnline: true,
       statusEN: 'Online',
-      statusAR: 'Ù…ØªØµÙ„ Ø§Ù„Ø¢Ù†',
-      statusKU: 'Ø¦ÛŽØ³ØªØ§ Ù„Û•Ø³Û•Ø± Ù‡ÛŽÚµÛ•',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە',
       storyImage: 'https://images.unsplash.com/photo-1581092335397-9583fe92d232?auto=format&fit=crop&q=80&w=600',
       storyCaptionEN: 'Assembling an IoT hardware prototype with solar automated tracking trackers.',
-      storyCaptionAR: 'ØªØ¬Ù…ÙŠØ¹ Ù†Ù…ÙˆØ°Ø¬ Ù…ÙŠÙƒØ§Ù†ÙŠÙƒÙŠ Ù„Ø¥Ù†ØªØ±Ù†Øª Ø§Ù„Ø£Ø´ÙŠØ§Ø¡ ÙˆØªØªØ¨Ø¹ Ø°ÙƒÙŠ Ø¢Ù„ÙŠ Ù„Ù„Ø£Ù„ÙˆØ§Ø­ Ø§Ù„Ø´Ù…Ø³ÙŠØ©!',
-      storyCaptionKU: 'Ú©Û†Ú©Ø±Ø¯Ù†Û•ÙˆÛ•ÛŒ Ù…Û†Ø¯ÛŽÙ„ÛŽÚ©ÛŒ Ø²ÛŒØ±Û•Ú© Ø¨Û† Ø¨Û•Ù‡ÛŽØ²Ú©Ø±Ø¯Ù†ÛŒ Ú©Û†Ù†ØªØ±Û†ÚµÛ•Ø±ÛŒ Ø³ÛŒØ³ØªÛ•Ù…ÛŒ Ø³Û†Ù„Ø§Ø±!'
+      storyCaptionAR: 'تجميع نموذج ميكانيكي لإنترنت الأشياء وتتبع ذكي آلي للألواح الشمسية!',
+      storyCaptionKU: 'کۆکردنەوەی مۆدێلێکی زیرەک بۆ بەهێزکردنی کۆنترۆڵەری سیستەمی سۆلار!'
     },
     {
       id: 'stu-noor-ali',
       nameEN: 'Noor Ali',
-      nameAR: 'Ù†ÙˆØ± Ø¹Ù„ÙŠ',
-      nameKU: 'Ù†ÙˆÙˆØ± Ø¹Û•Ù„ÛŒ',
+      nameAR: 'نور علي',
+      nameKU: 'نوور عەلی',
       role: 'student',
       avatar: 'https://images.unsplash.com/photo-1494790108377-be9c29b29330?auto=format&fit=crop&q=80&w=200',
       universityEN: 'University of Basrah',
-      universityAR: 'Ø¬Ø§Ù…Ø¹Ø© Ø§Ù„Ø¨ØµØ±Ø©',
-      universityKU: 'Ø²Ø§Ù†Ú©Û†ÛŒ Ø¨Û•Ø³Ø±Û•',
+      universityAR: 'جامعة البصرة',
+      universityKU: 'زانکۆی بەسرە',
       bioEN: 'Information technology enthusiast. Working on responsive mobile applications and front-end designs.',
-      bioAR: 'Ø´ØºÙˆÙØ© Ø¨ØªÙƒÙ†ÙˆÙ„ÙˆØ¬ÙŠØ§ Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª ÙˆØ§Ù„Ø¨Ø±Ù…Ø¬Ø©. ØªØ¹Ù…Ù„ Ø¹Ù„Ù‰ ØªØ·Ø¨ÙŠÙ‚Ø§Øª Ø§Ù„Ù‡Ø§ØªÙ ÙˆØªØµÙ…ÙŠÙ…Ø§Øª Ø§Ù„ÙˆØ§Ø¬Ù‡Ø§Øª.',
-      bioKU: 'Ø®ÙˆÙ„ÛŒØ§Ù… Ø¨Û† ØªÛ•Ú©Ù†Û•Ù„Û†Ø¬ÛŒØ§ÛŒ Ø²Ø§Ù†ÛŒØ§Ø±ÛŒÛŒÛ•. Ú©Ø§Ø± Ù„Û•Ø³Û•Ø± Ù¾Û†Ù„ÛŒ Ù†ÙˆÛŽÛŒ Ø¦Û•Ù¾ÚµÛŒÚ©Û•ÛŒØ´Ù†Û•Ú©Ø§Ù† Ø¯Û•Ú©Û•Ù….',
+      bioAR: 'شغوفة بتكنولوجيا المعلومات والبرمجة. تعمل على تطبيقات الهاتف وتصميمات الواجهات.',
+      bioKU: 'خولیام بۆ تەکنەلۆجیای زانیارییە. کار لەسەر پۆلی نوێی ئەپڵیکەیشنەکان دەکەم.',
       majorEN: 'Information Technology',
-      majorAR: 'ØªÙƒÙ†ÙˆÙ„ÙˆØ¬ÙŠØ§ Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª',
-      majorKU: 'ØªÛ•Ú©Ù†Û•Ù„Û†Ø¬ÛŒØ§ÛŒ Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ',
+      majorAR: 'تكنولوجيا المعلومات',
+      majorKU: 'تەکنەلۆجیای زانیاری',
       isOnline: true,
       statusEN: 'Online',
-      statusAR: 'Ù…ØªØµÙ„ Ø§Ù„Ø¢Ù†',
-      statusKU: 'Ø¦ÛŽØ³ØªØ§ Ù„Û•Ø³Û•Ø± Ù‡ÛŽÚµÛ•',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە',
       storyImage: 'https://images.unsplash.com/photo-1460925895917-afdab827c52f?auto=format&fit=crop&q=80&w=600',
       storyCaptionEN: 'Creating custom UI wireframes and configuring deep-link APIs for my project.',
-      storyCaptionAR: 'ØªØµÙ…ÙŠÙ… ÙˆØ§Ø¬Ù‡Ø§Øª Ù…Ø³ØªØ®Ø¯Ù… Ù…Ø®ØµØµØ© ÙˆØ±Ø¨Ø· Ø§Ù„ÙˆØ§Ø¬Ù‡Ø§Øª Ø§Ù„Ø®Ù„ÙÙŠØ© Ù„Ù„ØªØ·Ø¨ÙŠÙ‚ Ø§Ù„Ù…Ø­Ù…ÙˆÙ„!',
-      storyCaptionKU: 'Ø¯ÛŒØ²Ø§ÛŒÙ†Ú©Ø±Ø¯Ù†ÛŒ Ú•ÙˆÚ©Ø§Ø±ÛŒ Ø¦Û•Ù¾ÚµÛŒÚ©Û•ÛŒØ´Ù† Ùˆ Ú•ÛŽÚ©Ø®Ø³ØªÙ†ÛŒ Ø³ÛŒØ³ØªÛ•Ù…ÛŒ Ø¨Û•Ø³ØªÛ•Ø±Û•Ú©Ø§Ù†!'
+      storyCaptionAR: 'تصميم واجهات مستخدم مخصصة وربط الواجهات الخلفية للتطبيق المحمول!',
+      storyCaptionKU: 'دیزاینکردنی ڕوکاری ئەپڵیکەیشن و ڕێکخستنی سیستەمی بەستەرەکان!'
     },
     {
       id: 'stu-rawa-omer',
       nameEN: 'Rawa Omer',
-      nameAR: 'Ø±ÙˆØ§ Ø¹Ù…Ø±',
-      nameKU: 'Ø±Û•ÙˆØ§ Ø¹ÙˆÙ…Û•Ø±',
+      nameAR: 'روا عمر',
+      nameKU: 'رەوا عومەر',
       role: 'student',
       avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&q=80&w=200',
       universityEN: 'Salahaddin University',
-      universityAR: 'Ø¬Ø§Ù…Ø¹Ø© Ø£Ø±Ø¨ÙŠÙ„',
-      universityKU: 'Ø²Ø§Ù†Ú©Û†ÛŒ Ù‡Û•ÙˆÙ„ÛŽØ±',
+      universityAR: 'جامعة أربيل',
+      universityKU: 'زانکۆی هەولێر',
       bioEN: 'Software engineer from Erbil. Studying cloud operations and responsive full-stack dashboards.',
-      bioAR: 'Ù…Ø·ÙˆØ± Ø¨Ø±Ù…Ø¬ÙŠØ§Øª Ù…Ù† Ø£Ø±Ø¨ÙŠÙ„ØŒ ÙŠØ¯Ø±Ø³ ØªÙƒÙ†ÙˆÙ„ÙˆØ¬ÙŠØ§ Ø§Ù„Ø³Ø­Ø§Ø¨ ÙˆØ¥Ø¯Ø§Ø±Ø© Ù„ÙˆØ­Ø§Øª Ø§Ù„ØªØ­ÙƒÙ… Ø§Ù„Ù…ØªÙƒØ§Ù…Ù„Ø©.',
-      bioKU: 'Ù¾Û•Ø±Û•Ù¾ÛŽØ¯Û•Ø±ÛŒ Ù†Û•Ø±Ù…Û•Ú©Ø§ÚµØ§ Ù„Û• Ù‡Û•ÙˆÙ„ÛŽØ±. Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±ÛŒ Ú†Ø§Ù„Ø§Ú©ÛŒ Ú©Ù„Ø§ÙˆØ¯ Ùˆ ÙØ±Û•-Ø²Ù…Ø§Ù†.',
+      bioAR: 'مطور برمجيات من أربيل، يدرس تكنولوجيا السحاب وإدارة لوحات التحكم المتكاملة.',
+      bioKU: 'پەرەپێدەری نەرمەکاڵا لە هەولێر. خوێندکاری چالاکی کلاود و فرە-زمان.',
       majorEN: 'Software Engineering',
-      majorAR: 'Ù‡Ù†Ø¯Ø³Ø© Ø§Ù„Ø¨Ø±Ù…Ø¬ÙŠØ§Øª',
-      majorKU: 'Ø¦Û•Ù†Ø¯Ø§Ø²ÛŒØ§Ø±ÛŒ Ù†Û•Ø±Ù…Û•Ú©Ø§ÚµØ§',
+      majorAR: 'هندسة البرمجيات',
+      majorKU: 'ئەندازیاری نەرمەکاڵا',
       isOnline: true,
       statusEN: 'Online',
-      statusAR: 'Ù…ØªØµÙ„ Ø§Ù„Ø¢Ù†',
-      statusKU: 'Ø¦ÛŽØ³ØªØ§ Ù„Û•Ø³Û•Ø± Ù‡ÛŽÚµÛ•',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە',
       storyImage: 'https://images.unsplash.com/photo-1531403009284-440f080d1e12?auto=format&fit=crop&q=80&w=600',
       storyCaptionEN: 'Just deployed custom staging microservices on Kubernetes clusters. Staging complete!',
-      storyCaptionAR: 'Ù†Ø¬Ø­Ù†Ø§ ÙÙŠ ØªÙØ¹ÙŠÙ„ Ø§Ù„Ø®Ø¯Ù…Ø§Øª Ø§Ù„Ù…ØµØºØ±Ø© Ø§Ù„Ø¨Ø±Ù…Ø¬ÙŠØ© Ø¹Ù„Ù‰ Ø³Ø­Ø§Ø¨Ø© ÙƒÙˆØ¨Ø±Ù†ÙŠØªØ³ ÙÙŠ Ø£Ø±Ø¨ÙŠÙ„!',
-      storyCaptionKU: 'Ø¨Û• Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆÛŒÛŒ Ù¾Ú•Û†Ú˜Û•ÛŒ Ú©Ù„Ø§ÙˆØ¯Ù…Ø§Ù† Ù„Û• Ú©Û•Ù…Ù¾Û•Ø³ÛŒ Ù‡Û•ÙˆÙ„ÛŽØ± Ø¨ÚµØ§ÙˆÚ©Ø±Ø¯Û•ÙˆÛ•!'
+      storyCaptionAR: 'نجحنا في تفعيل الخدمات المصغرة البرمجية على سحابة كوبرنيتس في أربيل!',
+      storyCaptionKU: 'بە سەرکەوتوویی پڕۆژەی کلاودمان لە کەمپەسی هەولێر بڵاوکردەوە!'
     },
     {
       id: 'stu-zainab-mohammed',
       nameEN: 'Zeynab Mohammed',
-      nameAR: 'Ø²ÙŠÙ†Ø¨ Ù…Ø­Ù…Ø¯',
-      nameKU: 'Ø²Û•ÛŒÙ†Û•Ø¨ Ù…Ø­Û•Ù…Û•Ø¯',
+      nameAR: 'زينب محمد',
+      nameKU: 'زەینەب محەمەد',
       role: 'student',
       avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&q=80&w=200',
       universityEN: 'University of Karbala',
-      universityAR: 'Ø¬Ø§Ù…Ø¹Ø© ÙƒØ±Ø¨Ù„Ø§Ø¡',
-      universityKU: 'Ø²Ø§Ù†Ú©Û†ÛŒ Ú©Û•Ø±Ø¨Û•Ù„Ø§',
+      universityAR: 'جامعة كربلاء',
+      universityKU: 'زانکۆی کەربەلا',
       bioEN: 'Pharmacy student interested in clinical chemistry and interactive student research forums.',
-      bioAR: 'Ø·Ø§Ù„Ø¨Ø© ØµÙŠØ¯Ù„Ø© Ù…Ù‡ØªÙ…Ø© Ø¨Ø§Ù„ÙƒÙŠÙ…ÙŠØ§Ø¡ Ø§Ù„Ø³Ø±ÙŠØ±ÙŠØ© ÙˆØ§Ù„Ù†Ø¯ÙˆØ§Øª Ø§Ù„ØªØ¹Ù„ÙŠÙ…ÙŠØ© ÙÙŠ Ø§Ù„Ø­Ø±Ù… Ø§Ù„Ø¬Ø§Ù…Ø¹ÙŠ.',
-      bioKU: 'Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±ÛŒ Ø¯Û•Ø±Ù…Ø§Ù†Ø³Ø§Ø²ÛŒ Ú©Û• Ø³Û•Ø±Ù†Ø¬ Ø¯Û•Ø®Ø§ØªÛ• Ø³Û•Ø± Ù¾Ú•Û†Ú˜Û• Ù¾Ø²ÛŒØ´Ú©ÛŒÛŒÛ• Ù†ÙˆÛŽÛŒÛ•Ú©Ø§Ù†.',
+      bioAR: 'طالبة صيدلة مهتمة بالكيمياء السريرية والندوات التعليمية في الحرم الجامعي.',
+      bioKU: 'خوێندکاری دەرمانسازی کە سەرنج دەخاتە سەر پڕۆژە پزیشکییە نوێیەکان.',
       majorEN: 'Pharmacy & Chemistry',
-      majorAR: 'Ø§Ù„ØµÙŠØ¯Ù„Ø© ÙˆØ§Ù„ÙƒÙŠÙ…ÙŠØ§Ø¡',
-      majorKU: 'Ø¯Û•Ø±Ù…Ø§Ù†Ø³Ø§Ø²ÛŒ Ùˆ Ú©ÛŒÙ…ÛŒØ§',
+      majorAR: 'الصيدلة والكيمياء',
+      majorKU: 'دەرمانسازی و کیمیا',
       isOnline: true,
       statusEN: 'Online',
-      statusAR: 'Ù…ØªØµÙ„ Ø§Ù„Ø¢Ù†',
-      statusKU: 'Ø¦ÛŽØ³ØªØ§ Ù„Û•Ø³Û•Ø± Ù‡ÛŽÚµÛ•',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە',
       storyImage: 'https://images.unsplash.com/photo-1530026405186-ed1ea0ac7a63?auto=format&fit=crop&q=80&w=600',
       storyCaptionEN: 'Analyzing organic molecular crystals inside the clinical analytical laboratory today.',
-      storyCaptionAR: 'ØªØ­Ù„ÙŠÙ„ Ø§Ù„Ø¨Ù„ÙˆØ±Ø§Øª Ø§Ù„Ø¬Ø²ÙŠØ¦ÙŠØ© Ø§Ù„Ø¹Ø¶ÙˆÙŠØ© ÙÙŠ Ø§Ù„Ù…Ø®ØªØ¨Ø± Ø§Ù„Ø³Ø±ÙŠØ±ÙŠ Ù„Ù„ÙƒÙŠÙ…ÙŠØ§Ø¡ Ø§Ù„ØµÙŠØ¯Ù„Ø§Ù†ÙŠØ©.',
-      storyCaptionKU: 'Ø´ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•ÛŒ Ù¾ÛŽÚ©Ù‡Ø§ØªÛ• Ú©ÛŒÙ…ÛŒØ§ÛŒÛŒÛ•Ú©Ø§Ù† Ù„Û• ØªØ§Ù‚ÛŒÚ¯Û•ÛŒ Ø³Û•Ø±Û•Ú©ÛŒ Ø²Ø§Ù†Ú©Û†ÛŒ Ú©Û•Ø±Ø¨Û•Ù„Ø§.'
+      storyCaptionAR: 'تحليل البلورات الجزيئية العضوية في المختبر السريري للكيمياء الصيدلانية.',
+      storyCaptionKU: 'شیکردنەوەی پێکهاتە کیمیاییەکان لە تاقیگەی سەرەکی زانکۆی کەربەلا.'
     },
     {
       id: 'stu-dilan-hassan',
       nameEN: 'Dilan Hassan',
-      nameAR: 'Ø¯ÙŠÙ„Ø§Ù† Ø­Ø³Ù†',
-      nameKU: 'Ø¯ÛŒÙ„Ø§Ù† Ø­Û•Ø³Û•Ù†',
+      nameAR: 'ديلان حسن',
+      nameKU: 'دیلان حەسەن',
       role: 'student',
       avatar: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&q=80&w=200',
       universityEN: 'University of Duhok',
-      universityAR: 'Ø¬Ø§Ù…Ø¹Ø© Ø¯Ù‡ÙˆÙƒ',
-      universityKU: 'Ø²Ø§Ù†Ú©Û†ÛŒ Ø¯Ù‡Û†Ú©',
+      universityAR: 'جامعة دهوك',
+      universityKU: 'زانکۆی دهۆک',
       bioEN: 'IT student and graphic artist looking to organize student tech bootcamps in Badinan region.',
-      bioAR: 'Ø·Ø§Ù„Ø¨ Ù‡ÙˆÙ…Ø§Øª ÙƒÙ…Ø¨ÙŠÙˆØªØ± ÙˆÙ…ØµÙ…Ù… Ø¬Ø±Ø§ÙÙŠÙƒØŒ ÙŠØ¹Ù…Ù„ Ù„ØªÙ†Ø¸ÙŠÙ… ÙˆØ±Ø´ ØªÙ‚Ù†ÙŠØ© Ù„Ø·Ù„Ø§Ø¨ Ù…Ù†Ø·Ù‚Ø© Ø¨Ø§Ø¯ÙŠÙ†Ø§Ù†.',
-      bioKU: 'Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±ÛŒ Ø¨Û•Ø´ÛŒ ØªÛ•Ú©Ù†Û•Ù„Û†Ø¬ÛŒØ§ Ùˆ Ù‡ÙˆÙ†Û•Ø±ÛŒ Ø¯ÛŒØ²Ø§ÛŒÙ† Ù„Û• Ø¨Û•Ù‡Ø¯ÛŒÙ†Ø§Ù†.',
+      bioAR: 'طالب هومات كمبيوتر ومصمم جرافيك، يعمل لتنظيم ورش تقنية لطلاب منطقة بادينان.',
+      bioKU: 'خوێندکاری بەشی تەکنەلۆجیا و هونەری دیزاین لە بەهدینان.',
       majorEN: 'Information Systems',
-      majorAR: 'Ù†Ø¸Ù… Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª',
-      majorKU: 'Ø³ÛŒØ³ØªÛ•Ù…ÛŒ Ø²Ø§Ù†ÛŒØ§Ø±ÛŒ',
+      majorAR: 'نظم المعلومات',
+      majorKU: 'سیستەمی زانیاری',
       isOnline: true,
       statusEN: 'Online',
-      statusAR: 'Ù…ØªØµÙ„ Ø§Ù„Ø¢Ù†',
-      statusKU: 'Ø¦ÛŽØ³ØªØ§ Ù„Û•Ø³Û•Ø± Ù‡ÛŽÚµÛ•',
+      statusAR: 'متصل الآن',
+      statusKU: 'ئێستا لەسەر هێڵە',
       storyImage: 'https://images.unsplash.com/photo-1551434678-e076c223a692?auto=format&fit=crop&q=80&w=600',
       storyCaptionEN: 'Drafting new promotional illustrations for Badinan student technology sessions.',
-      storyCaptionAR: 'Ø±Ø³Ù… Ù…Ù„ØµÙ‚Ø§Øª ØªØ±ÙˆÙŠØ¬ÙŠØ© Ù…Ø¨Ø¯Ø¹Ø© Ù„ÙˆØ±Ø´Ø© Ø¨Ø§Ø¯ÙŠÙ†Ø§Ù† Ù„ØªÙ…ÙƒÙŠÙ† Ù…Ù‡Ø§Ø±Ø§Øª ØªÙƒÙ†ÙˆÙ„ÙˆØ¬ÙŠØ§ Ø§Ù„Ù…Ø¹Ù„ÙˆÙ…Ø§Øª.',
-      storyCaptionKU: 'Ú©ÛŽØ´Ø§Ù†ÛŒ Ù¾Û†Ø³ØªÛ•Ø± Ùˆ Ù„Û†Ú¯Û† Ø¨Û† Ø®ÙˆÙ„ÛŒ Ø¯Ø§Ù‡Ø§ØªÙˆÙˆÛŒ ÙÛŽØ±Ø¨ÙˆÙˆÙ†ÛŒ Ú©Û†Ù…Ù¾ÛŒÙˆØªÛ•Ø± Ù„Û• Ø¨Û•Ù‡Ø¯ÛŒÙ†Ø§Ù†.'
+      storyCaptionAR: 'رسم ملصقات ترويجية مبدعة لورشة بادينان لتمكين مهارات تكنولوجيا المعلومات.',
+      storyCaptionKU: 'کێشانی پۆستەر و لۆگۆ بۆ خولی داهاتووی فێربوونی کۆمپیوتەر لە بەهدینان.'
     }
   ], []);
 
@@ -828,11 +708,11 @@ export default function HomeFeed({
       {
         id: 'slide_1',
         image: heroImages[0] || 'data:image/svg+xml;utf8,%3Csvg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 1200 700%22%3E%3Cdefs%3E%3ClinearGradient id=%22g%22 x1=%220%22 y1=%220%22 x2=%221%22 y2=%221%22%3E%3Cstop stop-color=%22%236B25C9%22/%3E%3Cstop offset=%221%22 stop-color=%22%231E40AF%22/%3E%3C/linearGradient%3E%3C/defs%3E%3Crect width=%221200%22 height=%22700%22 fill=%22url(%23g)%22/%3E%3C/svg%3E',
-        tag: language === 'ar' ? 'Ù…Ø¬ØªÙ…Ø¹ Ø§Ù„Ø­Ø±Ù…' : language === 'ku' ? 'Ú©Û†Ù…Û•ÚµÚ¯Û•ÛŒ Ø²Ø§Ù†Ú©Û†' : 'Campus Community',
+        tag: language === 'ar' ? 'مجتمع الحرم' : language === 'ku' ? 'کۆمەڵگەی زانکۆ' : 'Campus Community',
         tagColor: 'bg-[#1E40AF] text-white',
-        headline: language === 'ar' ? 'Ø§Ø¹Ø«Ø± Ø¹Ù„Ù‰ Ù…Ø³Ø§Ø±Ùƒ Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠ ÙˆØ§Ù„ÙØ±Øµ Ø§Ù„Ù…Ø«Ù…Ø±Ø© Ø¨ÙƒÙØ§Ø¡Ø©' : language === 'ku' ? 'Ú•ÛŽÚ•Û•ÙˆÛŒ Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒ Ùˆ Ú¯ÙˆÙ†Ø¬Ø§ÙˆØªØ±ÛŒÙ† Ø¯Û•Ø±ÙÛ•Øª Ø¨Ø¯Û†Ø²Û•Ø±Û•ÙˆÛ•' : 'Find your university life and opportunities',
-        subtitle: language === 'ar' ? 'Ø´Ø§Ù‡Ø¯ Ø§Ù„Ù…Ù†Ø­ Ø§Ù„ØªØ¯Ø±ÙŠØ¨ÙŠØ© ÙˆØ§Ù„ÙˆØ¸Ø§Ø¦Ù ÙˆØ¹Ø´ Ø­ÙŠØ§Ø© Ø§Ù„ÙƒÙ„ÙŠØ© Ù…Ø¹ Ø²Ù…Ù„Ø§Ø¦Ùƒ' : language === 'ku' ? 'Ø³Ú©Û†Ù„Û•Ø±Ø´ÛŒÙ¾ÛŒ Ø¨Û• ÙÛ•Ø±Ù…ÛŒ Ø¯Ø§Ø¨ÛŒÙ†Ú©Ø±Ø§ÙˆØŒ Ø¨Ø§Ø´ØªØ±ÛŒÙ† Ø¨Ø±Û†Ú¯Ø±Ø§Ù…ÛŒ Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†' : 'Scholarships, jobs, events, and campus community in one platform',
-        cta: language === 'ar' ? 'Ø§Ø³ØªÙƒØ´Ù Ø§Ù„ÙØ±Øµ âž”' : language === 'ku' ? 'Ø§Ù„ÙØ±Øµ âž”' : 'Explore Now âž”',
+        headline: language === 'ar' ? 'اعثر على مسارك الدراسي والفرص المثمرة بكفاءة' : language === 'ku' ? 'ڕێڕەوی ئەکادیمی و گونجاوترین دەرفەت بدۆزەرەوە' : 'Find your university life and opportunities',
+        subtitle: language === 'ar' ? 'شاهد المنح التدريبية والوظائف وعش حياة الكلية مع زملائك' : language === 'ku' ? 'سکۆلەرشیپی بە فەرمی دابینکراو، باشترین برۆگرامی ڕاهێنان' : 'Scholarships, jobs, events, and campus community in one platform',
+        cta: language === 'ar' ? 'استكشف الفرص ➔' : language === 'ku' ? 'الفرص ➔' : 'Explore Now ➔',
         action: () => {
           setSelectedFeedTab('opportunities');
           const el = document.getElementById('home-feed-tabs-selector');
@@ -842,11 +722,11 @@ export default function HomeFeed({
       {
         id: 'slide_2',
         image: heroImages[1] || 'https://images.unsplash.com/photo-1541339907198-e08756dedf3f?auto=format&fit=crop&q=80&w=600',
-        tag: language === 'ar' ? 'Ø§Ù„Ù…Ù†Ø­ ÙˆØ§Ù„Ù…Ø³ØªÙ‚Ø¨Ù„' : language === 'ku' ? 'Ø³Ú©Û†Ù„Û•Ø±Ø´ÛŒÙ¾' : 'Scholarships',
+        tag: language === 'ar' ? 'المنح والمستقبل' : language === 'ku' ? 'سکۆلەرشیپ' : 'Scholarships',
         tagColor: 'bg-indigo-600 text-white',
-        headline: language === 'ar' ? 'Ù…Ù†Ø­ ÙˆØªØ³Ù‡ÙŠÙ„Ø§Øª Ø¯Ø±Ø§Ø³ÙŠØ© Ù…Ù…ÙˆÙ„Ø© Ø¨Ø§Ù„ÙƒØ§Ù…Ù„ Ù„Ø·Ù„Ø§Ø¨Ù†Ø§' : language === 'ku' ? 'Ù‡Û•Ù„ÛŒ Ø¨ÙˆØ±Ø³ Ùˆ Ø®ÙˆÛŽÙ†Ø¯Ù†ÛŒ Ø¨Ø§ÚµØ§ Ø¨Û• Ø´ÛŽÙˆØ§Ø²ÛŒ ÙÛ•Ø±Ù…ÛŒ' : 'Scholarships & Career Opportunities',
-        subtitle: language === 'ar' ? 'Ø¨ÙˆØ§Ø¨Ø© Ø§Ù„Ù…Ù†Ø­ Ø§Ù„Ø¬Ø§Ù…Ø¹ÙŠØ© Ø§Ù„Ù…Ø­Ù„ÙŠØ© ÙˆØ§Ù„Ø¯ÙˆÙ„ÙŠØ© Ø§Ù„Ù…Ù…ÙˆÙ„Ø© Ù„Ù„Ù…Ø³ØªÙˆÙŠØ§Øª ÙƒØ§ÙØ©' : language === 'ku' ? 'Ù†ÙˆÛŽØªØ±ÛŒÙ† Ø¨ÙˆØ±Ø³Û• Ø¯Ø±Ø§Ø³ÙŠÙŠÛ•Ú©Ø§Ù† Ù„Û• Ù†Ø§ÙˆØ®Û† Ùˆ Ø¯Û•Ø±Û•ÙˆÛ•ÛŒ Ø¹ÛŽØ±Ø§Ù‚' : 'Apply for fully-funded local and international academic scholarships',
-        cta: language === 'ar' ? 'Ø¹Ø±Ø¶ Ù…Ù†Ø­ Ø§Ù„Ø·Ù„Ø§Ø¨ âž”' : language === 'ku' ? 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ø¨ÙˆØ±Ø³Û•Ú©Ø§Ù† âž”' : 'View Scholarships âž”',
+        headline: language === 'ar' ? 'منح وتسهيلات دراسية ممولة بالكامل لطلابنا' : language === 'ku' ? 'هەلی بورس و خوێندنی باڵا بە شێوازی فەرمی' : 'Scholarships & Career Opportunities',
+        subtitle: language === 'ar' ? 'بوابة المنح الجامعية المحلية والدولية الممولة للمستويات كافة' : language === 'ku' ? 'نوێترین بورسە دراسييەکان لە ناوخۆ و دەرەوەی عێراق' : 'Apply for fully-funded local and international academic scholarships',
+        cta: language === 'ar' ? 'عرض منح الطلاب ➔' : language === 'ku' ? 'بینینی بورسەکان ➔' : 'View Scholarships ➔',
         action: () => {
           setSelectedFeedTab('opportunities');
           setSelectedOppFilter('scholarship');
@@ -857,11 +737,11 @@ export default function HomeFeed({
       {
         id: 'slide_3',
         image: heroImages[2] || 'https://images.unsplash.com/photo-1521737711867-e3b97375f902?auto=format&fit=crop&q=80&w=600',
-        tag: language === 'ar' ? 'ÙˆØ¸Ø§Ø¦Ù Ø§Ù„ØªØ¯Ø±ÙŠØ¨ ÙˆØ§Ù„Ø¹Ù…Ù„' : language === 'ku' ? 'Ù‡Û•Ù„ÛŒ Ú©Ø§Ø±' : 'Job Opportunities',
+        tag: language === 'ar' ? 'وظائف التدريب والعمل' : language === 'ku' ? 'هەلی کار' : 'Job Opportunities',
         tagColor: 'bg-emerald-600 text-white',
-        headline: language === 'ar' ? 'Ø§Ù†Ø·Ù„Ù‚ ÙÙŠ Ù…Ø³ÙŠØ±ØªÙƒ Ø§Ù„Ù…Ù‡Ù†ÙŠØ© Ù…Ø¹ Ø´Ø±ÙƒØ§Ø¦Ù†Ø§ Ø§Ù„Ù…ÙˆØ«ÙˆÙ‚ÙŠÙ†' : language === 'ku' ? 'Ø³Û•Ø±Û•ØªØ§ÛŒ Ú©Ø§Ø±ÙˆØ§Ù†Û• Ù¾ÛŒØ´Û•ÛŒÛŒÛ•Ú©Û•Øª Ù„ÛŽØ±Û•ÙˆÛ• Ø¯Û•Ø³ØªÙ¾ÛŽØ¨Ú©Û•' : 'Career & Entry-Level Job Openings',
-        subtitle: language === 'ar' ? 'Ù‚Ø¯Ù… Ø¹Ù„Ù‰ ÙˆØ¸Ø§Ø¦Ù ØµÙŠÙÙŠØ©ØŒ ÙˆØªØ¯Ø±ÙŠØ¨Ø§Øª Ø¹Ù…Ù„ Ø®Ø±ÙŠØ¬ÙŠÙ† ÙÙŠ Ø£ÙØ¶Ù„ Ù‚Ø·Ø§Ø¹Ø§Øª Ø§Ù„Ø¹Ø±Ø§Ù‚' : language === 'ku' ? 'Ù…Û•Ø´Ù‚ Ùˆ Ø®ÙˆÙ„ÛŒ Ù‡Ø§ÙˆÛŒÙ†Û• Ø¨Û† Ú¯Û•Ø´Û•Ù¾ÛŽØ¯Ø§Ù†ÛŒ ØªÙˆØ§Ù†Ø§ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±Ø§Ù†' : 'Everything important for students in one place',
-        cta: language === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„ÙˆØ¸Ø§Ø¦Ù ÙˆØ§Ù„ØªØ¯Ø±ÙŠØ¨ âž”' : language === 'ku' ? 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ú©Ø§Ø±Û•Ú©Ø§Ù† âž”' : 'View Career Openings âž”',
+        headline: language === 'ar' ? 'انطلق في مسيرتك المهنية مع شركائنا الموثوقين' : language === 'ku' ? 'سەرەتای کاروانە پیشەییەکەت لێرەوە دەستپێبکە' : 'Career & Entry-Level Job Openings',
+        subtitle: language === 'ar' ? 'قدم على وظائف صيفية، وتدريبات عمل خريجين في أفضل قطاعات العراق' : language === 'ku' ? 'مەشق و خولی هاوینە بۆ گەشەپێدانی توانای خوێندکاران' : 'Everything important for students in one place',
+        cta: language === 'ar' ? 'عرض الوظائف والتدريب ➔' : language === 'ku' ? 'بینینی کارەکان ➔' : 'View Career Openings ➔',
         action: () => {
           setSelectedFeedTab('opportunities');
           setSelectedOppFilter('job');
@@ -872,11 +752,11 @@ export default function HomeFeed({
       {
         id: 'slide_4',
         image: heroImages[3] || 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=600',
-        tag: language === 'ar' ? 'Ø­ÙŠØ§Ø© Ø§Ù„Ø­Ø±Ù…' : language === 'ku' ? 'Ú©Û•Ù…Ù¾Û•Ø³ Ù„Ø§ÛŒÙ' : 'Campus Life',
+        tag: language === 'ar' ? 'حياة الحرم' : language === 'ku' ? 'کەمپەس لایف' : 'Campus Life',
         tagColor: 'bg-orange-600 text-white',
-        headline: language === 'ar' ? 'ØªÙÙˆÙ‚ ÙˆØªÙØ§Ø¹Ù„ ÙÙŠ Ø¨ÙŠØ¦Ø© Ø§Ù„Ø­Ø±Ù… Ø§Ù„Ø¬Ø§Ù…Ø¹ÙŠ Ø§Ù„Ø­ÙŠÙˆÙŠØ©' : language === 'ku' ? 'Ù„Û•Ú¯Û•Úµ Ù‡Ø§ÙˆÚ•ÛŽÚ©Ø§Ù†Øª Ø¨Ø§Ø¨Û•Øª Ùˆ Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ•Ú©Ø§Ù† Ø¨Û•Ø´ Ø¨Ú©Û•' : 'Campus Life & Interactive Communities',
-        subtitle: language === 'ar' ? 'Ø´Ø§Ù‡Ø¯ Ù…Ù†Ø´ÙˆØ±Ø§Øª Ø²Ù…Ù„Ø§Ø¦ÙƒØŒ Ø§Ù„Ù†ÙˆØ§Ø¯ÙŠ Ø§Ù„Ù†Ø´Ø·Ø©ØŒ ÙˆØ´Ø§Ø±Ùƒ ÙÙŠ Ø§Ù„Ù†Ù‚Ø§Ø´Ø§Øª Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ©' : language === 'ku' ? 'Ú˜ÛŒØ§Ù†ÛŒ Ú•Û†Ú˜Ø§Ù†Û•ÛŒ Ø²Ø§Ù†Ú©Û† Ùˆ Ø¦Ø§Ú¯Ø§Ø¯Ø§Ø±ÛŒ ÙÛ•Ø±Ù…ÛŒ Ù„Û• Ù†ÙˆÛŽØªØ±ÛŒÙ† Ú¯Ø±ÙˆÙ¾ÛŒ Ø®ÙˆÛŽÙ†Ø¯Ù†' : 'Exchange stories, join student clubs, and find study peer groups',
-        cta: language === 'ar' ? 'ØªØµÙØ­ Ø­ÙŠØ§Ø© Ø§Ù„ÙƒÙ„ÙŠØ© âž”' : language === 'ku' ? 'ØªÛŽÚ©Û•Úµ Ø¨Û• Ú©Û•Ù…Ù¾Û•Ø³ Ø¨Û• âž”' : 'Join Campus Groups âž”',
+        headline: language === 'ar' ? 'تفوق وتفاعل في بيئة الحرم الجامعي الحيوية' : language === 'ku' ? 'لەگەڵ هاوڕێکانت بابەت و چالاکییەکان بەش بکە' : 'Campus Life & Interactive Communities',
+        subtitle: language === 'ar' ? 'شاهد منشورات زملائك، النوادي النشطة، وشارك في النقاشات الأكاديمية' : language === 'ku' ? 'ژیانی ڕۆژانەی زانکۆ و ئاگاداری فەرمی لە نوێترین گروپی خوێندن' : 'Exchange stories, join student clubs, and find study peer groups',
+        cta: language === 'ar' ? 'تصفح حياة الكلية ➔' : language === 'ku' ? 'تێکەڵ بە کەمپەس بە ➔' : 'Join Campus Groups ➔',
         action: () => {
           setSelectedFeedTab('campus_life');
           setSelectedCampusFilter('all');
@@ -887,11 +767,11 @@ export default function HomeFeed({
       {
         id: 'slide_5',
         image: heroImages[4] || 'https://images.unsplash.com/photo-1511578314322-379afb476865?auto=format&fit=crop&q=80&w=600',
-        tag: language === 'ar' ? 'Ø§Ù„ÙØ¹Ø§Ù„ÙŠØ§Øª Ø§Ù„ÙƒØ¨Ø±Ù‰' : language === 'ku' ? 'Ú©Û†Ù†ÙØ±Ø§Ù†Ø³ Ùˆ Ú†Ø§Ù„Ø§Ú©ÛŒ' : 'Exhibits & Seminars',
+        tag: language === 'ar' ? 'الفعاليات الكبرى' : language === 'ku' ? 'کۆنفرانس و چالاکی' : 'Exhibits & Seminars',
         tagColor: 'bg-purple-600 text-white',
-        headline: language === 'ar' ? 'ÙƒÙ† Ø´Ø±ÙŠÙƒØ§Ù‹ ÙÙŠ Ø§Ù„Ù…Ø¤ØªÙ…Ø±Ø§Øª ÙˆÙ…Ø¹Ø§Ø±Ø¶ Ø§Ù„ØªÙˆØ¸ÙŠÙ Ø§Ù„Ø³Ù†ÙˆÙŠØ©' : language === 'ku' ? 'Ø¦Ø§Ù…Ø§Ø¯Û•ÛŒ Ú©Û†Ú•Ø¨Û•Ù†Ø¯ Ùˆ Ø³ÛŒÙ…ÛŒÙ†Ø§Ø±Û• Ú©Û•Ù…Ù¾Û•Ø³ÛŒÛŒÛ•Ú©Ø§Ù† Ø¨Û•' : 'University Scientific Conferences & Events',
-        subtitle: language === 'ar' ? 'ØªÙØ§ØµÙŠÙ„ ÙƒØ§Ù…Ù„Ø© Ø¹Ù† Ù…ÙˆØ§Ø¹ÙŠØ¯ Ø§Ù„ÙˆØ±Ø´ ÙˆØ§Ù„Ù†Ø¯ÙˆØ§Øª ÙˆØ§Ù„ÙØ¹Ø§Ù„ÙŠØ§Øª Ø¯Ø§Ø®Ù„ Ø¬Ø§Ù…Ø¹Ø§Øª Ø§Ù„Ø¹Ø±Ø§Ù‚' : language === 'ku' ? 'Ú©Ø§Øª Ùˆ Ø³Ø§ØªÛŒ Ú©Û†Ø¨ÙˆÙˆÙ†Û•ÙˆÛ• Ùˆ Ú¯ÙØªÙˆÚ¯Û† Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒÛŒÛ•Ú©Ø§Ù† Ø¨Ø²Ø§Ù†Û•' : 'Never miss exhibitions, academic seminars, and graduate workshops',
-        cta: language === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„ÙØ¹Ø§Ù„ÙŠØ§Øª ÙˆØ§Ù„Ù…Ø¤ØªÙ…Ø±Ø§Øª âž”' : language === 'ku' ? 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ•Ú©Ø§Ù† âž”' : 'Browse All Events âž”',
+        headline: language === 'ar' ? 'كن شريكاً في المؤتمرات ومعارض التوظيف السنوية' : language === 'ku' ? 'ئامادەی کۆڕبەند و سیمینارە کەمپەسییەکان بە' : 'University Scientific Conferences & Events',
+        subtitle: language === 'ar' ? 'تفاصيل كاملة عن مواعيد الورش والندوات والفعاليات داخل جامعات العراق' : language === 'ku' ? 'کات و ساتی کۆبوونەوە و گفتوگۆ ئەکادیمییەکان بزانە' : 'Never miss exhibitions, academic seminars, and graduate workshops',
+        cta: language === 'ar' ? 'عرض الفعاليات والمؤتمرات ➔' : language === 'ku' ? 'بینینی چالاکییەکان ➔' : 'Browse All Events ➔',
         action: () => {
           setSelectedFeedTab('campus_life');
           setSelectedCampusFilter('event');
@@ -916,7 +796,7 @@ export default function HomeFeed({
     return () => clearInterval(slideTimer);
   }, [heroSlides.length]);
 
-  // âš ï¸ Searchable Custom Picker States (Task 1, 2, 3, 5)
+  // ⚠️ Searchable Custom Picker States (Task 1, 2, 3, 5)
   const [showPicker, setShowPicker] = useState(false);
   const [pickerSearch, setPickerSearch] = useState('');
   const [pickerPage, setPickerPage] = useState(1);
@@ -934,31 +814,31 @@ export default function HomeFeed({
     const normalized = text
       .replace(/governorate/g, '')
       .replace(/province/g, '')
-      .replace(/Ù…Ø­Ø§ÙØ¸Ø©/g, '')
-      .replace(/Ù¾Ø§Ø±ÛŽØ²Ú¯Ø§/g, '')
+      .replace(/محافظة/g, '')
+      .replace(/پارێزگا/g, '')
       .replace(/\s+/g, ' ')
       .trim();
 
     const aliases: Record<string, string[]> = {
-      baghdad: ['baghdad', 'Ø¨ØºØ¯Ø§Ø¯', 'Ø¨Û•ØºØ¯Ø§'],
-      nineveh: ['nineveh', 'ninawa', 'nainawa', 'mosul', 'ninhava', 'Ù†ÙŠÙ†ÙˆÙ‰', 'Ø§Ù„Ù…ÙˆØµÙ„', 'Ù†Û•ÛŒÙ†Û•ÙˆØ§', 'Ù…ÙˆØ³Úµ'],
-      basra: ['basra', 'basrah', 'Ø§Ù„Ø¨ØµØ±Ø©', 'Ø¨Û•Ø³Ø±Û•'],
-      sulaymaniyah: ['sulaymaniyah', 'sulaimani', 'sulaimaniyah', 'slemani', 'suli', 'Ø§Ù„Ø³Ù„ÙŠÙ…Ø§Ù†ÙŠØ©', 'Ø³Ù„ÛŽÙ…Ø§Ù†ÛŒ'],
-      erbil: ['erbil', 'hawler', 'hewler', 'Ø£Ø±Ø¨ÙŠÙ„', 'Ø§Ø±Ø¨ÙŠÙ„', 'Ù‡Û•ÙˆÙ„ÛŽØ±'],
-      kirkuk: ['kirkuk', 'ÙƒØ±ÙƒÙˆÙƒ', 'Ú©Û•Ø±Ú©ÙˆÙˆÚ©'],
-      najaf: ['najaf', 'Ø§Ù„Ù†Ø¬Ù', 'Ù†Û•Ø¬Û•Ù', 'kufa', 'Ø§Ù„ÙƒÙˆÙØ©'],
-      karbala: ['karbala', 'kerbala', 'ÙƒØ±Ø¨Ù„Ø§Ø¡', 'Ú©Û•Ø±Ø¨Û•Ù„Ø§'],
-      dhi_qar: ['dhi qar', 'dhi_qar', 'thi qar', 'thi_qar', 'ziqar', 'Ø°ÙŠ Ù‚Ø§Ø±', 'Ø²ÛŒÙ‚Ø§Ø±', 'nasiriyah', 'Ø§Ù„Ù†Ø§ØµØ±ÙŠØ©'],
-      babil: ['babil', 'babylon', 'Ø¨Ø§Ø¨Ù„'],
-      anbar: ['anbar', 'Ø§Ù„Ø£Ù†Ø¨Ø§Ø±', 'Ø§Ù„Ø§Ù†Ø¨Ø§Ø±', 'Ø¦Û•Ù†Ø¨Ø§Ø±'],
-      diyala: ['diyala', 'Ø¯ÙŠØ§Ù„Ù‰', 'Ø¯ÛŒØ§Ù„Û•'],
-      salah_al_din: ['salah al-din', 'salah ad-din', 'salahaddin', 'salahaldeen', 'salah_al_din', 'tikrit', 'ØªÙƒØ±ÙŠØª', 'ØµÙ„Ø§Ø­ Ø§Ù„Ø¯ÙŠÙ†', 'Ø³Û•ÚµØ§Ø­Û•Ø¯ÛŒÙ†'],
-      wasit: ['wasit', 'ÙˆØ§Ø³Ø·', 'ÙˆØ§Ø³Øª', 'kut', 'Ø§Ù„ÙƒÙˆØª'],
-      maysan: ['maysan', 'missan', 'Ù…ÙŠØ³Ø§Ù†', 'Ù…ÛŒØ³Ø§Ù†', 'amara', 'Ø§Ù„Ø¹Ù…Ø§Ø±Ø©'],
-      al_qadisiyah: ['al-qadisiyah', 'al qadisiyah', 'al_qadisiyah', 'qadisiyah', 'qadisiyyah', 'diwaniyah', 'Ø§Ù„Ù‚Ø§Ø¯Ø³ÙŠØ©', 'Ø§Ù„Ø¯ÙŠÙˆØ§Ù†ÙŠØ©', 'Ù‚Ø§Ø¯Ø³ÛŒÛ•'],
-      muthanna: ['muthanna', 'samawah', 'Ø§Ù„Ù…Ø«Ù†Ù‰', 'Ø§Ù„Ø³Ù…Ø§ÙˆØ©', 'Ù…ÙˆØ³Û•Ù†Ù†Ø§'],
-      duhok: ['duhok', 'dohuk', 'Ø¯Ù‡ÙˆÙƒ', 'Ø¯Ù‡Û†Ú©'],
-      halabja: ['halabja', 'Ø­Ù„Ø¨Ø¬Ø©', 'Ù‡Û•ÚµÛ•Ø¨Ø¬Û•']
+      baghdad: ['baghdad', 'بغداد', 'بەغدا'],
+      nineveh: ['nineveh', 'ninawa', 'nainawa', 'mosul', 'ninhava', 'نينوى', 'الموصل', 'نەینەوا', 'موسڵ'],
+      basra: ['basra', 'basrah', 'البصرة', 'بەسرە'],
+      sulaymaniyah: ['sulaymaniyah', 'sulaimani', 'sulaimaniyah', 'slemani', 'suli', 'السليمانية', 'سلێمانی'],
+      erbil: ['erbil', 'hawler', 'hewler', 'أربيل', 'اربيل', 'هەولێر'],
+      kirkuk: ['kirkuk', 'كركوك', 'کەرکووک'],
+      najaf: ['najaf', 'النجف', 'نەجەف', 'kufa', 'الكوفة'],
+      karbala: ['karbala', 'kerbala', 'كربلاء', 'کەربەلا'],
+      dhi_qar: ['dhi qar', 'dhi_qar', 'thi qar', 'thi_qar', 'ziqar', 'ذي قار', 'زیقار', 'nasiriyah', 'الناصرية'],
+      babil: ['babil', 'babylon', 'بابل'],
+      anbar: ['anbar', 'الأنبار', 'الانبار', 'ئەنبار'],
+      diyala: ['diyala', 'ديالى', 'دیالە'],
+      salah_al_din: ['salah al-din', 'salah ad-din', 'salahaddin', 'salahaldeen', 'salah_al_din', 'tikrit', 'تكريت', 'صلاح الدين', 'سەڵاحەدین'],
+      wasit: ['wasit', 'واسط', 'واست', 'kut', 'الكوت'],
+      maysan: ['maysan', 'missan', 'ميسان', 'میسان', 'amara', 'العمارة'],
+      al_qadisiyah: ['al-qadisiyah', 'al qadisiyah', 'al_qadisiyah', 'qadisiyah', 'qadisiyyah', 'diwaniyah', 'القادسية', 'الديوانية', 'قادسیە'],
+      muthanna: ['muthanna', 'samawah', 'المثنى', 'السماوة', 'موسەننا'],
+      duhok: ['duhok', 'dohuk', 'دهوك', 'دهۆک'],
+      halabja: ['halabja', 'حلبجة', 'هەڵەبجە']
     };
 
     for (const [govId, names] of Object.entries(aliases)) {
@@ -1069,90 +949,90 @@ const filteredAndSearchedUnis = useMemo(() => {
   const storyHighlightsData = [
     {
       id: 'job',
-      emoji: 'ðŸ’¼',
+      emoji: '💼',
       labelEN: 'Jobs',
-      labelAR: 'Ø§Ù„ÙˆØ¸Ø§Ø¦Ù',
-      labelKU: 'Ú©Ø§Ø±Û•Ú©Ø§Ù†',
+      labelAR: 'الوظائف',
+      labelKU: 'کارەکان',
       color: 'from-emerald-500 to-teal-500',
       tabType: 'opportunities',
       filterType: 'job'
     },
     {
       id: 'internship',
-      emoji: 'âš™ï¸',
+      emoji: '⚙️',
       labelEN: 'Internships',
-      labelAR: 'ÙØ±Øµ Ø§Ù„ØªØ¯Ø±ÙŠØ¨',
-      labelKU: 'Ù…Û•Ø´Ù‚Û•Ú©Ø§Ù†',
+      labelAR: 'فرص التدريب',
+      labelKU: 'مەشقەکان',
       color: 'from-blue-500 to-indigo-500',
       tabType: 'opportunities',
       filterType: 'internship'
     },
     {
       id: 'training',
-      emoji: 'ðŸ«',
+      emoji: '🏫',
       labelEN: 'Trainings',
-      labelAR: 'Ø§Ù„ØªØ¯Ø±ÙŠØ¨',
-      labelKU: 'Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†',
+      labelAR: 'التدريب',
+      labelKU: 'ڕاهێنان',
       color: 'from-cyan-500 to-blue-500',
       tabType: 'opportunities',
       filterType: 'training'
     },
     {
       id: 'event',
-      emoji: 'ðŸŽŸï¸',
+      emoji: '🎟️',
       labelEN: 'Events',
-      labelAR: 'Ø§Ù„ÙØ¹Ø§Ù„ÙŠØ§Øª',
-      labelKU: 'Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ•Ú©Ø§Ù†',
+      labelAR: 'الفعاليات',
+      labelKU: 'چالاکییەکان',
       color: 'from-purple-500 to-blue-500',
       tabType: 'campus',
       filterType: 'event'
     },
     {
       id: 'news',
-      emoji: 'ðŸ“°',
+      emoji: '📰',
       labelEN: 'News',
-      labelAR: 'Ø§Ù„Ø£Ø®Ø¨Ø§Ø±',
-      labelKU: 'Ù‡Û•ÙˆØ§ÚµÛ•Ú©Ø§Ù†',
+      labelAR: 'الأخبار',
+      labelKU: 'هەواڵەکان',
       color: 'from-amber-500 to-rose-500',
       tabType: 'campus',
       filterType: 'news'
     },
     {
       id: 'announcement',
-      emoji: 'ðŸ“¢',
+      emoji: '📢',
       labelEN: 'Announcements',
-      labelAR: 'Ø§Ù„Ø¥Ø¹Ù„Ø§Ù†Ø§Øª',
-      labelKU: 'Ú•Ø§Ú¯Û•ÛŒØ§Ù†Ø¯Ù†Û•Ú©Ø§Ù†',
+      labelAR: 'الإعلانات',
+      labelKU: 'ڕاگەیاندنەکان',
       color: 'from-teal-500 to-emerald-500',
       tabType: 'campus',
       filterType: 'announcement'
     },
     {
       id: 'exam',
-      emoji: 'ðŸ“',
+      emoji: '📝',
       labelEN: 'Exams',
-      labelAR: 'Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†Ø§Øª',
-      labelKU: 'ØªØ§Ù‚ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•Ú©Ø§Ù†',
+      labelAR: 'الامتحانات',
+      labelKU: 'تاقیکردنەوەکان',
       color: 'from-[#2F7CCB] to-indigo-500',
       tabType: 'campus',
       filterType: 'exam'
     },
     {
       id: 'registration',
-      emoji: 'ðŸ“Œ',
+      emoji: '📌',
       labelEN: 'Registration',
-      labelAR: 'Ø§Ù„ØªØ³Ø¬ÙŠÙ„',
-      labelKU: 'ØªÛ†Ù…Ø§Ø±Ú©Ø±Ø¯Ù†',
+      labelAR: 'التسجيل',
+      labelKU: 'تۆمارکردن',
       color: 'from-fuchsia-500 to-pink-500',
       tabType: 'campus',
       filterType: 'registration'
     },
     {
       id: 'student_club',
-      emoji: 'ðŸ‘¥',
+      emoji: '👥',
       labelEN: 'Student Clubs',
-      labelAR: 'Ø§Ù„Ù†ÙˆØ§Ø¯ÙŠ Ø§Ù„Ø·Ù„Ø§Ø¨ÙŠØ©',
-      labelKU: 'ÛŒØ§Ù†Û• Ø®ÙˆÛŽÙ†Ø¯Ú©Ø§Ø±ÛŒÛŒÛ•Ú©Ø§Ù†',
+      labelAR: 'النوادي الطلابية',
+      labelKU: 'یانە خوێندکارییەکان',
       color: 'from-violet-500 to-fuchsia-500',
       tabType: 'campus',
       filterType: 'student_club'
@@ -1195,7 +1075,7 @@ const filteredAndSearchedUnis = useMemo(() => {
     setPostCategory('campus_life');
     setShowPublisher(false);
 
-    setMessage(language === 'ar' ? 'ØªÙ… Ù†Ø´Ø± Ù…Ø´Ø§Ø±ÙƒØªÙƒ Ø¨Ù†Ø¬Ø§Ø­! âœ¨' : language === 'ku' ? 'Ø¨Ø§Ø¨Û•ØªÛ•Ú©Û•Øª Ø¨Û• Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆÛŒÛŒ Ø¨ÚµØ§ÙˆÚ©Ø±Ø§ÛŒÛ•ÙˆÛ•! âœ¨' : 'Post shared successfully on Campus Today!');
+    setMessage(language === 'ar' ? 'تم نشر مشاركتك بنجاح! ✨' : language === 'ku' ? 'بابەتەکەت بە سەرکەوتوویی بڵاوکرایەوە! ✨' : 'Post shared successfully on Campus Today!');
     setTimeout(() => setMessage(''), 3000);
   };
 
@@ -1420,35 +1300,6 @@ const filteredAndSearchedUnis = useMemo(() => {
 
   const visibleFeedItems = filteredFeedItems.slice(0, visibleItemsCount);
   const hasMoreFeedItems = filteredFeedItems.length > visibleItemsCount;
-  // MVP_OPP_GOV_FILTER_20260622
-  // Visible governorate filter inside Opportunities/Registration lane.
-  const selectedOpportunityLabel = (() => {
-    const labels: Record<string, { en: string; ar: string; ku: string }> = {
-      all: { en: 'All opportunities', ar: 'كل الفرص', ku: 'هەموو هەلەکان' },
-      job: { en: 'Job opportunities', ar: 'فرص العمل', ku: 'هەلی کار' },
-      scholarship: { en: 'Scholarships', ar: 'المنح الدراسية', ku: 'سکۆلەرشیپ' },
-      training: { en: 'Training', ar: 'التدريب', ku: 'ڕاهێنان' },
-      admission: { en: 'Admissions / Registration', ar: 'القبول والتسجيل', ku: 'وەرگرتن و تۆمارکردن' },
-      announcement: { en: 'Announcements', ar: 'الإعلانات', ku: 'ئاگادارییەکان' },
-      news: { en: 'News', ar: 'الأخبار', ku: 'هەواڵەکان' },
-      deadline: { en: 'Deadlines', ar: 'آجال التقديم', ku: 'مۆڵەتەکان' },
-      internship: { en: 'Internships', ar: 'فرص التدريب', ku: 'ئینتەرنشپ' }
-    };
-
-    const row = labels[selectedOppFilter] || labels.all;
-    return language === 'ar' ? row.ar : language === 'ku' ? row.ku : row.en;
-  })();
-
-  const selectedGovernorateLabel = (() => {
-    if (selectedGov === 'all') {
-      return language === 'ar' ? 'كل العراق' : language === 'ku' ? 'هەموو عێراق' : 'All Iraq';
-    }
-
-    const found = IraqiGovernorates.find(gov => gov.id === selectedGov);
-    if (!found) return selectedGov;
-
-    return language === 'ar' ? found.nameAR : language === 'ku' ? found.nameKU : found.nameEN;
-  })();
 
   return (
     <div className="px-3.5 py-4 max-w-lg mx-auto flex flex-col pb-24 bg-white text-slate-800" id="home-feed-container">
@@ -1533,7 +1384,7 @@ const filteredAndSearchedUnis = useMemo(() => {
             onClick={() => onNavigateTab('admin')}
             className="absolute right-3 top-3 z-30 rounded-full bg-white/95 px-4 py-2 text-xs font-black text-slate-900 shadow-lg hover:bg-white"
           >
-            âœŽ Manage Hero Photos
+            ✎ Manage Hero Photos
           </button>
         )}
       </div>
@@ -1543,7 +1394,7 @@ const filteredAndSearchedUnis = useMemo(() => {
         {/* Governorate filter */}
         <div className="flex flex-col gap-1.5" id="home-gov-filter-container">
           <label className="text-[10px] font-black text-[#1E40AF] uppercase tracking-wider px-1 truncate">
-            ðŸ“ {language === 'ar' ? 'Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©' : language === 'ku' ? 'Ù¾Ø§Ø±ÛŽØ²Ú¯Ø§' : 'Governorate'}
+            📍 {language === 'ar' ? 'المحافظة' : language === 'ku' ? 'پارێزگا' : 'Governorate'}
           </label>
           <div 
             className={`flex items-center gap-2 px-2.5 py-2 rounded-2xl bg-white border-2 transition-all h-[42px] min-w-0 ${
@@ -1560,7 +1411,7 @@ const filteredAndSearchedUnis = useMemo(() => {
               onChange={handleGovChange}
               className="w-full text-xs font-black text-slate-800 bg-transparent border-0 focus:outline-none cursor-pointer outline-none p-0 select-none truncate"
             >
-              <option value="all">ðŸŒ {language === 'ar' ? 'Ø§Ù„ÙƒÙ„' : language === 'ku' ? 'Ù‡Û•Ù…ÙˆÙˆ' : 'All'}</option>
+              <option value="all">🌍 {language === 'ar' ? 'الكل' : language === 'ku' ? 'هەموو' : 'All'}</option>
               {IraqiGovernorates.map(gov => (
                 <option key={gov.id} value={gov.id}>
                   {language === 'ar' ? gov.nameAR : language === 'ku' ? gov.nameKU : gov.nameEN}
@@ -1573,7 +1424,7 @@ const filteredAndSearchedUnis = useMemo(() => {
         {/* University filter */}
         <div className="flex flex-col gap-1.5" id="home-uni-filter-container">
           <label className="text-[10px] font-black text-[#1E40AF] uppercase tracking-wider px-1 truncate">
-            ðŸ« {language === 'ar' ? 'Ø§Ù„Ø¬Ø§Ù…Ø¹Ø©' : language === 'ku' ? 'Ø²Ø§Ù†Ú©Û†' : 'University'}
+            🏫 {language === 'ar' ? 'الجامعة' : language === 'ku' ? 'زانکۆ' : 'University'}
           </label>
           <button 
             id="university-select-trigger"
@@ -1595,9 +1446,9 @@ const filteredAndSearchedUnis = useMemo(() => {
               <School className={`w-3.5 h-3.5 shrink-0 ${selectedUni !== 'all' ? 'text-[#1E40AF]' : 'text-slate-400'}`} />
               <span className="text-xs font-black text-slate-800 truncate">
                 {institutionsLoading ? (
-                  <span>âŒ›...</span>
+                  <span>⌛...</span>
                 ) : selectedUni === 'all' ? (
-                  <span>{language === 'ar' ? 'Ø§Ù„ÙƒÙ„' : language === 'ku' ? 'Ù‡Û•Ù…ÙˆÙˆ' : 'All'}</span>
+                  <span>{language === 'ar' ? 'الكل' : language === 'ku' ? 'هەموو' : 'All'}</span>
                 ) : (
                   (() => {
                     const sourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
@@ -1618,14 +1469,30 @@ const filteredAndSearchedUnis = useMemo(() => {
       {/* Safe lightweight opportunity ticker - no fetch, no localStorage, no heavy render */}
       <div id="talaba-opportunity-ticker" className="mb-5 overflow-hidden rounded-3xl border border-violet-100 bg-white shadow-sm">
         <div className="talaba-ticker-track">
-          {opportunityTickerItems.concat(opportunityTickerItems).map((item, idx) => (
+          {[
+            { emoji: '💼', value: '1,000', en: 'Job Vacancies', ar: 'فرصة عمل', ku: 'هەلی کار' },
+            { emoji: '🎓', value: '200+', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
+            { emoji: '🚀', value: '300+', en: 'Internships', ar: 'تدريبات وفرص تدريب', ku: 'ڕاهێنان و ئینتەرنشپ' },
+            { emoji: '🏛️', value: '19', en: 'Governorates', ar: 'محافظة', ku: 'پارێزگا' }
+          ].concat([
+            { emoji: '💼', value: '1,000', en: 'Job Vacancies', ar: 'فرصة عمل', ku: 'هەلی کار' },
+            { emoji: '🎓', value: '200+', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
+            { emoji: '🚀', value: '300+', en: 'Internships', ar: 'تدريبات وفرص تدريب', ku: 'ڕاهێنان و ئینتەرنشپ' },
+            { emoji: '🏛️', value: '19', en: 'Governorates', ar: 'محافظة', ku: 'پارێزگا' }
+          ]).map((item, idx) => (
             <button
               key={`${item.en}-${idx}`}
               type="button"
               onClick={() => {
-                if (item.filter) {
+                if (item.en.includes('Job')) {
                   setSelectedFeedTab('opportunities');
-                  setSelectedOppFilter(item.filter as any);
+                  setSelectedOppFilter('job');
+                } else if (item.en.includes('Scholarship')) {
+                  setSelectedFeedTab('opportunities');
+                  setSelectedOppFilter('scholarship');
+                } else if (item.en.includes('Internship')) {
+                  setSelectedFeedTab('opportunities');
+                  setSelectedOppFilter('internship');
                 }
                 const tabs = document.getElementById('home-feed-tabs-selector');
                 if (tabs) tabs.scrollIntoView({ behavior: 'smooth', block: 'start' });
@@ -1654,8 +1521,8 @@ const filteredAndSearchedUnis = useMemo(() => {
               : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-2 border-transparent'
           }`}
         >
-          <span>ðŸŽ¯</span>
-          <span>{language === 'ar' ? 'Ø§Ù„ÙØ±Øµ ÙˆØ§Ù„ØªØ·ÙˆÙŠØ±' : language === 'ku' ? 'Ù‡Û•Ù„Û•Ú©Ø§Ù†' : 'Opportunities'}</span>
+          <span>🎯</span>
+          <span>{language === 'ar' ? 'الفرص والتطوير' : language === 'ku' ? 'هەلەکان' : 'Opportunities'}</span>
         </button>
         <button
           onClick={() => setSelectedFeedTab('campus_life')}
@@ -1665,8 +1532,8 @@ const filteredAndSearchedUnis = useMemo(() => {
               : 'text-slate-500 hover:text-slate-800 hover:bg-slate-50 border-2 border-transparent'
           }`}
         >
-          <span>ðŸ›ï¸</span>
-          <span>{language === 'ar' ? 'Ø­ÙŠØ§Ø© Ø§Ù„Ø­Ø±Ù… Ø§Ù„Ø¬Ø§Ù…Ø¹ÙŠ' : language === 'ku' ? 'Ú©Û•Ù…Ù¾Û•Ø³ Ù„Ø§ÛŒÙ' : 'Campus Life'}</span>
+          <span>🏛️</span>
+          <span>{language === 'ar' ? 'حياة الحرم الجامعي' : language === 'ku' ? 'کەمپەس لایف' : 'Campus Life'}</span>
         </button>
       </div>
 
@@ -1678,8 +1545,8 @@ const filteredAndSearchedUnis = useMemo(() => {
           onChange={(e) => setFeedSearchQuery(e.target.value)}
           placeholder={
             selectedFeedTab === 'opportunities'
-              ? (language === 'ar' ? 'ðŸ” Ø§Ø¨Ø­Ø« Ø¹Ù† ÙˆØ¸Ø§Ø¦ÙØŒ Ù…Ù†Ø­ Ø¯Ø±Ø§Ø³ÙŠØ© ÙˆØªØ¯Ø±ÙŠØ¨Ø§Øª...' : language === 'ku' ? 'ðŸ” Ú¯Û•Ú•Ø§Ù† Ø¨Û•Ø¯ÙˆØ§ÛŒ Ù‡Û•Ù„ÛŒ Ú©Ø§Ø±ØŒ Ø³Ú©Û†Ù„Û•Ø±Ø´ÛŒÙ¾ ÛŒØ§Ù† Ù…Û•Ø´Ù‚...' : 'ðŸ” Search jobs, scholarships, or training...')
-              : (language === 'ar' ? 'ðŸ” Ø§Ø¨Ø­Ø« ÙÙŠ Ù…Ù†Ø´ÙˆØ±Ø§Øª ÙˆÙØ¹Ø§Ù„ÙŠØ§Øª Ø§Ù„Ø­Ø±Ù… Ø§Ù„Ø¬Ø§Ù…Ø¹ÙŠ...' : language === 'ku' ? 'ðŸ” Ú¯Û•Ú•Ø§Ù† Ø¨Û•Ø¯ÙˆØ§ÛŒ Ù¾Û†Ø³Øª Ùˆ Ú•ÙˆÙˆØ¯Ø§ÙˆÛ•Ú©Ø§Ù†...' : 'ðŸ” Search student posts, campus events, and clubs...')
+              ? (language === 'ar' ? '🔍 ابحث عن وظائف، منح دراسية وتدريبات...' : language === 'ku' ? '🔍 گەڕان بەدوای هەلی کار، سکۆلەرشیپ یان مەشق...' : '🔍 Search jobs, scholarships, or training...')
+              : (language === 'ar' ? '🔍 ابحث في منشورات وفعاليات الحرم الجامعي...' : language === 'ku' ? '🔍 گەڕان بەدوای پۆست و ڕووداوەکان...' : '🔍 Search student posts, campus events, and clubs...')
           }
           className={`w-full text-xs font-bold bg-slate-50 text-slate-800 border-2 rounded-2xl pl-4 pr-9 py-2.5 outline-none transition-all placeholder:text-slate-400 ${
             selectedFeedTab === 'opportunities'
@@ -1693,7 +1560,7 @@ const filteredAndSearchedUnis = useMemo(() => {
             onClick={() => setFeedSearchQuery('')}
             className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 cursor-pointer text-[10px] bg-slate-200/60 rounded-full w-4.5 h-4.5 flex items-center justify-center font-black"
           >
-            âœ•
+            ✕
           </button>
         )}
       </div>
@@ -1705,15 +1572,15 @@ const filteredAndSearchedUnis = useMemo(() => {
           id="opp-shortcuts-circles"
         >
           {[
-            { id: 'all', emoji: 'ðŸŒ', labelEN: 'All', labelAR: 'Ø§Ù„ÙƒÙ„', labelKU: 'Ù‡Û•Ù…ÙˆÙˆ' },
-            { id: 'job', emoji: 'ðŸ’¼', labelEN: 'Jobs', labelAR: 'ÙˆØ¸Ø§Ø¦Ù', labelKU: 'Ú©Ø§Ø±Û•Ú©Ø§Ù†' },
-            { id: 'scholarship', emoji: 'ðŸŽ“', labelEN: 'Scholarships', labelAR: 'Ù…Ù†Ø­ Ø¯Ø±Ø§Ø³ÙŠØ©', labelKU: 'Ø³Ú©Û†Ù„Û•Ø±Ø´ÛŒÙ¾' },
-            { id: 'training', emoji: 'ðŸ“–', labelEN: 'Training', labelAR: 'ØªØ¯Ø±ÙŠØ¨', labelKU: 'Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†' },
-            { id: 'admission', emoji: 'ðŸ“Œ', labelEN: 'Admissions', labelAR: 'Ø§Ù„Ù‚Ø¨ÙˆÙ„ ÙˆØ§Ù„ØªØ³Ø¬ÙŠÙ„', labelKU: 'ÙˆÛ•Ø±Ú¯Ø±ØªÙ†' },
-            { id: 'announcement', emoji: 'ðŸ“¢', labelEN: 'Announcements', labelAR: 'Ø§Ù„Ø£Ø®Ø¨Ø§Ø±', labelKU: 'Ø¦Ø§Ú¯Ø§Ø¯Ø§Ø±ÛŒÛŒ' },
-            { id: 'news', emoji: 'ðŸ“°', labelEN: 'News', labelAR: 'Ø£Ø®Ø¨Ø§Ø± Ø§Ù„Ø·Ù„Ø§Ø¨', labelKU: 'Ù‡Û•ÙˆØ§ÚµÛ•Ú©Ø§Ù†' },
-            { id: 'deadline', emoji: 'â³', labelEN: 'Deadlines', labelAR: 'Ø¢Ø¬Ø§Ù„ Ø§Ù„ØªÙ‚Ø¯ÙŠÙ…', labelKU: 'Ù…Û†ÚµÛ•ØªÛ•Ú©Ø§Ù†' },
-            { id: 'internship', emoji: 'ðŸš€', labelEN: 'Internships', labelAR: 'ÙØ±Øµ ØªØ¯Ø±ÙŠØ¨ Ø§Ù„Ø¹Ù…Ù„', labelKU: 'Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†ÛŒ Ú©Ø§Ø±' },
+            { id: 'all', emoji: '🌐', labelEN: 'All', labelAR: 'الكل', labelKU: 'هەموو' },
+            { id: 'job', emoji: '💼', labelEN: 'Jobs', labelAR: 'وظائف', labelKU: 'کارەکان' },
+            { id: 'scholarship', emoji: '🎓', labelEN: 'Scholarships', labelAR: 'منح دراسية', labelKU: 'سکۆلەرشیپ' },
+            { id: 'training', emoji: '📖', labelEN: 'Training', labelAR: 'تدريب', labelKU: 'ڕاهێنان' },
+            { id: 'admission', emoji: '📌', labelEN: 'Admissions', labelAR: 'القبول والتسجيل', labelKU: 'وەرگرتن' },
+            { id: 'announcement', emoji: '📢', labelEN: 'Announcements', labelAR: 'الأخبار', labelKU: 'ئاگاداریی' },
+            { id: 'news', emoji: '📰', labelEN: 'News', labelAR: 'أخبار الطلاب', labelKU: 'هەواڵەکان' },
+            { id: 'deadline', emoji: '⏳', labelEN: 'Deadlines', labelAR: 'آجال التقديم', labelKU: 'مۆڵەتەکان' },
+            { id: 'internship', emoji: '🚀', labelEN: 'Internships', labelAR: 'فرص تدريب العمل', labelKU: 'ڕاهێنانی کار' },
           ].map(shortcut => {
             const isActive = selectedOppFilter === shortcut.id;
             return (
@@ -1763,63 +1630,6 @@ setSelectedOppFilter(shortcut.id as any);
         </div>
       )}
 
-
-      {/* MVP_OPP_GOV_FILTER_20260622 */}
-      {selectedFeedTab === 'opportunities' && (
-        <div
-          id="opportunities-governorate-filter-panel"
-          className="mb-5 rounded-3xl border-2 border-orange-200 bg-white/95 p-3.5 shadow-[0_14px_34px_rgba(249,115,22,0.12)]"
-        >
-          <div className="flex items-start justify-between gap-3 mb-3">
-            <div className="min-w-0">
-              <div className="text-[10px] font-black uppercase tracking-wider text-orange-600">
-                📍 {language === 'ar' ? 'فلترة حسب المحافظة' : language === 'ku' ? 'فلتەری پارێزگا' : 'Governorate filter'}
-              </div>
-              <div className="mt-1 text-xs font-black text-slate-900 leading-snug">
-                {selectedOpportunityLabel} · {selectedGovernorateLabel}
-              </div>
-            </div>
-
-            {selectedGov !== 'all' && (
-              <button
-                type="button"
-                onClick={() => {
-                  setSelectedGov('all');
-                  setSelectedUni('all');
-                }}
-                className="shrink-0 rounded-full bg-orange-500 px-3 py-2 text-[10px] font-black text-white shadow-sm active:scale-95"
-              >
-                {language === 'ar' ? 'عرض الكل' : language === 'ku' ? 'هەموو' : 'All'}
-              </button>
-            )}
-          </div>
-
-          <div className="flex items-center gap-2 rounded-2xl border-2 border-orange-200 bg-orange-50/60 px-3 py-2.5">
-            <MapPin className="h-4 w-4 shrink-0 text-orange-600" />
-            <select
-              id="opportunities-governorate-select"
-              value={selectedGov}
-              onChange={handleGovChange}
-              className="w-full bg-transparent text-xs font-black text-slate-900 outline-none"
-            >
-              <option value="all">🌍 {language === 'ar' ? 'كل العراق' : language === 'ku' ? 'هەموو عێراق' : 'All Iraq'}</option>
-              {IraqiGovernorates.map(gov => (
-                <option key={gov.id} value={gov.id}>
-                  {language === 'ar' ? gov.nameAR : language === 'ku' ? gov.nameKU : gov.nameEN}
-                </option>
-              ))}
-            </select>
-          </div>
-
-          <div className="mt-2 text-[10px] font-bold text-slate-500 leading-relaxed">
-            {language === 'ar'
-              ? 'هذا الفلتر يؤثر على الوظائف والمنح والتدريب والقبول والتسجيل.'
-              : language === 'ku'
-                ? 'ئەم فلتەرە کاریگەری لەسەر کار، سکۆلەرشیپ، ڕاهێنان و وەرگرتن هەیە.'
-                : 'This filter applies to jobs, scholarships, training, admissions, and registration.'}
-          </div>
-        </div>
-      )}
       {/* External IQJScout Search Button */}
       {selectedFeedTab === 'opportunities' && selectedOppFilter === 'job' && (
         <div className="mb-5 flex justify-center">
@@ -1827,9 +1637,9 @@ setSelectedOppFilter(shortcut.id as any);
             onClick={() => window.open('https://iqjscout.com/jobs/', '_blank', 'noopener,noreferrer')}
             className="flex items-center gap-2 px-4 py-2.5 bg-orange-500 hover:bg-orange-600 text-white text-xs font-black rounded-xl transition-all shadow-sm hover:shadow-md active:scale-95"
           >
-            <span>ðŸ”</span>
-            <span>{language === 'ar' ? 'Ø§Ø¨Ø­Ø« Ø¹Ù† Ø§Ù„Ù…Ø²ÙŠØ¯ Ù…Ù† Ø§Ù„ÙˆØ¸Ø§Ø¦Ù Ø¹Ù„Ù‰ IQJScout' : language === 'ku' ? 'Ú¯Û•Ú•Ø§Ù† Ø¨Û•Ø¯ÙˆØ§ÛŒ Ù‡Û•Ù„ÛŒ Ú©Ø§Ø± Ø²ÛŒØ§ØªØ± Ù„Û• IQJScout' : 'Search more jobs on IQJScout'}</span>
-            <span>â†—</span>
+            <span>🔍</span>
+            <span>{language === 'ar' ? 'ابحث عن المزيد من الوظائف على IQJScout' : language === 'ku' ? 'گەڕان بەدوای هەلی کار زیاتر لە IQJScout' : 'Search more jobs on IQJScout'}</span>
+            <span>↗</span>
           </button>
         </div>
       )}
@@ -1843,15 +1653,15 @@ setSelectedOppFilter(shortcut.id as any);
           id="campus-shortcuts-circles" hidden
         >
           {[
-            { id: 'all', emoji: 'ðŸ›ï¸', labelEN: 'All', labelAR: 'Ø§Ù„ÙƒÙ„', labelKU: 'Ù‡Û•Ù…ÙˆÙˆ' },
-            { id: 'campus_guide', emoji: 'ðŸ“˜', labelEN: 'Guides', labelAR: 'Ø§Ù„Ø£Ø¯Ù„Ø©', labelKU: 'Ú•ÛŽØ¨Û•Ø±Û•Ú©Ø§Ù†' },
-            { id: 'clubs', emoji: 'ðŸ¤', labelEN: 'Clubs', labelAR: 'Ø§Ù„Ù†ÙˆØ§Ø¯ÙŠ', labelKU: 'ÛŒØ§Ù†Û•Ú©Ø§Ù†' },
-            { id: 'event', emoji: 'ðŸ“…', labelEN: 'Events', labelAR: 'Ø§Ù„ÙØ¹Ø§Ù„ÙŠØ§Øª', labelKU: 'Ú†Ø§Ù„Ø§Ú©ÛŒÛŒÛ•Ú©Ø§Ù†' },
-            { id: 'student_tip', emoji: 'ðŸ’¡', labelEN: 'Tips', labelAR: 'Ù†ØµØ§Ø¦Ø­', labelKU: 'Ø¦Ø§Ù…Û†Ú˜Ú¯Ø§Ø±ÛŒ' },
-            { id: 'volunteering', emoji: 'ðŸŒ±', labelEN: 'Volunteer', labelAR: 'Ø§Ù„ØªØ·ÙˆØ¹', labelKU: 'Ø®Û†Ø¨Û•Ø®Ø´ÛŒ' },
-            { id: 'exams', emoji: 'ðŸ“', labelEN: 'Exams', labelAR: 'Ø§Ù„Ø§Ù…ØªØ­Ø§Ù†Ø§Øª', labelKU: 'ØªØ§Ù‚ÛŒÚ©Ø±Ø¯Ù†Û•ÙˆÛ•ÙƒØ§Ù†' },
-            { id: 'career_prep', emoji: 'ðŸš€', labelEN: 'Careers', labelAR: 'Ø§Ù„ÙˆØ¸Ø§Ø¦Ù', labelKU: 'Ú©Ø§Ø±Û•Ú©Ø§Ù†' },
-            { id: 'university_services', emoji: 'ðŸ«', labelEN: 'Services', labelAR: 'Ø§Ù„Ø®Ø¯Ù…Ø§Øª', labelKU: 'Ø®Ø²Ù…Û•ØªÚ¯ÙˆØ²Ø§Ø±ÛŒ' },
+            { id: 'all', emoji: '🏛️', labelEN: 'All', labelAR: 'الكل', labelKU: 'هەموو' },
+            { id: 'campus_guide', emoji: '📘', labelEN: 'Guides', labelAR: 'الأدلة', labelKU: 'ڕێبەرەکان' },
+            { id: 'clubs', emoji: '🤝', labelEN: 'Clubs', labelAR: 'النوادي', labelKU: 'یانەکان' },
+            { id: 'event', emoji: '📅', labelEN: 'Events', labelAR: 'الفعاليات', labelKU: 'چالاکییەکان' },
+            { id: 'student_tip', emoji: '💡', labelEN: 'Tips', labelAR: 'نصائح', labelKU: 'ئامۆژگاری' },
+            { id: 'volunteering', emoji: '🌱', labelEN: 'Volunteer', labelAR: 'التطوع', labelKU: 'خۆبەخشی' },
+            { id: 'exams', emoji: '📝', labelEN: 'Exams', labelAR: 'الامتحانات', labelKU: 'تاقیکردنەوەكان' },
+            { id: 'career_prep', emoji: '🚀', labelEN: 'Careers', labelAR: 'الوظائف', labelKU: 'کارەکان' },
+            { id: 'university_services', emoji: '🏫', labelEN: 'Services', labelAR: 'الخدمات', labelKU: 'خزمەتگوزاری' },
           ].map(shortcut => {
             const isActive = selectedCampusFilter === shortcut.id;
             return (
@@ -1897,9 +1707,9 @@ setSelectedOppFilter(shortcut.id as any);
             <Sparkles className="w-4 h-4 text-blue-600 shrink-0" />
             <span>
               {language === 'ar' 
-                ? `Ø¹Ø±Ø¶ ÙÙ„ØªØ±Ø©: ${storyHighlightsData.find(s => s.filterType === activeStoryFilter)?.labelAR || 'ØªØµÙ†ÙŠÙ Ù…Ø®ØµØµ'}` 
+                ? `عرض فلترة: ${storyHighlightsData.find(s => s.filterType === activeStoryFilter)?.labelAR || 'تصنيف مخصص'}` 
                 : language === 'ku'
-                ? `Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ø¯Û•Ø³ØªÙ†ÛŒØ´Ø§Ù†Ú©Ø±Ø§ÙˆÛŒ: ${storyHighlightsData.find(s => s.filterType === activeStoryFilter)?.labelKU || 'ÙÙ„ØªÛ•Ø±'}`
+                ? `بینینی دەستنیشانکراوی: ${storyHighlightsData.find(s => s.filterType === activeStoryFilter)?.labelKU || 'فلتەر'}`
                 : `Showing matching category: ${storyHighlightsData.find(s => s.filterType === activeStoryFilter)?.labelEN || 'Filtered'}`}
             </span>
           </div>
@@ -1907,7 +1717,7 @@ setSelectedOppFilter(shortcut.id as any);
             onClick={() => setActiveStoryFilter(null)}
             className="text-[10px] font-black hover:text-slate-900 transition-colors bg-blue-100 text-blue-800 px-1.5 py-0.5 rounded cursor-pointer"
           >
-            Clear âœ•
+            Clear ✕
           </button>
         </div>
       )}
@@ -1922,9 +1732,9 @@ setSelectedOppFilter(shortcut.id as any);
         )}
 
         <div className="flex items-center gap-2.5 pointer-events-auto cursor-pointer" onClick={() => setShowPublisher(!showPublisher)}>
-          <div className="text-xl">âš¡</div>
+          <div className="text-xl">⚡</div>
           <div className="flex-1 bg-[#F7F4FF] hover:bg-[#F3F7FF] border border-[#E6E1F5] px-3.5 py-3 rounded-xl text-xs font-bold text-slate-500 transition-all shadow-inner">
-            {language === 'ar' ? 'Ø´Ø§Ø±Ùƒ Ø´ÙŠØ¦Ø§Ù‹ Ù…Ø¹ Ø²Ù…Ù„Ø§Ø¦Ùƒ Ø§Ù„ÙŠÙˆÙ…...' : language === 'ku' ? 'Ø¦Û•Ù…Ú•Û† Ø´ØªÛŽÚ© Ù‡Ø§ÙˆØ¨Û•Ø´ Ø¨Ú©Û•...' : "What's happening on campus today?"}
+            {language === 'ar' ? 'شارك شيئاً مع زملائك اليوم...' : language === 'ku' ? 'ئەمڕۆ شتێک هاوبەش بکە...' : "What's happening on campus today?"}
           </div>
           <button id="post-trigger-plus" className="p-3 bg-[#FFD21F] text-[#161A33] hover:bg-yellow-450 border-2 border-[#161A33] rounded-xl transition-all cursor-pointer shadow-[2px_2px_0px_0px_#161A33]">
             <PlusCircle className="w-5 h-5" />
@@ -1944,14 +1754,14 @@ setSelectedOppFilter(shortcut.id as any);
               {/* Caption Description field */}
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest px-1">
-                  ðŸ“ {language === 'ar' ? 'Ø§Ù„ÙˆØµÙ' : language === 'ku' ? 'Ù¾ÛŽÙ†Ø§Ø³Û• / Ù†ÙˆÙˆØ³ÛŒÙ†' : 'Caption'}
+                  📝 {language === 'ar' ? 'الوصف' : language === 'ku' ? 'پێناسە / نووسین' : 'Caption'}
                 </label>
                 <textarea
                   value={postBody}
                   onChange={e => setPostBody(e.target.value)}
                   required
                   rows={3}
-                  placeholder={language === 'ar' ? 'Ø§ÙƒØªØ¨ Ù…Ø§ ØªÙÙƒØ± Ø¨Ù‡ Ù„Ù…Ø´Ø§Ø±ÙƒØªÙ‡ Ù…Ø¹ Ø§Ù„ÙƒÙ„ÙŠØ©...' : language === 'ku' ? 'Ø¦Û•Ù…Ú•Û† Ú†ÛŒ Ù„Û• Ø²Ø§Ù†Ú©Û† Ú•ÙˆÙˆØ¯Û•Ø¯Ø§ØªØŸ...' : 'What is happening on campus today?'}
+                  placeholder={language === 'ar' ? 'اكتب ما تفكر به لمشاركته مع الكلية...' : language === 'ku' ? 'ئەمڕۆ چی لە زانکۆ ڕوودەدات؟...' : 'What is happening on campus today?'}
                   className="w-full text-xs font-semibold text-[#161A33] bg-white border border-[#E6E1F5] rounded-xl p-3.5 focus:bg-[#F3F7FF] focus:outline-none focus:border-orange-500 transition-colors resize-none"
                 />
               </div>
@@ -1959,7 +1769,7 @@ setSelectedOppFilter(shortcut.id as any);
               {/* Photo attachment component - FILE UPLOAD ONLY */}
               <div className="flex flex-col gap-1">
                 <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest px-1">
-                  ðŸ“· {language === 'ar' ? 'ØªØ­Ù…ÙŠÙ„ ØµÙˆØ±Ø©' : language === 'ku' ? 'Ø¨Ø§Ø±Ú©Ø±Ø¯Ù†ÛŒ ÙˆÛŽÙ†Û•' : 'Upload Image'}
+                  📷 {language === 'ar' ? 'تحميل صورة' : language === 'ku' ? 'بارکردنی وێنە' : 'Upload Image'}
                 </label>
                 <div 
                   className={`border-2 border-dashed rounded-xl p-4 transition-colors text-center ${
@@ -2015,9 +1825,9 @@ setSelectedOppFilter(shortcut.id as any);
                       <Image className="w-6 h-6 text-[#6B25C9]" />
                       <div className="text-[10px] font-bold text-slate-500">
                         {language === 'ar' 
-                          ? 'Ø§Ø¶ØºØ· Ù‡Ù†Ø§ Ø£Ùˆ Ø§Ø³Ø­Ø¨ Ø§Ù„ØµÙˆØ±Ø© Ù„Ø±ÙØ¹Ù‡Ø§' 
+                          ? 'اضغط هنا أو اسحب الصورة لرفعها' 
                           : language === 'ku' 
-                          ? 'Ú©Ù„ÛŒÚ© Ù„ÛŽØ±Û• Ø¨Ú©Û• Ø¨Û† Ø¨Ø§Ø±Ú©Ø±Ø¯Ù†ÛŒ ÙˆÛŽÙ†Û•' 
+                          ? 'کلیک لێرە بکە بۆ بارکردنی وێنە' 
                           : 'Click to upload or drag image file here'}
                       </div>
                       <input 
@@ -2052,7 +1862,7 @@ setSelectedOppFilter(shortcut.id as any);
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 pb-1">
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest px-1">
-                    ðŸ“ {language === 'ar' ? 'Ø§Ù„Ù…Ø­Ø§ÙØ¸Ø©' : language === 'ku' ? 'Ù¾Ø§Ø±ÛŽØ²Ú¯Ø§' : 'Governorate'}
+                    📍 {language === 'ar' ? 'المحافظة' : language === 'ku' ? 'پارێزگا' : 'Governorate'}
                   </label>
                   <select
                     value={postGov}
@@ -2078,7 +1888,7 @@ setSelectedOppFilter(shortcut.id as any);
 
                 <div className="flex flex-col gap-1">
                   <label className="text-[10px] font-extrabold text-slate-500 uppercase tracking-widest px-1">
-                    ðŸ« {language === 'ar' ? 'Ø§Ù„Ø¬Ø§Ù…Ø¹Ø© / Ø§Ù„Ù…Ø¤Ø³Ø³Ø© Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ©' : language === 'ku' ? 'Ø²Ø§Ù†Ú©Û† / Ø¯Ø§Ù…Û•Ø²Ø±Ø§ÙˆÛ•' : 'University / Institution'}
+                    🏫 {language === 'ar' ? 'الجامعة / المؤسسة الأكاديمية' : language === 'ku' ? 'زانکۆ / دامەزراوە' : 'University / Institution'}
                   </label>
                   <select
                     value={postUni}
@@ -2137,13 +1947,13 @@ setSelectedOppFilter(shortcut.id as any);
           <div className="mb-3">
             <h2 className="text-sm font-black text-[#161A33] uppercase tracking-tight">
               {selectedOppFilter === 'job' 
-                ? (language === 'ar' ? 'ÙØ±Øµ Ø§Ù„Ø¹Ù…Ù„' : language === 'ku' ? 'Ù‡Û•Ù„ÛŒ Ú©Ø§Ø±' : 'Job Opportunities')
+                ? (language === 'ar' ? 'فرص العمل' : language === 'ku' ? 'هەلی کار' : 'Job Opportunities')
                 : selectedOppFilter === 'scholarship'
-                ? (language === 'ar' ? 'Ø§Ù„Ù…Ù†Ø­ Ø§Ù„Ø¯Ø±Ø§Ø³ÙŠØ©' : language === 'ku' ? 'Ø³Ú©Û†Ù„Û•Ø±Ø´ÛŒÙ¾' : 'Scholarships')
+                ? (language === 'ar' ? 'المنح الدراسية' : language === 'ku' ? 'سکۆلەرشیپ' : 'Scholarships')
                 : selectedOppFilter === 'training'
-                ? (language === 'ar' ? 'Ø§Ù„ØªØ¯Ø±ÙŠØ¨' : language === 'ku' ? 'Ú•Ø§Ù‡ÛŽÙ†Ø§Ù†' : 'Trainings')
+                ? (language === 'ar' ? 'التدريب' : language === 'ku' ? 'ڕاهێنان' : 'Trainings')
                 : selectedOppFilter === 'internship'
-                ? (language === 'ar' ? 'ÙØ±Øµ Ø§Ù„ØªØ¯Ø±ÙŠØ¨' : language === 'ku' ? 'Ù…Û•Ø´Ù‚Û•Ú©Ø§Ù†' : 'Internships')
+                ? (language === 'ar' ? 'فرص التدريب' : language === 'ku' ? 'مەشقەکان' : 'Internships')
                 : selectedOppFilter}
             </h2>
           </div>
@@ -2153,16 +1963,16 @@ setSelectedOppFilter(shortcut.id as any);
           <SkeletonLoader />
         ) : filteredFeedItems.length === 0 ? (
           <div className="text-center py-10 bg-white border border-[#E6E1F5] rounded-2xl p-6 shadow-xs" id="empty-feed-card">
-            <div className="text-3xl mb-2">ðŸ”­</div>
+            <div className="text-3xl mb-2">🔭</div>
             <h3 className="font-extrabold text-slate-800 text-xs">
               {selectedFeedTab === 'opportunities'
-                ? (language === 'ar' ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ ÙØ±Øµ Ù…ØªØ§Ø­Ø© Ø­Ø§Ù„ÙŠØ§Ù‹' : language === 'ku' ? 'Ù‡ÛŒÚ† Ø¯Û•Ø±ÙÛ•ØªÛŽÚ© Ù†Û•Ø¯Û†Ø²Ø±Ø§ÙˆÛ•ØªÛ•ÙˆÛ•' : 'No opportunities found yet')
-                : (language === 'ar' ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ù†Ø´ÙˆØ±Ø§Øª Ø¨Ø¹Ø¯' : language === 'ku' ? 'Ù‡ÛŒÚ† Ø¨Ø§Ø¨Û•ØªÛŽÚ© Ù‡ÛŽØ´ØªØ§ Ù†ÛŒÛŒÛ•' : 'No posts yet for this category')}
+                ? (language === 'ar' ? 'لا توجد فرص متاحة حالياً' : language === 'ku' ? 'هیچ دەرفەتێک نەدۆزراوەتەوە' : 'No opportunities found yet')
+                : (language === 'ar' ? 'لا توجد منشورات بعد' : language === 'ku' ? 'هیچ بابەتێک هێشتا نییە' : 'No posts yet for this category')}
             </h3>
             <p className="text-[10px] text-slate-500 max-w-xs mt-1.5 mx-auto leading-relaxed font-bold">
               {selectedFeedTab === 'opportunities'
-                ? (language === 'ar' ? 'ØªØ­Ù‚Ù‚ Ù…Ø±Ø© Ø£Ø®Ø±Ù‰ Ù‚Ø±ÙŠØ¨Ø§Ù‹ Ø£Ùˆ Ù‚Ù… Ø¨ØªØºÙŠÙŠØ± ÙÙ„ØªØ± Ø§Ù„Ø¬Ø§Ù…Ø¹Ø©.' : language === 'ku' ? 'Ø¨Û•Ù… Ø²ÙˆÙˆØ§Ù†Û• Ø¯ÙˆÙˆØ¨Ø§Ø±Û• Ù¾Ø´Ú©Ù†ÛŒÙ† Ø¨Ú©Û•Ø±Û•ÙˆÛ• ÛŒØ§Ù† ÙÙ„ØªÛ•Ø±ÛŒ Ø²Ø§Ù†Ú©Û†Ú©Û•Øª Ø¨Ú¯Û†Ú•Û•.' : 'Check again soon or change your university filter.')
-                : (language === 'ar' ? 'ÙƒÙ† Ø£ÙˆÙ„ Ù…Ù† ÙŠØ´Ø§Ø±Ùƒ Ø´ÙŠØ¦Ø§Ù‹ Ù…Ù† Ø¬Ø§Ù…Ø¹ØªÙƒ!' : language === 'ku' ? 'ÛŒÛ•Ú©Û•Ù… Ú©Û•Ø³ Ø¨Û• Ø¨Û† Ù‡Ø§ÙˆØ¨Û•Ø´Ú©Ø±Ø¯Ù†ÛŒ Ø´ØªÛŽÚ© Ù„Û• Ø²Ø§Ù†Ú©Û†Ú©Û•ØªÛ•ÙˆÛ•!' : 'Be the first to share something from your university.')}
+                ? (language === 'ar' ? 'تحقق مرة أخرى قريباً أو قم بتغيير فلتر الجامعة.' : language === 'ku' ? 'بەم زووانە دووبارە پشکنین بکەرەوە یان فلتەری زانکۆکەت بگۆڕە.' : 'Check again soon or change your university filter.')
+                : (language === 'ar' ? 'كن أول من يشارك شيئاً من جامعتك!' : language === 'ku' ? 'یەکەم کەس بە بۆ هاوبەشکردنی شتێک لە زانکۆکەتەوە!' : 'Be the first to share something from your university.')}
             </p>
           </div>
         ) : (
@@ -2192,14 +2002,14 @@ setSelectedOppFilter(shortcut.id as any);
                 onClick={() => setVisibleItemsCount(current => current + LOAD_MORE_STEP)}
                 className={selectedFeedTab === "opportunities" ? "col-span-2 md:col-span-3 mt-3 rounded-2xl bg-[#161A33] px-4 py-3 text-xs font-black text-white shadow-md" : "mt-3 rounded-2xl bg-[#161A33] px-4 py-3 text-xs font-black text-white shadow-md"}
               >
-                {language === "ar" ? "ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ù…Ø²ÙŠØ¯" : language === "ku" ? "Ø²ÛŒØ§ØªØ± Ø¨Ø§Ø±Ø¨Ú©Û•" : "Load more"}
+                {language === "ar" ? "تحميل المزيد" : language === "ku" ? "زیاتر باربکە" : "Load more"}
               </button>
             )}
           </>
         )}
       </div>
 
-      {/* âš ï¸ Searchable Custom Institution Picker Modal (Task 1, 2, 3) */}
+      {/* ⚠️ Searchable Custom Institution Picker Modal (Task 1, 2, 3) */}
       <AnimatePresence>
         {showPicker && (
           <div className="fixed inset-0 z-50 flex items-center justify-center p-4" id="institution-picker-modal">
@@ -2227,12 +2037,12 @@ setSelectedOppFilter(shortcut.id as any);
                   </div>
                   <div>
                     <h3 className="text-sm font-black text-[#161A33]">
-                      {language === 'ar' ? 'Ø§Ø®ØªØ± Ø§Ù„Ù…Ø¤Ø³Ø³Ø© Ø§Ù„Ø£ÙƒØ§Ø¯ÙŠÙ…ÙŠØ©' : language === 'ku' ? 'Ø¯Ø§Ù…Û•Ø²Ø±Ø§ÙˆÛ•ÛŒ Ø¦Û•Ú©Ø§Ø¯ÛŒÙ…ÛŒ Ù‡Û•ÚµØ¨Ú˜ÛŽØ±Û•' : 'Select Academic Institution'}
+                      {language === 'ar' ? 'اختر المؤسسة الأكاديمية' : language === 'ku' ? 'دامەزراوەی ئەکادیمی هەڵبژێرە' : 'Select Academic Institution'}
                     </h3>
                     <p className="text-[10px] text-slate-500 font-bold">
                       {selectedGov === 'all' 
-                        ? (language === 'ar' ? 'Ø¹Ø±Ø¶ ÙƒØ§ÙØ© Ø§Ù„Ù…Ø¤Ø³Ø³Ø§Øª ÙÙŠ Ø§Ù„Ø¹Ø±Ø§Ù‚' : 'Showing all institutions across Iraq')
-                        : `${language === 'ar' ? 'Ù…ØµÙÙ‰ Ø­Ø³Ø¨ Ù…Ø­Ø§ÙØ¸Ø©: ' : 'Filter: '}${IraqiGovernorates.find(g => g.id === selectedGov)?.nameEN || selectedGov}`}
+                        ? (language === 'ar' ? 'عرض كافة المؤسسات في العراق' : 'Showing all institutions across Iraq')
+                        : `${language === 'ar' ? 'مصفى حسب محافظة: ' : 'Filter: '}${IraqiGovernorates.find(g => g.id === selectedGov)?.nameEN || selectedGov}`}
                     </p>
                   </div>
                 </div>
@@ -2253,7 +2063,7 @@ setSelectedOppFilter(shortcut.id as any);
                     setPickerSearch(e.target.value);
                     setPickerPage(1);
                   }}
-                  placeholder={language === 'ar' ? 'Ø§Ø¨Ø­Ø« Ø¨Ø§Ù„Ø§Ø³Ù… Ø§Ù„Ø¹Ø±Ø¨ÙŠ Ø£Ùˆ Ø§Ù„Ø¥Ù†Ø¬Ù„ÙŠØ²ÙŠ...' : language === 'ku' ? 'Ø¨Ú¯Û•Ú•ÛŽ Ø¨Û•Ù¾ÛŽÛŒ Ù†Ø§Ùˆ...' : 'Search by Arabic or English name...'}
+                  placeholder={language === 'ar' ? 'ابحث بالاسم العربي أو الإنجليزي...' : language === 'ku' ? 'بگەڕێ بەپێی ناو...' : 'Search by Arabic or English name...'}
                   className="w-full text-xs font-bold border-2 border-[#161A33] rounded-xl px-3.5 py-2.5 outline-none focus:border-[#2F7CCB] focus:shadow-[2px_2px_0px_0px_#2F7CCB] transition-all bg-slate-50 text-[#161A33]"
                   autoFocus
                 />
@@ -2262,11 +2072,11 @@ setSelectedOppFilter(shortcut.id as any);
               {/* Status & Results Information */}
               <div className="flex justify-between items-center text-[10px] text-slate-500 font-extrabold px-1 mb-2">
                 <span>
-                  {language === 'ar' ? 'Ø¥Ø¬Ù…Ø§Ù„ÙŠ Ø§Ù„Ù†ØªØ§Ø¦Ø¬: ' : 'Matched results: '}
+                  {language === 'ar' ? 'إجمالي النتائج: ' : 'Matched results: '}
                   <strong className="text-[#161A33]">{totalItems}</strong>
                 </span>
                 <span>
-                  {language === 'ar' ? 'ØµÙØ­Ø© ' : 'Page '}
+                  {language === 'ar' ? 'صفحة ' : 'Page '}
                   <strong className="text-[#161A33]">{pickerPage}</strong> / {maxPage}
                 </span>
               </div>
@@ -2276,23 +2086,23 @@ setSelectedOppFilter(shortcut.id as any);
                 {institutionsLoading ? (
                   <div className="flex flex-col items-center justify-center py-10 gap-3">
                     <span className="w-8 h-8 rounded-full border-4 border-[#2F7CCB] border-t-transparent animate-spin animate-duration-1000" />
-                    <span className="text-xs font-bold text-slate-500">{language === 'ar' ? 'â³ Ø¬Ø§Ø±ÙŠ Ø¬Ù„Ø¨ Ø§Ù„Ù…Ø¤Ø³Ø³Ø§Øª...' : 'Loading institutions from API...'}</span>
+                    <span className="text-xs font-bold text-slate-500">{language === 'ar' ? '⏳ جاري جلب المؤسسات...' : 'Loading institutions from API...'}</span>
                   </div>
                 ) : institutionsError ? (
                   <div className="p-4 bg-rose-50 border-2 border-rose-200 rounded-xl text-center flex flex-col gap-3">
-                    <p className="text-xs font-bold text-rose-950">{language === 'ar' ? `ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„Ø¨ÙŠØ§Ù†Ø§Øª: ${institutionsError}` : `API connection error: ${institutionsError}`}</p>
+                    <p className="text-xs font-bold text-rose-950">{language === 'ar' ? `فشل تحميل البيانات: ${institutionsError}` : `API connection error: ${institutionsError}`}</p>
                     <button
                       onClick={onRetryInstitutions}
                       className="py-1.5 px-4 bg-rose-100 hover:bg-rose-200 text-rose-950 font-black border-2 border-[#161A33] cursor-pointer text-[10px] rounded-lg transition-all"
                     >
-                      ðŸ”„ Retry Call
+                      🔄 Retry Call
                     </button>
                   </div>
                 ) : paginatedUnis.length === 0 ? (
                   <div className="text-center py-10 bg-slate-50 border border-dashed border-slate-350 rounded-xl">
-                    <span className="text-2xl block mb-1">ðŸ›°ï¸</span>
+                    <span className="text-2xl block mb-1">🛰️</span>
                     <span className="text-xs font-extrabold text-slate-500">
-                      {language === 'ar' ? 'Ù„Ø§ ØªÙˆØ¬Ø¯ Ù…Ø¤Ø³Ø³Ø§Øª Ù…Ø·Ø§Ø¨Ù‚Ø© Ù„Ù„Ø¨Ø­Ø«' : 'No matching academic centers'}
+                      {language === 'ar' ? 'لا توجد مؤسسات مطابقة للبحث' : 'No matching academic centers'}
                     </span>
                   </div>
                 ) : (
@@ -2310,7 +2120,7 @@ setSelectedOppFilter(shortcut.id as any);
                             : 'border-slate-200 font-bold text-slate-700'
                         }`}
                       >
-                        <span className="text-xs">ðŸ« {language === 'ar' ? 'ÙƒÙ„ Ø§Ù„Ø¬Ø§Ù…Ø¹Ø§Øª ÙˆØ§Ù„Ù…Ø¤Ø³Ø³Ø§Øª' : language === 'ku' ? 'Ù‡Û•Ù…ÙˆÙˆ Ø²Ø§Ù†Ú©Û†Ú©Ø§Ù†' : 'All Institutions / Global Scope'}</span>
+                        <span className="text-xs">🏫 {language === 'ar' ? 'كل الجامعات والمؤسسات' : language === 'ku' ? 'هەموو زانکۆکان' : 'All Institutions / Global Scope'}</span>
                         {selectedUni === 'all' && <CheckCircle className="w-4 h-4 text-[#2F7CCB] shrink-0" />}
                       </button>
                     )}
@@ -2334,7 +2144,7 @@ setSelectedOppFilter(shortcut.id as any);
                             {language === 'ar' ? uni.nameAR : language === 'ku' ? uni.nameKU : uni.nameEN}
                           </p>
                           <p className="text-[9px] font-semibold text-slate-400 capitalize flex items-center gap-1.5 mt-0.5">
-                            ðŸ“ {IraqiGovernorates.find(g => g.id === uni.governorateId)?.nameEN || uni.governorateId}
+                            📍 {IraqiGovernorates.find(g => g.id === uni.governorateId)?.nameEN || uni.governorateId}
                           </p>
                         </div>
                         {selectedUni === uni.id && <CheckCircle className="w-4 h-4 text-[#2F7CCB] shrink-0" />}
@@ -2352,7 +2162,7 @@ setSelectedOppFilter(shortcut.id as any);
                     onClick={() => setPickerPage(p => Math.max(1, p - 1))}
                     className="p-1.5 px-3 border-2 border-[#161A33] rounded-lg text-xs font-black bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white cursor-pointer flex items-center gap-1"
                   >
-                    â—€ {language === 'ar' ? 'Ø§Ù„Ø³Ø§Ø¨Ù‚' : 'Prev'}
+                    ◀ {language === 'ar' ? 'السابق' : 'Prev'}
                   </button>
                   <span className="text-[10px] font-extrabold text-slate-500">
                     {pickerPage} / {maxPage}
@@ -2362,7 +2172,7 @@ setSelectedOppFilter(shortcut.id as any);
                     onClick={() => setPickerPage(p => Math.min(maxPage, p + 1))}
                     className="p-1.5 px-3 border-2 border-[#161A33] rounded-lg text-xs font-black bg-white hover:bg-slate-50 disabled:opacity-40 disabled:hover:bg-white cursor-pointer flex items-center gap-1"
                   >
-                    {language === 'ar' ? 'Ø§Ù„ØªØ§Ù„ÙŠ' : 'Next'} â–¶
+                    {language === 'ar' ? 'التالي' : 'Next'} ▶
                   </button>
                 </div>
               )}
@@ -2430,7 +2240,7 @@ setSelectedOppFilter(shortcut.id as any);
                         <span className="w-2 h-2 bg-emerald-500 rounded-full shrink-0" />
                       </span>
                       <span className="text-[9.5px] font-bold text-slate-350 truncate max-w-[190px] block mt-1">
-                        {studentUni} â€¢ {studentMajor}
+                        {studentUni} • {studentMajor}
                       </span>
                     </div>
                   </div>
@@ -2440,7 +2250,7 @@ setSelectedOppFilter(shortcut.id as any);
                     onClick={() => setActiveStoryViewer(null)}
                     className="w-8 h-8 rounded-full bg-white/10 hover:bg-white/20 text-white flex items-center justify-center font-black cursor-pointer text-sm"
                   >
-                    âœ•
+                    ✕
                   </button>
                 </div>
 
@@ -2453,7 +2263,7 @@ setSelectedOppFilter(shortcut.id as any);
                     className="w-full h-full object-cover select-none pointer-events-none"
                   />
                   <div className="absolute inset-x-0 bottom-0 bg-gradient-to-t from-slate-950 via-slate-950/70 to-transparent p-4 flex flex-col text-left">
-                    <span className="text-[8px] font-black text-[#FFD21F] uppercase tracking-wider mb-1 px-1">{language === 'ar' ? 'Ù‚ØµÙ‘Ø© Ø§Ù„Ø­Ø±Ù… Ø§Ù„Ø¬Ø§Ù…Ø¹ÙŠ ðŸ“·' : language === 'ku' ? 'Ø³ØªÛ†Ø±ÛŒ Ú©Û•Ù…Ù¾Û•Ø³' : 'CAMPUS STUDY LIFE STORY ðŸ“·'}</span>
+                    <span className="text-[8px] font-black text-[#FFD21F] uppercase tracking-wider mb-1 px-1">{language === 'ar' ? 'قصّة الحرم الجامعي 📷' : language === 'ku' ? 'ستۆری کەمپەس' : 'CAMPUS STUDY LIFE STORY 📷'}</span>
                     <p className="text-xs font-semibold text-slate-100 px-1 leading-relaxed text-left" style={{ direction: language === 'ar' || language === 'ku' ? 'rtl' : 'ltr' }}>
                       {storyCaption}
                     </p>
@@ -2469,11 +2279,11 @@ setSelectedOppFilter(shortcut.id as any);
                       onClick={() => {
                         if (isRequestSent) {
                           setFriendRequestsSent(prev => prev.filter(id => id !== student.id));
-                          if (showToast) showToast(language === 'ar' ? 'ØªÙ… Ø¥Ù„ØºØ§Ø¡ Ø§Ù„Ø·Ù„Ø¨.' : 'Request cancelled.', 'info');
+                          if (showToast) showToast(language === 'ar' ? 'تم إلغاء الطلب.' : 'Request cancelled.', 'info');
                         } else {
                           setFriendRequestsSent(prev => [...prev, student.id]);
                           if (onAwardPoints) onAwardPoints(20);
-                          if (showToast) showToast(language === 'ar' ? `Ø·Ù„Ø¨ Ø§Ù„Ø¥Ø¶Ø§ÙØ© Ù…Ø±Ø³Ù„ Ø¥Ù„Ù‰ ${studentName}! ðŸŽ‰` : `Add request sent to ${studentName}! ðŸŽ‰`, 'success');
+                          if (showToast) showToast(language === 'ar' ? `طلب الإضافة مرسل إلى ${studentName}! 🎉` : `Add request sent to ${studentName}! 🎉`, 'success');
                         }
                       }}
                       className={`py-2 px-3 text-[10px] font-black rounded-xl border flex items-center justify-center gap-1.5 transition-all text-center cursor-pointer ${
@@ -2482,11 +2292,11 @@ setSelectedOppFilter(shortcut.id as any);
                           : 'bg-orange-500 hover:bg-orange-600 text-white border-orange-600 shadow-sm active:scale-95'
                       }`}
                     >
-                      <span>ðŸ¤</span>
+                      <span>🤝</span>
                       <span>
                         {isRequestSent 
-                          ? (language === 'ar' ? 'ØªÙ… Ø§Ù„Ø¥Ø±Ø³Ø§Ù„' : language === 'ku' ? 'Ù†ÛŽØ±Ø¯Ø±Ø§' : 'Request Sent') 
-                          : (language === 'ar' ? 'Ø¥Ø±Ø³Ø§Ù„ Ø·Ù„Ø¨ Ø¥Ø¶Ø§ÙØ©' : language === 'ku' ? 'Ø¯Ø§ÙˆØ§Ú©Ø§Ø±ÛŒ Ø²ÛŒØ§Ø¯Ú©Ø±Ø¯Ù†' : 'Add Request')}
+                          ? (language === 'ar' ? 'تم الإرسال' : language === 'ku' ? 'نێردرا' : 'Request Sent') 
+                          : (language === 'ar' ? 'إرسال طلب إضافة' : language === 'ku' ? 'داواکاری زیادکردن' : 'Add Request')}
                       </span>
                     </button>
 
@@ -2495,10 +2305,10 @@ setSelectedOppFilter(shortcut.id as any);
                       type="button"
                       onClick={() => {
                         if (isMsgSent) {
-                          if (showToast) showToast(language === 'ar' ? 'Ø·Ù„Ø¨ Ø±Ø³Ø§Ù„Ø© Ù†Ø´Ø· Ø¨Ø§Ù„ÙØ¹Ù„.' : 'Message request is active.', 'info');
+                          if (showToast) showToast(language === 'ar' ? 'طلب رسالة نشط بالفعل.' : 'Message request is active.', 'info');
                         } else {
                           setMessageRequestsSent(prev => [...prev, student.id]);
-                          if (showToast) showToast(language === 'ar' ? `Ø£Ø±Ø³Ù„Øª Ø·Ù„Ø¨ Ø±Ø³Ø§Ù„Ø© Ø¥Ù„Ù‰ ${studentName}! ðŸ’¬` : `Direct message request sent to ${studentName}! ðŸ’¬`, 'success');
+                          if (showToast) showToast(language === 'ar' ? `أرسلت طلب رسالة إلى ${studentName}! 💬` : `Direct message request sent to ${studentName}! 💬`, 'success');
                         }
                       }}
                       className={`py-2 px-3 text-[10px] font-black rounded-xl border flex items-center justify-center gap-1.5 transition-all text-center cursor-pointer ${
@@ -2507,11 +2317,11 @@ setSelectedOppFilter(shortcut.id as any);
                           : 'bg-blue-600 hover:bg-blue-705 text-white border-blue-700 shadow-sm active:scale-95'
                       }`}
                     >
-                      <span>ðŸ’¬</span>
+                      <span>💬</span>
                       <span>
                         {isMsgSent 
-                          ? (language === 'ar' ? 'Ø·Ù„Ø¨ Ù…Ø±Ø³Ù„ ðŸ’¬' : 'Sent ðŸ’¬') 
-                          : (language === 'ar' ? 'Ø¥Ø±Ø³Ø§Ù„ Ø±Ø³Ø§Ù„Ø©' : language === 'ku' ? 'Ù†Ø§Ù…Û• Ø¨Ù†ÛŽØ±Û•' : 'Send Message')}
+                          ? (language === 'ar' ? 'طلب مرسل 💬' : 'Sent 💬') 
+                          : (language === 'ar' ? 'إرسال رسالة' : language === 'ku' ? 'نامە بنێرە' : 'Send Message')}
                       </span>
                     </button>
                   </div>
@@ -2546,7 +2356,7 @@ setSelectedOppFilter(shortcut.id as any);
                     }}
                     className="w-full text-center py-2 px-3 text-[10.5px] font-black text-[#FFD21F] bg-slate-900 border-2 border-[#FFD21F]/80 hover:bg-[#FFD21F]/10 rounded-xl transition-all cursor-pointer flex items-center justify-center gap-1"
                   >
-                    ðŸ” {language === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„Ù…Ù„Ù Ø§Ù„Ø´Ø®ØµÙŠ Ø§Ù„ÙƒØ§Ù…Ù„' : language === 'ku' ? 'Ø¨ÛŒÙ†ÛŒ Ù¾Ú•Û†ÙØ§ÛŒÙ„ÛŒ ØªÛ•ÙˆØ§Ùˆ' : 'Explore Full Student Profile'}
+                    🔍 {language === 'ar' ? 'عرض الملف الشخصي الكامل' : language === 'ku' ? 'بینی پڕۆفایلی تەواو' : 'Explore Full Student Profile'}
                   </button>
                 </div>
               </motion.div>
@@ -2564,8 +2374,8 @@ setSelectedOppFilter(shortcut.id as any);
         return isDev ? (
           <div className="mt-8 bg-white border-4 border-dashed border-[#161A33] rounded-3xl p-4.5 shadow-[4px_4px_0px_0px_#161A33] text-left" id="dev-admin-debug-panel">
             <div className="flex items-center gap-2 mb-2.5 border-b-2 border-[#161A33] pb-1.5">
-              <span className="text-sm">ðŸ› ï¸</span>
-              <h3 className="text-xs font-black uppercase tracking-wider text-[#161A33]">{language === 'ar' ? 'Ù„ÙˆØ­Ø© ØªØµØ­ÙŠØ­ Ø§Ù„Ø£Ø®Ø·Ø§Ø¡ (Ø§Ù„Ù…Ø´Ø±Ù)' : 'Admin Debug Control Panel'}</h3>
+              <span className="text-sm">🛠️</span>
+              <h3 className="text-xs font-black uppercase tracking-wider text-[#161A33]">{language === 'ar' ? 'لوحة تصحيح الأخطاء (المشرف)' : 'Admin Debug Control Panel'}</h3>
             </div>
             <div className="grid grid-cols-2 gap-2 text-[10px] font-bold text-slate-700">
               <div className="p-2 bg-slate-50 border border-[#161A33]/10 rounded-xl">
@@ -2598,7 +2408,7 @@ setSelectedOppFilter(shortcut.id as any);
                   </span>
                   <span className="text-slate-300 font-medium">|</span>
                   <span className="font-extrabold font-mono text-[10px] truncate max-w-[200px]" title={institutionsError || 'ONLINE'}>
-                    {institutionsError ? <span className="text-rose-600">ERROR: {institutionsError}</span> : <span className="text-emerald-600">ONLINE âœ“</span>}
+                    {institutionsError ? <span className="text-rose-600">ERROR: {institutionsError}</span> : <span className="text-emerald-600">ONLINE ✓</span>}
                   </span>
                 </div>
               </div>
@@ -2608,7 +2418,7 @@ setSelectedOppFilter(shortcut.id as any);
                 onClick={onRetryInstitutions}
                 className="mt-3 w-full py-2 bg-rose-100 hover:bg-rose-200 text-rose-950 font-black border-2 border-[#161A33] cursor-pointer text-[10px] rounded-xl transition-all shadow-[2px_2px_0px_0px_#161A33]"
               >
-                ðŸ”„ Retry Institutions Load API Call
+                🔄 Retry Institutions Load API Call
               </button>
             )}
           </div>
