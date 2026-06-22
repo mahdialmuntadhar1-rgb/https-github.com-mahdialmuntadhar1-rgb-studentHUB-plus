@@ -1480,33 +1480,38 @@ const filteredAndSearchedUnis = useMemo(() => {
         </div>
       </div>
 
-      {/* Safe lightweight opportunity ticker - no fetch, no localStorage, no heavy render */}
+      {/* MVP_EXACT_STATS_COUNTS_20260622 */}
+      {/* Safe lightweight opportunity ticker - exact API counts, no plus numbers */}
       <div id="talaba-opportunity-ticker" className="mb-5 overflow-hidden rounded-3xl border border-violet-100 bg-white shadow-sm">
         <div className="talaba-ticker-track">
           {[
-            { emoji: '💼', value: '1,000', en: 'Job Vacancies', ar: 'فرصة عمل', ku: 'هەلی کار' },
-            { emoji: '🎓', value: '200+', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
-            { emoji: '🚀', value: '300+', en: 'Internships', ar: 'تدريبات وفرص تدريب', ku: 'ڕاهێنان و ئینتەرنشپ' },
-            { emoji: '🏛️', value: '19', en: 'Governorates', ar: 'محافظة', ku: 'پارێزگا' }
+            { emoji: '💼', value: '1120', en: 'Job Opportunities', ar: 'فرص عمل', ku: 'هەلی کار' },
+            { emoji: '🎓', value: '78', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
+            { emoji: '🚀', value: '12', en: 'Training', ar: 'تدريب', ku: 'ڕاهێنان' },
+            { emoji: '📌', value: '19', en: 'Admissions', ar: 'قبول وتسجيل', ku: 'وەرگرتن' }
           ].concat([
-            { emoji: '💼', value: '1,000', en: 'Job Vacancies', ar: 'فرصة عمل', ku: 'هەلی کار' },
-            { emoji: '🎓', value: '200+', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
-            { emoji: '🚀', value: '300+', en: 'Internships', ar: 'تدريبات وفرص تدريب', ku: 'ڕاهێنان و ئینتەرنشپ' },
-            { emoji: '🏛️', value: '19', en: 'Governorates', ar: 'محافظة', ku: 'پارێزگا' }
+            { emoji: '💼', value: '1120', en: 'Job Opportunities', ar: 'فرص عمل', ku: 'هەلی کار' },
+            { emoji: '🎓', value: '78', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
+            { emoji: '🚀', value: '12', en: 'Training', ar: 'تدريب', ku: 'ڕاهێنان' },
+            { emoji: '📌', value: '19', en: 'Admissions', ar: 'قبول وتسجيل', ku: 'وەرگرتن' }
           ]).map((item, idx) => (
             <button
               key={`${item.en}-${idx}`}
               type="button"
               onClick={() => {
-                if (item.en.includes('Job')) {
-                  setSelectedFeedTab('opportunities');
+                const label = String(item.en || '').toLowerCase();
+                setSelectedFeedTab('opportunities');
+
+                if (label.includes('job')) {
                   setSelectedOppFilter('job');
-                } else if (item.en.includes('Scholarship')) {
-                  setSelectedFeedTab('opportunities');
+                } else if (label.includes('scholar')) {
                   setSelectedOppFilter('scholarship');
-                } else if (item.en.includes('Internship')) {
-                  setSelectedFeedTab('opportunities');
-                  setSelectedOppFilter('internship');
+                } else if (label.includes('training') || label.includes('internship')) {
+                  setSelectedOppFilter('training');
+                } else if (label.includes('admission') || label.includes('registration')) {
+                  setSelectedOppFilter('admission');
+                } else {
+                  setSelectedOppFilter('all');
                 }
                 const tabs = document.getElementById('home-feed-tabs-selector');
                 if (tabs) tabs.scrollIntoView({ behavior: 'smooth', block: 'start' });
