@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FeedItem, Language, University } from '../types';
 import { getTranslation } from '../data/translations';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from '../data/mockData';
@@ -365,8 +365,27 @@ export default function HomeFeed({
       applyUrl,
       sourceUrl,
       universityAppliedCount: Number(item.applied_count || 5),
-      applied: false
-    };
+      applied: false,
+
+      // MVP_SOURCE_REDIRECT_HOMEFEED_20260622
+      // Keep original source fields so FeedCard can always discover the redirect link.
+      source_url: item.source_url || item.original_source_url || item.url || item.link || '',
+      apply_url: item.apply_url || item.application_link || item.apply_link || '',
+      details_url: item.details_url || item.detailsUrl || '',
+      application_link: item.application_link || item.application_url || '',
+      original_source_url: item.original_source_url || item.source_url || '',
+      external_url: item.external_url || item.externalUrl || '',
+      source_link: item.source_link || item.sourceLink || '',
+      raw: item,
+      metadata: item.metadata,
+      raw_text: (() => {
+        try {
+          return JSON.stringify(item);
+        } catch {
+          return '';
+        }
+      })()
+    } as any;
   };
 
   // Fetch backend opportunities for the whole Opportunities tab.
