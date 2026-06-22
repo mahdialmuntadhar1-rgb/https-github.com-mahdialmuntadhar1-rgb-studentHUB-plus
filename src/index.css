@@ -1,4 +1,4 @@
-﻿@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Outfit:wght@300;450;600;800;900&family=Vazirmatn:wght@300;400;600;700;900&family=Readex+Pro:wght@300;400;600;700&family=Noto+Sans+Arabic:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
+@import url('https://fonts.googleapis.com/css2?family=Cairo:wght@300;400;600;700;900&family=Outfit:wght@300;450;600;800;900&family=Vazirmatn:wght@300;400;600;700;900&family=Readex+Pro:wght@300;400;600;700&family=Noto+Sans+Arabic:wght@300;400;600;700;900&family=JetBrains+Mono:wght@400;600;700&display=swap');
 @import "tailwindcss";
 
 @theme {
@@ -3339,6 +3339,33 @@ textarea {
 /* MVP_OPP_GOV_FILTER_20260622
    Keeps the Opportunities / Registration governorate filter visible and mobile-safe. */
 
+#opportunities-governorate-filter-panel {
+  max-width: 100% !important;
+  overflow: hidden !important;
+}
+
+#opportunities-governorate-filter-panel select {
+  min-width: 0 !important;
+  max-width: 100% !important;
+  text-overflow: ellipsis !important;
+}
+
+#opportunities-governorate-filter-panel * {
+  box-sizing: border-box !important;
+}
+
+@media (max-width: 420px) {
+  #opportunities-governorate-filter-panel {
+    padding: 12px !important;
+    border-radius: 22px !important;
+  }
+
+  #opportunities-governorate-filter-panel select {
+    font-size: 12px !important;
+  }
+}
+
+/* MVP_STRICT_OPPORTUNITY_GOV_FILTER_20260622 */
 #opportunities-governorate-filter-panel {
   max-width: 100% !important;
   overflow: hidden !important;

@@ -1245,13 +1245,8 @@ const filteredAndSearchedUnis = useMemo(() => {
       const normalizedItemGov = normalizeHomeGovernorateId(itemGovText);
       return selectedGov === 'all' || normalizedItemGov === 'all' || normalizedItemGov === selectedGov;
     });
-
-    if (selectedGov !== 'all' && govFiltered.length < 5 && categoryItems.length > govFiltered.length) {
-      const seen = new Set(govFiltered.map(item => String(item.id)));
-      const fallback = categoryItems.filter(item => !seen.has(String(item.id)));
-      return [...govFiltered, ...fallback];
-    }
-
+    // MVP_STRICT_OPPORTUNITY_GOV_FILTER_20260622
+    // If a governorate is selected, never fill the list with other governorates.
     return govFiltered;
   }, [allSeriousItems, selectedOppFilter, backendOpportunities, selectedGov]);
 
@@ -1649,6 +1644,55 @@ setSelectedOppFilter(shortcut.id as any);
         </div>
       )}
 
+
+      {/* MVP_STRICT_OPPORTUNITY_GOV_FILTER_20260622 */}
+      {selectedFeedTab === 'opportunities' && (
+        <div
+          id="opportunities-governorate-filter-panel"
+          className="mb-5 rounded-3xl border-2 border-orange-200 bg-white p-3.5 shadow-sm"
+        >
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-[10px] font-black uppercase tracking-wider text-orange-600">
+                Governorate filter
+              </div>
+              <div className="text-[11px] font-bold text-slate-500">
+                Applies to jobs, scholarships, training, admissions, and registration.
+              </div>
+            </div>
+
+            {selectedGov !== 'all' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedGov('all');
+                  setSelectedUni('all');
+                }}
+                className="shrink-0 rounded-full bg-orange-500 px-3 py-2 text-[10px] font-black text-white"
+              >
+                Show all
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 rounded-2xl border-2 border-orange-200 bg-orange-50 px-3 py-2.5">
+            <MapPin className="h-4 w-4 shrink-0 text-orange-600" />
+            <select
+              id="opportunities-governorate-select"
+              value={selectedGov}
+              onChange={handleGovChange}
+              className="w-full bg-transparent text-xs font-black text-slate-900 outline-none"
+            >
+              <option value="all">All Iraq</option>
+              {IraqiGovernorates.map(gov => (
+                <option key={gov.id} value={gov.id}>
+                  {language === 'ar' ? gov.nameAR : language === 'ku' ? gov.nameKU : gov.nameEN}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
       {/* External IQJScout Search Button */}
       {selectedFeedTab === 'opportunities' && selectedOppFilter === 'job' && (
         <div className="mb-5 flex justify-center">
