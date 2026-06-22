@@ -2916,3 +2916,150 @@ main.flex-1.overflow-y-auto {
     margin-bottom: 14px !important;
   }
 }
+
+/* MVP_MOBILE_READABILITY_20260622
+   CSS-only mobile stability/readability.
+   No backend/auth/feed/category logic changes. */
+
+html,
+body {
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+
+#root {
+  max-width: 100%;
+  overflow-x: hidden !important;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+img,
+video,
+canvas,
+svg {
+  max-width: 100%;
+}
+
+button,
+a,
+input,
+select,
+textarea {
+  -webkit-tap-highlight-color: transparent;
+}
+
+#mixed-feed-items-list article,
+#mixed-feed-items-list [id^="feed-card-"],
+.opportunity-readable-card {
+  width: 100% !important;
+  max-width: 100% !important;
+  overflow: hidden !important;
+  word-break: normal !important;
+  overflow-wrap: anywhere !important;
+}
+
+#mixed-feed-items-list h1,
+#mixed-feed-items-list h2,
+#mixed-feed-items-list h3,
+#mixed-feed-items-list h4,
+.opportunity-readable-card h1,
+.opportunity-readable-card h2,
+.opportunity-readable-card h3,
+.opportunity-readable-card h4 {
+  line-height: 1.18 !important;
+  max-width: 100% !important;
+  overflow-wrap: anywhere !important;
+}
+
+#mixed-feed-items-list p,
+#mixed-feed-items-list div,
+#mixed-feed-items-list span,
+.opportunity-readable-card p,
+.opportunity-readable-card div,
+.opportunity-readable-card span {
+  max-width: 100% !important;
+  line-height: 1.55 !important;
+}
+
+#mixed-feed-items-list button,
+#mixed-feed-items-list a,
+.opportunity-readable-card button,
+.opportunity-readable-card a {
+  min-height: 38px !important;
+  border-radius: 999px !important;
+}
+
+@media (max-width: 640px) {
+  body {
+    font-size: 15px !important;
+  }
+
+  #mixed-feed-items-list {
+    padding-left: 10px !important;
+    padding-right: 10px !important;
+  }
+
+  #mixed-feed-items-list article,
+  #mixed-feed-items-list [id^="feed-card-"],
+  .opportunity-readable-card {
+    padding: 16px !important;
+    margin-left: 0 !important;
+    margin-right: 0 !important;
+    border-radius: 22px !important;
+  }
+
+  #mixed-feed-items-list h1,
+  #mixed-feed-items-list h2,
+  #mixed-feed-items-list h3,
+  .opportunity-readable-card h1,
+  .opportunity-readable-card h2,
+  .opportunity-readable-card h3 {
+    font-size: clamp(18px, 5vw, 24px) !important;
+  }
+
+  #mixed-feed-items-list h4,
+  .opportunity-readable-card h4 {
+    font-size: clamp(16px, 4.4vw, 20px) !important;
+  }
+
+  #mixed-feed-items-list p,
+  #mixed-feed-items-list div,
+  #mixed-feed-items-list span,
+  .opportunity-readable-card p,
+  .opportunity-readable-card div,
+  .opportunity-readable-card span {
+    font-size: clamp(13px, 3.7vw, 16px) !important;
+  }
+
+  #mixed-feed-items-list img,
+  .opportunity-readable-card img {
+    max-height: 260px !important;
+    object-fit: cover !important;
+  }
+
+  #mixed-feed-items-list button,
+  #mixed-feed-items-list a,
+  .opportunity-readable-card button,
+  .opportunity-readable-card a {
+    font-size: 13px !important;
+    padding: 9px 12px !important;
+    white-space: normal !important;
+  }
+}
+
+@media (max-width: 380px) {
+  #mixed-feed-items-list {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+
+  #mixed-feed-items-list article,
+  #mixed-feed-items-list [id^="feed-card-"],
+  .opportunity-readable-card {
+    padding: 14px !important;
+    border-radius: 20px !important;
+  }
+}
