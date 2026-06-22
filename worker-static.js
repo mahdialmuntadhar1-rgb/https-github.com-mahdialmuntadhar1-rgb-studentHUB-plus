@@ -61,9 +61,20 @@ export default {
     if (url.pathname.startsWith("/api/")) {
       const backendUrl = new URL(url.pathname + url.search, BACKEND_ORIGIN);
 
+      const proxyHeaders = new Headers(request.headers);
+
+      // MVP_AUTH_ORIGIN_PROXY_FIX_20260622
+      // Do not forward browser Origin/Referer to rafid-api.
+      // The browser calls talaba.kaniq.org, but rafid-api may reject that Origin.
+      // This Worker is the trusted same-origin proxy.
+      proxyHeaders.delete("Origin");
+      proxyHeaders.delete("origin");
+      proxyHeaders.delete("Referer");
+      proxyHeaders.delete("referer");
+
       const proxyRequest = new Request(backendUrl.toString(), {
         method: request.method,
-        headers: request.headers,
+        headers: proxyHeaders,
         body: request.method === "GET" || request.method === "HEAD" ? undefined : request.body,
         redirect: "follow"
       });
@@ -106,3 +117,4 @@ export default {
     return env.ASSETS.fetch(new Request(new URL("/index.html", url), request));
   }
 };
+
