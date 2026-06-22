@@ -1,0 +1,33 @@
+﻿STABLE UI-POLISHED NON-FROZEN CHECKPOINT
+
+Date:
+20260622-142755
+
+Live URL:
+https://talaba.kaniq.org/?fresh=20260622142223
+
+Current stable branch:
+stable/ui-polished-non-frozen-20260622-142755
+
+Current stable tag:
+stable-ui-polished-20260622-142755
+
+Important stable commits:
+dfb5705 Disable stale service worker cache during stabilization
+c53b1d1 Record stable non-frozen Talaba checkpoint
+cd30a1f Polish home hero filters and opportunity ticker
+d58bcd9 Polish student post box and text postcards
+d143d79 Polish Talaba header navigation
+ccf9d75 Polish Talaba bottom mobile navigation
+
+What is stable now:
+1. App no longer freezes.
+2. First-load opportunities are batched safely.
+3. Service worker stale cache disabled.
+4. Hero, filters, ticker, post box, postcards, header, and bottom nav polished.
+5. Latest checks returned HTTP 200 for live page and job API.
+
+Recovery command example:
+git checkout stable/ui-polished-non-frozen-20260622-142755
+
+Do not overwrite this checkpoint unless intentionally creating a newer stable checkpoint.
