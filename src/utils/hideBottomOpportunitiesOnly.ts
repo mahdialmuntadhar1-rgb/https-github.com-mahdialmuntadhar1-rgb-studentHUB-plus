@@ -91,23 +91,13 @@ function removeOldExperimentalOverlays() {
   }
 }
 
-function isBottomSearchUniversityText(el: HTMLElement): boolean {
-  const text = (el.textContent || '').toLowerCase().trim();
-  return (
-    text.includes('search university') ||
-    text.includes('find university') ||
-    text.includes('بحث جامعة') ||
-    text.includes('البحث عن جامعة') ||
-    text.includes('گەڕان بۆ زانکۆ')
-  );
-}
 function hideBottomOpportunitiesOnly() {
   const all = Array.from(document.querySelectorAll('*')) as HTMLElement[];
 
   for (const el of all) {
     if (!visible(el)) continue;
     if (!isBottomArea(el)) continue;
-    if (!isBottomOpportunityText(el) && !isBottomSearchUniversityText(el)) continue;
+    if (!isBottomOpportunityText(el)) continue;
 
     const item = findBottomNavItem(el);
     hideElement(item);
@@ -168,4 +158,3 @@ export function installHideBottomOpportunitiesOnly() {
   setTimeout(apply, 1800);
   setInterval(apply, 700);
 }
-

@@ -752,7 +752,7 @@ export default function HomeFeed({
       {
         id: 'slide_4',
         image: heroImages[3] || 'https://images.unsplash.com/photo-1524178232363-1fb2b075b655?auto=format&fit=crop&q=80&w=600',
-        tag: language === 'ar' ? 'حياة الحرم' : language === 'ku' ? 'ژیانی کەمپەس' : 'Campus Life',
+        tag: language === 'ar' ? 'حياة الحرم' : language === 'ku' ? 'کەمپەس لایف' : 'Campus Life',
         tagColor: 'bg-orange-600 text-white',
         headline: language === 'ar' ? 'تفوق وتفاعل في بيئة الحرم الجامعي الحيوية' : language === 'ku' ? 'لەگەڵ هاوڕێکانت بابەت و چالاکییەکان بەش بکە' : 'Campus Life & Interactive Communities',
         subtitle: language === 'ar' ? 'شاهد منشورات زملائك، النوادي النشطة، وشارك في النقاشات الأكاديمية' : language === 'ku' ? 'ژیانی ڕۆژانەی زانکۆ و ئاگاداری فەرمی لە نوێترین گروپی خوێندن' : 'Exchange stories, join student clubs, and find study peer groups',
@@ -1407,7 +1407,6 @@ const filteredAndSearchedUnis = useMemo(() => {
             <MapPin className={`w-3.5 h-3.5 shrink-0 ${selectedGov !== 'all' ? 'text-[#1E40AF]' : 'text-slate-400'}`} />
             <select
               id="governorate-select"
-              dir={language === 'en' ? 'ltr' : 'rtl'}
               value={selectedGov}
               onChange={handleGovChange}
               className="w-full text-xs font-black text-slate-800 bg-transparent border-0 focus:outline-none cursor-pointer outline-none p-0 select-none truncate"
@@ -1429,7 +1428,6 @@ const filteredAndSearchedUnis = useMemo(() => {
           </label>
           <button 
             id="university-select-trigger"
-            dir={language === 'en' ? 'ltr' : 'rtl'}
             type="button"
             onClick={() => {
               if (!institutionsLoading) {
@@ -1438,7 +1436,7 @@ const filteredAndSearchedUnis = useMemo(() => {
                 setShowPicker(true);
               }
             }}
-            className={`flex items-center justify-between text-start gap-2 px-2.5 py-2 rounded-2xl bg-white border-2 transition-all cursor-pointer h-[42px] min-w-0 ${
+            className={`flex items-center justify-between text-left gap-2 px-2.5 py-2 rounded-2xl bg-white border-2 transition-all cursor-pointer h-[42px] min-w-0 ${
               selectedUni !== 'all' 
                 ? 'border-[#1E40AF] shadow-xs bg-blue-50/10' 
                 : 'border-slate-200 hover:border-[#1E40AF]/50'
@@ -1493,7 +1491,7 @@ const filteredAndSearchedUnis = useMemo(() => {
           }`}
         >
           <span>🏛️</span>
-          <span>{language === 'ar' ? 'حياة الحرم الجامعي' : language === 'ku' ? 'ژیانی کەمپەس' : 'Campus Life'}</span>
+          <span>{language === 'ar' ? 'حياة الحرم الجامعي' : language === 'ku' ? 'کەمپەس لایف' : 'Campus Life'}</span>
         </button>
       </div>
 
@@ -1610,7 +1608,7 @@ setSelectedOppFilter(shortcut.id as any);
       {selectedFeedTab === 'campus_life' && (
         <div 
           className="flex gap-4 mb-5 overflow-x-auto pb-3 pt-1.5 scrollbar-none snap-x touch-pan-x justify-start" 
-          id="campus-shortcuts-circles" 
+          id="campus-shortcuts-circles" hidden
         >
           {[
             { id: 'all', emoji: '🏛️', labelEN: 'All', labelAR: 'الكل', labelKU: 'هەموو' },
@@ -2388,7 +2386,6 @@ setSelectedOppFilter(shortcut.id as any);
     </div>
   );
 }
-
 
 
 

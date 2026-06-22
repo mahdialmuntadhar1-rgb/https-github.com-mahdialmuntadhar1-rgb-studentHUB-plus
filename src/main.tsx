@@ -1,18 +1,10 @@
-﻿import './talaba-storage-reset';
-import './disable-pwa-cache';
-import './click-unfreeze-guard';
-import './atomic-hard-unfreeze.css';
-import './atomic-click-unfreeze.css';
-// // Disabled - using direct email alias in AuthModal.tsx instead
-import './utils/talabaAuthGuard';
-import './talaba-safe-api-runtime';
+﻿import './talaba-safe-api-runtime';
 import { runTalabaCacheRefresh } from './talaba-cache-refresh';
 import { StrictMode, Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './App.tsx';
-import { AuthProvider } from './contexts/AuthContext';
 import './index.css';
 import './styles/high-contrast-fix.css';
 import './styles/neon-purple-theme.css';
@@ -143,9 +135,7 @@ if (!rootElement) {
   createRoot(rootElement).render(
     <StrictMode>
       <AppErrorBoundary>
-        <AuthProvider>
-          <App />
-        </AuthProvider>
+        <App />
       </AppErrorBoundary>
     </StrictMode>,
   );
@@ -161,23 +151,5 @@ if (!rootElement) {
 
 runTalabaCacheRefresh();
 
-
-
-
-
-
-
-
-/* ATOMIC_RUNTIME_CLICK_GUARD */
-if (typeof window !== 'undefined') {
-  window.addEventListener('load', () => {
-    try {
-      document.documentElement.style.pointerEvents = 'auto';
-      document.body.style.pointerEvents = 'auto';
-      const root = document.getElementById('root');
-      if (root) root.style.pointerEvents = 'auto';
-    } catch {}
-  });
-}
 
 

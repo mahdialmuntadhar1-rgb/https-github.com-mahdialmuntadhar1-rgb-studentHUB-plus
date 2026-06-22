@@ -241,55 +241,6 @@ export default function FeedCard({
   const opportunityUrl = getOpportunityUrl(item);
   const finalOpportunityUrl = opportunityUrl;
 
-  // CSS-generated postcard for text-only student posts.
-  // This gives the post a lively visual design without storing uploaded images.
-  const postcardSeed = String(item.id || caption || item.type || 'talaba')
-    .split('')
-    .reduce((sum, ch) => sum + ch.charCodeAt(0), 0);
-
-  const postcardTemplates = [
-    {
-      bg: 'bg-gradient-to-br from-violet-700 via-fuchsia-600 to-orange-400',
-      icon: '✨',
-      pattern: 'bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,.28)_0,_transparent_28%),radial-gradient(circle_at_bottom_right,_rgba(255,210,31,.22)_0,_transparent_34%)]'
-    },
-    {
-      bg: 'bg-gradient-to-br from-sky-700 via-indigo-700 to-violet-700',
-      icon: '🎓',
-      pattern: 'bg-[radial-gradient(circle_at_20%_20%,_rgba(255,255,255,.25)_0,_transparent_25%),radial-gradient(circle_at_80%_80%,_rgba(34,211,238,.24)_0,_transparent_32%)]'
-    },
-    {
-      bg: 'bg-gradient-to-br from-emerald-700 via-teal-600 to-cyan-500',
-      icon: '📚',
-      pattern: 'bg-[radial-gradient(circle_at_top_right,_rgba(255,255,255,.25)_0,_transparent_28%),radial-gradient(circle_at_bottom_left,_rgba(250,204,21,.20)_0,_transparent_32%)]'
-    },
-    {
-      bg: 'bg-gradient-to-br from-slate-900 via-purple-900 to-orange-600',
-      icon: '💬',
-      pattern: 'bg-[radial-gradient(circle_at_18%_15%,_rgba(255,255,255,.20)_0,_transparent_24%),radial-gradient(circle_at_82%_80%,_rgba(251,146,60,.28)_0,_transparent_34%)]'
-    },
-    {
-      bg: 'bg-gradient-to-br from-rose-700 via-orange-500 to-amber-400',
-      icon: '📌',
-      pattern: 'bg-[radial-gradient(circle_at_top_left,_rgba(255,255,255,.25)_0,_transparent_26%),radial-gradient(circle_at_bottom_right,_rgba(109,40,217,.24)_0,_transparent_34%)]'
-    }
-  ];
-
-  const postcard = postcardTemplates[Math.abs(postcardSeed) % postcardTemplates.length];
-
-  const postcardKicker =
-    language === 'ar'
-      ? 'منشور طلابي'
-      : language === 'ku'
-      ? 'پۆستی قوتابی'
-      : 'Student Post';
-
-  const postcardFooter =
-    cleanText(item.location || item.author?.university || item.governorateId || 'Talaba', 'Talaba');
-
-  const postcardTitle = cleanText(title || body, postcardKicker).slice(0, 96);
-  const postcardBody = cleanText(body && body !== title ? body : '', '').slice(0, 130);
-
   const tags = (() => {
     const rawTags = getSafeTags(item.tags)
       .map(tag => tag.replace(/^#/, '').trim())
@@ -393,8 +344,8 @@ export default function FeedCard({
       contentAR: trimmedCaption,
       contentKU: trimmedCaption,
       body_original: trimmedCaption,
-      imageUrl: undefined,
-      imageAlt: undefined,
+      imageUrl: editImagePreview || undefined,
+      imageAlt: editImagePreview ? 'Uploaded Campus Life image' : undefined,
       tags: []
     } as any);
 
@@ -591,7 +542,8 @@ export default function FeedCard({
               </p>
             </>
           </div>
-        </div>      ) : isMockCampusPost ? (
+        </div>
+      ) : isMockCampusPost ? (
         <div
           className="relative flex aspect-[16/9] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-violet-600 via-fuchsia-500 to-orange-400 px-8 text-center text-white"
           role="img"
@@ -605,45 +557,7 @@ export default function FeedCard({
             <div className="mt-2 text-xs font-bold text-white/80">Campus Life</div>
           </div>
         </div>
-      ) : (
-        <div
-          className={`relative flex min-h-[300px] w-full items-center justify-center overflow-hidden px-6 py-8 text-center text-white ${postcard.bg}`}
-          role="img"
-          aria-label="Generated Talaba postcard for student text post"
-        >
-          <div className={`absolute inset-0 opacity-100 ${postcard.pattern}`} />
-          <div className="absolute -left-14 -top-14 h-44 w-44 rounded-full bg-white/10 blur-sm" />
-          <div className="absolute -bottom-16 -right-12 h-52 w-52 rounded-full bg-white/10 blur-sm" />
-          <div className="absolute left-5 top-5 rounded-2xl border border-white/25 bg-white/15 px-3 py-1.5 text-[10px] font-black uppercase tracking-[0.16em] text-white shadow-sm backdrop-blur">
-            Talaba
-          </div>
-
-          <div className="relative z-10 w-full">
-            <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl border border-white/25 bg-white/20 text-4xl shadow-xl backdrop-blur">
-              {postcard.icon}
-            </div>
-
-            <div className="mx-auto mb-3 inline-flex rounded-full border border-white/25 bg-white/20 px-3 py-1 text-[10px] font-black text-white shadow-sm backdrop-blur">
-              {postcardKicker}
-            </div>
-
-            <h2 className="mx-auto max-w-[14ch] text-3xl font-black leading-[1.08] tracking-tight sm:text-4xl">
-              {postcardTitle}
-            </h2>
-
-            {postcardBody && (
-              <p className="mx-auto mt-4 max-w-[30ch] text-sm font-bold leading-6 text-white/85">
-                {postcardBody}
-              </p>
-            )}
-
-            <div className="mx-auto mt-6 flex max-w-[280px] items-center justify-between gap-3 rounded-2xl border border-white/20 bg-black/15 px-3 py-2 text-[10px] font-black text-white/85 backdrop-blur">
-              <span>{postcardFooter}</span>
-              <span>طلبة</span>
-            </div>
-          </div>
-        </div>
-      )}
+      ) : null}
 
       <div className="px-3.5 py-2.5">
         {canManagePost && (
@@ -926,8 +840,6 @@ export default function FeedCard({
     </article>
   );
 }
-
-
 
 
 

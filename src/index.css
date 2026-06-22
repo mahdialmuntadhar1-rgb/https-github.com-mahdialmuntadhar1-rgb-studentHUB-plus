@@ -2026,38 +2026,3 @@ section:has(#section-cards-feed.section-job-grid) .rounded-\[32px\] {
   }
 }
 
-
-
-
-
-
-
-
-
-
-
-/* EMERGENCY CLICK UNFREEZE */
-html, body, #root {
-  pointer-events: auto !important;
-  min-height: 100%;
-  touch-action: manipulation;
-}
-
-button,
-a,
-input,
-select,
-textarea,
-label,
-summary,
-[role="button"],
-[role="link"],
-[onclick],
-[tabindex]:not([tabindex="-1"]) {
-  pointer-events: auto !important;
-  cursor: pointer;
-}
-
-[data-click-unblocked="true"] {
-  pointer-events: none !important;
-}

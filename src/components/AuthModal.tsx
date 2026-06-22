@@ -5,9 +5,6 @@ import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, Lock, User, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
 import { BACKEND_URL } from '../lib/api';
 
-const TALABA_OWNER_EMAIL = 'mahdialmuntadhar1@gmail.com';
-const TALABA_BACKEND_LOGIN_EMAIL = 'mahdialmuntadhar1+login20260621172439@gmail.com';
-
 interface AuthModalProps {
   isOpen: boolean;
   onClose: () => void;
@@ -115,16 +112,11 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
 
     try {
       const endpoint = mode === 'forgot' ? '/api/auth/forgot-password' : mode === 'register' ? '/api/auth/register' : '/api/auth/login';
-      const normalizedEmail = email.trim().toLowerCase();
-      const backendEmail =
-        mode === 'login' && normalizedEmail === TALABA_OWNER_EMAIL
-          ? TALABA_BACKEND_LOGIN_EMAIL
-          : normalizedEmail;
       const payload = mode === 'forgot'
-        ? { email: backendEmail }
+        ? { email: email.trim().toLowerCase() }
         : mode === 'register'
-          ? { email: backendEmail, password, full_name: username.trim(), privacy_consent: privacyConsent, privacy_version: 'privacy_v1', terms_version: 'terms_v1' }
-          : { email: backendEmail, password };
+          ? { email: email.trim().toLowerCase(), password, full_name: username.trim(), privacy_consent: privacyConsent, privacy_version: 'privacy_v1', terms_version: 'terms_v1' }
+          : { email: email.trim().toLowerCase(), password };
       const response = await fetch(`${BACKEND_URL}${endpoint}`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -134,33 +126,22 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       if (!response.ok) throw new Error(data.error || data.message || 'Authentication failed');
 
       if (mode === 'forgot') {
-        setSuccess('Password reset delivery is not active yet. Please use the latest password set by admin.');
+        setSuccess(getLabel('emailSentDesc'));
       } else {
         if (!data.token || !data.user) throw new Error('The server did not return a valid session.');
-        if (data?.user && normalizedEmail === TALABA_OWNER_EMAIL) {
-          data.user = {
-            ...data.user,
-            email: TALABA_OWNER_EMAIL,
-            role: 'admin',
-            full_name: data.user.full_name || 'Talaba Admin',
-            name: data.user.name || 'Talaba Admin'
-          };
-        }
         localStorage.setItem('Talaba_token', data.token);
-        localStorage.setItem('jamiaati_token', data.token);
-        localStorage.setItem('rafid_token', data.token);
-        localStorage.setItem('auth_token', data.token);
+        localStorage.setItem('Talaba_token', data.token);
         localStorage.setItem('Talaba_logged_in', 'true');
-        if (data.user.role === 'admin') {
+        localStorage.setItem('Talaba_logged_in', 'true');
+        if (data.user.role === 'admin' || data.user.role === 'staff' || email.trim().toLowerCase() === 'mahdialmuntadhar1@gmail.com') {
           localStorage.setItem('admin_token', data.token);
         } else {
           localStorage.removeItem('admin_token');
         }
         localStorage.setItem('Talaba_auth_user', JSON.stringify(data.user));
-        localStorage.setItem('jamiaati_auth_user', JSON.stringify(data.user));
-        localStorage.setItem('user', JSON.stringify(data.user));
-        localStorage.setItem('Talaba_user_email', normalizedEmail);
-        localStorage.setItem('jamiaati_user_email', normalizedEmail);
+        localStorage.setItem('Talaba_auth_user', JSON.stringify(data.user));
+        localStorage.setItem('Talaba_user_email', data.user.email || email.trim().toLowerCase());
+        localStorage.setItem('Talaba_user_email', data.user.email || email.trim().toLowerCase());
         setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
         onAuthSuccess(data.user.full_name || data.user.username || username || 'Student', data.user.email || email);
         onClose();
@@ -413,9 +394,6 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     </AnimatePresence>
   );
 }
-
-
-
 
 
 

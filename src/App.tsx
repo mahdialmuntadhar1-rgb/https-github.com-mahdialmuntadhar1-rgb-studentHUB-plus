@@ -14,11 +14,17 @@ import AuthModal from './components/AuthModal';
 import AdminPanel from './components/AdminPanel';
 import AdminAutomation from './components/AdminAutomation';
 import AdminModeration from './components/AdminModeration';
+import SocialHub from './components/SocialHub';
+import UserProfileModal from './components/UserProfileModal';
 import UniversitiesList from './components/UniversitiesList';
-import { BACKEND_URL } from './lib/api';
+import { BACKEND_URL, socialApi } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, User, Compass, Info, FileText } from 'lucide-react';
 
+const INITIAL_CATEGORY_LIMIT = 20;
+const INITIAL_HIGHLIGHTS_LIMIT = 20;
+const INITIAL_VISIBLE_FEED_COUNT = 40;
+const FEED_RENDER_BATCH_SIZE = 20;
 export default function App() {
   // Locale States
   const [language, setLanguage] = useState<Language>('en');
@@ -75,16 +81,21 @@ export default function App() {
   const [activeTab, setActiveTab] = useState<'home' | 'life' | 'ask' | 'future' | 'profile' | 'chats' | 'admin' | 'universities'>('home');
 
   // Interactive student profile details overlay state
-  const selectedUserForProfileCard = null as any;
-  const setSelectedUserForProfileCard = (_user: any) => {};
+  const [selectedUserForProfileCard, setSelectedUserForProfileCard] = useState<any | null>(null);
 
   // Selected Section state for horizontal stories
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
+  const [visibleFeedCount, setVisibleFeedCount] = useState(INITIAL_VISIBLE_FEED_COUNT);
+
+  useEffect(() => {
+    setVisibleFeedCount(INITIAL_VISIBLE_FEED_COUNT);
+  }, [selectedGov, selectedUni, activeTab, selectedSection]);
+
   // Clear selected section when switching top-level tabs
   useEffect(() => {
     setSelectedSection(null);
-  }, []);
+  }, [activeTab]);
 
   // Brief dynamic feed loading skeleton simulator
   const [isFeedLoading, setIsFeedLoading] = useState(false);
@@ -102,10 +113,43 @@ export default function App() {
     return Boolean(token) && notLoggedOut;
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
-  // Social/chat removed for MVP stability.
-  // No friend request polling, no message request polling, no chat badges.
-  const friendRequestsCount = 0;
-  const messageRequestsCount = 0;
+
+  // Social Badge Counts (Friend/Connection Requests & Messages)
+  const [friendRequestsCount, setFriendRequestsCount] = useState<number>(0);
+  const [messageRequestsCount, setMessageRequestsCount] = useState<number>(0);
+  const [socialSubTab, setSocialSubTab] = useState<'threads' | 'requests' | 'discover'>('threads');
+
+  const updateSocialBadgeCounts = async () => {
+    if (!isLoggedIn) {
+      setFriendRequestsCount(0);
+      setMessageRequestsCount(0);
+      return;
+    }
+    try {
+      const [fReqs, mReqs] = await Promise.all([
+        socialApi.getFriendRequests(language).catch(() => ({ incoming: [] })),
+        socialApi.getMessageRequests(language).catch(() => ({ incoming: [] }))
+      ]);
+      const fCount = fReqs && Array.isArray(fReqs.incoming) ? fReqs.incoming.length : 0;
+      const mCount = mReqs && Array.isArray(mReqs.incoming) ? mReqs.incoming.length : 0;
+      setFriendRequestsCount(fCount);
+      setMessageRequestsCount(mCount);
+    } catch (e) {
+      console.warn("Failed to load badge counts.", e);
+    }
+  };
+
+  useEffect(() => {
+    if (isLoggedIn) {
+      updateSocialBadgeCounts();
+      // Periodically update the badge counts silently every 30 seconds
+      const interval = setInterval(updateSocialBadgeCounts, 30000);
+      return () => clearInterval(interval);
+    } else {
+      setFriendRequestsCount(0);
+      setMessageRequestsCount(0);
+    }
+  }, [isLoggedIn, language, activeTab]);
 
   // Feed database state - strong browser persistence for Campus Life custom posts
   const CUSTOM_FEED_STORAGE_KEYS = [
@@ -177,22 +221,52 @@ export default function App() {
 
     return [];
   };
-  const writeCustomFeedItemsToBrowser = (_items: FeedItem[]) => {
-    // Disabled for launch stability.
-    // Do not save feed posts/images into browser localStorage.
+
+  const writeCustomFeedItemsToBrowser = (items: FeedItem[]) => {
+    const customOnly = items
+      .map(cleanCustomFeedItemForStorage)
+      .filter(Boolean) as FeedItem[];
+
+    const saveAll = (payloadItems: FeedItem[]) => {
+      const payload = JSON.stringify(payloadItems);
+
+      for (const key of CUSTOM_FEED_STORAGE_KEYS) {
+        localStorage.setItem(key, payload);
+      }
+
+      for (const key of CUSTOM_FEED_STORAGE_KEYS) {
+        sessionStorage.setItem(key, payload);
+      }
+    };
+
+    try {
+      saveAll(customOnly);
+    } catch (error) {
+      console.warn('Campus Life storage quota issue. Saving text-first backup.', error);
+
+      const textOnly = customOnly.map((item: any) => ({
+        ...item,
+        imageUrl:
+          typeof item.imageUrl === 'string' && item.imageUrl.startsWith('data:image/')
+            ? undefined
+            : item.imageUrl,
+        imageAlt: item.imageAlt || 'Image removed from browser backup'
+      }));
+
+      try {
+        saveAll(textOnly as FeedItem[]);
+      } catch (fallbackError) {
+        console.error('Could not save Campus Life posts even as text backup.', fallbackError);
+      }
+    }
   };
 
-  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
+  const [feedItems, setFeedItems] = useState<FeedItem[]>(() => readCustomFeedItemsFromBrowser());
 
   // User profile state (gamification & badges tracker)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    try {
-      const saved = localStorage.getItem('Talaba_profile_v2');
-      return saved ? JSON.parse(saved) : defaultUserProfile;
-    } catch {
-      localStorage.removeItem('Talaba_profile_v2');
-      return defaultUserProfile;
-    }
+    const saved = localStorage.getItem('Talaba_profile_v2');
+    return saved ? JSON.parse(saved) : defaultUserProfile;
   });
 
   // UI authorization follows the authenticated API identity, not the locally
@@ -207,8 +281,50 @@ export default function App() {
       return false;
     }
   })();
-  // Local feed persistence disabled for launch stability.
-  // Feed content comes from backend/static data, not old browser storage.
+
+  // Sync to local states - save only user-created custom posts.
+  // IMPORTANT: never persist large base64 uploaded images in localStorage.
+  // Big uploaded images must go to backend/R2 later; localStorage is only for small text demo posts.
+  useEffect(() => {
+    const stripLargeInlineImages = (item: any) => {
+      const safeItem = { ...item };
+
+      if (typeof safeItem.imageUrl === 'string' && safeItem.imageUrl.startsWith('data:image/') && safeItem.imageUrl.length > 1200000) {
+        safeItem.imageUrl = undefined;
+        safeItem.imageAlt = safeItem.imageAlt || 'Uploaded image removed from local browser storage';
+      }
+
+      if (safeItem.author && typeof safeItem.author.avatar === 'string' && safeItem.author.avatar.startsWith('data:image/')) {
+        safeItem.author = {
+          ...safeItem.author,
+          avatar: defaultUserProfile.avatar
+        };
+      }
+
+      return safeItem;
+    };
+
+    const customOnly = feedItems
+      .filter(item => item.id && String(item.id).startsWith('custom-'))
+      .map(stripLargeInlineImages);
+
+    try {
+      localStorage.setItem('Talaba_feed_v2', JSON.stringify(customOnly));
+    } catch (error) {
+      console.warn('Talaba_feed_v2 was too large. Saving text-only posts instead.', error);
+
+      try {
+        const textOnly = customOnly.map((item: any) => ({
+          ...item,
+          imageUrl: undefined,
+          imageAlt: item.imageAlt || ''
+        }));
+        localStorage.setItem('Talaba_feed_v2', JSON.stringify(textOnly));
+      } catch {
+        localStorage.removeItem('Talaba_feed_v2');
+      }
+    }
+  }, [feedItems]);
 
   // Institutions Dynamic Loading States
   const [institutions, setInstitutions] = useState<any[]>(() => [...IraqiUniversities]);
@@ -288,11 +404,11 @@ export default function App() {
     const loadBackendInstitutions = async (): Promise<any[]> => {
       const all: any[] = [];
       let offset = 0;
-      const limit = 100;
+      const limit = 500;
       let hasMore = true;
       let attempts = 0;
 
-      while (hasMore && attempts < 4) {
+      while (hasMore && attempts < 20) {
         attempts += 1;
 
         const controller = new AbortController();
@@ -528,9 +644,9 @@ export default function App() {
       try {
         const [oppsResponse, highlightsResponse] = await Promise.all([
           Promise.all(['job','scholarship','training','internship','event','exam','registration'].map(category =>
-            fetch(`${BACKEND_URL}/api/opportunities?category=${category}&limit=${category === "job" ? 1200 : 300}`)
+            fetch(`${BACKEND_URL}/api/opportunities?category=${category}&limit=${INITIAL_CATEGORY_LIMIT}`)
           )),
-          fetch(`${BACKEND_URL}/api/highlights`)
+          fetch(`${BACKEND_URL}/api/highlights?limit=${INITIAL_HIGHLIGHTS_LIMIT}`)
         ]);
 
         let dbItems: FeedItem[] = [];
@@ -673,7 +789,7 @@ export default function App() {
       }
     };
     fetchLiveFeed();
-  }, []);
+  }, [activeTab]);
 
   useEffect(() => {
     localStorage.setItem('Talaba_profile_v2', JSON.stringify(userProfile));
@@ -1010,7 +1126,7 @@ export default function App() {
       title_ku: titleKU,
       body_ku: contentKU,
 
-      imageUrl: undefined,
+      imageUrl: imageUrl || undefined,
       author: anonymous ? {
         name: language === 'ar' ? 'مجهول' : language === 'ku' ? 'نەناسراو' : 'Anonymous',
         role: 'student',
@@ -1091,6 +1207,8 @@ export default function App() {
   };
 
   const filteredFeedItems = feedItems.filter(matchesGovAndUni);
+  const displayedFeedItems = filteredFeedItems.slice(0, visibleFeedCount);
+  const hasMoreFeedItems = filteredFeedItems.length > displayedFeedItems.length;
 
   // Active filter helper callbacks
   const handleShowAllLife = () => {
@@ -1137,7 +1255,7 @@ export default function App() {
       case 'home':
         return (
           <HomeFeed
-            feedItems={filteredFeedItems}
+            feedItems={displayedFeedItems}
             language={language}
             selectedGov={selectedGov}
             setSelectedGov={setSelectedGov}
@@ -1169,7 +1287,7 @@ export default function App() {
       case 'life':
         return (
           <LifeFeed
-            feedItems={filteredFeedItems}
+            feedItems={displayedFeedItems}
             language={language}
             selectedGov={selectedGov}
             selectedUni={selectedUni}
@@ -1191,7 +1309,7 @@ export default function App() {
       case 'ask':
         return (
           <AskFeed
-            feedItems={filteredFeedItems}
+            feedItems={displayedFeedItems}
             language={language}
             selectedGov={selectedGov}
             selectedUni={selectedUni}
@@ -1247,6 +1365,12 @@ export default function App() {
             onDeleteFeedItem={handleDeleteFeedItem}
             isAdminMode={hasAuthenticatedAdminAccess}
             onUserClick={setSelectedUserForProfileCard}
+            onNavigateToSocialTab={(tabType) => {
+              setSocialSubTab(tabType);
+              setActiveTab('chats');
+            }}
+            incomingFriendRequestsCount={friendRequestsCount}
+            incomingMessageRequestsCount={messageRequestsCount}
           />
         );
       case 'universities':
@@ -1312,10 +1436,111 @@ export default function App() {
             currentUserAvatar={userProfile.avatar}
             isLoggedIn={isLoggedIn}
             onLoginClick={() => setIsAuthModalOpen(true)}
-            onProfileClick={() => setIsAuthModalOpen(true)}
+            onProfileClick={() => setActiveTab('profile')}
+            onChatsClick={() => {
+              setSocialSubTab('threads');
+              setActiveTab('chats');
+            }}
+            incomingFriendRequestsCount={friendRequestsCount}
+            incomingMessageRequestsCount={messageRequestsCount}
           />
           {renderActiveView()}
+
+          {!selectedSection && ['home', 'life', 'ask'].includes(activeTab) && hasMoreFeedItems && (
+            <div className="Talaba-load-more-feed px-4 pb-8 pt-2">
+              <button
+                type="button"
+                onClick={() => setVisibleFeedCount(prev => prev + FEED_RENDER_BATCH_SIZE)}
+                className="w-full rounded-3xl bg-gradient-to-r from-violet-700 via-purple-700 to-orange-500 px-5 py-4 text-sm font-black text-white shadow-xl shadow-purple-200 active:scale-[0.98] transition-transform"
+              >
+                {language === 'ar' ? 'تحميل المزيد' : language === 'ku' ? 'زیاتر بار بکە' : 'Load More'}
+              </button>
+              <div className="mt-2 text-center text-[11px] font-bold text-slate-500">
+                {language === 'ar'
+                  ? `يتم عرض ${Math.min(displayedFeedItems.length, filteredFeedItems.length)} من ${filteredFeedItems.length}`
+                  : language === 'ku'
+                    ? `${Math.min(displayedFeedItems.length, filteredFeedItems.length)} لە ${filteredFeedItems.length} پیشان دەدرێت`
+                    : `Showing ${Math.min(displayedFeedItems.length, filteredFeedItems.length)} of ${filteredFeedItems.length}`}
+              </div>
+            </div>
+          )}
         </main>
+
+        {/* Bottom Persistent Navigation Bar: Visible at all times */}
+        <nav 
+          id="persistent-bottom-navbar"
+          className="fixed bottom-0 left-1/2 -translate-x-1/2 w-full max-w-md bg-white/95 border-t border-slate-200 px-2 py-3 flex justify-around items-center backdrop-blur-md z-40 shadow-lg pointer-events-auto"
+        >
+          {/* TAB 1: Home */}
+          <button
+            onClick={() => setActiveTab('home')}
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+              activeTab === 'home' 
+                ? 'text-orange-600 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
+            }`}
+          >
+            <Home className="w-5 h-5 shrink-0" />
+            <span className="text-[10px] leading-none font-bold">{getTranslation('navHome', language)}</span>
+            {activeTab === 'home' && (
+              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
+            )}
+          </button>
+          {/* TAB 2: Campus */}
+          <button
+            onClick={() => setActiveTab('life')}
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+              activeTab === 'life' 
+                ? 'text-orange-600 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
+            }`}
+          >
+            <Compass className="w-5 h-5 shrink-0" />
+            <span className="text-[10px] leading-none font-bold">{getTranslation('campusLifeTabLabel', language)}</span>
+            {activeTab === 'life' && (
+              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
+            )}
+          </button>
+
+          {/* TAB 4: Universities */}
+          <button
+            onClick={() => setActiveTab('universities')}
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+              activeTab === 'universities' 
+                ? 'text-orange-600 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
+            }`}
+          >
+            <Sparkles className="w-5 h-5 shrink-0 text-orange-500" />
+            <span className="text-[10px] leading-none font-bold">
+              {language === 'ar' ? 'الجامعات' : language === 'ku' ? 'زانکۆکان' : 'Universities'}
+            </span>
+            {activeTab === 'universities' && (
+              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
+            )}
+          </button>
+
+          {/* TAB 5: Profile */}
+          <button
+            onClick={() => setActiveTab('profile')}
+            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
+              activeTab === 'profile' 
+                ? 'text-orange-600 font-extrabold scale-105' 
+                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
+            }`}
+          >
+            <div className="relative">
+              <User className="w-5 h-5 shrink-0" />
+              {isLoggedIn && (friendRequestsCount + messageRequestsCount) > 0 && (
+                <span className="absolute -top-1 -right-1 w-2 h-2 bg-red-500 rounded-full border border-white animate-pulse" />
+              )}
+            </div>
+            <span className="text-[10px] leading-none font-bold">{getTranslation('navProfile', language)}</span>
+            {activeTab === 'profile' && (
+              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
+            )}
+          </button>
+        </nav>
 
         {/* Global Auth Modal Portal */}
         <AuthModal
@@ -1337,6 +1562,30 @@ export default function App() {
             );
           }}
         />
+
+        {/* User Profile Details Modal (Student Discovery) */}
+        <AnimatePresence>
+          {selectedUserForProfileCard && (
+            <UserProfileModal
+              isOpen={true}
+              user={selectedUserForProfileCard}
+              currentUser={isLoggedIn ? userProfile : null}
+              onClose={() => setSelectedUserForProfileCard(null)}
+              language={language}
+              isLoggedIn={isLoggedIn}
+              onTriggerAuth={() => setIsAuthModalOpen(true)}
+              showToast={showToast}
+              onOpenDirectChat={(recipientId, recipientName) => {
+                setSelectedUserForProfileCard(null);
+                setActiveTab('chats');
+                localStorage.setItem('Talaba_pending_chat_recipient_id', recipientId);
+                localStorage.setItem('Talaba_pending_chat_recipient_name', recipientName);
+                // Dispatch a storage event or tab change notification
+                window.dispatchEvent(new Event('Talaba_switch_chat'));
+              }}
+            />
+          )}
+        </AnimatePresence>
 
         {/* Floating Toast Notification Center */}
         <div className="fixed top-18 left-1/2 -translate-x-1/2 z-50 w-full max-w-[340px] flex flex-col gap-2 pointer-events-none">
@@ -1381,8 +1630,6 @@ export default function App() {
     </div>
   );
 };
-
-
 
 
 
