@@ -1,4 +1,5 @@
-﻿import './disable-pwa-cache';
+﻿import './talaba-storage-reset';
+import './disable-pwa-cache';
 import './click-unfreeze-guard';
 import './atomic-hard-unfreeze.css';
 import './atomic-click-unfreeze.css';
@@ -178,4 +179,5 @@ if (typeof window !== 'undefined') {
     } catch {}
   });
 }
+
 

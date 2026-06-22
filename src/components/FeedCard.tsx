@@ -393,8 +393,8 @@ export default function FeedCard({
       contentAR: trimmedCaption,
       contentKU: trimmedCaption,
       body_original: trimmedCaption,
-      imageUrl: editImagePreview || undefined,
-      imageAlt: editImagePreview ? 'Uploaded Campus Life image' : undefined,
+      imageUrl: undefined,
+      imageAlt: undefined,
       tags: []
     } as any);
 
@@ -926,6 +926,7 @@ export default function FeedCard({
     </article>
   );
 }
+
 
 
 

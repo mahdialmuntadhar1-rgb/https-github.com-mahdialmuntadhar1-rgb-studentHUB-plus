@@ -177,47 +177,12 @@ export default function App() {
 
     return [];
   };
-
-  const writeCustomFeedItemsToBrowser = (items: FeedItem[]) => {
-    const customOnly = items
-      .map(cleanCustomFeedItemForStorage)
-      .filter(Boolean) as FeedItem[];
-
-    const saveAll = (payloadItems: FeedItem[]) => {
-      const payload = JSON.stringify(payloadItems);
-
-      for (const key of CUSTOM_FEED_STORAGE_KEYS) {
-        localStorage.setItem(key, payload);
-      }
-
-      for (const key of CUSTOM_FEED_STORAGE_KEYS) {
-        sessionStorage.setItem(key, payload);
-      }
-    };
-
-    try {
-      saveAll(customOnly);
-    } catch (error) {
-      console.warn('Campus Life storage quota issue. Saving text-first backup.', error);
-
-      const textOnly = customOnly.map((item: any) => ({
-        ...item,
-        imageUrl:
-          typeof item.imageUrl === 'string' && item.imageUrl.startsWith('data:image/')
-            ? undefined
-            : item.imageUrl,
-        imageAlt: item.imageAlt || 'Image removed from browser backup'
-      }));
-
-      try {
-        saveAll(textOnly as FeedItem[]);
-      } catch (fallbackError) {
-        console.error('Could not save Campus Life posts even as text backup.', fallbackError);
-      }
-    }
+  const writeCustomFeedItemsToBrowser = (_items: FeedItem[]) => {
+    // Disabled for launch stability.
+    // Do not save feed posts/images into browser localStorage.
   };
 
-  const [feedItems, setFeedItems] = useState<FeedItem[]>(() => readCustomFeedItemsFromBrowser());
+  const [feedItems, setFeedItems] = useState<FeedItem[]>([]);
 
   // User profile state (gamification & badges tracker)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
@@ -242,50 +207,8 @@ export default function App() {
       return false;
     }
   })();
-
-  // Sync to local states - save only user-created custom posts.
-  // IMPORTANT: never persist large base64 uploaded images in localStorage.
-  // Big uploaded images must go to backend/R2 later; localStorage is only for small text demo posts.
-  useEffect(() => {
-    const stripLargeInlineImages = (item: any) => {
-      const safeItem = { ...item };
-
-      if (typeof safeItem.imageUrl === 'string' && safeItem.imageUrl.startsWith('data:image/') && safeItem.imageUrl.length > 1200000) {
-        safeItem.imageUrl = undefined;
-        safeItem.imageAlt = safeItem.imageAlt || 'Uploaded image removed from local browser storage';
-      }
-
-      if (safeItem.author && typeof safeItem.author.avatar === 'string' && safeItem.author.avatar.startsWith('data:image/')) {
-        safeItem.author = {
-          ...safeItem.author,
-          avatar: defaultUserProfile.avatar
-        };
-      }
-
-      return safeItem;
-    };
-
-    const customOnly = feedItems
-      .filter(item => item.id && String(item.id).startsWith('custom-'))
-      .map(stripLargeInlineImages);
-
-    try {
-      localStorage.setItem('Talaba_feed_v2', JSON.stringify(customOnly));
-    } catch (error) {
-      console.warn('Talaba_feed_v2 was too large. Saving text-only posts instead.', error);
-
-      try {
-        const textOnly = customOnly.map((item: any) => ({
-          ...item,
-          imageUrl: undefined,
-          imageAlt: item.imageAlt || ''
-        }));
-        localStorage.setItem('Talaba_feed_v2', JSON.stringify(textOnly));
-      } catch {
-        localStorage.removeItem('Talaba_feed_v2');
-      }
-    }
-  }, [feedItems]);
+  // Local feed persistence disabled for launch stability.
+  // Feed content comes from backend/static data, not old browser storage.
 
   // Institutions Dynamic Loading States
   const [institutions, setInstitutions] = useState<any[]>(() => [...IraqiUniversities]);
@@ -1087,7 +1010,7 @@ export default function App() {
       title_ku: titleKU,
       body_ku: contentKU,
 
-      imageUrl: imageUrl || undefined,
+      imageUrl: undefined,
       author: anonymous ? {
         name: language === 'ar' ? 'مجهول' : language === 'ku' ? 'نەناسراو' : 'Anonymous',
         role: 'student',
@@ -1458,6 +1381,7 @@ export default function App() {
     </div>
   );
 };
+
 
 
 
