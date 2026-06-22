@@ -1,6 +1,31 @@
 ﻿<!doctype html>
 <html lang="ar">
   <head>
+<script id="Talaba-cache-cleanup-20260622">
+(function () {
+  try {
+    if ('serviceWorker' in navigator) {
+      navigator.serviceWorker.getRegistrations()
+        .then(function (regs) {
+          regs.forEach(function (reg) { reg.unregister().catch(function () {}); });
+        })
+        .catch(function () {});
+    }
+
+    if ('caches' in window) {
+      caches.keys()
+        .then(function (keys) {
+          keys.forEach(function (key) {
+            if (/talaba|jamiaati|rafid|vite|workbox|https-github|student/i.test(key)) {
+              caches.delete(key).catch(function () {});
+            }
+          });
+        })
+        .catch(function () {});
+    }
+  } catch (e) {}
+})();
+</script>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Talaba / StudentHUB</title>
@@ -26,6 +51,7 @@
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>
+
 
 
 

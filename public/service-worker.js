@@ -1,22 +1,16 @@
-﻿self.addEventListener("install", function(event) {
+﻿self.addEventListener('install', event => {
   self.skipWaiting();
 });
 
-self.addEventListener("activate", function(event) {
+self.addEventListener('activate', event => {
   event.waitUntil(
     caches.keys()
-      .then(function(keys) {
-        return Promise.all(keys.map(function(key) { return caches.delete(key); }));
-      })
-      .then(function() {
-        return self.registration.unregister();
-      })
-      .then(function() {
-        return self.clients.claim();
-      })
+      .then(keys => Promise.all(keys.map(key => caches.delete(key))))
+      .then(() => self.clients.claim())
   );
 });
 
-self.addEventListener("fetch", function(event) {
-  return;
+self.addEventListener('fetch', event => {
+  // Do not cache app shell or assets during stabilization.
+  event.respondWith(fetch(event.request));
 });
