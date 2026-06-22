@@ -1,6 +1,7 @@
 ﻿import React, { useEffect, useMemo, useState } from 'react';
 import { BACKEND_URL } from './lib/api';
 import './index.css';
+import './talaba-premium-stable-skin.css';
 
 type Lang = 'ar' | 'ku' | 'en';
 
@@ -527,3 +528,4 @@ export default function App() {
     </div>
   );
 }
+

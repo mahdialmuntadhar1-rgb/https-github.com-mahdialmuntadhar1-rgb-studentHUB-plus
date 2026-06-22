@@ -1,0 +1,128 @@
+﻿/* Premium stable Talaba skin.
+   Visual polish only — no heavy social/chat/image storage code. */
+
+html,
+body,
+#root {
+  min-height: 100%;
+  background:
+    radial-gradient(circle at 12% 0%, rgba(124, 58, 237, 0.26), transparent 32%),
+    radial-gradient(circle at 88% 8%, rgba(249, 115, 22, 0.20), transparent 30%),
+    linear-gradient(180deg, #12081f 0%, #f7f1ff 38%, #fff7ed 100%) !important;
+}
+
+body {
+  margin: 0;
+  font-family: Inter, ui-sans-serif, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Arial, sans-serif;
+}
+
+body::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  background-image:
+    linear-gradient(rgba(255,255,255,.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255,255,255,.05) 1px, transparent 1px);
+  background-size: 38px 38px;
+  opacity: .32;
+  z-index: 0;
+}
+
+#root > div {
+  position: relative;
+  z-index: 1;
+}
+
+#root > div > div {
+  margin-top: 14px;
+  margin-bottom: 18px;
+  border-radius: 34px;
+  overflow: hidden;
+  border: 1px solid rgba(255,255,255,.35);
+  box-shadow:
+    0 34px 80px rgba(15, 23, 42, .34),
+    0 0 0 8px rgba(255,255,255,.08);
+}
+
+header {
+  background:
+    linear-gradient(135deg, rgba(255,255,255,.98), rgba(255,247,237,.96)) !important;
+  border-bottom: 1px solid rgba(249, 115, 22, .14) !important;
+  box-shadow: 0 12px 34px rgba(15, 23, 42, .08);
+}
+
+header .bg-orange-500 {
+  background: linear-gradient(135deg, #7c3aed, #f97316) !important;
+  box-shadow: 0 12px 24px rgba(124, 58, 237, .28);
+}
+
+main > section:first-child {
+  position: relative;
+  border: 1px solid rgba(255,255,255,.18);
+  box-shadow:
+    0 24px 54px rgba(88, 28, 135, .28),
+    inset 0 1px 0 rgba(255,255,255,.22);
+}
+
+main > section:first-child::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background:
+    radial-gradient(circle at 18% 8%, rgba(255,255,255,.24), transparent 28%),
+    radial-gradient(circle at 86% 85%, rgba(255,210,31,.20), transparent 34%);
+  pointer-events: none;
+}
+
+main > section:first-child > * {
+  position: relative;
+  z-index: 1;
+}
+
+select,
+input,
+textarea {
+  box-shadow: inset 0 1px 0 rgba(255,255,255,.75), 0 8px 18px rgba(88, 28, 135, .05);
+}
+
+button {
+  transition: transform .15s ease, box-shadow .15s ease, background .15s ease;
+}
+
+button:active {
+  transform: scale(.97);
+}
+
+article {
+  transform: translateZ(0);
+  border: 1px solid rgba(249, 115, 22, .14) !important;
+  box-shadow:
+    0 22px 48px rgba(15, 23, 42, .11),
+    0 6px 18px rgba(249, 115, 22, .08) !important;
+}
+
+article:hover {
+  box-shadow:
+    0 28px 60px rgba(15, 23, 42, .15),
+    0 8px 24px rgba(249, 115, 22, .10) !important;
+}
+
+.sticky {
+  box-shadow:
+    0 18px 42px rgba(15, 23, 42, .10),
+    0 0 0 1px rgba(249, 115, 22, .08);
+}
+
+@media (max-width: 460px) {
+  #root > div > div {
+    margin-top: 0;
+    margin-bottom: 0;
+    border-radius: 0;
+    border: none;
+  }
+
+  main {
+    padding-bottom: 28px;
+  }
+}
