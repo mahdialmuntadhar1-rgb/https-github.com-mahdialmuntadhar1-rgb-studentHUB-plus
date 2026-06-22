@@ -2761,3 +2761,47 @@ main.flex-1.overflow-y-auto {
     min-height: 96px !important;
   }
 }
+
+/* MVP_HIDE_DISTORTED_UNIVERSITIES_20260622
+   CSS-only. Hide distorted Universities bottom-nav page for MVP.
+   University filtering still exists on Home. */
+
+#persistent-bottom-navbar button:nth-child(3) {
+  display: none !important;
+}
+
+#persistent-bottom-navbar {
+  justify-content: space-around !important;
+}
+
+#universities-list-view {
+  min-height: 72vh !important;
+  display: flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  padding: 24px !important;
+  background:
+    radial-gradient(circle at 20% 10%, rgba(124,58,237,0.12), transparent 28%),
+    radial-gradient(circle at 80% 20%, rgba(249,115,22,0.10), transparent 30%),
+    #f8fafc !important;
+}
+
+#universities-list-view > * {
+  display: none !important;
+}
+
+#universities-list-view::before {
+  content: "Universities are selected from the Home filters.";
+  display: block;
+  max-width: 320px;
+  padding: 22px;
+  border-radius: 28px;
+  background: rgba(255,255,255,0.92);
+  border: 1px solid rgba(255,255,255,0.70);
+  box-shadow: 0 20px 50px rgba(91,33,182,0.16);
+  color: #1e293b;
+  font-size: 16px;
+  font-weight: 900;
+  line-height: 1.5;
+  text-align: center;
+}
