@@ -1,0 +1,27 @@
+﻿STABLE UI-POLISHED DOMAIN-FIXED CHECKPOINT
+
+Date:
+20260622-143608
+
+Live URL:
+https://talaba.kaniq.org/?fresh=20260622143355
+
+Current stable branch:
+stable/ui-polished-domain-fixed-20260622-143608
+
+Current stable tag:
+stable-ui-polished-domain-fixed-20260622-143608
+
+Latest stable commit:
+3b61df8 Fix Talaba active source domain references
+
+Stable status:
+1. App no longer freezes.
+2. First-load opportunities are safely batched.
+3. Stale service worker cache is disabled.
+4. UI polish completed: hero, filters, ticker, post box, postcards, header, bottom nav.
+5. Old wrong jamiati.kaniq.org domain removed from active source.
+6. Latest live checks returned HTTP 200.
+
+Recovery command:
+git checkout stable/ui-polished-domain-fixed-20260622-143608
