@@ -2163,3 +2163,180 @@ section:has(#section-cards-feed.section-job-grid) .rounded-\[32px\] {
     animation-duration: 34s;
   }
 }
+
+/* TALABA POSTCARD POLISH 20260622
+   CSS-only. No backend changes. No fetch changes. No feature deletion. */
+
+#post-composition-box {
+  position: relative;
+  overflow: hidden;
+  border: 1px solid rgba(124, 58, 237, 0.16) !important;
+  background:
+    radial-gradient(circle at 12% 8%, rgba(255, 210, 31, 0.28), transparent 26%),
+    radial-gradient(circle at 92% 12%, rgba(124, 58, 237, 0.18), transparent 30%),
+    linear-gradient(145deg, #ffffff 0%, #fbf7ff 54%, #fff7ed 100%) !important;
+  box-shadow:
+    0 18px 42px rgba(67, 56, 202, 0.14),
+    0 2px 0 rgba(255,255,255,0.9) inset !important;
+}
+
+#post-composition-box::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.48), transparent 38%),
+    repeating-linear-gradient(
+      -35deg,
+      rgba(124,58,237,0.035) 0px,
+      rgba(124,58,237,0.035) 1px,
+      transparent 1px,
+      transparent 10px
+    );
+  z-index: 0;
+}
+
+#post-composition-box > * {
+  position: relative;
+  z-index: 1;
+}
+
+#post-composition-box .shadow-inner {
+  min-height: 48px;
+  display: flex;
+  align-items: center;
+  border-radius: 20px !important;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.92), rgba(245,243,255,0.92)) !important;
+  color: #64748b !important;
+  border: 1px solid rgba(124, 58, 237, 0.14) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 8px 22px rgba(79,70,229,0.08) !important;
+}
+
+#post-trigger-plus {
+  border-radius: 18px !important;
+  background: linear-gradient(135deg, #FFD21F, #FB923C) !important;
+  box-shadow: 0 12px 24px rgba(249,115,22,0.24), 0 2px 0 rgba(255,255,255,0.85) inset !important;
+  border: 1px solid rgba(15,23,42,0.18) !important;
+}
+
+#post-composition-box textarea {
+  min-height: 104px;
+  border-radius: 22px !important;
+  border: 1px solid rgba(124, 58, 237, 0.16) !important;
+  background:
+    linear-gradient(180deg, rgba(255,255,255,0.98), rgba(250,245,255,0.88)) !important;
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 12px 26px rgba(15,23,42,0.05) !important;
+  font-size: 13px !important;
+  line-height: 1.65 !important;
+}
+
+#post-composition-box textarea:focus {
+  border-color: rgba(124, 58, 237, 0.55) !important;
+  box-shadow:
+    0 0 0 4px rgba(124,58,237,0.10),
+    inset 0 1px 0 rgba(255,255,255,0.9) !important;
+}
+
+#post-composition-box label {
+  letter-spacing: 0.09em;
+}
+
+/* Make student-created text posts feel like generated postcards. */
+article[id^="feed-card-custom-"] {
+  border: 1px solid rgba(124, 58, 237, 0.14) !important;
+  background:
+    radial-gradient(circle at 12% 6%, rgba(255, 210, 31, 0.20), transparent 26%),
+    radial-gradient(circle at 88% 12%, rgba(236, 72, 153, 0.14), transparent 30%),
+    linear-gradient(145deg, #ffffff 0%, #faf5ff 48%, #fff7ed 100%) !important;
+  box-shadow:
+    0 22px 52px rgba(67, 56, 202, 0.14),
+    0 1px 0 rgba(255,255,255,0.92) inset !important;
+}
+
+article[id^="feed-card-custom-"]::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(135deg, rgba(255,255,255,0.52), transparent 42%),
+    repeating-linear-gradient(
+      28deg,
+      rgba(124,58,237,0.035) 0px,
+      rgba(124,58,237,0.035) 1px,
+      transparent 1px,
+      transparent 12px
+    );
+  z-index: 0;
+}
+
+article[id^="feed-card-custom-"] > * {
+  position: relative;
+  z-index: 1;
+}
+
+article[id^="feed-card-custom-"] .px-3\.5 {
+  padding: 16px !important;
+}
+
+article[id^="feed-card-custom-"] .text-slate-900,
+article[id^="feed-card-custom-"] h2,
+article[id^="feed-card-custom-"] h3 {
+  color: #24124d !important;
+}
+
+article[id^="feed-card-custom-"] p,
+article[id^="feed-card-custom-"] .text-slate-700 {
+  color: #334155 !important;
+  font-weight: 750;
+  line-height: 1.72;
+}
+
+article[id^="feed-card-custom-"]::after {
+  content: "Talaba Post";
+  position: absolute;
+  top: 14px;
+  inset-inline-end: 14px;
+  z-index: 2;
+  border-radius: 999px;
+  padding: 5px 9px;
+  font-size: 9px;
+  font-weight: 1000;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: #6d28d9;
+  background: rgba(255,255,255,0.82);
+  border: 1px solid rgba(124,58,237,0.16);
+  box-shadow: 0 8px 18px rgba(79,70,229,0.08);
+}
+
+/* Make normal campus cards softer without affecting opportunity grid layout. */
+#mixed-feed-items-list.flex article.opportunity-readable-card:not([id^="feed-card-custom-"]) {
+  border-radius: 28px !important;
+  box-shadow: 0 12px 30px rgba(15,23,42,0.07) !important;
+}
+
+/* Keep opportunity cards strong but slightly more premium. */
+#mixed-feed-items-list.grid article.opportunity-readable-card {
+  border-radius: 26px !important;
+  box-shadow: 0 14px 34px rgba(124, 58, 237, 0.11) !important;
+}
+
+@media (max-width: 420px) {
+  #post-composition-box {
+    padding: 14px !important;
+    border-radius: 26px !important;
+  }
+
+  #post-composition-box textarea {
+    min-height: 96px;
+  }
+
+  article[id^="feed-card-custom-"]::after {
+    top: 10px;
+    inset-inline-end: 10px;
+    font-size: 8px;
+  }
+}
