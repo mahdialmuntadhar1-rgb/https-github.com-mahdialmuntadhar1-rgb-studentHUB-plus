@@ -1470,12 +1470,12 @@ const filteredAndSearchedUnis = useMemo(() => {
       <div id="talaba-opportunity-ticker" className="mb-5 overflow-hidden rounded-3xl border border-violet-100 bg-white shadow-sm">
         <div className="talaba-ticker-track">
           {[
-            { emoji: '💼', value: '1,000+', en: 'Job Vacancies', ar: 'فرصة عمل', ku: 'هەلی کار' },
+            { emoji: '💼', value: '1,000', en: 'Job Vacancies', ar: 'فرصة عمل', ku: 'هەلی کار' },
             { emoji: '🎓', value: '200+', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
             { emoji: '🚀', value: '300+', en: 'Internships', ar: 'تدريبات وفرص تدريب', ku: 'ڕاهێنان و ئینتەرنشپ' },
             { emoji: '🏛️', value: '19', en: 'Governorates', ar: 'محافظة', ku: 'پارێزگا' }
           ].concat([
-            { emoji: '💼', value: '1,000+', en: 'Job Vacancies', ar: 'فرصة عمل', ku: 'هەلی کار' },
+            { emoji: '💼', value: '1,000', en: 'Job Vacancies', ar: 'فرصة عمل', ku: 'هەلی کار' },
             { emoji: '🎓', value: '200+', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
             { emoji: '🚀', value: '300+', en: 'Internships', ar: 'تدريبات وفرص تدريب', ku: 'ڕاهێنان و ئینتەرنشپ' },
             { emoji: '🏛️', value: '19', en: 'Governorates', ar: 'محافظة', ku: 'پارێزگا' }
@@ -2428,6 +2428,7 @@ setSelectedOppFilter(shortcut.id as any);
     </div>
   );
 }
+
 
 
 
