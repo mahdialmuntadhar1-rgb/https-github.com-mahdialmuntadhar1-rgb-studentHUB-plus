@@ -1466,6 +1466,48 @@ const filteredAndSearchedUnis = useMemo(() => {
         </div>
       </div>
 
+      {/* Safe lightweight opportunity ticker - no fetch, no localStorage, no heavy render */}
+      <div id="talaba-opportunity-ticker" className="mb-5 overflow-hidden rounded-3xl border border-violet-100 bg-white shadow-sm">
+        <div className="talaba-ticker-track">
+          {[
+            { emoji: '💼', value: '1,000+', en: 'Job Vacancies', ar: 'فرصة عمل', ku: 'هەلی کار' },
+            { emoji: '🎓', value: '200+', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
+            { emoji: '🚀', value: '300+', en: 'Internships', ar: 'تدريبات وفرص تدريب', ku: 'ڕاهێنان و ئینتەرنشپ' },
+            { emoji: '🏛️', value: '19', en: 'Governorates', ar: 'محافظة', ku: 'پارێزگا' }
+          ].concat([
+            { emoji: '💼', value: '1,000+', en: 'Job Vacancies', ar: 'فرصة عمل', ku: 'هەلی کار' },
+            { emoji: '🎓', value: '200+', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
+            { emoji: '🚀', value: '300+', en: 'Internships', ar: 'تدريبات وفرص تدريب', ku: 'ڕاهێنان و ئینتەرنشپ' },
+            { emoji: '🏛️', value: '19', en: 'Governorates', ar: 'محافظة', ku: 'پارێزگا' }
+          ]).map((item, idx) => (
+            <button
+              key={`${item.en}-${idx}`}
+              type="button"
+              onClick={() => {
+                if (item.en.includes('Job')) {
+                  setSelectedFeedTab('opportunities');
+                  setSelectedOppFilter('job');
+                } else if (item.en.includes('Scholarship')) {
+                  setSelectedFeedTab('opportunities');
+                  setSelectedOppFilter('scholarship');
+                } else if (item.en.includes('Internship')) {
+                  setSelectedFeedTab('opportunities');
+                  setSelectedOppFilter('internship');
+                }
+                const tabs = document.getElementById('home-feed-tabs-selector');
+                if (tabs) tabs.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className="talaba-ticker-pill"
+            >
+              <span className="talaba-ticker-emoji">{item.emoji}</span>
+              <span className="talaba-ticker-value">{item.value}</span>
+              <span className="talaba-ticker-label">
+                {language === 'ar' ? item.ar : language === 'ku' ? item.ku : item.en}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
       {/* 5. Fluid dual-lane tab selector that scrolls naturally with page flow */}
       <div 
         className="relative z-10 bg-white border-b-2 border-slate-100 py-3 flex justify-between gap-1.5 mb-4 shadow-xs select-none" 
@@ -2386,6 +2428,7 @@ setSelectedOppFilter(shortcut.id as any);
     </div>
   );
 }
+
 
 
 
