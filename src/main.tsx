@@ -54,10 +54,7 @@ window.addEventListener('unhandledrejection', (event) => {
 });
 
 class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
-  constructor(props: ErrorBoundaryProps) {
-    super(props);
-    this.state = { error: null, details: '' };
-  }
+  state: ErrorBoundaryState = { error: null, details: '' };
 
   static getDerivedStateFromError(error: Error): ErrorBoundaryState {
     return {
