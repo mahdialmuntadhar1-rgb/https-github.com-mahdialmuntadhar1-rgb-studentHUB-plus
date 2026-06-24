@@ -1,4 +1,4 @@
-import React, { useEffect, useMemo, useState } from 'react';
+﻿import React, { useEffect, useMemo, useState } from 'react';
 import { Download, ExternalLink, Share, X } from 'lucide-react';
 import { Language } from '../types';
 
@@ -11,41 +11,46 @@ interface PWAInstallPromptProps {
   language: Language;
 }
 
-const DISMISS_KEY = 'talaba_pwa_install_prompt_dismissed_until';
-const DISMISS_DAYS = 3;
+/*
+  IMPORTANT:
+  Use a new dismiss key so old mobile localStorage cannot hide the prompt.
+  Some users installed/uninstalled the old PWA, but Chrome may keep old site data.
+*/
+const DISMISS_KEY = 'talaba_pwa_install_prompt_dismissed_until_v4';
+const DISMISS_DAYS = 1;
 
 const copy = {
   en: {
     install: 'Install Talaba',
     subtitle: 'Access jobs, internships, announcements, and campus updates faster.',
     inApp: 'For best installation, open this link in Chrome or Safari.',
-    guideTitle: 'Install Talaba on iPhone',
-    step1: 'Open in Safari',
-    step2: 'Tap Share',
-    step3: 'Tap Add to Home Screen',
-    step4: 'Tap Add',
+    guideTitle: 'Install Talaba',
+    step1: 'Open this site in Chrome or Safari',
+    step2: 'Tap the browser menu or Share button',
+    step3: 'Choose Install app or Add to Home Screen',
+    step4: 'Confirm Add / Install',
     close: 'Close'
   },
   ar: {
     install: 'تثبيت طلبة',
     subtitle: 'وصول أسرع إلى الوظائف، التدريب، الإعلانات، وأخبار الجامعة.',
     inApp: 'للتثبيت بشكل صحيح، افتح الرابط في Chrome أو Safari.',
-    guideTitle: 'تثبيت طلبة على iPhone',
-    step1: 'افتح الرابط في Safari',
-    step2: 'اضغط مشاركة',
-    step3: 'اختر إضافة إلى الشاشة الرئيسية',
-    step4: 'اضغط إضافة',
+    guideTitle: 'تثبيت طلبة',
+    step1: 'افتح الموقع في Chrome أو Safari',
+    step2: 'اضغط قائمة المتصفح أو زر المشاركة',
+    step3: 'اختر تثبيت التطبيق أو إضافة إلى الشاشة الرئيسية',
+    step4: 'اضغط إضافة / تثبيت',
     close: 'إغلاق'
   },
   ku: {
     install: 'دابەزاندنی تەلەبە',
     subtitle: 'گەیشتنی خێراتر بە کار، ڕاهێنان، ئاگاداری و نوێکاری زانکۆ.',
     inApp: 'بۆ دابەزاندنی باشتر، لینکەکە لە Chrome یان Safari بکەرەوە.',
-    guideTitle: 'دابەزاندنی تەلەبە لەسەر iPhone',
-    step1: 'لە Safari بیکەرەوە',
-    step2: 'Share دابگرە',
-    step3: 'Add to Home Screen هەڵبژێرە',
-    step4: 'Add دابگرە',
+    guideTitle: 'دابەزاندنی تەلەبە',
+    step1: 'ماڵپەڕەکە لە Chrome یان Safari بکەرەوە',
+    step2: 'لیستی وێبگەڕ یان دوگمەی Share دابگرە',
+    step3: 'Install app یان Add to Home Screen هەڵبژێرە',
+    step4: 'Add / Install پشتڕاست بکەرەوە',
     close: 'داخستن'
   }
 } as const;
@@ -69,6 +74,11 @@ function isIosDevice() {
   return /iPad|iPhone|iPod/.test(platform) || (platform === 'MacIntel' && navigator.maxTouchPoints > 1) || /iPad|iPhone|iPod/.test(ua);
 }
 
+function isMobileDevice() {
+  const ua = navigator.userAgent || '';
+  return /Android|iPhone|iPad|iPod|Mobile|Tablet/i.test(ua) || navigator.maxTouchPoints > 1;
+}
+
 function isInAppBrowser() {
   const ua = navigator.userAgent || '';
   return /FBAN|FBAV|Instagram|Messenger|WhatsApp|Telegram|TikTok|Bytedance|Line\//i.test(ua);
@@ -78,22 +88,28 @@ export default function PWAInstallPrompt({ language }: PWAInstallPromptProps) {
   const [installEvent, setInstallEvent] = useState<BeforeInstallPromptEvent | null>(null);
   const [installed, setInstalled] = useState(false);
   const [dismissed, setDismissed] = useState(false);
-  const [showIosGuide, setShowIosGuide] = useState(false);
+  const [showGuide, setShowGuide] = useState(false);
   const text = copy[language] || copy.en;
 
   const environment = useMemo(() => {
     if (typeof window === 'undefined') {
-      return { ios: false, inApp: false, standalone: false };
+      return { ios: false, inApp: false, standalone: false, mobile: false };
     }
 
     return {
       ios: isIosDevice(),
       inApp: isInAppBrowser(),
-      standalone: isStandaloneDisplay()
+      standalone: isStandaloneDisplay(),
+      mobile: isMobileDevice()
     };
   }, []);
 
   useEffect(() => {
+    // Clear old dismiss keys from previous versions so the button can reappear after reinstall/uninstall tests.
+    localStorage.removeItem('talaba_pwa_install_prompt_dismissed_until');
+    localStorage.removeItem('talaba_pwa_install_prompt_dismissed_until_v2');
+    localStorage.removeItem('talaba_pwa_install_prompt_dismissed_until_v3');
+
     if (getDismissedUntil() > Date.now()) {
       setDismissed(true);
       return;
@@ -127,24 +143,27 @@ export default function PWAInstallPrompt({ language }: PWAInstallPromptProps) {
   };
 
   const handleInstallClick = async () => {
-    if (environment.ios || environment.inApp) {
-      setShowIosGuide(true);
+    // iOS, in-app browsers, and Android without Chrome install event all get the manual guide.
+    if (environment.ios || environment.inApp || !installEvent) {
+      setShowGuide(true);
       return;
     }
 
-    if (!installEvent) return;
-
     await installEvent.prompt();
     const choice = await installEvent.userChoice.catch(() => null);
+
     if (choice?.outcome === 'accepted') {
       setInstalled(true);
       setInstallEvent(null);
+    } else {
+      setShowGuide(true);
     }
   };
 
   if (installed || dismissed) return null;
 
-  const shouldShowInstallButton = Boolean(installEvent) || environment.ios;
+  // Main fix: show on mobile even if beforeinstallprompt never fires.
+  const shouldShowInstallButton = environment.mobile || Boolean(installEvent) || environment.ios;
   const shouldShowInAppBanner = environment.inApp;
 
   if (!shouldShowInstallButton && !shouldShowInAppBanner) return null;
@@ -165,11 +184,13 @@ export default function PWAInstallPrompt({ language }: PWAInstallPromptProps) {
               <div className="text-sm font-black text-slate-950">
                 {shouldShowInAppBanner ? text.inApp : text.install}
               </div>
+
               {!shouldShowInAppBanner && (
                 <p className="mt-0.5 text-[11px] font-semibold leading-relaxed text-slate-500">
                   {text.subtitle}
                 </p>
               )}
+
               {shouldShowInstallButton && (
                 <button
                   type="button"
@@ -193,7 +214,7 @@ export default function PWAInstallPrompt({ language }: PWAInstallPromptProps) {
         </div>
       </div>
 
-      {showIosGuide && (
+      {showGuide && (
         <div className="fixed inset-0 z-[70] grid place-items-center bg-slate-950/55 p-5 backdrop-blur-sm" dir={language === 'en' ? 'ltr' : 'rtl'}>
           <div className="w-full max-w-sm rounded-[28px] border border-violet-100 bg-white p-5 shadow-2xl">
             <div className="flex items-start justify-between gap-3">
@@ -201,9 +222,10 @@ export default function PWAInstallPrompt({ language }: PWAInstallPromptProps) {
                 <h2 className="text-lg font-black text-slate-950">{text.guideTitle}</h2>
                 <p className="mt-1 text-xs font-semibold leading-relaxed text-slate-500">{text.subtitle}</p>
               </div>
+
               <button
                 type="button"
-                onClick={() => setShowIosGuide(false)}
+                onClick={() => setShowGuide(false)}
                 aria-label={text.close}
                 className="rounded-full p-1.5 text-slate-400 transition hover:bg-slate-100"
               >
@@ -225,7 +247,7 @@ export default function PWAInstallPrompt({ language }: PWAInstallPromptProps) {
 
             <button
               type="button"
-              onClick={() => setShowIosGuide(false)}
+              onClick={() => setShowGuide(false)}
               className="mt-5 w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white"
             >
               {text.close}
