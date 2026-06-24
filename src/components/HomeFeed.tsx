@@ -207,6 +207,10 @@ export default function HomeFeed({
       displayCategory = 'Scholarship';
     } else if (categoryRaw.includes('train')) {
       displayCategory = 'Training';
+    } else if (categoryRaw.includes('event')) {
+      displayCategory = 'Event';
+    } else if (categoryRaw.includes('admission') || categoryRaw.includes('registration')) {
+      displayCategory = 'Opportunity';
     } else if (categoryRaw.includes('volun')) {
       displayCategory = 'Volunteering';
     } else if (categoryRaw.includes('compete') || categoryRaw.includes('competition')) {
@@ -238,16 +242,6 @@ export default function HomeFeed({
     const locationStr = locationParts.length > 0 ? locationParts.join(', ') : 'Iraq';
 
     const resolvedOpportunityUrl = (() => {
-      const stringifyValue = (value: any): string => {
-        if (!value) return '';
-        if (typeof value === 'string') return value;
-        try {
-          return JSON.stringify(value);
-        } catch {
-          return String(value || '');
-        }
-      };
-
       const cleanUrlCandidate = (value: any): string => {
         return String(value || '')
           .trim()
@@ -255,54 +249,26 @@ export default function HomeFeed({
       };
 
       const directCandidates = [
-        item.applyUrl,
+        item.source_url,
         item.sourceUrl,
         item.apply_url,
-        item.source_url,
-        item.details_url,
-        item.detailsUrl,
-        item.application_link,
-        item.application_url,
-        item.apply_link,
+        item.applyUrl,
         item.url,
         item.link,
-        item.external_url,
-        item.original_source_url,
         item.original_url,
-        item.raw_url,
-        item.raw_item_url,
-        item.candidate_url,
-        item.source_link,
-        item.source?.url,
-        item.raw?.url,
-        item.metadata?.url,
-        item.metadata?.source_url,
-        item.metadata?.application_link
+        item.originalUrl,
+        item.original_source_url,
+        item.originalSourceUrl,
+        item.application_link
       ];
-
-      const textBlob = [
-        item.description,
-        item.summary,
-        item.content,
-        item.contentEN,
-        item.contentAR,
-        item.contentKU,
-        item.body,
-        item.body_original,
-        item.raw_text,
-        item.notes,
-        item.metadata,
-        item.raw
-      ].map(stringifyValue).join('\n');
-
-      const extractedMatch = textBlob.match(/https?:\/\/[^\s<>"')\]]+/i);
-      if (extractedMatch) directCandidates.push(extractedMatch[0]);
 
       for (const candidate of directCandidates) {
         const cleaned = cleanUrlCandidate(candidate);
-        if (/^https?:\/\//i.test(cleaned)) {
-          return cleaned;
-        }
+        if (!/^https?:\/\//i.test(cleaned)) continue;
+        if (/(^|\.)google\.[^/]+\/search/i.test(cleaned)) continue;
+        if (/(^|\.)bing\.com\/search|(^|\.)duckduckgo\.com\/|(^|\.)yahoo\.com\/search/i.test(cleaned)) continue;
+        if (/\.(png|jpe?g|webp|gif|svg)(\?|#|$)/i.test(cleaned)) continue;
+        return cleaned;
       }
 
       return '';
@@ -367,15 +333,12 @@ export default function HomeFeed({
       universityAppliedCount: Number(item.applied_count || 5),
       applied: false,
 
-      // MVP_SOURCE_REDIRECT_HOMEFEED_20260622
-      // Keep original source fields so FeedCard can always discover the redirect link.
-      source_url: item.source_url || item.original_source_url || item.url || item.link || '',
-      apply_url: item.apply_url || item.application_link || item.apply_link || '',
-      details_url: item.details_url || item.detailsUrl || '',
-      application_link: item.application_link || item.application_url || '',
-      original_source_url: item.original_source_url || item.source_url || '',
-      external_url: item.external_url || item.externalUrl || '',
-      source_link: item.source_link || item.sourceLink || '',
+      // Keep only the resolved real source URL on the source fields used by FeedCard.
+      source_url: resolvedOpportunityUrl,
+      apply_url: resolvedOpportunityUrl,
+      application_link: resolvedOpportunityUrl,
+      original_source_url: resolvedOpportunityUrl,
+      source_name: item.source_name || item.sourceName || item.source?.name || item.source_id || item.sourceId || item.platform || '',
       raw: item,
       metadata: item.metadata,
       raw_text: (() => {
@@ -2009,7 +1972,7 @@ setSelectedOppFilter(shortcut.id as any);
       </div>
 
       {/* 6. Content Feed/Cards Column */}
-      <div className={selectedFeedTab === "opportunities" ? "grid grid-cols-2 gap-3 md:grid-cols-2" : "flex flex-col gap-2"} id="mixed-feed-items-list">
+      <div className="flex flex-col gap-3" id="mixed-feed-items-list">
         {/* Category Heading */}
         {selectedFeedTab === 'opportunities' && selectedOppFilter !== 'all' && (
           <div className="mb-3">
@@ -2068,7 +2031,7 @@ setSelectedOppFilter(shortcut.id as any);
               <button
                 type="button"
                 onClick={() => setVisibleItemsCount(current => current + LOAD_MORE_STEP)}
-                className={selectedFeedTab === "opportunities" ? "col-span-2 md:col-span-3 mt-3 rounded-2xl bg-[#161A33] px-4 py-3 text-xs font-black text-white shadow-md" : "mt-3 rounded-2xl bg-[#161A33] px-4 py-3 text-xs font-black text-white shadow-md"}
+                className="mt-3 rounded-2xl bg-[#161A33] px-4 py-3 text-xs font-black text-white shadow-md"
               >
                 {language === "ar" ? "تحميل المزيد" : language === "ku" ? "زیاتر باربکە" : "Load more"}
               </button>

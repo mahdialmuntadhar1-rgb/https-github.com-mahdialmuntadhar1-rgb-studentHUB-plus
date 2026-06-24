@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Heart, MessageSquare, Share2, Bookmark, UserPlus, Send, UserRound, X, MoreHorizontal } from 'lucide-react';
+import { Heart, MessageSquare, Share2, Bookmark, UserPlus, Send, UserRound, X, MoreHorizontal, Building2, CalendarDays, ExternalLink, MapPin, Phone, Tag } from 'lucide-react';
 import { BACKEND_URL } from '../lib/api';
 import { compressImageToDataUrl } from '../utils/imageCompression';
 import { Author, Language, FeedItem, getLocalizedContent } from '../types';
@@ -33,7 +33,9 @@ const OPPORTUNITY_TYPES = new Set([
   'volunteering',
   'competition',
   'graduation_project_support',
-  'admission'
+  'admission',
+  'registration',
+  'event'
 ]);
 
 function getStableSocialStats(id: string) {
@@ -115,83 +117,26 @@ function getOpportunityUrl(item: FeedItem): string {
   const anyItem = item as any;
 
   const directCandidates = [
-    anyItem.applyUrl,
+    anyItem.source_url,
     anyItem.sourceUrl,
     anyItem.apply_url,
-    anyItem.source_url,
-    anyItem.details_url,
-    anyItem.detailsUrl,
-    anyItem.application_link,
-    anyItem.application_url,
-    anyItem.apply_link,
-    anyItem.job_url,
-    anyItem.jobUrl,
+    anyItem.applyUrl,
     anyItem.url,
     anyItem.link,
-    anyItem.external_url,
-    anyItem.original_source_url,
     anyItem.original_url,
-    anyItem.raw_url,
-    anyItem.raw_item_url,
-    anyItem.candidate_url,
-    anyItem.source_link,
-    anyItem.source?.url,
-    anyItem.raw?.url,
-    anyItem.metadata?.url,
-    anyItem.metadata?.source_url,
-    anyItem.metadata?.application_link
+    anyItem.originalUrl,
+    anyItem.original_source_url,
+    anyItem.originalSourceUrl,
+    anyItem.application_link
   ];
 
   for (const candidate of directCandidates) {
     const url = String(candidate || '').trim().replace(/[)\].,;]+$/g, '');
-    if (/^https?:\/\//i.test(url)) return url;
-  }
-
-  const textBlob = [
-    anyItem.description,
-    anyItem.summary,
-    anyItem.content,
-    anyItem.contentEN,
-    anyItem.contentAR,
-    anyItem.contentKU,
-    anyItem.body,
-    anyItem.body_original,
-    anyItem.raw_text,
-    anyItem.notes,
-    anyItem.metadata,
-    anyItem.raw
-  ]
-    .map(value => {
-      if (!value) return '';
-      if (typeof value === 'string') return value;
-      try {
-        return JSON.stringify(value);
-      } catch {
-        return String(value || '');
-      }
-    })
-    .join('\n');
-
-  const extracted = textBlob.match(/https?:\/\/[^\s<>"')\]]+/i);
-  if (extracted?.[0]) {
-    return extracted[0].replace(/[)\].,;]+$/g, '');
-  }
-
-  // MVP_SOURCE_REDIRECT_FEEDCARD_20260622
-  // Last-resort source discovery: scan the full item payload and prefer non-image links.
-  try {
-    const allUrls = JSON.stringify(anyItem).match(/https?:\/\/[^\s<>"')\]]+/gi) || [];
-    const sourceLikeUrls = allUrls
-      .map(url => String(url || '').trim().replace(/[)\].,;]+$/g, ''))
-      .filter(url => /^https?:\/\//i.test(url))
-      .filter(url => !/\.(png|jpe?g|webp|gif|svg)(\?|#|$)/i.test(url))
-      .filter(url => !/images\.unsplash\.com|avatar|logo|image_url|thumbnail/i.test(url));
-
-    if (sourceLikeUrls.length > 0) {
-      return sourceLikeUrls[0];
-    }
-  } catch {
-    // Never block the card if raw source scanning fails.
+    if (!/^https?:\/\//i.test(url)) continue;
+    if (/(^|\.)google\.[^/]+\/search/i.test(url)) continue;
+    if (/(^|\.)bing\.com\/search|(^|\.)duckduckgo\.com\/|(^|\.)yahoo\.com\/search/i.test(url)) continue;
+    if (/\.(png|jpe?g|webp|gif|svg)(\?|#|$)/i.test(url)) continue;
+    return url;
   }
 
   return '';
@@ -199,10 +144,54 @@ function getOpportunityUrl(item: FeedItem): string {
 
 function getApplyLabel(item: FeedItem, language: Language): string {
   if (item.type === 'scholarship' || item.type === 'fellowship') {
-    return language === 'ar' ? 'تقديم' : language === 'ku' ? 'داواکاری' : 'Apply';
+    return language === 'ar' ? 'التقديم' : language === 'ku' ? 'داواکردن' : 'Apply';
   }
 
-  return language === 'ar' ? 'تقديم' : language === 'ku' ? 'داواکاری' : 'Apply';
+  return language === 'ar' ? 'عرض المصدر' : language === 'ku' ? 'بینینی سەرچاوە' : 'View Source';
+}
+
+function getSourceUnavailableLabel(language: Language): string {
+  return language === 'ar'
+    ? 'رابط المصدر غير متوفر'
+    : language === 'ku'
+      ? 'لینکی سەرچاوە بەردەست نییە'
+      : 'Source link unavailable';
+}
+
+function getOpportunityTypeLabel(item: FeedItem): string {
+  const raw = String((item as any).category || item.type || item.opportunityCategory || '').toLowerCase();
+  if (raw.includes('scholar') || raw.includes('fellow')) return 'Scholarship';
+  if (raw.includes('event')) return 'Event';
+  if (raw.includes('train') || raw.includes('intern')) return 'Training';
+  if (raw.includes('job') || raw.includes('career') || raw.includes('vacanc')) return 'Job';
+  return 'Opportunity';
+}
+
+function getOpportunityLocation(item: FeedItem): string {
+  const anyItem = item as any;
+  return cleanText(
+    item.location || anyItem.city || anyItem.duty_station || anyItem.work_location || item.governorateId,
+    ''
+  );
+}
+
+function getOpportunityDate(item: FeedItem): string {
+  const anyItem = item as any;
+  return cleanText(item.deadline || anyItem.closing_date || anyItem.closingDate || anyItem.eventDate || anyItem.date || anyItem.published_date || item.date, '');
+}
+
+function getOpportunitySourceName(item: FeedItem): string {
+  const anyItem = item as any;
+  return cleanText(
+    anyItem.source_name ||
+    anyItem.sourceName ||
+    anyItem.source?.name ||
+    anyItem.source_id ||
+    anyItem.sourceId ||
+    anyItem.platform ||
+    '',
+    ''
+  );
 }
 
 export default function FeedCard({
@@ -257,6 +246,23 @@ export default function FeedCard({
   const imageUrl = imageFailed ? '' : getImageUrl(item);
   const opportunityUrl = getOpportunityUrl(item);
   const finalOpportunityUrl = opportunityUrl;
+  const opportunityTypeLabel = getOpportunityTypeLabel(item);
+  const opportunityLocation = getOpportunityLocation(item);
+  const opportunityDate = getOpportunityDate(item);
+  const opportunitySourceName = getOpportunitySourceName(item);
+  const opportunityOrg = cleanText(item.company || item.author?.name || 'Provider', 'Provider');
+  const opportunitySummary = cleanText(
+    getLocalizedContent(item, 'content', language) || item.contentEN || item.contentAR || item.contentKU,
+    language === 'ar'
+      ? 'راجع المصدر الأصلي لمعرفة التفاصيل الكاملة.'
+      : language === 'ku'
+        ? 'سەرچاوەی سەرەکی ببینە بۆ وردەکاری تەواو.'
+        : 'Open the original source for full details.'
+  );
+  const isBusinessCard = item.type === 'local_service' || Boolean((item as any).serviceCategory);
+  const businessCategory = cleanText((item as any).serviceCategory || (item as any).category || 'Business', 'Business');
+  const businessLocation = cleanText(item.location || (item as any).governorate || item.governorateId || '', '');
+  const businessPhone = cleanText((item as any).phone || (item as any).phoneNumber || (item as any).contact_phone || (item as any).contactPhone || '', '');
 
   const tags = (() => {
     const rawTags = getSafeTags(item.tags)
@@ -271,12 +277,6 @@ export default function FeedCard({
 
     return [];
   })();
-
-  const openOpportunity = () => {
-    if (finalOpportunityUrl) {
-      window.open(finalOpportunityUrl, '_blank', 'noopener,noreferrer');
-    }
-  };
 
   const sharePost = async () => {
     const shareUrl = finalOpportunityUrl || `${window.location.origin}/item/${item.id}`;
@@ -498,10 +498,21 @@ export default function FeedCard({
     <article
       id={`feed-card-${item.id}`}
       dir={isRtl ? 'rtl' : 'ltr'}
-      className="opportunity-readable-card relative mb-4 overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm"
+      className={`opportunity-readable-card relative mb-4 w-full overflow-hidden rounded-2xl border border-orange-100 bg-white shadow-sm ${
+        isOpportunity && finalOpportunityUrl ? 'cursor-pointer transition hover:-translate-y-0.5 hover:border-orange-300 hover:shadow-lg' : ''
+      }`}
     >
+      {isOpportunity && finalOpportunityUrl && (
+        <a
+          href={finalOpportunityUrl}
+          target="_blank"
+          rel="noopener noreferrer"
+          aria-label={`${getApplyLabel(item, language)}: ${title}`}
+          className="absolute inset-0 z-10"
+        />
+      )}
       {isMockCampusPost && (
-        <div className="flex items-center gap-3 overflow-hidden border-b border-orange-50 px-4 py-3" dir="auto">
+        <div className="relative z-20 flex items-center gap-3 overflow-hidden border-b border-orange-50 px-4 py-3" dir="auto">
           <button type="button" onClick={openMockProfile} className="flex h-11 w-11 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 via-fuchsia-500 to-orange-400 text-sm font-black text-white shadow-sm" aria-label={`View ${safeAuthorName}'s demo profile`}>
             {authorInitials}
           </button>
@@ -519,7 +530,7 @@ export default function FeedCard({
       )}
 
       {imageUrl && !isOpportunity ? (
-        <div className="relative w-full overflow-hidden bg-slate-100">
+        <div className="relative z-20 w-full overflow-hidden bg-slate-100">
           <img
             src={imageUrl}
             alt={item.imageAlt || title}
@@ -530,52 +541,44 @@ export default function FeedCard({
           />
         </div>
       ) : isOpportunity ? (
-        <div
-          className={`opportunity-type-badge relative flex min-h-[340px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-orange-100 via-orange-200 to-orange-400 px-6 py-10 text-center text-[#3b2208] ${finalOpportunityUrl ? 'cursor-pointer hover:brightness-105 active:scale-[0.995]' : ''}`}
-          role={finalOpportunityUrl ? 'link' : undefined}
-          tabIndex={finalOpportunityUrl ? 0 : undefined}
-          title={finalOpportunityUrl ? 'Open source link' : 'Direct source link is missing'}
-          onClick={finalOpportunityUrl ? openOpportunity : undefined}
-          onKeyDown={(event) => {
-            if (finalOpportunityUrl && (event.key === 'Enter' || event.key === ' ')) {
-              event.preventDefault();
-              openOpportunity();
-            }
-          }}
-        >
-          <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top_left,_#ffffff_0,_transparent_30%),radial-gradient(circle_at_bottom_right,_#fdba74_0,_transparent_34%)]" />
-          {finalOpportunityUrl && (
-            <div className="opportunity-source-open-badge absolute right-3 top-3 z-20 rounded-full bg-slate-950/90 px-3 py-2 text-[10px] font-black text-white shadow-lg">
-              Open source
-            </div>
-          )}
-          <div className="relative z-10">
-            <div className="mb-4 inline-flex rounded-full bg-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-900 shadow">
-              {item.type === 'scholarship' ? 'Scholarship' : item.type === 'internship' ? 'Internship' : 'Job Opportunity'}
-            </div>
-            <h2 className="text-5xl font-black leading-[1.02] tracking-tight">
-              {title}
-            </h2>
-            <>
-              <p className="opportunity-duty-station-badge mt-4 text-base font-black text-[#6b3a10]" style={{ backgroundColor: "#0f172a", color: "#ffffff", WebkitTextFillColor: "#ffffff" }}>
-                <span className="opportunity-company-black">{cleanText(item.company || item.author?.name || item.location || 'Iraq', 'Iraq')}</span>
-              </p>
-              <div className="mt-3 inline-flex rounded-lg bg-slate-900 px-3 py-1.5 shadow-md">
-                <span className="text-[10px] font-black uppercase tracking-wider text-white">
-                  DUTY STATION: {String((item as any).duty_station || item.governorateId || 'MULTIPLE / REMOTE / UNSPECIFIED').toUpperCase()}
-                </span>
-              </div>
-              <p className="mx-auto mt-3 max-w-[34ch] text-sm font-semibold leading-6 text-[#4a2a0d]">
-                {cleanText(
-                  item.contentEN ||
-                  item.contentAR ||
-                  item.contentKU ||
-                  'Open the direct link for full details.',
-                  'Open the direct link for full details.'
-                ).slice(0, 160)}
-              </p>
-            </>
+        <div className="opportunity-card-shell relative z-0 border-b border-orange-100 bg-white px-4 py-4 sm:px-5 sm:py-5">
+          <div className="flex flex-wrap items-center gap-2">
+            <span className="opportunity-category-label inline-flex items-center gap-1.5 rounded-full bg-slate-950 px-3 py-1.5 text-[11px] font-black uppercase text-white">
+              <Tag className="h-3.5 w-3.5" />
+              {opportunityTypeLabel}
+            </span>
+            {opportunityLocation && (
+              <span className="opportunity-meta-pill inline-flex items-center gap-1.5 rounded-full border border-slate-200 bg-slate-50 px-3 py-1.5 text-[11px] font-black text-slate-800">
+                <MapPin className="h-3.5 w-3.5" />
+                {opportunityLocation}
+              </span>
+            )}
+            {opportunityDate && (
+              <span className="opportunity-meta-pill inline-flex items-center gap-1.5 rounded-full border border-orange-200 bg-orange-50 px-3 py-1.5 text-[11px] font-black text-slate-900">
+                <CalendarDays className="h-3.5 w-3.5" />
+                {opportunityDate}
+              </span>
+            )}
+            {opportunitySourceName && (
+              <span className="opportunity-meta-pill inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-3 py-1.5 text-[11px] font-black text-slate-900">
+                <ExternalLink className="h-3.5 w-3.5" />
+                {opportunitySourceName}
+              </span>
+            )}
           </div>
+
+          <h2 className="opportunity-job-title-black mt-3 text-[22px] font-black leading-tight text-slate-950 sm:text-2xl">
+            {title}
+          </h2>
+
+          <div className="opportunity-company-black mt-2 flex items-start gap-2 text-[14px] font-extrabold leading-snug text-slate-800">
+            <Building2 className="mt-0.5 h-4 w-4 shrink-0 text-orange-600" />
+            <span>{opportunityOrg}</span>
+          </div>
+
+          <p className="mt-3 text-[14px] font-semibold leading-7 text-slate-700">
+            {opportunitySummary.length > 220 ? `${opportunitySummary.slice(0, 220).trim()}...` : opportunitySummary}
+          </p>
         </div>
       ) : isMockCampusPost ? (
         <div
@@ -593,7 +596,7 @@ export default function FeedCard({
         </div>
       ) : null}
 
-      <div className="px-3.5 py-2.5">
+      <div className="relative z-0 px-3.5 py-2.5">
         {canManagePost && (
           <div className={!isEditingPost ? "absolute right-3 top-3 z-40" : "mb-2 rounded-2xl border border-orange-100 bg-orange-50/70 p-2"} dir="auto">
             {!isEditingPost ? (
@@ -701,7 +704,40 @@ export default function FeedCard({
             )}
           </div>
         )}
-        {caption && (
+        {isBusinessCard && (
+          <section className="rounded-2xl border border-slate-200 bg-white p-3 shadow-sm">
+            <div className="flex items-start justify-between gap-3">
+              <div className="min-w-0">
+                <h2 className="break-words text-[18px] font-black leading-tight text-slate-950">{title}</h2>
+                <div className="mt-1 flex flex-wrap gap-1.5">
+                  <span className="inline-flex items-center gap-1 rounded-full bg-orange-100 px-2.5 py-1 text-[11px] font-black text-slate-900">
+                    <Tag className="h-3.5 w-3.5" />
+                    {businessCategory}
+                  </span>
+                  {businessLocation && (
+                    <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-2.5 py-1 text-[11px] font-black text-slate-800">
+                      <MapPin className="h-3.5 w-3.5" />
+                      {businessLocation}
+                    </span>
+                  )}
+                </div>
+              </div>
+            </div>
+            {businessPhone && (
+              <div className="mt-3 inline-flex items-center gap-2 rounded-xl border border-slate-200 bg-slate-50 px-3 py-2 text-[13px] font-black text-slate-900">
+                <Phone className="h-4 w-4 text-orange-600" />
+                {businessPhone}
+              </div>
+            )}
+            {body && (
+              <p className="mt-3 whitespace-pre-line text-[14px] font-semibold leading-7 text-slate-700">
+                {body}
+              </p>
+            )}
+          </section>
+        )}
+
+        {caption && !isBusinessCard && (
           <p className={`whitespace-pre-line text-[13px] font-semibold leading-snug text-slate-900 ${!showFullCaption ? 'line-clamp-3' : ''}`}>
             {caption}
           </p>
@@ -751,21 +787,28 @@ export default function FeedCard({
         </div>
 
         {isOpportunity && (
-          <button
-            type="button"
-            onClick={openOpportunity}
-            disabled={!finalOpportunityUrl}
-            className={`mt-4 w-full rounded-2xl px-4 py-3 text-center text-[13px] font-black text-slate-900 shadow-sm active:scale-[0.99] ${
-              finalOpportunityUrl ? 'bg-orange-500' : 'cursor-not-allowed bg-slate-300'
-            }`}
-          >
-            {finalOpportunityUrl
-              ? getApplyLabel(item, language)
-              : (language === 'ar' ? 'الرابط المباشر غير متوفر' : language === 'ku' ? 'لینکی ڕاستەوخۆ نییە' : 'Direct link missing')}
-          </button>
+          finalOpportunityUrl ? (
+            <a
+              href={finalOpportunityUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="relative z-20 mt-4 flex w-full items-center justify-center gap-2 rounded-2xl bg-orange-500 px-4 py-3 text-center text-[14px] font-black text-slate-950 shadow-sm transition hover:bg-orange-400 active:scale-[0.99]"
+            >
+              {getApplyLabel(item, language)}
+              <ExternalLink className="h-4 w-4" />
+            </a>
+          ) : (
+            <button
+              type="button"
+              disabled
+              className="relative z-20 mt-4 w-full cursor-not-allowed rounded-2xl bg-slate-200 px-4 py-3 text-center text-[13px] font-black text-slate-600 shadow-sm"
+            >
+              {getSourceUnavailableLabel(language)}
+            </button>
+          )
         )}
 
-        <div className="mt-3 flex items-center justify-between border-t border-orange-50 pt-2">
+        <div className="relative z-20 mt-3 flex items-center justify-between border-t border-orange-50 pt-2">
           <div className="flex items-center gap-5 text-slate-700">
             <button
               type="button"
@@ -874,10 +917,6 @@ export default function FeedCard({
     </article>
   );
 }
-
-
-
-
 
 
 

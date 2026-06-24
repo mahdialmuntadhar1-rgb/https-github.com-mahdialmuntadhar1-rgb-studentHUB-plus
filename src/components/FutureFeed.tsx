@@ -90,6 +90,10 @@ export default function FutureFeed({
       displayCategory = 'Scholarship';
     } else if (categoryRaw.includes('train')) {
       displayCategory = 'Training';
+    } else if (categoryRaw.includes('event')) {
+      displayCategory = 'Event';
+    } else if (categoryRaw.includes('admission') || categoryRaw.includes('registration')) {
+      displayCategory = 'Opportunity';
     } else if (categoryRaw.includes('volun')) {
       displayCategory = 'Volunteering';
     } else if (categoryRaw.includes('compete') || categoryRaw.includes('competition')) {
@@ -164,8 +168,34 @@ export default function FutureFeed({
     const locationParts = [city, gov !== 'all' ? gov : '', country].filter(Boolean);
     const locationStr = locationParts.length > 0 ? locationParts.join(', ') : 'Iraq';
 
-    const applyUrl = item.apply_url || item.applyUrl || item.application_link || item.application_url || item.apply_link || item.url || item.link || item.details_url || item.external_url || item.original_source_url || item.source_url || '';
-    const sourceUrl = item.source_url || item.sourceUrl || item.original_source_url || item.source_link || item.url || item.link || item.details_url || item.external_url || item.application_link || item.apply_url || '';
+    const resolvedOpportunityUrl = (() => {
+      const candidates = [
+        item.source_url,
+        item.sourceUrl,
+        item.apply_url,
+        item.applyUrl,
+        item.url,
+        item.link,
+        item.original_url,
+        item.originalUrl,
+        item.original_source_url,
+        item.originalSourceUrl,
+        item.application_link
+      ];
+
+      for (const candidate of candidates) {
+        const cleaned = String(candidate || '').trim().replace(/[)\].,;]+$/g, '');
+        if (!/^https?:\/\//i.test(cleaned)) continue;
+        if (/(^|\.)google\.[^/]+\/search/i.test(cleaned)) continue;
+        if (/(^|\.)bing\.com\/search|(^|\.)duckduckgo\.com\/|(^|\.)yahoo\.com\/search/i.test(cleaned)) continue;
+        if (/\.(png|jpe?g|webp|gif|svg)(\?|#|$)/i.test(cleaned)) continue;
+        return cleaned;
+      }
+
+      return '';
+    })();
+    const applyUrl = resolvedOpportunityUrl;
+    const sourceUrl = resolvedOpportunityUrl;
     const imgUrl = item.image_url || item.imageUrl || '';
 
     // Safe image URL - don't use Unsplash fallbacks
@@ -224,6 +254,11 @@ export default function FutureFeed({
       salary: item.salary || 'Recruiter structured',
       applyUrl,
       sourceUrl,
+      source_url: resolvedOpportunityUrl,
+      apply_url: resolvedOpportunityUrl,
+      application_link: resolvedOpportunityUrl,
+      original_source_url: resolvedOpportunityUrl,
+      source_name: item.source_name || item.sourceName || item.source?.name || item.source_id || item.sourceId || item.platform || '',
       universityAppliedCount: Number(item.applied_count || 5),
       applied: false
     };
@@ -1107,8 +1142,6 @@ export default function FutureFeed({
     </div>
   );
 }
-
-
 
 
 

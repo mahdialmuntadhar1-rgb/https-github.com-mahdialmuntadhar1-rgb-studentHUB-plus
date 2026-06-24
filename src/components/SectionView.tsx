@@ -796,42 +796,76 @@ export default function SectionView({
                  (target === 'student_club' && itemType === 'study_group');
         });
 
-        const mapped = filteredResults.map((item: any) => ({
-          id: item.id || `scraped-${Date.now()}-${Math.random()}`,
-          type: (item.category || item.type || categoryConfig.categoryValue) as any,
-          titleEN: item.titleEN || item.title || 'Untitled Opportunity',
-          titleAR: item.titleAR || item.title || 'فرصة غير معنونة',
-          titleKU: item.titleKU || item.title || 'هەلی بێ ناونیشان',
-          contentEN: item.contentEN || item.description || item.summary || item.content || 'Check original portal for instructions.',
-          contentAR: item.contentAR || item.description || item.summary || item.content || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
-          contentKU: item.contentKU || item.description || item.summary || item.content || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
-          author: {
-            name: item.organization || item.institution_name || item.author?.name || (isJobSection ? 'Career Source' : 'Academic Center'),
-            role: 'institution' as const,
-            avatar: item.author?.avatar || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
-            verified: true
-          },
-          date: item.published_date ? `Posted on ${item.published_date}` : 'Recently updated 🔔',
-          likes: item.likes || 10,
-          commentsCount: 0,
-          commentsList: [],
-          governorateId: normalizeGovernorateId(item.governorateId || item.governorate || item.location || item.city || item.duty_station || item.work_location),
-          universityId: item.universityId || item.university_id || 'all',
-          tags: Array.isArray(item.tags) ? item.tags : [categoryConfig.categoryValue, normalizeGovernorateId(item.governorateId || item.governorate || item.location || item.city), 'Iraq'].filter(Boolean),
-          imageUrl: item.imageUrl || item.image_url || undefined,
-          applyUrl: item.application_link || item.apply_url || item.source_url || item.original_source_url || item.url || item.link || item.job_url || item.details_url || item.source?.url || item.metadata?.url || undefined,
-          sourceUrl: item.source_url || item.original_source_url || item.application_link || item.apply_url || item.url || item.link || item.job_url || item.details_url || item.source?.url || item.metadata?.url || undefined,
-          application_link: item.application_link || item.apply_url || item.source_url || item.original_source_url || item.url || item.link || item.job_url || item.details_url || item.source?.url || item.metadata?.url || undefined,
-          original_source_url: item.original_source_url || item.source_url || item.application_link || item.apply_url || item.url || item.link || item.job_url || item.details_url || item.source?.url || item.metadata?.url || undefined,
-          deadline: item.deadline || undefined,
-          company: item.organization || item.institution_name || undefined,
-          location: item.location || item.city || 'Iraq',
-          whoCanApply: item.eligibility || item.whoCanApply || undefined,
-          salary: item.salary || item.salary_or_funding || undefined,
-          workplaceType: item.workplaceType || undefined,
-          savedByUser: false,
-          likedByUser: false
-        }));
+        const resolveSectionSourceUrl = (item: any) => {
+          const candidates = [
+            item.source_url,
+            item.sourceUrl,
+            item.apply_url,
+            item.applyUrl,
+            item.url,
+            item.link,
+            item.original_url,
+            item.originalUrl,
+            item.original_source_url,
+            item.originalSourceUrl,
+            item.application_link
+          ];
+
+          for (const candidate of candidates) {
+            const cleaned = String(candidate || '').trim().replace(/[)\].,;]+$/g, '');
+            if (!/^https?:\/\//i.test(cleaned)) continue;
+            if (/(^|\.)google\.[^/]+\/search/i.test(cleaned)) continue;
+            if (/(^|\.)bing\.com\/search|(^|\.)duckduckgo\.com\/|(^|\.)yahoo\.com\/search/i.test(cleaned)) continue;
+            if (/\.(png|jpe?g|webp|gif|svg)(\?|#|$)/i.test(cleaned)) continue;
+            return cleaned;
+          }
+
+          return '';
+        };
+
+        const mapped = filteredResults.map((item: any) => {
+          const resolvedSourceUrl = resolveSectionSourceUrl(item);
+
+          return ({
+            id: item.id || `scraped-${Date.now()}-${Math.random()}`,
+            type: (item.category || item.type || categoryConfig.categoryValue) as any,
+            titleEN: item.titleEN || item.title || 'Untitled Opportunity',
+            titleAR: item.titleAR || item.title || 'فرصة غير معنونة',
+            titleKU: item.titleKU || item.title || 'هەلی بێ ناونیشان',
+            contentEN: item.contentEN || item.description || item.summary || item.content || 'Check original portal for instructions.',
+            contentAR: item.contentAR || item.description || item.summary || item.content || 'يرجى مراجعة المصدر الأصلي لمعلومات التقديم.',
+            contentKU: item.contentKU || item.description || item.summary || item.content || 'تکایە سەرچاوەی سەرەکی ببینە بۆ زانیاری.',
+            author: {
+              name: item.organization || item.institution_name || item.author?.name || (isJobSection ? 'Career Source' : 'Academic Center'),
+              role: 'institution' as const,
+              avatar: item.author?.avatar || 'https://images.unsplash.com/photo-1486406146926-c627a92ad1ab?auto=format&fit=crop&q=80&w=100',
+              verified: true
+            },
+            date: item.published_date ? `Posted on ${item.published_date}` : 'Recently updated 🔔',
+            likes: item.likes || 10,
+            commentsCount: 0,
+            commentsList: [],
+            governorateId: normalizeGovernorateId(item.governorateId || item.governorate || item.location || item.city || item.duty_station || item.work_location),
+            universityId: item.universityId || item.university_id || 'all',
+            tags: Array.isArray(item.tags) ? item.tags : [categoryConfig.categoryValue, normalizeGovernorateId(item.governorateId || item.governorate || item.location || item.city), 'Iraq'].filter(Boolean),
+            imageUrl: item.imageUrl || item.image_url || undefined,
+            applyUrl: resolvedSourceUrl,
+            sourceUrl: resolvedSourceUrl,
+            source_url: resolvedSourceUrl,
+            apply_url: resolvedSourceUrl,
+            application_link: resolvedSourceUrl,
+            original_source_url: resolvedSourceUrl,
+            source_name: item.source_name || item.sourceName || item.source?.name || item.source_id || item.sourceId || item.platform || '',
+            deadline: item.deadline || item.closing_date || item.closingDate || undefined,
+            company: item.organization || item.institution_name || undefined,
+            location: item.location || item.city || 'Iraq',
+            whoCanApply: item.eligibility || item.whoCanApply || undefined,
+            salary: item.salary || item.salary_or_funding || undefined,
+            workplaceType: item.workplaceType || undefined,
+            savedByUser: false,
+            likedByUser: false
+          });
+        });
 
         setItems(mapped as FeedItem[]);
       } catch (err: any) {
@@ -1146,7 +1180,7 @@ export default function SectionView({
           {errorStatus && <p className="text-[10px] text-amber-300 mt-3">{errorStatus}</p>}
         </div>
       ) : (
-        <div className={isJobSection ? "section-job-grid grid grid-cols-2 gap-2" : "flex flex-col gap-5"} id="section-cards-feed">
+        <div className="flex flex-col gap-4" id="section-cards-feed">
           {isJobSection && (
             <div className="rounded-2xl bg-[#17243E] border border-[#263A62] px-3 py-2 text-[10px] text-slate-300 font-bold flex items-center gap-2">
               <Briefcase className="w-3.5 h-3.5 text-[#FFD21F]" />
