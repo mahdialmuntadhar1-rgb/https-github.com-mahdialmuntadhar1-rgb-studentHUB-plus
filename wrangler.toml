@@ -7,5 +7,6 @@ directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
 [[routes]]
-pattern = "jamiati.kaniq.org"
+pattern = "talaba.kaniq.org"
 custom_domain = true
+
