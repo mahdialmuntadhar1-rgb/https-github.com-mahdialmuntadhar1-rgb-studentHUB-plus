@@ -1,4 +1,4 @@
-﻿import React, { useState } from 'react';
+import React, { useState } from 'react';
 import { Heart, MessageSquare, Share2, Bookmark, UserPlus, Send, UserRound, X, MoreHorizontal } from 'lucide-react';
 import { BACKEND_URL } from '../lib/api';
 import { compressImageToDataUrl } from '../utils/imageCompression';
@@ -103,7 +103,7 @@ function getImageUrl(item: FeedItem): string {
 
   for (const candidate of candidates) {
     const url = String(candidate || '').trim();
-    if (/^https?:\/\//i.test(url) || /^data:image\//i.test(url) || /^\/campus-life\/post-\d{3}\.svg$/i.test(url)) {
+    if (/^https?:\/\//i.test(url) || /^data:image\//i.test(url) || /^\/campus-life\/post-\d{3}\.svg$/i.test(url) || /^\/designs\/campus-life\/campus-life-\d{2}\.(png|jpe?g|webp|svg)$/i.test(url)) {
       return url;
     }
   }
@@ -175,6 +175,23 @@ function getOpportunityUrl(item: FeedItem): string {
   const extracted = textBlob.match(/https?:\/\/[^\s<>"')\]]+/i);
   if (extracted?.[0]) {
     return extracted[0].replace(/[)\].,;]+$/g, '');
+  }
+
+  // MVP_SOURCE_REDIRECT_FEEDCARD_20260622
+  // Last-resort source discovery: scan the full item payload and prefer non-image links.
+  try {
+    const allUrls = JSON.stringify(anyItem).match(/https?:\/\/[^\s<>"')\]]+/gi) || [];
+    const sourceLikeUrls = allUrls
+      .map(url => String(url || '').trim().replace(/[)\].,;]+$/g, ''))
+      .filter(url => /^https?:\/\//i.test(url))
+      .filter(url => !/\.(png|jpe?g|webp|gif|svg)(\?|#|$)/i.test(url))
+      .filter(url => !/images\.unsplash\.com|avatar|logo|image_url|thumbnail/i.test(url));
+
+    if (sourceLikeUrls.length > 0) {
+      return sourceLikeUrls[0];
+    }
+  } catch {
+    // Never block the card if raw source scanning fails.
   }
 
   return '';
@@ -513,8 +530,25 @@ export default function FeedCard({
           />
         </div>
       ) : isOpportunity ? (
-        <div className="opportunity-type-badge relative flex min-h-[340px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-orange-100 via-orange-200 to-orange-400 px-6 py-10 text-center text-[#3b2208]">
+        <div
+          className={`opportunity-type-badge relative flex min-h-[340px] w-full items-center justify-center overflow-hidden bg-gradient-to-br from-orange-100 via-orange-200 to-orange-400 px-6 py-10 text-center text-[#3b2208] ${finalOpportunityUrl ? 'cursor-pointer hover:brightness-105 active:scale-[0.995]' : ''}`}
+          role={finalOpportunityUrl ? 'link' : undefined}
+          tabIndex={finalOpportunityUrl ? 0 : undefined}
+          title={finalOpportunityUrl ? 'Open source link' : 'Direct source link is missing'}
+          onClick={finalOpportunityUrl ? openOpportunity : undefined}
+          onKeyDown={(event) => {
+            if (finalOpportunityUrl && (event.key === 'Enter' || event.key === ' ')) {
+              event.preventDefault();
+              openOpportunity();
+            }
+          }}
+        >
           <div className="absolute inset-0 opacity-30 bg-[radial-gradient(circle_at_top_left,_#ffffff_0,_transparent_30%),radial-gradient(circle_at_bottom_right,_#fdba74_0,_transparent_34%)]" />
+          {finalOpportunityUrl && (
+            <div className="opportunity-source-open-badge absolute right-3 top-3 z-20 rounded-full bg-slate-950/90 px-3 py-2 text-[10px] font-black text-white shadow-lg">
+              Open source
+            </div>
+          )}
           <div className="relative z-10">
             <div className="mb-4 inline-flex rounded-full bg-orange-500 px-3 py-1 text-[10px] font-black uppercase tracking-[0.18em] text-slate-900 shadow">
               {item.type === 'scholarship' ? 'Scholarship' : item.type === 'internship' ? 'Internship' : 'Job Opportunity'}

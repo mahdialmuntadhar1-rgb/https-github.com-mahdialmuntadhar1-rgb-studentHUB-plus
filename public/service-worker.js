@@ -1,4 +1,4 @@
-﻿const CACHE_VERSION = 'talaba-cache-refresh-20260624-v3';
+const CACHE_VERSION = 'talaba-cache-refresh-20260624-v4';
 
 self.addEventListener('install', (event) => {
   self.skipWaiting();
@@ -19,7 +19,6 @@ self.addEventListener('fetch', (event) => {
 
   const url = new URL(request.url);
 
-  // Never cache API/backend/data calls
   if (
     url.href.includes('rafid-api.mahdialmuntadhar1.workers.dev') ||
     url.pathname.startsWith('/api') ||
@@ -29,7 +28,6 @@ self.addEventListener('fetch', (event) => {
     return;
   }
 
-  // Always try network first for frontend files
   event.respondWith(
     fetch(request, { cache: 'no-store' }).catch(() => caches.match(request))
   );

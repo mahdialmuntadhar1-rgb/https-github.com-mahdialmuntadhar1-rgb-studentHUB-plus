@@ -1,4 +1,6 @@
-﻿import { StrictMode, Component } from 'react';
+import './talaba-safe-api-runtime';
+import { runTalabaCacheRefresh } from './talaba-cache-refresh';
+import { StrictMode } from 'react';
 import * as React from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
@@ -11,6 +13,9 @@ import './styles/neon-purple-theme.css';
 import './styles/campus-light-purple-bg.css';
 import './styles/unified-light-purple-ui.css';
 import './styles/purple-3d-postcards.css';
+import './styles/mobile-cards-fix.css';
+import './styles/talaba-final-mobile.css';
+import { startMobileUiEnhancements } from './mobile-ui-helpers';
 
 type ErrorBoundaryProps = {
   children: ReactNode;
@@ -40,13 +45,13 @@ function showBootError(title: string, detail: string) {
 
 window.addEventListener('error', (event) => {
   const message = event.error?.stack || event.message || 'Unknown JavaScript error';
-  showBootError('Jamiaati runtime error', message);
+  showBootError('Talaba runtime error', message);
 });
 
 window.addEventListener('unhandledrejection', (event) => {
   const reason = event.reason;
   const message = reason instanceof Error ? reason.stack || reason.message : String(reason);
-  showBootError('Jamiaati loading error', message);
+  showBootError('Talaba loading error', message);
 });
 
 class AppErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
@@ -90,7 +95,7 @@ class AppErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundary
             boxShadow: '0 18px 60px rgba(127,29,29,.18)',
           }}>
             <div style={{ fontSize: 24, fontWeight: 900, marginBottom: 10 }}>
-              Jamiaati app error
+              Talaba app error
             </div>
             <div style={{ fontSize: 15, lineHeight: 1.55, whiteSpace: 'pre-wrap' }}>
               {this.state.details}
@@ -110,7 +115,7 @@ class AppErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundary
 const rootElement = document.getElementById('root');
 
 if (!rootElement) {
-  showBootError('Jamiaati startup error', 'Root element #root was not found in index.html.');
+  showBootError('Talaba startup error', 'Root element #root was not found in index.html.');
 } else {
   createRoot(rootElement).render(
     <StrictMode>
@@ -121,4 +126,7 @@ if (!rootElement) {
   );
 
   registerServiceWorker();
+  startMobileUiEnhancements();
 }
+
+runTalabaCacheRefresh();

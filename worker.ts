@@ -35,8 +35,6 @@ type AppContext = Context<{ Bindings: Bindings, Variables: HonoContextVariables 
 
 const BETA_ALLOWED_ORIGINS = new Set<string>([
   'https://https-github.mahdialmuntadhar1.workers.dev',
-  'https://talaba.kaniq.org',
-  'https://jamiati.kaniq.org',
   'http://localhost:5173',
   'http://localhost:8787',
   'http://127.0.0.1:5173',
@@ -229,8 +227,6 @@ declare module 'hono' {
 // CORS middleware
 const ALLOWED_ORIGINS = new Set([
   'https://https-github.mahdialmuntadhar1.workers.dev',
-  'https://talaba.kaniq.org',
-  'https://jamiati.kaniq.org',
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
@@ -2522,7 +2518,22 @@ app.get('/api/opportunities', async (c) => {
   try {
     const limit = parseInt(c.req.query('limit') || '20');
     const offset = parseInt(c.req.query('offset') || '0');
-    const category = c.req.query('category') || '';
+    const rawCategory = (c.req.query('category') || '').trim().toLowerCase();
+    const categoryAliasMap: Record<string, string> = {
+      jobs: 'job',
+      career: 'job',
+      employment: 'job',
+      internships: 'internship',
+      scholarship: 'scholarship',
+      scholarships: 'scholarship',
+      training: 'training',
+      trainings: 'training',
+      events: 'event',
+      exams: 'exam',
+      registrations: 'registration',
+      news: 'news'
+    };
+    const category = categoryAliasMap[rawCategory] || rawCategory;
     const governorate = c.req.query('governorate') || 'all';
     const university_id = c.req.query('university_id') || c.req.query('institution_id') || 'all';
     
@@ -2540,9 +2551,10 @@ app.get('/api/opportunities', async (c) => {
     query += ' AND (deadline IS NULL OR deadline >= ?)';
     params.push(today);
     
-    // Filter by category (using type field)
-    if (category) {
-      query += ' AND type = ?';
+    // Filter by category using the type field.
+    // This must be strict because the frontend depends on category tabs.
+    if (category && category !== 'all') {
+      query += ' AND LOWER(TRIM(type)) = ?';
       params.push(category);
     }
     
@@ -2588,7 +2600,16 @@ app.get('/api/opportunities', async (c) => {
       ? normalizedResults.filter((item: any) => item.governorateId === normalizedGovernorate)
       : normalizedResults;
 
-    return c.json(strictResults);
+    // Final safety filter after governorate normalization.
+    // This prevents category=internship from ever returning exam/event/job rows.
+    const finalResults = category && category !== 'all'
+      ? strictResults.filter((item: any) => {
+          const itemType = String(item.type || item.category || '').trim().toLowerCase();
+          return itemType === category;
+        })
+      : strictResults;
+
+    return c.json(finalResults);
   } catch (error: any) {
     console.error('Get opportunities error:', error);
     return c.json({ error: 'Failed to get opportunities' }, 500);
@@ -2647,7 +2668,6 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
-
 
 
 

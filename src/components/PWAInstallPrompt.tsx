@@ -29,6 +29,7 @@ const copy = {
     step2: 'Tap the browser menu or Share button',
     step3: 'Choose Install app or Add to Home Screen',
     step4: 'Confirm Add / Install',
+    openBrowser: 'Open in browser',
     close: 'Close'
   },
   ar: {
@@ -40,6 +41,7 @@ const copy = {
     step2: 'اضغط قائمة المتصفح أو زر المشاركة',
     step3: 'اختر تثبيت التطبيق أو إضافة إلى الشاشة الرئيسية',
     step4: 'اضغط إضافة / تثبيت',
+    openBrowser: 'افتح في المتصفح',
     close: 'إغلاق'
   },
   ku: {
@@ -51,6 +53,7 @@ const copy = {
     step2: 'لیستی وێبگەڕ یان دوگمەی Share دابگرە',
     step3: 'Install app یان Add to Home Screen هەڵبژێرە',
     step4: 'Add / Install پشتڕاست بکەرەوە',
+    openBrowser: 'کردنەوە لە وێبگەڕ',
     close: 'داخستن'
   }
 } as const;
@@ -82,6 +85,19 @@ function isMobileDevice() {
 function isInAppBrowser() {
   const ua = navigator.userAgent || '';
   return /FBAN|FBAV|Instagram|Messenger|WhatsApp|Telegram|TikTok|Bytedance|Line\//i.test(ua);
+}
+
+function openExternalBrowser() {
+  const href = 'https://talaba.kaniq.org/?source=pwa-install';
+  const ua = navigator.userAgent || '';
+
+  if (/Android/i.test(ua)) {
+    const clean = href.replace(/^https?:\/\//, '');
+    window.location.href = `intent://${clean}#Intent;scheme=https;package=com.android.chrome;S.browser_fallback_url=${encodeURIComponent(href)};end`;
+    return;
+  }
+
+  window.open(href, '_blank', 'noopener,noreferrer');
 }
 
 export default function PWAInstallPrompt({ language }: PWAInstallPromptProps) {
@@ -171,36 +187,29 @@ export default function PWAInstallPrompt({ language }: PWAInstallPromptProps) {
   return (
     <>
       <div
-        className="fixed left-1/2 bottom-24 z-50 w-[calc(100%-24px)] max-w-md -translate-x-1/2 px-3"
+        className="fixed bottom-24 left-3 z-50 max-w-[calc(100%-24px)]"
         dir={language === 'en' ? 'ltr' : 'rtl'}
       >
-        <div className="rounded-3xl border border-violet-200/80 bg-white/95 p-3 shadow-2xl shadow-violet-950/15 backdrop-blur-md">
-          <div className="flex items-start gap-3">
-            <div className="grid h-11 w-11 shrink-0 place-items-center rounded-2xl bg-gradient-to-br from-violet-700 to-fuchsia-600 text-white shadow-lg">
-              {shouldShowInAppBanner ? <ExternalLink className="h-5 w-5" /> : <Download className="h-5 w-5" />}
-            </div>
+        <div className="rounded-2xl border border-violet-200/80 bg-white/95 p-2 shadow-xl shadow-violet-950/15 backdrop-blur-md">
+          <div className="flex items-center gap-2">
+            <button
+              type="button"
+              onClick={environment.inApp ? openExternalBrowser : handleInstallClick}
+              className="flex items-center gap-2 rounded-xl bg-violet-700 px-3 py-2 text-xs font-black text-white shadow-lg shadow-violet-900/20 transition hover:bg-violet-800"
+            >
+              {shouldShowInAppBanner ? <ExternalLink className="h-4 w-4" /> : <Download className="h-4 w-4" />}
+              <span>{shouldShowInAppBanner ? text.openBrowser : text.install}</span>
+            </button>
 
-            <div className="min-w-0 flex-1">
-              <div className="text-sm font-black text-slate-950">
-                {shouldShowInAppBanner ? text.inApp : text.install}
-              </div>
-
-              {!shouldShowInAppBanner && (
-                <p className="mt-0.5 text-[11px] font-semibold leading-relaxed text-slate-500">
-                  {text.subtitle}
-                </p>
-              )}
-
-              {shouldShowInstallButton && (
-                <button
-                  type="button"
-                  onClick={handleInstallClick}
-                  className="mt-2 rounded-2xl bg-violet-700 px-4 py-2 text-xs font-black text-white shadow-lg shadow-violet-900/20 transition hover:bg-violet-800"
-                >
-                  {text.install}
-                </button>
-              )}
-            </div>
+            {shouldShowInstallButton && environment.inApp && (
+              <button
+                type="button"
+                onClick={() => setShowGuide(true)}
+                className="rounded-xl bg-violet-50 px-2.5 py-2 text-[11px] font-black text-violet-800"
+              >
+                {text.install}
+              </button>
+            )}
 
             <button
               type="button"
@@ -245,10 +254,20 @@ export default function PWAInstallPrompt({ language }: PWAInstallPromptProps) {
               ))}
             </ol>
 
+            {environment.inApp && (
+              <button
+                type="button"
+                onClick={openExternalBrowser}
+                className="mt-5 w-full rounded-2xl bg-violet-700 px-4 py-3 text-sm font-black text-white"
+              >
+                {text.openBrowser}
+              </button>
+            )}
+
             <button
               type="button"
               onClick={() => setShowGuide(false)}
-              className="mt-5 w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white"
+              className={`${environment.inApp ? 'mt-2' : 'mt-5'} w-full rounded-2xl bg-slate-950 px-4 py-3 text-sm font-black text-white`}
             >
               {text.close}
             </button>

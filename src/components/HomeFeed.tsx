@@ -1,4 +1,4 @@
-﻿import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { FeedItem, Language, University } from '../types';
 import { getTranslation } from '../data/translations';
 import { initialFeedItems, defaultUserProfile, IraqiUniversities, IraqiGovernorates } from '../data/mockData';
@@ -365,8 +365,27 @@ export default function HomeFeed({
       applyUrl,
       sourceUrl,
       universityAppliedCount: Number(item.applied_count || 5),
-      applied: false
-    };
+      applied: false,
+
+      // MVP_SOURCE_REDIRECT_HOMEFEED_20260622
+      // Keep original source fields so FeedCard can always discover the redirect link.
+      source_url: item.source_url || item.original_source_url || item.url || item.link || '',
+      apply_url: item.apply_url || item.application_link || item.apply_link || '',
+      details_url: item.details_url || item.detailsUrl || '',
+      application_link: item.application_link || item.application_url || '',
+      original_source_url: item.original_source_url || item.source_url || '',
+      external_url: item.external_url || item.externalUrl || '',
+      source_link: item.source_link || item.sourceLink || '',
+      raw: item,
+      metadata: item.metadata,
+      raw_text: (() => {
+        try {
+          return JSON.stringify(item);
+        } catch {
+          return '';
+        }
+      })()
+    } as any;
   };
 
   // Fetch backend opportunities for the whole Opportunities tab.
@@ -382,7 +401,7 @@ export default function HomeFeed({
       'scholarship': 'scholarship',
       'training': 'training',
       'internship': 'internship',
-      'admission': 'admission',
+      'admission': 'registration',
       'announcement': 'announcement',
       'news': 'news',
       'deadline': 'deadline'
@@ -393,7 +412,7 @@ export default function HomeFeed({
     setIsLoadingBackend(true);
     setBackendError(null);
 
-    getOpportunities({ category, page: 1, limit: 120 }, language)
+    getOpportunities({ category, page: 1, limit: selectedOppFilter === 'job' ? 1200 : 300 }, language)
       .then((result: any) => {
         const rawItems = Array.isArray(result) ? result : Array.isArray(result?.items) ? result.items : [];
         setBackendOpportunities(rawItems.map(mapBackendOpportunity));
@@ -806,23 +825,86 @@ export default function HomeFeed({
   useEffect(() => {
     setPickerPage(1);
   }, [selectedGov, pickerSearch]);
+  const normalizeUniversityGovId = (raw: any): string => {
+    const text = String(raw || '').trim().toLowerCase();
 
-  const filteredAndSearchedUnis = useMemo(() => {
-    // Return either institutions props or fallback to IraqiUniversities global
-    const sourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
-    
-    // Governorate filtering
-    const govUnis = selectedGov === 'all'
+    if (!text || text === 'all' || text === 'all iraq' || text === 'iraq' || text === 'iraq-wide') return 'all';
+
+    const normalized = text
+      .replace(/governorate/g, '')
+      .replace(/province/g, '')
+      .replace(/محافظة/g, '')
+      .replace(/پارێزگا/g, '')
+      .replace(/\s+/g, ' ')
+      .trim();
+
+    const aliases: Record<string, string[]> = {
+      baghdad: ['baghdad', 'بغداد', 'بەغدا'],
+      nineveh: ['nineveh', 'ninawa', 'nainawa', 'mosul', 'ninhava', 'نينوى', 'الموصل', 'نەینەوا', 'موسڵ'],
+      basra: ['basra', 'basrah', 'البصرة', 'بەسرە'],
+      sulaymaniyah: ['sulaymaniyah', 'sulaimani', 'sulaimaniyah', 'slemani', 'suli', 'السليمانية', 'سلێمانی'],
+      erbil: ['erbil', 'hawler', 'hewler', 'أربيل', 'اربيل', 'هەولێر'],
+      kirkuk: ['kirkuk', 'كركوك', 'کەرکووک'],
+      najaf: ['najaf', 'النجف', 'نەجەف', 'kufa', 'الكوفة'],
+      karbala: ['karbala', 'kerbala', 'كربلاء', 'کەربەلا'],
+      dhi_qar: ['dhi qar', 'dhi_qar', 'thi qar', 'thi_qar', 'ziqar', 'ذي قار', 'زیقار', 'nasiriyah', 'الناصرية'],
+      babil: ['babil', 'babylon', 'بابل'],
+      anbar: ['anbar', 'الأنبار', 'الانبار', 'ئەنبار'],
+      diyala: ['diyala', 'ديالى', 'دیالە'],
+      salah_al_din: ['salah al-din', 'salah ad-din', 'salahaddin', 'salahaldeen', 'salah_al_din', 'tikrit', 'تكريت', 'صلاح الدين', 'سەڵاحەدین'],
+      wasit: ['wasit', 'واسط', 'واست', 'kut', 'الكوت'],
+      maysan: ['maysan', 'missan', 'ميسان', 'میسان', 'amara', 'العمارة'],
+      al_qadisiyah: ['al-qadisiyah', 'al qadisiyah', 'al_qadisiyah', 'qadisiyah', 'qadisiyyah', 'diwaniyah', 'القادسية', 'الديوانية', 'قادسیە'],
+      muthanna: ['muthanna', 'samawah', 'المثنى', 'السماوة', 'موسەننا'],
+      duhok: ['duhok', 'dohuk', 'دهوك', 'دهۆک'],
+      halabja: ['halabja', 'حلبجة', 'هەڵەبجە']
+    };
+
+    for (const [govId, names] of Object.entries(aliases)) {
+      if (normalized === govId || names.some(alias => normalized.includes(alias.toLowerCase()))) return govId;
+    }
+
+    return normalized.replace(/\s+/g, '_').replace(/-/g, '_').replace(/[^\w_]/g, '') || 'all';
+  };
+
+  const getUniversityGovId = (uni: any): string => {
+    return normalizeUniversityGovId(
+      uni?.governorateId ||
+      uni?.governorate ||
+      uni?.governorate_name ||
+      uni?.governorateName ||
+      uni?.city ||
+      uni?.location ||
+      uni?.address
+    );
+  };
+
+const filteredAndSearchedUnis = useMemo(() => {
+    const rawSourceList = institutions && institutions.length > 0 ? institutions : IraqiUniversities;
+
+    const sourceList = rawSourceList.map((uni: any) => ({
+      ...uni,
+      governorateId: getUniversityGovId(uni)
+    }));
+
+    const exactGovUnis = selectedGov === 'all'
       ? sourceList
-      : sourceList.filter(u => u.governorateId === selectedGov);
+      : sourceList.filter((uni: any) => getUniversityGovId(uni) === selectedGov);
+
+    // Public beta safety: if a governorate mapping mismatch happens, do not show zero.
+    // Show all institutions instead of an empty picker.
+    const govUnis = selectedGov === 'all' || exactGovUnis.length > 0
+      ? exactGovUnis
+      : sourceList;
 
     if (!pickerSearch.trim()) return govUnis;
+
     const searchLower = pickerSearch.trim().toLowerCase();
-    
-    return govUnis.filter(u => 
-      u.nameEN.toLowerCase().includes(searchLower) ||
-      u.nameAR.toLowerCase().includes(searchLower) ||
-      u.nameKU.toLowerCase().includes(searchLower)
+
+    return govUnis.filter((u: any) =>
+      String(u.nameEN || '').toLowerCase().includes(searchLower) ||
+      String(u.nameAR || '').toLowerCase().includes(searchLower) ||
+      String(u.nameKU || '').toLowerCase().includes(searchLower)
     );
   }, [selectedGov, pickerSearch, institutions, IraqiUniversities, institutionsLoading]);
 
@@ -833,7 +915,47 @@ export default function HomeFeed({
     return filteredAndSearchedUnis.slice(start, start + itemsPerPage);
   }, [filteredAndSearchedUnis, pickerPage]);
 
-  // New post publisher collapsible state
+    useEffect(() => {
+    const applyShortcutFilter = (payload: any) => {
+      if (!payload || !payload.lane) return;
+
+      if (payload.lane === 'opportunities') {
+        setSelectedFeedTab('opportunities');
+        setSelectedOppFilter((payload.filter || 'all') as any);
+        setActiveStoryFilter(null);
+        setVisibleItemsCount(INITIAL_OPPS_LIMIT);
+      }
+
+      if (payload.lane === 'campus_life') {
+        setSelectedFeedTab('campus_life');
+        setSelectedCampusFilter((payload.filter || 'all') as any);
+        setActiveStoryFilter(null);
+        setVisibleItemsCount(INITIAL_CAMPUS_LIMIT);
+      }
+
+      window.setTimeout(() => {
+        const searchBox = document.getElementById('feed-items-live-search-bar');
+        if (searchBox) searchBox.scrollIntoView({ behavior: 'smooth', block: 'center' });
+      }, 180);
+    };
+
+    try {
+      const raw = sessionStorage.getItem('jamiaati_pending_filter');
+      if (raw) {
+        sessionStorage.removeItem('jamiaati_pending_filter');
+        applyShortcutFilter(JSON.parse(raw));
+      }
+    } catch {}
+
+    const handler = (event: Event) => {
+      applyShortcutFilter((event as CustomEvent).detail);
+    };
+
+    window.addEventListener('jamiaati-shortcut-filter', handler as EventListener);
+    return () => window.removeEventListener('jamiaati-shortcut-filter', handler as EventListener);
+  }, []);
+
+// New post publisher collapsible state
   const [showPublisher, setShowPublisher] = useState(false);
   const [postTitle, setPostTitle] = useState('');
   const [postBody, setPostBody] = useState('');
@@ -944,9 +1066,9 @@ export default function HomeFeed({
   };
 
   // Filter universities based on chosen Governorate
-  const filteredUnis = selectedGov === 'all' 
-    ? IraqiUniversities 
-    : IraqiUniversities.filter(u => u.governorateId === selectedGov);
+  const filteredUnis = selectedGov === 'all'
+    ? IraqiUniversities
+    : IraqiUniversities.filter((u: any) => getUniversityGovId(u) === selectedGov);
 
   // New post submission logic
   const handlePostSubmit = (e: React.FormEvent) => {
@@ -981,7 +1103,7 @@ export default function HomeFeed({
     'job', 'part_time_job', 'full_time_job', 'internship',
     'scholarship', 'fellowship',
     'training', 'graduation_project_support', 'volunteering', 'competition',
-    'admission', 'announcement', 'news', 'deadline'
+    'admission', 'registration', 'announcement', 'news', 'deadline'
   ];
 
   // Filter by governorate & university first.
@@ -1053,86 +1175,79 @@ export default function HomeFeed({
   }, [geoFilteredItems]);
 
   // Filtering for Opportunities Tab
-  const filteredOppsItems = useMemo(() => {
-    // Use backend opportunities when a specific category filter is selected
-    if (selectedOppFilter !== 'all' && backendOpportunities.length > 0) {
-      // Filter backend opportunities by governorate
-      const govFiltered = backendOpportunities.filter(item => {
-        const itemGovText = [
-          item.governorateId,
-          item.governorate,
-          item.location,
-          item.city,
-          Array.isArray(item.tags) ? item.tags.join(' ') : ''
-        ].filter(Boolean).join(' ');
-        const normalizedItemGov = normalizeHomeGovernorateId(itemGovText);
-        return selectedGov === 'all' || normalizedItemGov === 'all' || normalizedItemGov === selectedGov;
-      });
+      const filteredOppsItems = useMemo(() => {
+    const sourceItems = backendOpportunities.length > 0 ? backendOpportunities : allSeriousItems;
 
-      // Add Iraq-wide fallback if governorate has few results (less than 5)
-      if (selectedGov !== 'all' && govFiltered.length < 5 && govFiltered.length < backendOpportunities.length) {
-        // Add Iraq-wide jobs that aren't already in the filtered list
-        const iraqWideJobs = backendOpportunities.filter(item => {
-          const itemGovText = [
-            item.governorateId,
-            item.governorate,
-            item.location,
-            item.city,
-            Array.isArray(item.tags) ? item.tags.join(' ') : ''
-          ].filter(Boolean).join(' ');
-          const normalizedItemGov = normalizeHomeGovernorateId(itemGovText);
-          const isAlreadyIncluded = govFiltered.some(govItem => govItem.id === item.id);
-          return !isAlreadyIncluded && (normalizedItemGov === 'all' || normalizedItemGov !== selectedGov);
-        });
-        return [...govFiltered, ...iraqWideJobs];
+    const matchesSelectedCategory = (item: FeedItem) => {
+      const type = String(item.type || '').toLowerCase();
+      const tags = getSafeTags(item.tags).map(tag => tag.toLowerCase());
+      const oppCategory = String((item as any).opportunityCategory || '').toLowerCase();
+
+      if (selectedOppFilter === 'all') return true;
+
+      if (selectedOppFilter === 'job') {
+        return ['job', 'part_time_job', 'full_time_job'].includes(type) ||
+          oppCategory.includes('job') ||
+          tags.some(tag => tag.includes('job') || tag.includes('career'));
       }
 
-      return govFiltered;
-    }
+      if (selectedOppFilter === 'scholarship') {
+        return ['scholarship', 'fellowship'].includes(type) ||
+          oppCategory.includes('scholarship') ||
+          oppCategory.includes('fellowship') ||
+          tags.some(tag => tag.includes('scholarship') || tag.includes('fellowship'));
+      }
 
-    if (selectedOppFilter === 'all') {
-      return allSeriousItems;
-    }
-    if (selectedOppFilter === 'job') {
-      return allSeriousItems.filter(item =>
-        ['job', 'part_time_job', 'full_time_job', 'internship'].includes(item.type)
-      );
-    }
-    if (selectedOppFilter === 'scholarship') {
-      return allSeriousItems.filter(item =>
-        ['scholarship', 'fellowship'].includes(item.type)
-      );
-    }
-    if (selectedOppFilter === 'training') {
-      return allSeriousItems.filter(item =>
-        ['training', 'graduation_project_support', 'volunteering', 'competition'].includes(item.type)
-      );
-    }
-    if (selectedOppFilter === 'admission') {
-      return allSeriousItems.filter(item =>
-        ['admission', 'registration'].includes(item.type)
-      );
-    }
-    if (selectedOppFilter === 'announcement') {
-      return allSeriousItems.filter(item => item.type === 'announcement');
-    }
-    if (selectedOppFilter === 'news') {
-      return allSeriousItems.filter(item =>
-        item.type === 'news' ||
-        getSafeTags(item.tags).some(tag => tag.toLowerCase().includes('news')) ||
-        item.type === 'announcement'
-      );
-    }
-    if (selectedOppFilter === 'deadline') {
-      return allSeriousItems.filter(item => !!item.deadline);
-    }
-    if (selectedOppFilter === 'internship') {
-      return allSeriousItems.filter(item =>
-        item.type === 'internship' ||
-        getSafeTags(item.tags).some(tag => tag.toLowerCase().includes('intern'))
-      );
-    }
-    return allSeriousItems;
+      if (selectedOppFilter === 'training') {
+        return ['training', 'internship', 'graduation_project_support', 'volunteering', 'competition'].includes(type) ||
+          oppCategory.includes('training') ||
+          oppCategory.includes('internship') ||
+          tags.some(tag => tag.includes('training') || tag.includes('course') || tag.includes('intern'));
+      }
+
+      if (selectedOppFilter === 'admission') {
+        return ['admission', 'registration'].includes(type) ||
+          oppCategory.includes('registration') ||
+          oppCategory.includes('admission') ||
+          tags.some(tag => tag.includes('registration') || tag.includes('admission'));
+      }
+
+      if (selectedOppFilter === 'announcement') {
+        return type === 'announcement' || tags.some(tag => tag.includes('announcement'));
+      }
+
+      if (selectedOppFilter === 'news') {
+        return type === 'news' || type === 'announcement' || tags.some(tag => tag.includes('news'));
+      }
+
+      if (selectedOppFilter === 'deadline') {
+        return Boolean(item.deadline);
+      }
+
+      if (selectedOppFilter === 'internship') {
+        return type === 'internship' || oppCategory.includes('internship') || tags.some(tag => tag.includes('intern'));
+      }
+
+      return true;
+    };
+
+    const categoryItems = sourceItems.filter(matchesSelectedCategory);
+
+    const govFiltered = categoryItems.filter(item => {
+      const itemGovText = [
+        item.governorateId,
+        (item as any).governorate,
+        item.location,
+        (item as any).city,
+        Array.isArray(item.tags) ? item.tags.join(' ') : ''
+      ].filter(Boolean).join(' ');
+
+      const normalizedItemGov = normalizeHomeGovernorateId(itemGovText);
+      return selectedGov === 'all' || normalizedItemGov === 'all' || normalizedItemGov === selectedGov;
+    });
+    // MVP_STRICT_OPPORTUNITY_GOV_FILTER_20260622
+    // If a governorate is selected, never fill the list with other governorates.
+    return govFiltered;
   }, [allSeriousItems, selectedOppFilter, backendOpportunities, selectedGov]);
 
   // Filtering for Campus Life Tab
@@ -1365,6 +1480,53 @@ export default function HomeFeed({
         </div>
       </div>
 
+      {/* MVP_EXACT_STATS_COUNTS_20260622 */}
+      {/* Safe lightweight opportunity ticker - exact API counts, no plus numbers */}
+      <div id="talaba-opportunity-ticker" className="mb-5 overflow-hidden rounded-3xl border border-violet-100 bg-white shadow-sm">
+        <div className="talaba-ticker-track">
+          {[
+            { emoji: '💼', value: '1120', en: 'Job Opportunities', ar: 'فرص عمل', ku: 'هەلی کار' },
+            { emoji: '🎓', value: '78', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
+            { emoji: '🚀', value: '12', en: 'Training', ar: 'تدريب', ku: 'ڕاهێنان' },
+            { emoji: '📌', value: '19', en: 'Admissions', ar: 'قبول وتسجيل', ku: 'وەرگرتن' }
+          ].concat([
+            { emoji: '💼', value: '1120', en: 'Job Opportunities', ar: 'فرص عمل', ku: 'هەلی کار' },
+            { emoji: '🎓', value: '78', en: 'Scholarships', ar: 'منح دراسية', ku: 'سکۆلەرشیپ' },
+            { emoji: '🚀', value: '12', en: 'Training', ar: 'تدريب', ku: 'ڕاهێنان' },
+            { emoji: '📌', value: '19', en: 'Admissions', ar: 'قبول وتسجيل', ku: 'وەرگرتن' }
+          ]).map((item, idx) => (
+            <button
+              key={`${item.en}-${idx}`}
+              type="button"
+              onClick={() => {
+                const label = String(item.en || '').toLowerCase();
+                setSelectedFeedTab('opportunities');
+
+                if (label.includes('job')) {
+                  setSelectedOppFilter('job');
+                } else if (label.includes('scholar')) {
+                  setSelectedOppFilter('scholarship');
+                } else if (label.includes('training') || label.includes('internship')) {
+                  setSelectedOppFilter('training');
+                } else if (label.includes('admission') || label.includes('registration')) {
+                  setSelectedOppFilter('admission');
+                } else {
+                  setSelectedOppFilter('all');
+                }
+                const tabs = document.getElementById('home-feed-tabs-selector');
+                if (tabs) tabs.scrollIntoView({ behavior: 'smooth', block: 'start' });
+              }}
+              className="talaba-ticker-pill"
+            >
+              <span className="talaba-ticker-emoji">{item.emoji}</span>
+              <span className="talaba-ticker-value">{item.value}</span>
+              <span className="talaba-ticker-label">
+                {language === 'ar' ? item.ar : language === 'ku' ? item.ku : item.en}
+              </span>
+            </button>
+          ))}
+        </div>
+      </div>
       {/* 5. Fluid dual-lane tab selector that scrolls naturally with page flow */}
       <div 
         className="relative z-10 bg-white border-b-2 border-slate-100 py-3 flex justify-between gap-1.5 mb-4 shadow-xs select-none" 
@@ -1444,12 +1606,7 @@ export default function HomeFeed({
               <button
                 key={shortcut.id}
                 onClick={() => {
-                  if (shortcut.id === 'job' && onSelectSection) {
-                    onSelectSection('jobs');
-                    return;
-                  }
-
-                  setSelectedOppFilter(shortcut.id as any);
+setSelectedOppFilter(shortcut.id as any);
                   // Clear story category highlight matching
                   setActiveStoryFilter(null);
                   
@@ -1492,6 +1649,55 @@ export default function HomeFeed({
         </div>
       )}
 
+
+      {/* MVP_STRICT_OPPORTUNITY_GOV_FILTER_20260622 */}
+      {selectedFeedTab === 'opportunities' && (
+        <div
+          id="opportunities-governorate-filter-panel"
+          className="mb-5 rounded-3xl border-2 border-orange-200 bg-white p-3.5 shadow-sm"
+        >
+          <div className="mb-2 flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <div className="text-[10px] font-black uppercase tracking-wider text-orange-600">
+                Governorate filter
+              </div>
+              <div className="text-[11px] font-bold text-slate-500">
+                Applies to jobs, scholarships, training, admissions, and registration.
+              </div>
+            </div>
+
+            {selectedGov !== 'all' && (
+              <button
+                type="button"
+                onClick={() => {
+                  setSelectedGov('all');
+                  setSelectedUni('all');
+                }}
+                className="shrink-0 rounded-full bg-orange-500 px-3 py-2 text-[10px] font-black text-white"
+              >
+                Show all
+              </button>
+            )}
+          </div>
+
+          <div className="flex items-center gap-2 rounded-2xl border-2 border-orange-200 bg-orange-50 px-3 py-2.5">
+            <MapPin className="h-4 w-4 shrink-0 text-orange-600" />
+            <select
+              id="opportunities-governorate-select"
+              value={selectedGov}
+              onChange={handleGovChange}
+              className="w-full bg-transparent text-xs font-black text-slate-900 outline-none"
+            >
+              <option value="all">All Iraq</option>
+              {IraqiGovernorates.map(gov => (
+                <option key={gov.id} value={gov.id}>
+                  {language === 'ar' ? gov.nameAR : language === 'ku' ? gov.nameKU : gov.nameEN}
+                </option>
+              ))}
+            </select>
+          </div>
+        </div>
+      )}
       {/* External IQJScout Search Button */}
       {selectedFeedTab === 'opportunities' && selectedOppFilter === 'job' && (
         <div className="mb-5 flex justify-center">
@@ -2290,6 +2496,15 @@ export default function HomeFeed({
     </div>
   );
 }
+
+
+
+
+
+
+
+
+
 
 
 

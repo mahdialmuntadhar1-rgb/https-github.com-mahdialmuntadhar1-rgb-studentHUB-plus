@@ -50,12 +50,34 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     validationNameEmpty: { en: 'Please enter your name.', ar: 'يرجى كتابة الاسم الكامل.', ku: 'تکایە ناوی خۆت بنووسە.' },
     emailSentTitle: { en: 'Instruction Sent', ar: 'تم إرسال التعليمات', ku: 'ڕێنمایی نێردران' },
     emailSentDesc: { en: 'A secure recovery code has been sent to your inbox.', ar: 'تم إرسال رمز إعادة التعيين الآمن لبريدك الإلكتروني.', ku: 'کۆدی سەرلەنوێ ڕێکخستنەوە نێردرا بۆ ئیمەیڵەکەت.' },
-    registerSuccess: { en: 'Welcome to Jamiaati!', ar: 'أهلاً بك في منصة جامعتي!', ku: 'بەخێربێیت بۆ جامەعەتی!' },
+    registerSuccess: { en: 'Welcome to Talaba!', ar: 'أهلاً بك في منصة طلبة!', ku: 'بەخێربێیت بۆ تەڵەبە!' },
     loginSuccess: { en: 'Welcome back!', ar: 'أهلاً بعودتك مجدداً!', ku: 'بەخێربێیتەوە!' }
   };
 
   const getLabel = (key: keyof typeof t) => {
     return t[key][language] || t[key]['en'];
+  };
+
+  const getNetworkFriendlyError = (rawMessage: string) => {
+    const msg = String(rawMessage || '').toLowerCase();
+
+    if (msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('load failed')) {
+      if (mode === 'forgot') {
+        return language === 'ar'
+          ? 'تعذر الاتصال بخدمة استعادة كلمة المرور الآن. جرّب تسجيل الدخول أو إنشاء حساب، وسنراجع خدمة الاستعادة.'
+          : language === 'ku'
+          ? 'ئێستا پەیوەندی بە خزمەتی گەڕاندنەوەی وشەی تێپەڕ نەکرا. تکایە چوونەژوورەوە یان تۆمارکردن تاقی بکەوە.'
+          : 'Password reset service is not reachable right now. Please try Login or Create Account while we fix reset delivery.';
+      }
+
+      return language === 'ar'
+        ? 'تعذر الاتصال بالخادم. تحقق من الإنترنت ثم جرّب مرة أخرى.'
+        : language === 'ku'
+        ? 'پەیوەندی بە سێرڤەرەوە نەکرا. تکایە ئینتەرنێت بپشکنە و دووبارە هەوڵ بدە.'
+        : 'Could not reach the server. Check internet and try again.';
+    }
+
+    return rawMessage || 'Authentication failed';
   };
 
   const handleSubmit = async (e: React.FormEvent) => {
@@ -107,20 +129,25 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
         setSuccess(getLabel('emailSentDesc'));
       } else {
         if (!data.token || !data.user) throw new Error('The server did not return a valid session.');
-        localStorage.setItem('jamiaati_token', data.token);
+        localStorage.setItem('Talaba_token', data.token);
+        localStorage.setItem('Talaba_token', data.token);
+        localStorage.setItem('Talaba_logged_in', 'true');
+        localStorage.setItem('Talaba_logged_in', 'true');
         if (data.user.role === 'admin' || data.user.role === 'staff' || email.trim().toLowerCase() === 'mahdialmuntadhar1@gmail.com') {
           localStorage.setItem('admin_token', data.token);
         } else {
           localStorage.removeItem('admin_token');
         }
-        localStorage.setItem('jamiaati_auth_user', JSON.stringify(data.user));
-        localStorage.setItem('jamiaati_user_email', data.user.email || email.trim().toLowerCase());
+        localStorage.setItem('Talaba_auth_user', JSON.stringify(data.user));
+        localStorage.setItem('Talaba_auth_user', JSON.stringify(data.user));
+        localStorage.setItem('Talaba_user_email', data.user.email || email.trim().toLowerCase());
+        localStorage.setItem('Talaba_user_email', data.user.email || email.trim().toLowerCase());
         setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
         onAuthSuccess(data.user.full_name || data.user.username || username || 'Student', data.user.email || email);
         onClose();
       }
     } catch (authError: any) {
-      setError(authError.message || 'Authentication failed');
+      setError(getNetworkFriendlyError(authError.message || 'Authentication failed'));
     } finally {
       setLoading(false);
     }
@@ -169,7 +196,7 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
               {getLabel(mode)}
             </h3>
             <p className="text-[10px] uppercase font-bold text-blue-700 font-mono tracking-widest mt-1">
-              Jamiaati Portal • بَوّابَتُنا
+              Talaba Portal • طلبة
             </p>
           </div>
 
@@ -367,4 +394,8 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     </AnimatePresence>
   );
 }
+
+
+
+
 

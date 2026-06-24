@@ -7,7 +7,6 @@ import { brandingThemes } from './data/themes';
 import Header from './components/Header';
 import HomeFeed from './components/HomeFeed';
 import LifeFeed from './components/LifeFeed';
-import FutureFeed from './components/FutureFeed';
 import AskFeed from './components/AskFeed';
 import ProfileView from './components/ProfileView';
 import SectionView from './components/SectionView';
@@ -21,8 +20,12 @@ import UniversitiesList from './components/UniversitiesList';
 import PWAInstallPrompt from './components/PWAInstallPrompt';
 import { BACKEND_URL, socialApi } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
-import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
+import { Home, Sparkles, HelpCircle, User, Compass, Info, FileText } from 'lucide-react';
 
+const INITIAL_CATEGORY_LIMIT = 20;
+const INITIAL_HIGHLIGHTS_LIMIT = 20;
+const INITIAL_VISIBLE_FEED_COUNT = 40;
+const FEED_RENDER_BATCH_SIZE = 20;
 export default function App() {
   // Locale States
   const [language, setLanguage] = useState<Language>('en');
@@ -31,13 +34,13 @@ export default function App() {
 
   // Branding Theme state initialized from localStorage (defaulting to iraq-local)
   const [selectedTheme, setSelectedTheme] = useState<string>(() => {
-    return localStorage.getItem('jamiaati_theme') || 'iraq-local';
+    return localStorage.getItem('Talaba_theme') || 'iraq-local';
   });
 
   // Dynamic root CSS variables updates on theme selection
   useEffect(() => {
     const theme = brandingThemes.find(t => t.id === selectedTheme) || brandingThemes[0];
-    localStorage.setItem('jamiaati_theme', selectedTheme);
+    localStorage.setItem('Talaba_theme', selectedTheme);
     const root = document.documentElement;
     root.style.setProperty('--primary', theme.primary);
     root.style.setProperty('--secondary', theme.secondary);
@@ -84,6 +87,12 @@ export default function App() {
   // Selected Section state for horizontal stories
   const [selectedSection, setSelectedSection] = useState<string | null>(null);
 
+  const [visibleFeedCount, setVisibleFeedCount] = useState(INITIAL_VISIBLE_FEED_COUNT);
+
+  useEffect(() => {
+    setVisibleFeedCount(INITIAL_VISIBLE_FEED_COUNT);
+  }, [selectedGov, selectedUni, activeTab, selectedSection]);
+
   // Clear selected section when switching top-level tabs
   useEffect(() => {
     setSelectedSection(null);
@@ -100,8 +109,8 @@ export default function App() {
 
   // Auth States
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(() => {
-    const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
-    const notLoggedOut = localStorage.getItem('jamiaati_logged_in') !== 'false';
+    const token = localStorage.getItem('Talaba_token') || localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+    const notLoggedOut = localStorage.getItem('Talaba_logged_in') !== 'false';
     return Boolean(token) && notLoggedOut;
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
@@ -145,9 +154,9 @@ export default function App() {
 
   // Feed database state - strong browser persistence for Campus Life custom posts
   const CUSTOM_FEED_STORAGE_KEYS = [
-    'jamiaati_feed_v2',
-    'jamiaati_feed_v2_backup',
-    'jamiaati_custom_feed_backup'
+    'Talaba_feed_v2',
+    'Talaba_feed_v2_backup',
+    'Talaba_custom_feed_backup'
   ];
 
   const cleanCustomFeedItemForStorage = (item: any): FeedItem | null => {
@@ -257,17 +266,17 @@ export default function App() {
 
   // User profile state (gamification & badges tracker)
   const [userProfile, setUserProfile] = useState<UserProfile>(() => {
-    const saved = localStorage.getItem('jamiaati_profile_v2');
+    const saved = localStorage.getItem('Talaba_profile_v2');
     return saved ? JSON.parse(saved) : defaultUserProfile;
   });
 
   // UI authorization follows the authenticated API identity, not the locally
   // editable profile role used by the demo/gamification controls.
   const hasAuthenticatedAdminAccess = (() => {
-    if (!isLoggedIn || !localStorage.getItem('jamiaati_token')) return false;
+    if (!isLoggedIn || !localStorage.getItem('Talaba_token')) return false;
     try {
-      const authUser = JSON.parse(localStorage.getItem('jamiaati_auth_user') || 'null');
-      const email = String(authUser?.email || localStorage.getItem('jamiaati_user_email') || '').trim().toLowerCase();
+      const authUser = JSON.parse(localStorage.getItem('Talaba_auth_user') || 'null');
+      const email = String(authUser?.email || localStorage.getItem('Talaba_user_email') || '').trim().toLowerCase();
       return authUser?.role === 'admin' || authUser?.role === 'staff' || email === 'mahdialmuntadhar1@gmail.com';
     } catch {
       return false;
@@ -301,9 +310,9 @@ export default function App() {
       .map(stripLargeInlineImages);
 
     try {
-      localStorage.setItem('jamiaati_feed_v2', JSON.stringify(customOnly));
+      localStorage.setItem('Talaba_feed_v2', JSON.stringify(customOnly));
     } catch (error) {
-      console.warn('jamiaati_feed_v2 was too large. Saving text-only posts instead.', error);
+      console.warn('Talaba_feed_v2 was too large. Saving text-only posts instead.', error);
 
       try {
         const textOnly = customOnly.map((item: any) => ({
@@ -311,15 +320,15 @@ export default function App() {
           imageUrl: undefined,
           imageAlt: item.imageAlt || ''
         }));
-        localStorage.setItem('jamiaati_feed_v2', JSON.stringify(textOnly));
+        localStorage.setItem('Talaba_feed_v2', JSON.stringify(textOnly));
       } catch {
-        localStorage.removeItem('jamiaati_feed_v2');
+        localStorage.removeItem('Talaba_feed_v2');
       }
     }
   }, [feedItems]);
 
   // Institutions Dynamic Loading States
-  const [institutions, setInstitutions] = useState<any[]>([]);
+  const [institutions, setInstitutions] = useState<any[]>(() => [...IraqiUniversities]);
   const [institutionsLoading, setInstitutionsLoading] = useState<boolean>(true);
   const [institutionsError, setInstitutionsError] = useState<string | null>(null);
 
@@ -352,28 +361,97 @@ export default function App() {
   const fetchInstitutions = async () => {
     setInstitutionsLoading(true);
     setInstitutionsError(null);
-    try {
-      let all: any[] = [];
-      let offset = 0;
-      let limit = 200;
-      let hasMore = true;
-      let attempts = 0;
-      
-      while (hasMore && attempts < 15) {
-        attempts++;
-        const url = `${BACKEND_URL}/api/institutions?limit=${limit}&offset=${offset}`;
-        const res = await fetch(url);
-        if (!res.ok) {
-          throw new Error(`Failed to fetch: ${res.statusText}`);
-        }
-        const json = await res.json();
-        const list = json.institutions || [];
-        all = all.concat(list);
-        const pag = json.pagination || {};
-        offset += list.length;
-        hasMore = pag.hasMore && list.length > 0 && all.length < pag.total;
+
+    const extractInstitutionItems = (payload: any): any[] => {
+      if (!payload) return [];
+      if (Array.isArray(payload)) return payload;
+
+      const candidates = [
+        payload.institutions,
+        payload.items,
+        payload.data,
+        payload.results,
+        payload.value,
+        payload?.data?.institutions,
+        payload?.data?.items,
+        payload?.data?.results,
+        payload?.pagination?.items,
+        payload?.pagination?.data
+      ];
+
+      for (const candidate of candidates) {
+        if (Array.isArray(candidate)) return candidate;
       }
 
+      return [];
+    };
+
+    const loadCacheInstitutions = async (): Promise<any[]> => {
+      try {
+        const response = await fetch('/data/institutions-cache.json', {
+          headers: { Accept: 'application/json' }
+        });
+
+        if (!response.ok) return [];
+
+        const payload = await response.json();
+        return extractInstitutionItems(payload);
+      } catch (error) {
+        console.warn('Failed to load institutions cache:', error);
+        return [];
+      }
+    };
+
+    const loadBackendInstitutions = async (): Promise<any[]> => {
+      const all: any[] = [];
+      let offset = 0;
+      const limit = 500;
+      let hasMore = true;
+      let attempts = 0;
+
+      while (hasMore && attempts < 20) {
+        attempts += 1;
+
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+        try {
+          const response = await fetch(`${BACKEND_URL}/api/institutions?limit=${limit}&offset=${offset}`, {
+            signal: controller.signal,
+            headers: { Accept: 'application/json' }
+          });
+
+          clearTimeout(timeoutId);
+
+          if (!response.ok) {
+            throw new Error(`Failed to fetch institutions: ${response.status}`);
+          }
+
+          const payload = await response.json();
+          const list = extractInstitutionItems(payload);
+
+          if (list.length === 0) {
+            hasMore = false;
+          } else {
+            all.push(...list);
+
+            const pagination = payload?.pagination || payload?.meta || {};
+            const total = Number(pagination.total || pagination.count || 0);
+            const backendHasMore = Boolean(pagination.hasMore || pagination.has_more);
+
+            offset += list.length;
+            hasMore = backendHasMore || (total > 0 && all.length < total);
+          }
+        } catch (error) {
+          clearTimeout(timeoutId);
+          throw error;
+        }
+      }
+
+      return all;
+    };
+
+    const mapInstitutions = (rawItems: any[]) => {
       const colors = [
         'from-blue-600 to-sky-500',
         'from-emerald-600 to-teal-500',
@@ -383,52 +461,100 @@ export default function App() {
         'from-cyan-600 to-blue-500'
       ];
 
-      const mapped = all.map((inst: any) => {
-        const govId = normalizeGovernorate(inst.governorate);
-        
-        let logo = '🎓';
-        const type = (inst.type || '').toLowerCase();
-        if (type.includes('private')) logo = '🏛️';
-        else if (type.includes('college')) logo = '📖';
-        else if (type.includes('school')) logo = '🏫';
-        else if (type.includes('division') || type.includes('department')) logo = '🔬';
-        else if (type.includes('institute') || type.includes('research')) logo = '🛡️';
-        
-        const charSum = inst.id.split('').reduce((sum: number, c: string) => sum + c.charCodeAt(0), 0);
-        const color = colors[charSum % colors.length];
+      const seen = new Set<string>();
 
-        const nameEN = inst.name_en?.trim() || inst.name_ar?.trim() || 'Unnamed Institution';
-        let nameAR = inst.name_ar?.trim() || inst.name_en?.trim() || 'مؤسسة غير معروفة';
-        let nameKU = inst.name_ku?.trim() || inst.name_en?.trim() || inst.name_ar?.trim() || 'مؤسسەی نەناسراو';
+      return rawItems
+        .map((inst: any, index: number) => {
+          const fallbackId = `institution-${index}`;
+          const id = String(inst.id || inst.slug || inst.name_en || inst.name_ar || inst.name || fallbackId)
+            .trim()
+            .toLowerCase()
+            .replace(/\s+/g, '-')
+            .replace(/[^\w-]/g, '') || fallbackId;
 
-        return {
-          id: inst.id,
-          nameEN,
-          nameAR,
-          nameKU,
-          governorateId: govId,
-          logo,
-          color
-        };
-      });
+          if (seen.has(id)) return null;
+          seen.add(id);
 
-      // Synchronize/overwrite the exported IraqiUniversities array in-place so all downstream imports access live data
+          const govId = normalizeGovernorate(inst.governorate || inst.governorate_name || inst.city || inst.location);
+
+          let logo = '🎓';
+          const type = String(inst.type || inst.institution_type || '').toLowerCase();
+          if (type.includes('private')) logo = '🏛️';
+          else if (type.includes('college')) logo = '📖';
+          else if (type.includes('school')) logo = '🏫';
+          else if (type.includes('division') || type.includes('department')) logo = '🔬';
+          else if (type.includes('institute') || type.includes('research')) logo = '🛡️';
+
+          const charSum = id.split('').reduce((sum: number, c: string) => sum + c.charCodeAt(0), 0);
+          const color = colors[charSum % colors.length];
+
+          const nameEN = String(inst.name_en || inst.nameEN || inst.name || inst.name_ar || 'Unnamed Institution').trim();
+          const nameAR = String(inst.name_ar || inst.nameAR || inst.name || inst.name_en || 'مؤسسة تعليمية').trim();
+          const nameKU = String(inst.name_ku || inst.nameKU || inst.name || inst.name_en || inst.name_ar || 'دەزگای خوێندن').trim();
+
+          return {
+            id,
+            nameEN,
+            nameAR,
+            nameKU,
+            governorateId: govId,
+            logo,
+            color,
+            website: inst.website || inst.url || inst.link || '',
+            type: inst.type || inst.institution_type || ''
+          };
+        })
+        .filter(Boolean);
+    };
+
+    try {
+      let rawItems = await loadCacheInstitutions();
+
+      if (rawItems.length === 0) {
+        rawItems = await loadBackendInstitutions();
+      }
+
+      const mapped = mapInstitutions(rawItems);
+
+      if (mapped.length === 0 && IraqiUniversities.length > 0) {
+        setInstitutions([...IraqiUniversities]);
+        setInstitutionsError(null);
+        return;
+      }
+
+      if (mapped.length === 0) {
+        throw new Error('No institutions available from backend or cache.');
+      }
+
       IraqiUniversities.length = 0;
       IraqiUniversities.push(...mapped);
 
-      // Synchronize/overwrite the exported IraqiGovernorates array in-place to reflect active governorates from dynamic loading
-      const activeGovIds = new Set(mapped.map(u => u.governorateId));
-      const originalGovs = [...IraqiGovernorates];
-      const activeGovsList = originalGovs.filter(g => activeGovIds.has(g.id));
-      if (activeGovsList.length > 0) {
-        IraqiGovernorates.length = 0;
-        IraqiGovernorates.push(...activeGovsList);
-      }
-
+      // Keep all 19 governorates visible. Do not shrink the governorate list based on loaded institutions.
       setInstitutions(mapped);
+      setInstitutionsError(null);
     } catch (err: any) {
       console.error('Failed to load institutions dynamically:', err);
-      setInstitutionsError(err.message || 'Unknown network error');
+
+      const cached = await loadCacheInstitutions();
+      const mappedCache = mapInstitutions(cached);
+
+      if (mappedCache.length > 0) {
+        IraqiUniversities.length = 0;
+        IraqiUniversities.push(...mappedCache);
+        setInstitutions(mappedCache);
+        setInstitutionsError(null);
+      } else if (IraqiUniversities.length > 0) {
+        setInstitutions([...IraqiUniversities]);
+        setInstitutionsError(null);
+      } else {
+        if (IraqiUniversities.length > 0) {
+        setInstitutions([...IraqiUniversities]);
+        setInstitutionsError(null);
+      } else {
+        setInstitutions([]);
+        setInstitutionsError(err?.message || 'Could not load institutions');
+      }
+      }
     } finally {
       setInstitutionsLoading(false);
     }
@@ -440,16 +566,55 @@ export default function App() {
     // Support hash-based back-navigation routing
     const handleHash = () => {
       const hash = window.location.hash;
-      if (hash === '#/opportunities' || hash === '#opportunities') {
-        setActiveTab('future');
+
+      const routeToRealFeed = (lane: 'opportunities' | 'campus_life', filter: string) => {
+        try {
+          sessionStorage.setItem('Talaba_pending_filter', JSON.stringify({ lane, filter }));
+        } catch {}
+
+        setActiveTab('home');
         setSelectedSection(null);
-      } else if (hash.startsWith('#/section/')) {
+
+        window.setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('Talaba-shortcut-filter', {
+            detail: { lane, filter }
+          }));
+        }, 160);
+      };
+
+      if (hash === '#/opportunities' || hash === '#opportunities') {
+        window.history.replaceState(null, '', window.location.pathname + window.location.search);
+        routeToRealFeed('opportunities', 'all');
+        return;
+      }
+
+      if (hash.startsWith('#/section/')) {
         const sec = hash.substring('#/section/'.length);
+
+        if (['jobs', 'job', 'careers', 'career'].includes(sec)) {
+          routeToRealFeed('opportunities', 'job');
+          return;
+        }
+
+        if (['scholarships', 'scholarship'].includes(sec)) {
+          routeToRealFeed('opportunities', 'scholarship');
+          return;
+        }
+
+        if (['events', 'event'].includes(sec)) {
+          routeToRealFeed('campus_life', 'event');
+          return;
+        }
+
         setSelectedSection(sec || null);
-      } else if (hash === '' || hash === '#/') {
+        return;
+      }
+
+      if (hash === '' || hash === '#/') {
         setSelectedSection(null);
       }
     };
+
     window.addEventListener('hashchange', handleHash);
     handleHash(); // Run on initial load
     return () => window.removeEventListener('hashchange', handleHash);
@@ -479,15 +644,41 @@ export default function App() {
     const fetchLiveFeed = async () => {
       try {
         const [oppsResponse, highlightsResponse] = await Promise.all([
-          fetch(`${BACKEND_URL}/api/opportunities`),
-          fetch(`${BACKEND_URL}/api/highlights`)
+          Promise.all(['job','scholarship','training','internship','event','exam','registration'].map(category =>
+            fetch(`${BACKEND_URL}/api/opportunities?category=${category}&limit=${INITIAL_CATEGORY_LIMIT}`)
+          )),
+          fetch(`${BACKEND_URL}/api/highlights?limit=${INITIAL_HIGHLIGHTS_LIMIT}`)
         ]);
 
         let dbItems: FeedItem[] = [];
 
         // 1. Process Opportunities
-        if (oppsResponse.ok) {
-          const list = await oppsResponse.json();
+        let list: any[] = [];
+          if (Array.isArray(oppsResponse)) {
+            const categoryLists = await Promise.all(oppsResponse.map(async (response) => {
+              if (!response.ok) return [];
+              const data = await response.json();
+              return Array.isArray(data)
+                ? data
+                : Array.isArray(data?.items)
+                  ? data.items
+                  : Array.isArray(data?.opportunities)
+                    ? data.opportunities
+                    : [];
+            }));
+            list = categoryLists.flat();
+          } else if (oppsResponse.ok) {
+            const data = await oppsResponse.json();
+            list = Array.isArray(data)
+              ? data
+              : Array.isArray(data?.items)
+                ? data.items
+                : Array.isArray(data?.opportunities)
+                  ? data.opportunities
+                  : [];
+          }
+
+          if (list.length > 0) {
           if (Array.isArray(list)) {
             const mappedOpps = list.map((item: any) => ({
               id: String(item.id || `scraped-${Date.now()}-${Math.random()}`),
@@ -602,7 +793,7 @@ export default function App() {
   }, [activeTab]);
 
   useEffect(() => {
-    localStorage.setItem('jamiaati_profile_v2', JSON.stringify(userProfile));
+    localStorage.setItem('Talaba_profile_v2', JSON.stringify(userProfile));
   }, [userProfile]);
 
   // Adjust application alignment automatically based on language direction
@@ -901,14 +1092,14 @@ export default function App() {
       titleAR = title;
       contentAR = body;
       titleEN = `${title} (Auto-translated)`;
-      contentEN = `${body}\n\n[Auto-translated to English via Jamiaati Translate Engine]`;
+      contentEN = `${body}\n\n[Auto-translated to English via Talaba Translate Engine]`;
       titleKU = `${title} (وەرگێڕدراو)`;
       contentKU = `${body}\n\n[بە شیوازێکی ئۆتۆماتیکی وەرگێڕدراوە بۆ کوردی]`;
     } else if (language === 'ku') {
       titleKU = title;
       contentKU = body;
       titleEN = `${title} (Auto-translated)`;
-      contentEN = `${body}\n\n[Auto-translated to English via Jamiaati Translate Engine]`;
+      contentEN = `${body}\n\n[Auto-translated to English via Talaba Translate Engine]`;
       titleAR = `${title} (مترجم للطلاب)`;
       contentAR = `${body}\n\n[تم الترجمة تلقائياً إلى العربية عبر خادم الطلاب]`;
     }
@@ -1017,6 +1208,8 @@ export default function App() {
   };
 
   const filteredFeedItems = feedItems.filter(matchesGovAndUni);
+  const displayedFeedItems = filteredFeedItems.slice(0, visibleFeedCount);
+  const hasMoreFeedItems = filteredFeedItems.length > displayedFeedItems.length;
 
   // Active filter helper callbacks
   const handleShowAllLife = () => {
@@ -1063,7 +1256,7 @@ export default function App() {
       case 'home':
         return (
           <HomeFeed
-            feedItems={filteredFeedItems}
+            feedItems={displayedFeedItems}
             language={language}
             selectedGov={selectedGov}
             setSelectedGov={setSelectedGov}
@@ -1095,29 +1288,7 @@ export default function App() {
       case 'life':
         return (
           <LifeFeed
-            feedItems={filteredFeedItems}
-            language={language}
-            selectedGov={selectedGov}
-            selectedUni={selectedUni}
-            onLike={handleLike}
-            onSave={handleSave}
-            onVote={handleVote}
-            onApply={handleApply}
-            onRsvp={handleRsvp}
-            onJoinGroup={handleJoinGroup}
-            onAddComment={handleAddComment}
-            onShowAll={handleShowAllLife}
-            isFeedLoading={isFeedLoading}
-            onEditFeedItem={handleEditFeedItem}
-            onDeleteFeedItem={handleDeleteFeedItem}
-            isAdminMode={hasAuthenticatedAdminAccess}
-            onUserClick={setSelectedUserForProfileCard}
-          />
-        );
-      case 'ask':
-        return (
-          <AskFeed
-            feedItems={filteredFeedItems}
+            feedItems={displayedFeedItems}
             language={language}
             selectedGov={selectedGov}
             selectedUni={selectedUni}
@@ -1129,6 +1300,7 @@ export default function App() {
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
             onAddNewPost={handleAddNewPost}
+            onShowAll={handleShowAllLife}
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
@@ -1136,10 +1308,10 @@ export default function App() {
             onUserClick={setSelectedUserForProfileCard}
           />
         );
-      case 'future':
+      case 'ask':
         return (
-          <FutureFeed
-            feedItems={filteredFeedItems}
+          <AskFeed
+            feedItems={displayedFeedItems}
             language={language}
             selectedGov={selectedGov}
             selectedUni={selectedUni}
@@ -1150,7 +1322,7 @@ export default function App() {
             onRsvp={handleRsvp}
             onJoinGroup={handleJoinGroup}
             onAddComment={handleAddComment}
-            onBackToHome={handleBackToHomeFuture}
+            onAddNewPost={handleAddNewPost}
             isFeedLoading={isFeedLoading}
             onEditFeedItem={handleEditFeedItem}
             onDeleteFeedItem={handleDeleteFeedItem}
@@ -1175,11 +1347,14 @@ export default function App() {
             isLoggedIn={isLoggedIn}
             onLogout={() => {
               setIsLoggedIn(false);
-              localStorage.setItem('jamiaati_logged_in', 'false');
-              localStorage.removeItem('jamiaati_token');
+              localStorage.setItem('Talaba_logged_in', 'false');
+              localStorage.removeItem('Talaba_token');
               localStorage.removeItem('admin_token');
-              localStorage.removeItem('jamiaati_auth_user');
               localStorage.removeItem('jamiaati_user_email');
+              localStorage.removeItem('jamiaati_auth_user');
+              localStorage.removeItem('jamiaati_token');
+              localStorage.removeItem('Talaba_auth_user');
+              localStorage.removeItem('Talaba_user_email');
               setUserProfile(prev => ({ ...prev, role: 'student' }));
               showToast(
                 language === 'ar' ? 'تم تسجيل خروجك بنجاح. نراك قريباً! 👋' : language === 'ku' ? 'خۆتۆمارکردنەکەت کۆتایی پێهات. بە هیوای دیدار! 👋' : 'Logged out successfully. See you! 👋', 
@@ -1250,7 +1425,7 @@ export default function App() {
   };
 
   return (
-    <div id="jamiaati-portal" className="bg-[#FAF9FF] min-h-screen text-slate-800 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'} lang={language}>
+    <div id="Talaba-portal" className="bg-[#FAF9FF] min-h-screen text-slate-800 antialiased font-sans" dir={isRTL ? 'rtl' : 'ltr'} lang={language}>
       {/* Centered device presentation mock */}
       <div className="w-full max-w-md mx-auto min-h-screen bg-slate-50 shadow-2xl relative flex flex-col border-x border-slate-205">
         
@@ -1261,6 +1436,8 @@ export default function App() {
             language={language}
             setLanguage={setLanguage}
             currentUserAvatar={userProfile.avatar}
+            isLoggedIn={isLoggedIn}
+            onLoginClick={() => setIsAuthModalOpen(true)}
             onProfileClick={() => setActiveTab('profile')}
             onChatsClick={() => {
               setSocialSubTab('threads');
@@ -1270,6 +1447,25 @@ export default function App() {
             incomingMessageRequestsCount={messageRequestsCount}
           />
           {renderActiveView()}
+
+          {!selectedSection && ['home', 'life', 'ask'].includes(activeTab) && hasMoreFeedItems && (
+            <div className="Talaba-load-more-feed px-4 pb-8 pt-2">
+              <button
+                type="button"
+                onClick={() => setVisibleFeedCount(prev => prev + FEED_RENDER_BATCH_SIZE)}
+                className="w-full rounded-3xl bg-gradient-to-r from-violet-700 via-purple-700 to-orange-500 px-5 py-4 text-sm font-black text-white shadow-xl shadow-purple-200 active:scale-[0.98] transition-transform"
+              >
+                {language === 'ar' ? 'تحميل المزيد' : language === 'ku' ? 'زیاتر بار بکە' : 'Load More'}
+              </button>
+              <div className="mt-2 text-center text-[11px] font-bold text-slate-500">
+                {language === 'ar'
+                  ? `يتم عرض ${Math.min(displayedFeedItems.length, filteredFeedItems.length)} من ${filteredFeedItems.length}`
+                  : language === 'ku'
+                    ? `${Math.min(displayedFeedItems.length, filteredFeedItems.length)} لە ${filteredFeedItems.length} پیشان دەدرێت`
+                    : `Showing ${Math.min(displayedFeedItems.length, filteredFeedItems.length)} of ${filteredFeedItems.length}`}
+              </div>
+            </div>
+          )}
         </main>
 
         <PWAInstallPrompt language={language} />
@@ -1294,24 +1490,7 @@ export default function App() {
               <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
             )}
           </button>
-
-          {/* TAB 2: Opportunities */}
-          <button
-            onClick={() => setActiveTab('future')}
-            className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
-              activeTab === 'future' 
-                ? 'text-orange-600 font-extrabold scale-105' 
-                : 'text-slate-400 hover:text-slate-700 hover:bg-slate-100/40'
-            }`}
-          >
-            <Briefcase className="w-5 h-5 shrink-0" />
-            <span className="text-[10px] leading-none font-bold">{getTranslation('opportunitiesTabLabel', language)}</span>
-            {activeTab === 'future' && (
-              <span className="absolute -bottom-1 w-1 h-3 rounded-full bg-orange-600" />
-            )}
-          </button>
-
-          {/* TAB 3: Campus */}
+          {/* TAB 2: Campus */}
           <button
             onClick={() => setActiveTab('life')}
             className={`flex flex-col items-center gap-1 py-1 px-2.5 rounded-2xl cursor-pointer transition-all duration-200 relative ${
@@ -1374,15 +1553,15 @@ export default function App() {
           language={language}
           onAuthSuccess={(newUsername, userEmail) => {
             setIsLoggedIn(true);
-            localStorage.setItem('jamiaati_logged_in', 'true');
-            localStorage.setItem('jamiaati_user_email', userEmail);
+            localStorage.setItem('Talaba_logged_in', 'true');
+            localStorage.setItem('Talaba_user_email', userEmail);
             setUserProfile(prev => ({
               ...prev,
               name: newUsername || '',
               role: userEmail.trim().toLowerCase() === 'mahdialmuntadhar1@gmail.com' ? 'staff' : prev.role
             }));
             showToast(
-              language === 'ar' ? `مرحباً بك مجدداً يا ${newUsername || 'زارا'}! 👋 تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'زارا'}! 👋 دابەزاندن سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Zara'}! 👋 Signed in`, 
+              language === 'ar' ? `مرحباً بك مجدداً يا ${newUsername || 'زارا'}! 👋 تم الدخول بنجاح` : language === 'ku' ? `بەخێربێیتەوە ${newUsername || 'زارا'}! 👋 Install سەرکەوتوو بوو` : `Welcome back, ${newUsername || 'Zara'}! 👋 Signed in`,
               'success'
             );
           }}
@@ -1403,10 +1582,10 @@ export default function App() {
               onOpenDirectChat={(recipientId, recipientName) => {
                 setSelectedUserForProfileCard(null);
                 setActiveTab('chats');
-                localStorage.setItem('jamiaati_pending_chat_recipient_id', recipientId);
-                localStorage.setItem('jamiaati_pending_chat_recipient_name', recipientName);
+                localStorage.setItem('Talaba_pending_chat_recipient_id', recipientId);
+                localStorage.setItem('Talaba_pending_chat_recipient_name', recipientName);
                 // Dispatch a storage event or tab change notification
-                window.dispatchEvent(new Event('jamiaati_switch_chat'));
+                window.dispatchEvent(new Event('Talaba_switch_chat'));
               }}
             />
           )}
@@ -1455,9 +1634,6 @@ export default function App() {
     </div>
   );
 };
-
-
-
 
 
 

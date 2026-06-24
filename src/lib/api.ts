@@ -28,7 +28,7 @@ function getHeaders() {
   const headers: Record<string, string> = {
     'Content-Type': 'application/json',
   };
-  const token = localStorage.getItem('admin_token') || localStorage.getItem('jamiaati_token');
+  const token = localStorage.getItem('admin_token') || localStorage.getItem('Talaba_token');
   if (token) {
     headers['Authorization'] = `Bearer ${token}`;
   }
@@ -139,7 +139,7 @@ export const heroImagesApi = {
     formData.append('alt_text', values.altText);
     if (typeof values.sortOrder === 'number') formData.append('sort_order', String(values.sortOrder));
     if (values.replaceId) formData.append('replace_id', values.replaceId);
-    const token = localStorage.getItem('admin_token') || localStorage.getItem('jamiaati_token');
+    const token = localStorage.getItem('admin_token') || localStorage.getItem('Talaba_token');
     const headers: HeadersInit = token ? { Authorization: `Bearer ${token}` } : {};
     const response = await fetch(`${API_BASE}/admin/hero-images/upload`, { method: 'POST', headers, body: formData });
     return handleResponse(response, language);
@@ -404,45 +404,207 @@ export const opportunityAutomation = {
 
 export async function getOpportunities(params?: { category?: string; page?: number; limit?: number; governorate?: string }, lang: Language = 'ar') {
   const { category, page = 1, limit = 50, governorate } = params || {};
-  let finalLang = lang;
 
-  const url = new URL(`${BACKEND_URL}/api/opportunities`);
-  if (category) url.searchParams.append('category', category);
-  if (governorate && governorate !== 'all') url.searchParams.append('governorate', governorate);
-  url.searchParams.append('page', page.toString());
-  url.searchParams.append('limit', limit.toString());
+  const publicCategories = ['job', 'scholarship', 'training', 'internship', 'event', 'exam', 'registration'];
 
-  const controller = new AbortController();
-  const timeoutId = setTimeout(() => controller.abort(), 8000);
+  const extractItems = (payload: any): any[] => {
+    if (!payload) return [];
+    if (Array.isArray(payload)) return payload;
 
-  try {
-    const res = await fetch(url.toString(), {
-      signal: controller.signal,
-      headers: getHeaders()
-    });
-    clearTimeout(timeoutId);
+    const candidates = [
+      payload.items,
+      payload.opportunities,
+      payload.data,
+      payload.results,
+      payload.value,
+      payload?.data?.items,
+      payload?.data?.opportunities,
+      payload?.data?.results,
+      payload?.pagination?.items,
+      payload?.pagination?.data,
+      payload?.meta?.items
+    ];
 
-    const data = await handleResponse(res, finalLang);
-
-    // Handle different backend response shapes
-    if (Array.isArray(data)) {
-      return { items: data, total: null };
-    }
-    if (data && typeof data === 'object') {
-      if (Array.isArray(data.value)) return { items: data.value, total: data.total || data.count || data.totalCount || null };
-      if (Array.isArray(data.data)) return { items: data.data, total: data.total || data.count || data.totalCount || null };
-      if (Array.isArray(data.items)) return { items: data.items, total: data.total || data.count || data.totalCount || null };
-      if (Array.isArray(data.results)) return { items: data.results, total: data.total || data.count || data.totalCount || null };
-      if (data.pagination && Array.isArray(data.pagination.items)) return { items: data.pagination.items, total: data.pagination.total || data.pagination.count || null };
+    for (const candidate of candidates) {
+      if (Array.isArray(candidate)) return candidate;
     }
 
-    return { items: [], total: null };
-  } catch (err: any) {
-    clearTimeout(timeoutId);
-    console.error('Error fetching opportunities:', err);
-    // Return empty array on error instead of throwing to prevent UI freeze
-    return { items: [], total: null };
+    return [];
+  };
+
+  const extractTotal = (payload: any, fallback: number): number | null => {
+    if (!payload || typeof payload !== 'object') return fallback > 0 ? fallback : null;
+
+    const possibleTotals = [
+      payload.total,
+      payload.count,
+      payload.totalCount,
+      payload?.pagination?.total,
+      payload?.pagination?.count,
+      payload?.meta?.total,
+      payload?.meta?.count,
+      payload?.data?.total,
+      payload?.data?.count
+    ];
+
+    for (const value of possibleTotals) {
+      const num = Number(value);
+      if (Number.isFinite(num) && num > 0) return num;
+    }
+
+    return fallback > 0 ? fallback : null;
+  };
+
+  const matchesCategory = (item: any, wanted?: string) => {
+    if (!wanted || wanted === 'all') return true;
+
+    const itemCategory = String(item.category || item.type || '').toLowerCase();
+    const itemTags = Array.isArray(item.tags) ? item.tags.map((tag: any) => String(tag).toLowerCase()).join(' ') : '';
+    const text = `${itemCategory} ${itemTags} ${String(item.opportunityCategory || '').toLowerCase()}`;
+
+    if (wanted === 'admission') return text.includes('admission') || text.includes('registration');
+    if (wanted === 'registration') return text.includes('registration') || text.includes('admission');
+
+    return itemCategory === wanted || text.includes(wanted);
+  };
+
+  const matchesGovernorate = (item: any) => {
+    if (!governorate || governorate === 'all') return true;
+
+    const gov = governorate.toLowerCase();
+    const itemGovText = [
+      item.governorate,
+      item.governorateId,
+      item.location,
+      item.city,
+      item.duty_station,
+      item.work_location,
+      Array.isArray(item.tags) ? item.tags.join(' ') : ''
+    ].filter(Boolean).join(' ').toLowerCase();
+
+    return itemGovText.includes(gov) || itemGovText.includes('all iraq') || itemGovText === 'all';
+  };
+
+  const filterAndPage = (items: any[]) => {
+    const filtered = items.filter(item => matchesCategory(item, category)).filter(matchesGovernorate);
+    const start = (page - 1) * limit;
+    const end = start + limit;
+
+    return {
+      items: filtered.slice(start, end),
+      total: filtered.length
+    };
+  };
+
+  const fetchCache = async () => {
+    try {
+      const response = await fetch('/data/opportunities-cache.json', {
+        headers: { Accept: 'application/json' }
+      });
+
+      if (!response.ok) return { items: [], total: null };
+
+      const payload = await response.json();
+      const items = extractItems(payload);
+
+      return filterAndPage(items);
+    } catch (err) {
+      console.error('Error reading opportunities cache:', err);
+      return { items: [], total: null };
+    }
+  };
+
+  const fetchBackendOne = async (categoryToFetch?: string) => {
+    const url = new URL(`${BACKEND_URL}/api/opportunities`);
+
+    if (categoryToFetch && categoryToFetch !== 'all') {
+      url.searchParams.append('category', categoryToFetch);
+    }
+
+    if (governorate && governorate !== 'all') {
+      url.searchParams.append('governorate', governorate);
+    }
+
+    url.searchParams.append('page', String(page));
+
+    const smartLimit =
+      categoryToFetch === 'job'
+        ? Math.max(limit, 1200)
+        : categoryToFetch
+          ? Math.max(limit, 300)
+          : Math.max(limit, 1200);
+
+    url.searchParams.append('limit', String(smartLimit));
+
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 12000);
+
+    try {
+      const response = await fetch(url.toString(), {
+        signal: controller.signal,
+        headers: { Accept: 'application/json' }
+      });
+
+      clearTimeout(timeoutId);
+
+      const payload = await handleResponse(response, lang);
+      const items = extractItems(payload);
+
+      return {
+        items,
+        total: extractTotal(payload, items.length)
+      };
+    } catch (err) {
+      clearTimeout(timeoutId);
+      console.error('Backend opportunities failed:', categoryToFetch || 'all', err);
+      return { items: [], total: null };
+    }
+  };
+
+  if (!category || category === 'all') {
+    const backendResults = await Promise.all(publicCategories.map(fetchBackendOne));
+    const merged: any[] = [];
+    const seen = new Set<string>();
+
+    for (const result of backendResults) {
+      for (const item of result.items || []) {
+        const key = String(
+          item.id ||
+          item.source_url ||
+          item.original_source_url ||
+          item.application_link ||
+          item.apply_url ||
+          item.url ||
+          item.link ||
+          `${item.category || item.type || 'opportunity'}-${item.title || item.title_en || item.position_title || Math.random()}`
+        );
+
+        if (!seen.has(key)) {
+          seen.add(key);
+          merged.push(item);
+        }
+      }
+    }
+
+    if (merged.length > 0) {
+      const start = (page - 1) * limit;
+      const end = start + limit;
+      return {
+        items: merged.slice(start, end),
+        total: merged.length
+      };
+    }
+
+    return fetchCache();
   }
+
+  const backendResult = await fetchBackendOne(category);
+
+  if (backendResult.items.length > 0) {
+    return backendResult;
+  }
+
+  return fetchCache();
 }
 
 export const outreachApi = {
@@ -515,7 +677,7 @@ export const socialApi = {
   // Friend Requests
   async getFriendRequests(lang: Language = 'ar'): Promise<FriendRequestsResponse> {
     try {
-      const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+      const token = localStorage.getItem('Talaba_token') || localStorage.getItem('admin_token');
       if (!token || token.startsWith('mock_token_')) {
         return { incoming: [], outgoing: [] };
       }
@@ -585,7 +747,7 @@ export const socialApi = {
   // Message Requests
   async getMessageRequests(lang: Language = 'ar'): Promise<MessageRequestsResponse> {
     try {
-      const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+      const token = localStorage.getItem('Talaba_token') || localStorage.getItem('admin_token');
       if (!token || token.startsWith('mock_token_')) {
         return { incoming: [], outgoing: [] };
       }
@@ -642,7 +804,7 @@ export const socialApi = {
   // Direct Messages
   async getThreads(lang: Language = 'ar'): Promise<MessageThreadsResponse> {
     try {
-      const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+      const token = localStorage.getItem('Talaba_token') || localStorage.getItem('admin_token');
       if (!token || token.startsWith('mock_token_')) {
         return { threads: [] };
       }
@@ -662,7 +824,7 @@ export const socialApi = {
 
   async getThreadMessages(threadId: string, lang: Language = 'ar'): Promise<ThreadMessagesResponse> {
     try {
-      const token = localStorage.getItem('jamiaati_token') || localStorage.getItem('admin_token');
+      const token = localStorage.getItem('Talaba_token') || localStorage.getItem('admin_token');
       if (!token || token.startsWith('mock_token_')) {
         return { thread: {} as any, messages: [] };
       }
@@ -739,6 +901,11 @@ export const socialApi = {
     return await handleResponse(res, lang);
   }
 };
+
+
+
+
+
 
 
 

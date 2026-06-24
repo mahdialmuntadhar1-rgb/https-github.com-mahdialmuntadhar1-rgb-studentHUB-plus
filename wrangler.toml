@@ -1,11 +1,13 @@
 ﻿name = "https-github"
 main = "worker-static.js"
 compatibility_date = "2025-06-01"
+workers_dev = true
 
 [assets]
 directory = "./dist"
 binding = "ASSETS"
 not_found_handling = "single-page-application"
+
 [[routes]]
 pattern = "talaba.kaniq.org"
 custom_domain = true

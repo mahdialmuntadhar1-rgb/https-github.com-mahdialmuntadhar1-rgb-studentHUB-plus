@@ -1,22 +1,34 @@
-﻿self.addEventListener("install", function(event) {
+const CACHE_VERSION = 'talaba-cache-refresh-20260624-v4';
+
+self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-self.addEventListener("activate", function(event) {
+self.addEventListener('activate', (event) => {
   event.waitUntil(
     caches.keys()
-      .then(function(keys) {
-        return Promise.all(keys.map(function(key) { return caches.delete(key); }));
-      })
-      .then(function() {
-        return self.registration.unregister();
-      })
-      .then(function() {
-        return self.clients.claim();
-      })
+      .then((keys) => Promise.all(keys.map((key) => caches.delete(key))))
+      .then(() => self.clients.claim())
   );
 });
 
-self.addEventListener("fetch", function(event) {
-  return;
+self.addEventListener('fetch', (event) => {
+  const request = event.request;
+
+  if (request.method !== 'GET') return;
+
+  const url = new URL(request.url);
+
+  if (
+    url.href.includes('rafid-api.mahdialmuntadhar1.workers.dev') ||
+    url.pathname.startsWith('/api') ||
+    url.pathname.includes('/api/')
+  ) {
+    event.respondWith(fetch(request, { cache: 'no-store' }));
+    return;
+  }
+
+  event.respondWith(
+    fetch(request, { cache: 'no-store' }).catch(() => caches.match(request))
+  );
 });

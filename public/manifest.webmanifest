@@ -1,38 +1,64 @@
 {
-  "name": "Talaba",
+  "name": "Talaba / StudentHUB",
   "short_name": "Talaba",
-  "description": "A student and university connection platform across Iraq",
-  "start_url": "/",
+  "description": "Universities, campus life, jobs, scholarships, and opportunities across Iraq.",
+  "id": "/?source=pwa&v=20260624-v4",
+  "start_url": "/?source=pwa&v=20260624-v4",
   "scope": "/",
   "display": "standalone",
+  "display_override": ["standalone", "minimal-ui", "browser"],
   "orientation": "portrait",
-  "background_color": "#faf9ff",
-  "theme_color": "#5b21b6",
-  "lang": "ar",
+  "background_color": "#F7F2FF",
+  "theme_color": "#5B2FD6",
+  "categories": ["education", "social", "productivity"],
+  "lang": "ar-IQ",
   "dir": "rtl",
-  "categories": ["education", "productivity", "social"],
   "icons": [
     {
       "src": "/icons/icon-192.png",
       "sizes": "192x192",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "/icons/icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
-    },
-    {
-      "src": "/icons/icon-maskable-192.png",
-      "sizes": "192x192",
       "type": "image/png",
-      "purpose": "maskable"
+      "purpose": "any"
     },
     {
-      "src": "/icons/icon-maskable-512.png",
+      "src": "/icons/maskable-512.png",
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
+    }
+  ],
+  "shortcuts": [
+    {
+      "name": "Opportunities",
+      "short_name": "Jobs",
+      "description": "Open jobs, scholarships, and trainings",
+      "url": "/?source=pwa&tab=opportunities",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
+    },
+    {
+      "name": "Campus Life",
+      "short_name": "Campus",
+      "description": "Open campus life updates",
+      "url": "/?source=pwa&tab=campus",
+      "icons": [
+        {
+          "src": "/icons/icon-192.png",
+          "sizes": "192x192",
+          "type": "image/png"
+        }
+      ]
     }
   ]
 }
