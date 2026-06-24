@@ -20,6 +20,7 @@ interface LifeFeedProps {
   onRsvp: (id: string) => void;
   onJoinGroup: (id: string) => void;
   onAddComment: (id: string, commentText: string) => void;
+  onAddNewPost?: (title: string, body: string, anonymous: boolean, customType?: string, imageUrl?: string, governorateId?: string, universityId?: string) => void;
   onShowAll: () => void;
   isFeedLoading?: boolean;
   onEditFeedItem?: (id: string, updatedFields: Partial<FeedItem>) => void;
@@ -40,6 +41,7 @@ export default function LifeFeed({
   onRsvp,
   onJoinGroup,
   onAddComment,
+  onAddNewPost,
   onShowAll,
   isFeedLoading = false,
   onEditFeedItem,
@@ -49,6 +51,24 @@ export default function LifeFeed({
 }: LifeFeedProps) {
   const [activeChip, setActiveChip] = useState<'all' | 'video' | 'photo' | 'story' | 'poll' | 'clubs' | 'nearby' | 'trending'>('all');
   const [selectedStory, setSelectedStory] = useState<null | FeedItem>(null);
+  const [postText, setPostText] = useState('');
+
+  const postPlaceholder =
+    language === 'ar'
+      ? 'ما الذي يدور في بالك؟'
+      : language === 'ku'
+      ? 'بیرت لە چییە؟'
+      : "What's on your mind?";
+
+  const shareLabel = language === 'ar' ? 'نشر' : language === 'ku' ? 'بڵاوکردنەوە' : 'Post';
+
+  const handleSubmitPost = () => {
+    const body = postText.trim();
+    if (!body || !onAddNewPost) return;
+
+    onAddNewPost('Campus Life Post', body, false, 'post', undefined, selectedGov, selectedUni);
+    setPostText('');
+  };
 
   // Filter keys inside Life Feed
   const chips = [
@@ -117,6 +137,26 @@ export default function LifeFeed({
         <div className="text-[10px] bg-[#FFD21F] text-[#161A33] border-2 border-[#161A33] rounded-xl px-2.5 py-1.5 font-black shadow-sm flex items-center gap-0.5 shrink-0 hover:scale-[1.03] transition-transform">
           <span>Show All</span>
           <ChevronRight className="w-3 h-3" />
+        </div>
+      </div>
+
+      <div className="mb-5 rounded-3xl border-2 border-[#161A33] bg-white p-3.5 shadow-[3px_3px_0px_0px_#161A33]" dir={language === 'en' ? 'ltr' : 'rtl'}>
+        <textarea
+          value={postText}
+          onChange={(event) => setPostText(event.target.value)}
+          placeholder={postPlaceholder}
+          rows={2}
+          className="min-h-[64px] w-full resize-none rounded-2xl border-2 border-[#E6E1F5] bg-[#F8FAFF] px-3 py-2.5 text-sm font-bold text-slate-800 outline-none transition placeholder:text-slate-400 focus:border-[#6B25C9]"
+        />
+        <div className="mt-2 flex justify-end">
+          <button
+            type="button"
+            onClick={handleSubmitPost}
+            disabled={!postText.trim() || !onAddNewPost}
+            className="rounded-2xl bg-[#6B25C9] px-4 py-2 text-xs font-black text-white shadow-sm transition hover:bg-[#5920AA] disabled:cursor-not-allowed disabled:bg-slate-300"
+          >
+            {shareLabel}
+          </button>
         </div>
       </div>
 
@@ -280,5 +320,4 @@ export default function LifeFeed({
     </div>
   );
 }
-
 
