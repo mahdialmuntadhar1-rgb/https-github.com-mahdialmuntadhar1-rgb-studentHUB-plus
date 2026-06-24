@@ -131,6 +131,8 @@ export interface FeedItem {
   // Relations
   universityId?: string; // 'all' or specific
   governorateId?: string; // 'all' or specific
+  governorate?: string; // legacy/backend display field
+  city?: string; // legacy/backend display field
   
   // Safe Campus Life Model Extensions
   category?: string;
@@ -462,4 +464,3 @@ export interface CampusLifeItem {
   verified: boolean;
   createdAt: string;
 }
-

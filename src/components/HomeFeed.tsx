@@ -139,7 +139,7 @@ export default function HomeFeed({
   const [selectedFeedTab, setSelectedFeedTab] = useState<'opportunities' | 'campus_life'>('campus_life');
   const [currentSlide, setCurrentSlide] = useState(0);
   const [selectedOppFilter, setSelectedOppFilter] = useState<'all' | 'job' | 'scholarship' | 'training' | 'admission' | 'announcement' | 'news' | 'deadline' | 'internship'>('all');
-  const [selectedCampusFilter, setSelectedCampusFilter] = useState<'all' | 'post' | 'event' | 'club' | 'question' | 'study_group' | 'friends'>('all');
+  const [selectedCampusFilter, setSelectedCampusFilter] = useState<'all' | 'post' | 'event' | 'club' | 'clubs' | 'question' | 'study_group' | 'friends' | 'exams' | 'campus_guide'>('all');
   const [postCategory, setPostCategory] = useState<string>('campus_life');
   const [postGov, setPostGov] = useState<string>(selectedGov !== 'all' ? selectedGov : defaultUserProfile.governorateId);
   const [postUni, setPostUni] = useState<string>(selectedUni !== 'all' ? selectedUni : defaultUserProfile.universityId);
@@ -1221,7 +1221,6 @@ export default function HomeFeed({
                 backgroundImage: `url(${slide.image})`,
                 transform: idx === currentSlide ? 'scale(1.04)' : 'scale(1.0)'
               }}
-              referrerPolicy="no-referrer"
             />
             {/* Dark contrast gradient overlay */}
             <div className="hidden" />
@@ -2290,7 +2289,6 @@ export default function HomeFeed({
     </div>
   );
 }
-
 
 
 

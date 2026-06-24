@@ -131,7 +131,6 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4" id="auth-modal-overlay">
         {/* Backdrop glass */}
         <motion.div
-          fixed="true"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
@@ -367,4 +366,3 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     </AnimatePresence>
   );
 }
-

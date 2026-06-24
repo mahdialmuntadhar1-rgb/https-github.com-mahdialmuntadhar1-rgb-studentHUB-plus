@@ -52,6 +52,7 @@ interface Thread {
   opponentAvatar: string;
   lastMessage?: string;
   updatedAt?: string;
+  status?: 'pending' | 'accepted' | 'declined' | string;
 }
 
 interface ThreadMessage {
@@ -1248,5 +1249,4 @@ export default function SocialHub({
     </div>
   );
 }
-
 
