@@ -132,7 +132,9 @@ if (!rootElement) {
   createRoot(rootElement).render(
     <StrictMode>
       <AppErrorBoundary>
-        <App />
+        <LanguageProvider>
+      <App />
+    </LanguageProvider>
       </AppErrorBoundary>
     </StrictMode>,
   );
@@ -147,6 +149,7 @@ if (!rootElement) {
 
 
 runTalabaCacheRefresh();
+
 
 
 

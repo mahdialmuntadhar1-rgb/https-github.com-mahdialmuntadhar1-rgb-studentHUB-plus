@@ -1,0 +1,285 @@
+﻿C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminHeroPhotoManager.tsx:54: const response = await fetch(`${BACKEND_URL}/api/admin/hero-images`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminHeroPhotoManager.tsx:88: const response = await fetch(`${BACKEND_URL}/api/admin/hero-images/upload`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminHeroPhotoManager.tsx:113: const response = await fetch(`${BACKEND_URL}/api/admin/hero-images/${encodeURIComponent(img.id)}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminHeroPhotoManager.tsx:144: const response = await fetch(`${BACKEND_URL}/api/admin/hero-images/${encodeURIComponent(img.id)}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:83: const [opportunities, setOpportunities] = useState<Opportunity[]>([]);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:101: const oppRes = await fetch('/api/admin/opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:102: if (oppRes.ok) setOpportunities(await oppRes.json());
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:104: const sRes = await fetch('/api/admin/sources');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:107: const lRes = await fetch('/api/admin/logs');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:125: const res = await fetch('/api/admin/scraper/run', { method: 'POST' });
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:149: const res = await fetch('/api/admin/opportunities/action', {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:156: setOpportunities(prev => prev.map(o => o.id === id ? { ...o, status: action as any } : o));
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:177: const res = await fetch('/api/admin/opportunities/edit', {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:199: const res = await fetch('/api/admin/sources', {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:216: const res = await fetch('/api/admin/sources', {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:239: const res = await fetch('/api/admin/sources', {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:270: noPending: { en: 'Excellent! No pending opportunities.', ar: 'ممتاز! طابور المراجعة فارغ ومكتمل.', ku: 'نایاب! هیچ فرسەتێکی چاوەڕوانکراو نەماوە.' }
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:277: const pendingOpps = opportunities.filter(o => o.status === 'pending' || o.status === 'pending_review');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AdminPanel.tsx:278: const nonPendingOpps = opportunities.filter(o => o.status !== 'pending' && o.status !== 'pending_review');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AskFeed.tsx:68: const response = await fetch(`${BACKEND_URL}/api/ask-ai`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\AuthModal.tsx:120: const response = await fetch(`${BACKEND_URL}${endpoint}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\EmptyState.tsx:8: type: 'opportunities' | 'campus-life' | 'general';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\EmptyState.tsx:15: if (type === 'opportunities') {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\EmptyState.tsx:20: : 'No opportunities available for this selection';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\EmptyState.tsx:30: if (type === 'opportunities') {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\EmptyState.tsx:35: : 'No opportunities available';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\EmptyState.tsx:60: if (type === 'opportunities') {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FeedCard.tsx:431: const response = await fetch(`${BACKEND_URL}/api/friend-requests`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FeedCard.tsx:472: const response = await fetch(`${BACKEND_URL}/api/message-requests`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:5: import { getOpportunities } from '../lib/api';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:69: const [opportunities, setOpportunities] = useState<FeedItem[]>([]);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:82: // Safe mapper for backend opportunities to FeedItem shape
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:267: // Fetch opportunities from backend based on language and activeChip (category filter)
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:281: getOpportunities({
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:296: setOpportunities(mergedItems.map(mapBackendOpportunity));
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:302: setError(err.message || 'Failed to fetch opportunities from backend.');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:319: setOpportunities(prev => prev.map(item => {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:334: setOpportunities(prev => prev.map(item => {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:349: setOpportunities(prev => prev.map(item => {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:493: const filteredBaseOpportunities = opportunities.filter(item => {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:537: if (activeChip === 'all') return filteredBaseOpportunities;
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:539: return filteredBaseOpportunities.filter(item => {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:618: const featuredUniItems = filteredBaseOpportunities.filter(item =>
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:623: const popularLocalItems = filteredBaseOpportunities.filter(item =>
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:627: const openAllIraqItems = filteredBaseOpportunities.filter(item =>
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:631: const newInternshipItems = filteredBaseOpportunities.filter(item =>
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:635: const scholarshipTrainingItems = filteredBaseOpportunities.filter(item =>
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:639: const savedByClassmatesItems = filteredBaseOpportunities.filter(item =>
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:654: const hasMoreRemoteItems = totalCount !== null && opportunities.length < totalCount;
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:672: getOpportunities({
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:686: setOpportunities(prev => [...prev, ...mergedItems.map(mapBackendOpportunity)]);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:690: setError(err.message || 'Failed to load more opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:752: <p className="text-[11px] font-bold text-slate-500">Choose a city/governorate to show matching opportunities.</p>
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:837: {language === 'ar' ? 'ÙØ´Ù„ ØªØ­Ù…ÙŠÙ„ Ø§Ù„ÙØ±Øµ Ø§Ù„Ø¹Ø§Ù…Ø©' : language === 'ku' ? 'Ø¨Ø§Ø±Ú©Ø±Ø¯Ù†ÛŒ Ø¯Û•Ø±ÙÛ•ØªÛ•Ú©Ø§Ù† Ø³Û•Ø±Ú©Û•ÙˆØªÙˆÙˆ Ù†Û•Ø¨ÙˆÙˆ' : 'Failed to load opportunities'}
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:851: getOpportunities({ category: categoryParam, page: 1, limit: 50, governorate: filterGov !== 'all' ? filterGov : undefined }, language).then(result => {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:853: setOpportunities(result.items.map(mapBackendOpportunity));
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:887: ) : opportunities.length === 0 ? (
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:894: {language === 'ar' ? 'Ø§Ù„ÙØ±Øµ Ø§Ù„Ù…Ø¹ØªÙ…Ø¯Ø© Ù…Ù† Ù‚Ø¨Ù„ Ø§Ù„Ù…Ø³Ø¤ÙˆÙ„ÙŠÙ† ÙˆØ§Ù„Ø´Ø±ÙƒØ§Ø¡ Ù„Ø¬Ø§Ù…Ø¹ØªÙƒ ÙˆÙ…Ø­Ø§ÙØ¸ØªÙƒ Ø³ØªØ¸Ù‡Ø± Ù‡Ù†Ø§ Ù‚Ø±ÙŠØ¨Ø§Ù‹.' : 'Opportunities moderated by administrators and partners for your university and governorate will appear here once approved.'}
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:916: : `No jobs yet for your university â€” explore All Iraq opportunities.`}
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:922: {language === 'ar' ? 'Ø§Ø³ØªÙƒØ´Ù Ø§Ù„ÙØ±Øµ Ø§Ù„Ø¹Ø§Ù…Ø© Ù„Ù„Ø¹Ø±Ø§Ù‚' : language === 'ku' ? 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ù‡Û•Ù„ÛŒ Ú©Ø§Ø±Û• Ú¯Ø´ØªÛŒÛŒÛ•Ú©Ø§Ù†' : 'Explore General Opportunities'}
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:1096: <div className="flex flex-col gap-1 text-left" id="linear-opportunities-feed-items">
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:1132: id="opportunities-load-more-btn"
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\FutureFeed.tsx:1134: <span>{language === 'ar' ? 'Ø¹Ø±Ø¶ Ø§Ù„Ù…Ø²ÙŠØ¯ Ù…Ù† Ø§Ù„ÙØ±Øµ ðŸ”„' : language === 'ku' ? 'Ø¨ÛŒÙ†ÛŒÙ†ÛŒ Ø¯Û•Ø±ÙÛ•ØªÛŒ Ø²ÛŒØ§ØªØ± ðŸ”„' : 'Load More Opportunities ðŸ”„'}</span>
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\Header.tsx:73: : 'University life and opportunities in one place'}
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:10: import { getOpportunities, heroImagesApi } from '../lib/api';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:139: const [selectedFeedTab, setSelectedFeedTab] = useState<'opportunities' | 'campus_life'>('campus_life');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:150: const [backendOpportunities, setBackendOpportunities] = useState<FeedItem[]>([]);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:159: setVisibleItemsCount(selectedFeedTab === 'opportunities' ? INITIAL_OPPORTUNITY_LIMIT : INITIAL_CAMPUS_LIMIT);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:199: // Safe mapper for backend opportunities to FeedItem shape
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:354: // Fetch backend opportunities for the whole Opportunities tab.
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:357: if (selectedFeedTab !== 'opportunities') {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:358: setBackendOpportunities([]);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:378: getOpportunities({ category, page: 1, limit: selectedOppFilter === 'job' ? 1200 : 300 }, language)
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:381: setBackendOpportunities(rawItems.map(mapBackendOpportunity));
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:384: setBackendError(err.message || 'Failed to load opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:385: setBackendOpportunities([]);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:608: setSelectedFeedTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:611: setSelectedFeedTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:614: setSelectedFeedTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:617: setSelectedFeedTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:620: setSelectedFeedTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:623: setSelectedFeedTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:626: setSelectedFeedTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:629: setSelectedFeedTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:695: headline: language === 'ar' ? 'اعثر على مسارك الدراسي والفرص المثمرة بكفاءة' : language === 'ku' ? 'ڕێڕەوی ئەکادیمی و گونجاوترین دەرفەت بدۆزەرەوە' : 'Find your university life and opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:699: setSelectedFeedTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:709: headline: language === 'ar' ? 'منح وتسهيلات دراسية ممولة بالكامل لطلابنا' : language === 'ku' ? 'هەلی بورس و خوێندنی باڵا بە شێوازی فەرمی' : 'Scholarships & Career Opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:713: setSelectedFeedTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:722: tag: language === 'ar' ? 'وظائف التدريب والعمل' : language === 'ku' ? 'هەلی کار' : 'Job Opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:728: setSelectedFeedTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:885: if (payload.lane === 'opportunities') {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:886: setSelectedFeedTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:939: tabType: 'opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:949: tabType: 'opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:959: tabType: 'opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1073: // For opportunities, governorate matters but university should not hide jobs/scholarships.
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1097: // Divide into serious opportunities vs campus social categories
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1140: // Filtering for Opportunities Tab
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1142: const sourceItems = backendOpportunities.length > 0 ? backendOpportunities : allSeriousItems;
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1214: }, [allSeriousItems, selectedOppFilter, backendOpportunities, selectedGov]);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1245: if (selectedFeedTab === 'opportunities') {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1451: { emoji: '💼', value: '1120', en: 'Job Opportunities', ar: 'فرص عمل', ku: 'هەلی کار' },
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1456: { emoji: '💼', value: '1120', en: 'Job Opportunities', ar: 'فرص عمل', ku: 'هەلی کار' },
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1466: setSelectedFeedTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1499: onClick={() => setSelectedFeedTab('opportunities')}
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1501: selectedFeedTab === 'opportunities'
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1507: <span>{language === 'ar' ? 'الفرص والتطوير' : language === 'ku' ? 'هەلەکان' : 'Opportunities'}</span>
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1529: selectedFeedTab === 'opportunities'
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1534: selectedFeedTab === 'opportunities'
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1550: {/* Advanced Filter Chips for Opportunities Tab (using Circular Shortcut style) */}
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1551: {selectedFeedTab === 'opportunities' && (
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1617: {selectedFeedTab === 'opportunities' && (
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1619: id="opportunities-governorate-filter-panel"
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1649: id="opportunities-governorate-select"
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1665: {selectedFeedTab === 'opportunities' && selectedOppFilter === 'job' && (
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1977: {selectedFeedTab === 'opportunities' && selectedOppFilter !== 'all' && (
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1981: ? (language === 'ar' ? 'فرص العمل' : language === 'ku' ? 'هەلی کار' : 'Job Opportunities')
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:1999: {selectedFeedTab === 'opportunities'
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:2000: ? (language === 'ar' ? 'لا توجد فرص متاحة حالياً' : language === 'ku' ? 'هیچ دەرفەتێک نەدۆزراوەتەوە' : 'No opportunities found yet')
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\HomeFeed.tsx:2004: {selectedFeedTab === 'opportunities'
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\JobPortal.jsx:30: const r = await fetch(proxy(url), { signal: AbortSignal.timeout(8000) });
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\MainTabs.tsx:6: type MainTabType = 'opportunities' | 'campus-life';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\MainTabs.tsx:19: {/* Opportunities Tab */}
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\MainTabs.tsx:21: onClick={() => onTabChange('opportunities')}
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\MainTabs.tsx:23: activeTab === 'opportunities'
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\MainTabs.tsx:29: <span>{getTranslation('opportunitiesTabLabel', language)}</span>
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\ProfileView.tsx:100: : 'Sign in to access advanced features: rack up academic interaction points by helping your peers, save and bookmark lectures, apply directly to tech opportunities, and unlock our AI advisor Al-Murshed!'}
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:15: import { BACKEND_URL, getOpportunities } from '../lib/api';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:46: endpoint: 'opportunities' | 'highlights';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:55: descEN: 'Explore fully or partially funded scholarship opportunities for Iraqi students.',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:58: endpoint: 'opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:64: titleEN: 'Job Opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:70: endpoint: 'opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:82: endpoint: 'opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:94: endpoint: 'opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:106: endpoint: 'opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:118: endpoint: 'opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:130: endpoint: 'opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:357: return fetch(url, { signal: controller.signal }).finally(() => {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:755: const result = await getOpportunities({
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\SectionView.tsx:768: const response = await fetch(`${BACKEND_URL}/api/${queryEndpoint}?${params.toString()}`);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\components\UniversitiesList.tsx:133: {language === 'ar' ? 'Ø§Ø®ØªØ± ÙˆØªÙˆØ§ØµÙ„ Ù…Ø¹ Ù…Ø¬ØªÙ…Ø¹ ÙƒÙ„ÙŠØªÙƒ Ù„ØªØ¨ØªÙƒØ± Ø§Ù„ÙØ±Øµ' : language === 'ku' ? 'Ø²Ø§Ù†Ú©Û†Ú©Û•Øª Ù‡Û•ÚµØ¨Ú˜ÛŽØ±Û• Ø¨Û† Ø¨Û•Ø³ØªÙ†Û•ÙˆÛ•ÛŒ Ú©Û†Ù…Û•ÚµÚ¯Û•Ú©Û•Øª' : 'Find your University Community & Opportunities'}
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\data\translations.ts:429: opportunitiesTabLabel: {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\data\translations.ts:430: en: 'Opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\hooks\useCentralOpportunities.ts:2: import { fetchOpportunities, type Opportunity, type OpportunityCategory } from '../lib/apiClient';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\hooks\useCentralOpportunities.ts:4: export function useCentralOpportunities(category?: OpportunityCategory, limit = 20) {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\hooks\useCentralOpportunities.ts:15: fetchOpportunities({ category, limit })
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\i18n\translations.ts:17: opportunities: 'الفرص',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\i18n\translations.ts:38: opportunities: 'هەلەکان',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\i18n\translations.ts:59: opportunities: 'Opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:12: export const BACKEND_URL = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:116: const response = await fetch(`${API_BASE}/hero-images`);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:122: const response = await fetch(`${API_BASE}/admin/hero-images`, { headers: getHeaders() });
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:144: const response = await fetch(`${API_BASE}/admin/hero-images/upload`, { method: 'POST', headers, body: formData });
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:149: const response = await fetch(`${API_BASE}/admin/hero-images/${encodeURIComponent(id)}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:158: const response = await fetch(`${API_BASE}/admin/hero-images/${encodeURIComponent(id)}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:169: const res = await fetch(`${API_BASE}/opportunity-automation/status`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:181: const res = await fetch(`${API_BASE}/opportunity-automation/stats`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:200: const res = await fetch(`${API_BASE}/opportunity-automation/sources?${query.toString()}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:211: const res = await fetch(`${API_BASE}/opportunity-automation/sources`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:224: const res = await fetch(`${API_BASE}/opportunity-automation/sources/${id}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:237: const res = await fetch(`${API_BASE}/opportunity-automation/sources/${id}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:249: const res = await fetch(`${API_BASE}/opportunity-automation/run-now`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:261: const res = await fetch(`${API_BASE}/opportunity-automation/run-source/${id}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:280: const res = await fetch(`${API_BASE}/opportunity-automation/import-csv`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:305: const res = await fetch(`${API_BASE}/opportunity-automation/candidates?${query.toString()}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:316: const res = await fetch(`${API_BASE}/opportunity-automation/candidates/${id}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:327: const res = await fetch(`${API_BASE}/opportunity-automation/candidates/${id}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:340: const res = await fetch(`${API_BASE}/opportunity-automation/candidates/${id}/approve`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:352: const res = await fetch(`${API_BASE}/opportunity-automation/candidates/${id}/reject`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:365: const res = await fetch(`${API_BASE}/opportunity-automation/candidates/${id}/mark-duplicate`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:377: const res = await fetch(`${API_BASE}/opportunity-automation/candidates/${id}/mark-expired`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:395: const res = await fetch(`${API_BASE}/opportunity-automation/logs?${query.toString()}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:405: export async function getOpportunities(params?: { category?: string; page?: number; limit?: number; governorate?: string }, lang: Language = 'ar') {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:416: payload.opportunities,
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:421: payload?.data?.opportunities,
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:501: const response = await fetch('/data/opportunities-cache.json', {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:512: console.error('Error reading opportunities cache:', err);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:518: const url = new URL(`${BACKEND_URL}/api/opportunities`);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:543: const response = await fetch(url.toString(), {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:559: console.error('Backend opportunities failed:', categoryToFetch || 'all', err);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:619: const res = await fetch(`${API_BASE}/outreach/contacts?${query.toString()}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:634: const res = await fetch(`${API_BASE}/outreach/campaigns?${query.toString()}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:645: const res = await fetch(`${API_BASE}/outreach/send-test`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:664: const res = await fetch(`${API_BASE}/outreach/import-csv`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:684: const res = await fetch(`${API_BASE}/friend-requests`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:696: const res = await fetch(`${API_BASE}/friend-requests`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:710: const res = await fetch(`${API_BASE}/friend-requests/${requestId}/accept`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:723: const res = await fetch(`${API_BASE}/friend-requests/${requestId}/decline`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:736: const res = await fetch(`${API_BASE}/friend-requests/${requestId}/cancel`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:754: const res = await fetch(`${API_BASE}/message-requests`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:766: const res = await fetch(`${API_BASE}/message-requests`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:780: const res = await fetch(`${API_BASE}/message-requests/${threadId}/accept`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:793: const res = await fetch(`${API_BASE}/message-requests/${threadId}/decline`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:811: const res = await fetch(`${API_BASE}/messages/threads`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:831: const res = await fetch(`${API_BASE}/messages/threads/${threadId}/messages`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:843: const res = await fetch(`${API_BASE}/messages/threads/${threadId}/messages`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:856: const res = await fetch(`${API_BASE}/messages/${encodeURIComponent(messageId)}/report`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:865: const res = await fetch(`${API_BASE}/users/${encodeURIComponent(targetUserId)}/block`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:874: const res = await fetch(`${API_BASE}/users/${encodeURIComponent(targetUserId)}/block`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:882: const res = await fetch(`${API_BASE}/users/blocked`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:889: const res = await fetch(`${API_BASE}/admin/moderation/message-reports?status=${encodeURIComponent(status)}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\api.ts:896: const res = await fetch(`${API_BASE}/admin/moderation/message-reports/${encodeURIComponent(reportId)}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\apiClient.ts:32: const response = await fetch(apiUrl(path), {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\apiClient.ts:90: const possibleLists = [obj?.items, obj?.data, obj?.results, obj?.opportunities];
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\apiClient.ts:99: export async function fetchOpportunities(options: { category?: OpportunityCategory; limit?: number } = {}) {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\lib\apiClient.ts:105: const payload = await apiFetch<unknown>(`/api/opportunities?${params.toString()}`);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\forcePoliceSwitcher.ts:2: * BRUTE FORCE police-light sticky style for the real Opportunities / Campus Life switcher.
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\forcePoliceSwitcher.ts:94: if (!text.includes('opportunities') || !text.includes('campus life')) return false;
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\forcePoliceSwitcher.ts:146: (text.includes('opportunities') || text.includes('campus life'));
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\forcePoliceSwitcher.ts:170: const opp = climbToButtonBox(findTabInside(container, 'opportunities'));
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\forcePoliceSwitcher.ts:193: if (text.includes('opportunities') || text.includes('campus life')) {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\hideBottomOpportunitiesOnly.ts:1: const BOTTOM_OPPORTUNITIES_ONLY_BUILD = '20260620_143757';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\hideBottomOpportunitiesOnly.ts:27: text === 'opportunities' ||
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\hideBottomOpportunitiesOnly.ts:35: text.includes('opportunities') &&
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\hideBottomOpportunitiesOnly.ts:74: el.setAttribute('data-bottom-opportunities-hidden', BOTTOM_OPPORTUNITIES_ONLY_BUILD);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\hideBottomOpportunitiesOnly.ts:94: function hideBottomOpportunitiesOnly() {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\hideBottomOpportunitiesOnly.ts:129: hideBottomOpportunitiesOnly();
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\hideBottomOpportunitiesOnly.ts:132: export function installHideBottomOpportunitiesOnly() {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\policeStickyTabs.ts:3: * for the Opportunities / Campus Life switcher.
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\policeStickyTabs.ts:28: if (!text.includes('opportunities') || !text.includes('campus life')) continue;
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\policeStickyTabs.ts:239: const opp = closestTabLike(findTab(container, 'opportunities'));
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\policeSwitcherOverlayFinal.ts:21: function findTextElement(label: 'opportunities' | 'campus life'): HTMLElement | null {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\policeSwitcherOverlayFinal.ts:37: function findClickableFor(label: 'opportunities' | 'campus life'): HTMLElement | null {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\policeSwitcherOverlayFinal.ts:88: const opp = findTextElement('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\policeSwitcherOverlayFinal.ts:104: text.includes('opportunities') &&
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\policeSwitcherOverlayFinal.ts:273: opp.innerHTML = '🚨 Opportunities';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\policeSwitcherOverlayFinal.ts:281: const target = findClickableFor('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\policeSwitcherOverlayFinal.ts:298: return body.includes('opportunities') && body.includes('campus life');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:3: * Completely removes/hides the linked Opportunities page from the visible UI.
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:6: * - Hides bottom-nav Opportunities item even if it is a div/span instead of button/link.
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:7: * - Clears saved active tab values that point to Opportunities.
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:8: * - Redirects URL routes/query/hash that point to Opportunities.
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:9: * - If the Opportunities page still renders job cards, it clicks Home automatically.
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:16: 'opportunities',
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:64: node.setAttribute('data-opportunities-removed', 'true');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:103: function hideBottomOpportunitiesTab() {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:113: text === 'opportunities' ||
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:148: value === 'opportunities' ||
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:150: value.includes('"opportunities"') ||
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:167: urlText.includes('/opportunities') ||
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:168: urlText.includes('#/opportunities') ||
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:169: urlText.includes('tab=opportunities') ||
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:170: urlText.includes('page=opportunities') ||
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:171: urlText.includes('active=opportunities')
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:289: if (document.getElementById('remove-opportunities-hard-css')) return;
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:292: style.id = 'remove-opportunities-hard-css';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:294: [data-page="opportunities"],
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:295: [data-tab="opportunities"],
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:296: [data-active-tab="opportunities"],
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:312: hideBottomOpportunitiesTab();
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:315: hideBottomOpportunitiesTab();
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\utils\removeOpportunitiesUI.ts:319: export function installRemoveOpportunitiesUI() {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:390: const response = await fetch('/data/institutions-cache.json', {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:418: const response = await fetch(`${BACKEND_URL}/api/institutions?limit=${limit}&offset=${offset}`, {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:569: const routeToRealFeed = (lane: 'opportunities' | 'campus_life', filter: string) => {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:584: if (hash === '#/opportunities' || hash === '#opportunities') {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:586: routeToRealFeed('opportunities', 'all');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:594: routeToRealFeed('opportunities', 'job');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:599: routeToRealFeed('opportunities', 'scholarship');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:641: // Synchronised dynamic fetcher of live highlights & opportunities from the backend
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:647: fetch(`${BACKEND_URL}/api/opportunities?category=${category}&limit=${INITIAL_CATEGORY_LIMIT}`)
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:649: fetch(`${BACKEND_URL}/api/highlights?limit=${INITIAL_HIGHLIGHTS_LIMIT}`)
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:654: // 1. Process Opportunities
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:664: : Array.isArray(data?.opportunities)
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:665: ? data.opportunities
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:675: : Array.isArray(data?.opportunities)
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:676: ? data.opportunities
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\App.tsx:779: console.error("Error loading approved scraped opportunities and highlights:", err);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-edge-worker.ts:27: async fetch(request: Request, env: any): Promise<Response> {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-edge-worker.ts:41: backendUrl.hostname = 'rafid-api.mahdialmuntadhar1.workers.dev';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-edge-worker.ts:56: const backendResponse = await fetch(backendRequest);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-edge-worker.ts:73: return env.ASSETS.fetch(request);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-final-shortcuts.ts:10: const TALABA_API = 'https://rafid-api.mahdialmuntadhar1.workers.dev';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-final-shortcuts.ts:47: t.includes('opportunities') &&
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-final-shortcuts.ts:60: function clickOldTab(name: 'campus' | 'opportunities') {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-final-shortcuts.ts:61: const word = name === 'campus' ? 'campus' : 'opportunities';
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-final-shortcuts.ts:347: clickOldTab('opportunities');
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-final-shortcuts.ts:385: await loadOpportunities(cat);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-final-shortcuts.ts:398: async function loadOpportunities(cat: TalabaCategory) {
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-final-shortcuts.ts:413: const res = await fetch(`${TALABA_API}/api/opportunities?${params.toString()}`);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-final-shortcuts.ts:416: const items = Array.isArray(data) ? data : Array.isArray(data.items) ? data.items : Array.isArray(data.opportunities) ? data.opportunities : [];
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-final-shortcuts.ts:454: loadOpportunities(cat);
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-safe-api-runtime.ts:41: url.hostname === 'rafid-api.mahdialmuntadhar1.workers.dev' ||
+C:\Users\HB LAPTOP STORE\Documents\https-github.com-mahdialmuntadhar1-rgb-studentHUB-plus\src\talaba-safe-api-runtime.ts:88: return originalFetch(nextInput as any, nextInit);
