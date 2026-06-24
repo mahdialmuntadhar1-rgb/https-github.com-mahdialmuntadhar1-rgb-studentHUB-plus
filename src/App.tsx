@@ -19,12 +19,13 @@ import SocialHub from './components/SocialHub';
 import UserProfileModal from './components/UserProfileModal';
 import UniversitiesList from './components/UniversitiesList';
 import { BACKEND_URL, socialApi } from './lib/api';
+import { useLanguage } from './i18n/LanguageProvider';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, Briefcase, User, Compass, Info, FileText } from 'lucide-react';
 
 export default function App() {
   // Locale States
-  const [language, setLanguage] = useState<Language>('en');
+  const { language, setLanguage } = useLanguage();
   const [selectedGov, setSelectedGov] = useState<string>('all');
   const [selectedUni, setSelectedUni] = useState<string>('all');
 
@@ -1452,7 +1453,6 @@ export default function App() {
     </div>
   );
 };
-
 
 
 

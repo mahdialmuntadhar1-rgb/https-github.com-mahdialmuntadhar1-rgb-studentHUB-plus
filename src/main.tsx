@@ -3,6 +3,7 @@ import type { ErrorInfo, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './App.tsx';
+import { LanguageProvider } from './i18n/LanguageProvider';
 import './index.css';
 import './styles/high-contrast-fix.css';
 import './styles/neon-purple-theme.css';
@@ -129,7 +130,9 @@ if (!rootElement) {
   createRoot(rootElement).render(
     <StrictMode>
       <AppErrorBoundary>
-        <App />
+        <LanguageProvider>
+          <App />
+        </LanguageProvider>
       </AppErrorBoundary>
     </StrictMode>,
   );

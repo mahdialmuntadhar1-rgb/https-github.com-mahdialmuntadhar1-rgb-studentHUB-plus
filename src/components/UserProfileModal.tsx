@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Language } from '../types';
+import { displayValue } from '../i18n/translations';
 import { socialApi } from '../lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, UserPlus, MessageSquare, Shield, Award, CheckCircle2, Send, Bookmark, School } from 'lucide-react';
@@ -179,7 +180,7 @@ export default function UserProfileModal({
             </h3>
 
             <span className="text-[10px] uppercase font-black text-cyan-400 bg-cyan-400/10 px-2.5 py-0.5 rounded-lg border border-cyan-400/20 mt-2 inline-block leading-none">
-              {user.role ? (user.role === 'student' ? (language === 'ar' ? 'طالب جامعي' : language === 'ku' ? 'خوێندکاری زانکۆ' : 'University Student') : user.role) : 'Student'}
+              {user.role ? displayValue(user.role, language) : displayValue('student', language)}
             </span>
 
             {/* University & Major info */}
