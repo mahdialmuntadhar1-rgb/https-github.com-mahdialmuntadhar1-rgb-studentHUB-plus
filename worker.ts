@@ -35,6 +35,8 @@ type AppContext = Context<{ Bindings: Bindings, Variables: HonoContextVariables 
 
 const BETA_ALLOWED_ORIGINS = new Set<string>([
   'https://https-github.mahdialmuntadhar1.workers.dev',
+  'https://talaba.kaniq.org',
+  'https://jamiati.kaniq.org',
   'http://localhost:5173',
   'http://localhost:8787',
   'http://127.0.0.1:5173',
@@ -227,6 +229,8 @@ declare module 'hono' {
 // CORS middleware
 const ALLOWED_ORIGINS = new Set([
   'https://https-github.mahdialmuntadhar1.workers.dev',
+  'https://talaba.kaniq.org',
+  'https://jamiati.kaniq.org',
   'http://localhost:5173',
   'http://localhost:3000',
   'http://127.0.0.1:5173',
@@ -2643,6 +2647,8 @@ export default {
     console.log(`Queue batch ignored for MVP: ${batch.messages.length} messages`);
   },
 };
+
+
 
 
 
