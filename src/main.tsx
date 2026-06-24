@@ -1,4 +1,5 @@
-﻿import './talaba-safe-api-runtime';
+﻿import { LanguageProvider } from './i18n';
+import './talaba-safe-api-runtime';
 import { runTalabaCacheRefresh } from './talaba-cache-refresh';
 import { StrictMode, Component } from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
@@ -149,6 +150,7 @@ if (!rootElement) {
 
 
 runTalabaCacheRefresh();
+
 
 
 
