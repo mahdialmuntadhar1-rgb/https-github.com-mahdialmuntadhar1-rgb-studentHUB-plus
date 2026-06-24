@@ -1,8 +1,10 @@
 ﻿import { StrictMode, Component } from 'react';
+import * as React from 'react';
 import type { ErrorInfo, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './App.tsx';
+import { registerServiceWorker } from './lib/registerServiceWorker';
 import './index.css';
 import './styles/high-contrast-fix.css';
 import './styles/neon-purple-theme.css';
@@ -47,7 +49,7 @@ window.addEventListener('unhandledrejection', (event) => {
   showBootError('Jamiaati loading error', message);
 });
 
-class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState> {
+class AppErrorBoundary extends React.Component<ErrorBoundaryProps, ErrorBoundaryState> {
   constructor(props: ErrorBoundaryProps) {
     super(props);
     this.state = { error: null, details: '' };
@@ -105,22 +107,6 @@ class AppErrorBoundary extends Component<ErrorBoundaryProps, ErrorBoundaryState>
   }
 }
 
-async function removeLegacyServiceWorkersAndCaches() {
-  try {
-    if ('serviceWorker' in navigator) {
-      const registrations = await navigator.serviceWorker.getRegistrations();
-      await Promise.all(registrations.map((registration) => registration.unregister()));
-    }
-  } catch {}
-
-  try {
-    if ('caches' in window) {
-      const keys = await caches.keys();
-      await Promise.all(keys.map((key) => caches.delete(key)));
-    }
-  } catch {}
-}
-
 const rootElement = document.getElementById('root');
 
 if (!rootElement) {
@@ -134,5 +120,5 @@ if (!rootElement) {
     </StrictMode>,
   );
 
-  void removeLegacyServiceWorkersAndCaches();
+  registerServiceWorker();
 }
