@@ -4,6 +4,7 @@ import type { ErrorInfo, ReactNode } from 'react';
 import { createRoot } from 'react-dom/client';
 
 import App from './App.tsx';
+import { installAuthSessionGuard } from './lib/authSession';
 import { registerServiceWorker } from './lib/registerServiceWorker';
 import './index.css';
 import './styles/high-contrast-fix.css';
@@ -112,6 +113,8 @@ const rootElement = document.getElementById('root');
 if (!rootElement) {
   showBootError('Jamiaati startup error', 'Root element #root was not found in index.html.');
 } else {
+  installAuthSessionGuard();
+
   createRoot(rootElement).render(
     <StrictMode>
       <AppErrorBoundary>
