@@ -34,6 +34,7 @@ type AppContext = Context<{ Bindings: Bindings, Variables: HonoContextVariables 
  */
 
 const BETA_ALLOWED_ORIGINS = new Set<string>([
+  'https://talaba.kaniq.org',
   'https://https-github.mahdialmuntadhar1.workers.dev',
   'http://localhost:5173',
   'http://localhost:8787',
@@ -105,7 +106,7 @@ function getBetaRateRule(method: string, path: string): null | { group: string; 
     return { group: 'auth_register', limit: 8, windowSeconds: 60 * 60 };
   }
 
-  if (path.includes('/api/password-reset') || path.includes('/api/forgot-password')) {
+  if (path.includes('/api/password-reset') || path.includes('/api/forgot-password') || path.includes('/api/auth/reset-password')) {
     return { group: 'password_reset', limit: 5, windowSeconds: 60 * 60 };
   }
 
@@ -226,6 +227,7 @@ declare module 'hono' {
 
 // CORS middleware
 const ALLOWED_ORIGINS = new Set([
+  'https://talaba.kaniq.org',
   'https://https-github.mahdialmuntadhar1.workers.dev',
   'http://localhost:5173',
   'http://localhost:3000',
@@ -275,7 +277,7 @@ function getRateLimitConfig(method: string, path: string): { bucket: string; lim
     return { bucket: 'auth_register', limit: 5, windowSeconds: 60 };
   }
 
-  if (m === 'POST' && path.includes('/password-reset')) {
+  if (m === 'POST' && (path.includes('/password-reset') || path.includes('/forgot-password'))) {
     return { bucket: 'password_reset', limit: 4, windowSeconds: 60 };
   }
 
@@ -556,17 +558,52 @@ function resolveDutyStation(item: any): { id: string; label: string } {
 }
 
 async function hashPassword(password: string): Promise<string> {
-  const encoder = new TextEncoder();
-  const data = encoder.encode(password);
-  const hashBuffer = await crypto.subtle.digest('SHA-256', data);
-  const hashArray = Array.from(new Uint8Array(hashBuffer));
-  const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
-  return hashHex;
+  const salt = crypto.getRandomValues(new Uint8Array(16));
+  const iterations = 120000;
+  const key = await crypto.subtle.importKey(
+    'raw',
+    new TextEncoder().encode(password),
+    'PBKDF2',
+    false,
+    ['deriveBits']
+  );
+  const bits = await crypto.subtle.deriveBits(
+    { name: 'PBKDF2', hash: 'SHA-256', salt, iterations },
+    key,
+    256
+  );
+  return `pbkdf2$${iterations}$${bytesToBase64(salt)}$${bytesToBase64(new Uint8Array(bits))}`;
 }
 
 async function verifyPassword(password: string, hash: string): Promise<boolean> {
-  const passwordHash = await hashPassword(password);
-  return passwordHash === hash;
+  if (hash.startsWith('pbkdf2$')) {
+    const [, iterationsText, saltText, expectedText] = hash.split('$');
+    const iterations = Number(iterationsText);
+    if (!iterations || !saltText || !expectedText) return false;
+    const salt = Uint8Array.from(atob(saltText), c => c.charCodeAt(0));
+    const expected = Uint8Array.from(atob(expectedText), c => c.charCodeAt(0));
+    const key = await crypto.subtle.importKey(
+      'raw',
+      new TextEncoder().encode(password),
+      'PBKDF2',
+      false,
+      ['deriveBits']
+    );
+    const bits = await crypto.subtle.deriveBits(
+      { name: 'PBKDF2', hash: 'SHA-256', salt, iterations },
+      key,
+      expected.length * 8
+    );
+    const actual = new Uint8Array(bits);
+    if (actual.length !== expected.length) return false;
+    let diff = 0;
+    for (let i = 0; i < actual.length; i++) diff |= actual[i] ^ expected[i];
+    return diff === 0;
+  }
+
+  // Backward-compatible verifier for existing accounts created with the legacy SHA-256 hash.
+  const legacyHash = await sha256HexText(password);
+  return legacyHash === hash;
 }
 
 async function generateJWTToken(userId: string, email: string, role: string, secret: string): Promise<string> {
@@ -648,14 +685,36 @@ async function verifyJWTToken(token: string, secret: string): Promise<any> {
 async function authMiddleware(c: any, next: any) {
   const authHeader = c.req.header('Authorization');
   if (!authHeader || !authHeader.startsWith('Bearer ')) {
-    return c.json({ error: 'Unauthorized' }, 401);
+    const err = authError('UNAUTHORIZED', 'Unauthorized', 401);
+    return c.json(err.body, err.status);
   }
   
   const token = authHeader.substring(7);
   const payload = await verifyJWTToken(token, (c.env.JWT_SECRET || c.env.JWT_SECRET_V2 || ""));
   
   if (!payload) {
-    return c.json({ error: 'Invalid or expired token' }, 401);
+    const err = authError('INVALID_SESSION', 'Invalid or expired token', 401);
+    return c.json(err.body, err.status);
+  }
+
+  try {
+    const authUser = await c.env.DB.prepare(
+      'SELECT updated_at FROM profiles WHERE id = ?'
+    ).bind(payload.userId).first() as any;
+    if (!authUser) {
+      const err = authError('INVALID_SESSION', 'Invalid or expired token', 401);
+      return c.json(err.body, err.status);
+    }
+    const updatedAtMs = authUser.updated_at ? Date.parse(String(authUser.updated_at)) : 0;
+    const issuedAtMs = Number(payload.iat || 0) * 1000;
+    if (updatedAtMs && issuedAtMs && issuedAtMs + 5000 < updatedAtMs) {
+      const err = authError('INVALID_SESSION', 'Invalid or expired token', 401);
+      return c.json(err.body, err.status);
+    }
+  } catch (error) {
+    console.error('Auth freshness check failed:', error);
+    const err = authError('INVALID_SESSION', 'Invalid or expired token', 401);
+    return c.json(err.body, err.status);
   }
   
   c.set('userId', payload.userId);
@@ -963,17 +1022,65 @@ app.get('/api/privacy/current', (c) => {
 // AUTHENTICATION ENDPOINTS
 // ============================================================================
 
+function authOk(data: any) {
+  return {
+    ok: true,
+    data,
+    ...data
+  };
+}
+
+function authError(code: string, message: string, status: any = 400, fieldErrors?: Record<string, string>) {
+  return {
+    body: {
+      ok: false,
+      code,
+      message,
+      error: message,
+      ...(fieldErrors ? { fieldErrors } : {})
+    },
+    status
+  };
+}
+
+function publicAuthUser(user: any) {
+  return {
+    id: user.id,
+    email: user.email,
+    full_name: user.full_name,
+    username: user.full_name || user.username,
+    role: user.role || 'student',
+    governorate: user.governorate || 'all',
+    institution: user.institution || 'manual',
+    institution_id: user.institution_id || 'manual',
+    avatar_url: user.avatar_url,
+    is_verified: user.is_verified === true || user.is_verified === 1,
+    stage: user.stage,
+    interests: user.interests,
+    bio: user.bio,
+    updated_at: user.updated_at
+  };
+}
+
+function resetRequestSuccess() {
+  return authOk({
+    message: 'If this email exists, password reset instructions have been sent.'
+  });
+}
+
 // POST /api/auth/register
 app.post('/api/auth/register', async (c) => {
   try {
     const { email, password, full_name, university_id, governorate, institution, privacy_consent, privacy_version, terms_version } = await c.req.json();
     
     if (!email || !password || !full_name) {
-      return c.json({ error: 'Email, password, and full_name are required' }, 400);
+      const err = authError('VALIDATION_ERROR', 'Email, password, and full_name are required', 400);
+      return c.json(err.body, err.status);
     }
     const privacyAccepted = privacy_consent === true || privacy_consent === 'true';
     if (!privacyAccepted) {
-      return c.json({ error: 'Privacy consent is required before registration' }, 400);
+      const err = authError('PRIVACY_CONSENT_REQUIRED', 'Privacy consent is required before registration', 400);
+      return c.json(err.body, err.status);
     }
 
     const safePrivacyVersion = String(privacy_version || 'privacy_v1').replace(/[^a-zA-Z0-9_\-\.]/g, '').slice(0, 50) || 'privacy_v1';
@@ -988,7 +1095,8 @@ app.post('/api/auth/register', async (c) => {
     ).bind(normalizedEmail).first();
     
     if (existingUser) {
-      return c.json({ error: 'Account already exists, please sign in or reset password' }, 409);
+      const err = authError('ACCOUNT_EXISTS', 'Account already exists, please sign in or reset password', 409);
+      return c.json(err.body, err.status);
     }
     
     // Hash password
@@ -1027,23 +1135,26 @@ app.post('/api/auth/register', async (c) => {
     // Generate JWT token
     const token = await generateJWTToken(userId, normalizedEmail, 'student', (c.env.JWT_SECRET || c.env.JWT_SECRET_V2 || ""));
     
-    return c.json({
-      token,
-      user: {
-        id: userId,
-        email: normalizedEmail,
-        full_name,
-        username: full_name,
-        role: 'student',
-        governorate: governorate || 'all',
-        institution: institution || 'manual',
-        institution_id: university_id || 'manual',
-        is_verified: false
-      }
+    const user = publicAuthUser({
+      id: userId,
+      email: normalizedEmail,
+      full_name,
+      role: 'student',
+      governorate: governorate || 'all',
+      institution: institution || 'manual',
+      institution_id: university_id || 'manual',
+      is_verified: false
     });
+
+    return c.json(authOk({
+      token,
+      user,
+      session: { expiresAt: new Date(Date.now() + 60 * 60 * 24 * 7 * 1000).toISOString() }
+    }));
   } catch (error: any) {
     console.error('Registration error:', error);
-    return c.json({ error: 'Registration failed' }, 500);
+    const err = authError('REGISTRATION_FAILED', 'Registration failed', 500);
+    return c.json(err.body, err.status);
   }
 });
 
@@ -1054,14 +1165,16 @@ app.post('/api/auth/login', async (c) => {
     try {
       body = await c.req.json();
     } catch {
-      return c.json({ error: 'Invalid login request' }, 400);
+      const err = authError('INVALID_REQUEST', 'Invalid login request', 400);
+      return c.json(err.body, err.status);
     }
 
     const email = String(body.email || '').trim();
     const password = String(body.password || '');
     
     if (!email || !password) {
-      return c.json({ error: 'Email and password are required' }, 400);
+      const err = authError('VALIDATION_ERROR', 'Email and password are required', 400);
+      return c.json(err.body, err.status);
     }
     
     const normalizedEmail = normalizeEmail(email);
@@ -1073,12 +1186,14 @@ app.post('/api/auth/login', async (c) => {
       ).bind(normalizedEmail).first() as any;
     } catch (dbError) {
       console.error('Login DB lookup error:', dbError);
-      return c.json({ error: 'Login temporarily unavailable' }, 503);
+      const err = authError('LOGIN_UNAVAILABLE', 'Login temporarily unavailable', 503);
+      return c.json(err.body, err.status);
     }
     
     // Do not reveal if the email exists.
     if (!user || !user.password_hash) {
-      return c.json({ error: 'Invalid email or password' }, 401);
+      const err = authError('INVALID_CREDENTIALS', 'Email or password is incorrect.', 401);
+      return c.json(err.body, err.status);
     }
     
     let isValid = false;
@@ -1086,11 +1201,13 @@ app.post('/api/auth/login', async (c) => {
       isValid = await verifyPassword(password, String(user.password_hash || ''));
     } catch (verifyError) {
       console.error('Login password verification error:', verifyError);
-      return c.json({ error: 'Invalid email or password' }, 401);
+      const err = authError('INVALID_CREDENTIALS', 'Email or password is incorrect.', 401);
+      return c.json(err.body, err.status);
     }
 
     if (!isValid) {
-      return c.json({ error: 'Invalid email or password' }, 401);
+      const err = authError('INVALID_CREDENTIALS', 'Email or password is incorrect.', 401);
+      return c.json(err.body, err.status);
     }
     
     try {
@@ -1105,29 +1222,21 @@ app.post('/api/auth/login', async (c) => {
     const jwtSecret = String(c.env.JWT_SECRET || c.env.JWT_SECRET_V2 || '');
     if (!jwtSecret) {
       console.error('Login JWT secret missing');
-      return c.json({ error: 'Login temporarily unavailable' }, 503);
+      const err = authError('LOGIN_UNAVAILABLE', 'Login temporarily unavailable', 503);
+      return c.json(err.body, err.status);
     }
 
     const token = await generateJWTToken(user.id, user.email, user.role || 'student', jwtSecret);
     
-    return c.json({
+    return c.json(authOk({
       token,
-      user: {
-        id: user.id,
-        email: user.email,
-        full_name: user.full_name,
-        username: user.full_name,
-        role: user.role,
-        governorate: user.governorate,
-        institution: user.institution,
-        institution_id: user.institution_id,
-        avatar_url: user.avatar_url,
-        is_verified: user.is_verified === 1
-      }
-    });
+      user: publicAuthUser(user),
+      session: { expiresAt: new Date(Date.now() + 60 * 60 * 24 * 7 * 1000).toISOString() }
+    }));
   } catch (error: any) {
     console.error('Login unexpected error:', error);
-    return c.json({ error: 'Login temporarily unavailable' }, 503);
+    const err = authError('LOGIN_UNAVAILABLE', 'Login temporarily unavailable', 503);
+    return c.json(err.body, err.status);
   }
 });
 
@@ -1141,38 +1250,30 @@ app.get('/api/auth/me', authMiddleware, async (c) => {
     ).bind(userId).first() as any;
     
     if (!user) {
-      return c.json({ error: 'User not found' }, 404);
+      const err = authError('USER_NOT_FOUND', 'User not found', 404);
+      return c.json(err.body, err.status);
     }
     
-    return c.json({
-      id: user.id,
-      email: user.email,
-      full_name: user.full_name,
-      username: user.full_name,
-      role: user.role,
-      governorate: user.governorate,
-      institution: user.institution,
-      institution_id: user.institution_id,
-      bio: user.bio,
-      avatar_url: user.avatar_url,
-      is_verified: user.is_verified === 1,
-      stage: user.stage,
-      interests: user.interests,
-      updated_at: user.updated_at
-    });
+    return c.json(authOk({ user: publicAuthUser(user) }));
   } catch (error: any) {
     console.error('Get user error:', error);
-    return c.json({ error: 'Failed to get user' }, 500);
+    const err = authError('ME_FAILED', 'Failed to get user', 500);
+    return c.json(err.body, err.status);
   }
 });
 
-// POST /api/auth/forgot-password
-app.post('/api/auth/forgot-password', async (c) => {
+// POST /api/auth/logout
+app.post('/api/auth/logout', async (c) => {
+  return c.json(authOk({ message: 'Logged out' }));
+});
+
+async function handlePasswordResetRequest(c: any) {
   try {
     const { email } = await c.req.json();
     
     if (!email) {
-      return c.json({ error: 'Email is required' }, 400);
+      const err = authError('VALIDATION_ERROR', 'Email is required', 400);
+      return c.json(err.body, err.status);
     }
 
     const normalizedEmail = normalizeEmail(email);
@@ -1184,18 +1285,32 @@ app.post('/api/auth/forgot-password', async (c) => {
     
     if (!user) {
       // Don't reveal if user exists or not for security
-      return c.json({ message: 'If the email exists, a reset link will be sent' });
+      return c.json(resetRequestSuccess());
     }
     
     // Generate reset token
     const token = generateId();
-    const expiresAt = new Date(Date.now() + 60 * 60 * 1000).toISOString(); // 1 hour
+    const tokenHash = await sha256HexText(token);
+    const expiresAt = new Date(Date.now() + 30 * 60 * 1000).toISOString();
+    const createdAt = new Date().toISOString();
     
-    // Store reset token in password_resets table
+    // Expire older unused tokens without deleting history. Older schemas may not have used_at yet.
+    try {
+      await c.env.DB.prepare(`
+        UPDATE password_resets
+        SET used_at = ?
+        WHERE email = ? AND used_at IS NULL
+      `).bind(createdAt, normalizedEmail).run();
+    } catch (_) {
+      // Older schema fallback: no destructive delete, just continue with the new single-use token.
+    }
+
+    // Store only the hashed token in password_resets.token.
     await c.env.DB.prepare(`
       INSERT INTO password_resets (email, token, expires_at, created_at)
       VALUES (?, ?, ?, ?)
-    `).bind(normalizedEmail, token, expiresAt, new Date().toISOString()).run();
+    `).bind(normalizedEmail, tokenHash, expiresAt, createdAt).run();
+
     // Send real password reset email via Resend.
     if (c.env.RESEND_API_KEY && c.env.PASSWORD_RESET_FROM_EMAIL) {
       const resetUrl = new URL('/api/auth/reset-password', c.req.url);
@@ -1213,12 +1328,12 @@ app.post('/api/auth/forgot-password', async (c) => {
         body: JSON.stringify({
           from: c.env.PASSWORD_RESET_FROM_EMAIL,
           to: [toEmail],
-          subject: 'Reset your Jamiaati password',
+          subject: 'Reset your Talaba password',
           html: `
             <div style="font-family: Arial, sans-serif; max-width: 560px; margin: 0 auto; padding: 24px; color: #111827;">
-              <h2>Reset your Jamiaati password</h2>
-              <p>You requested to reset your password for Jamiaati / StudentHUB.</p>
-              <p>Click the button below to choose a new password. This link expires in 1 hour.</p>
+              <h2>Reset your Talaba password</h2>
+              <p>You requested to reset your password for Talaba.</p>
+              <p>Click the button below to choose a new password. This link expires in 30 minutes.</p>
               <p style="margin: 28px 0;">
                 <a href="${resetUrlText}" style="background:#ff6b00;color:#111827;padding:14px 22px;border-radius:14px;text-decoration:none;font-weight:800;display:inline-block;">
                   Change Password
@@ -1228,31 +1343,31 @@ app.post('/api/auth/forgot-password', async (c) => {
               <p style="font-size:13px;word-break:break-all;color:#2563eb;">${resetUrlText}</p>
             </div>
           `,
-          text: `Reset your Jamiaati password: ${resetUrlText}`
+          text: `Reset your Talaba password: ${resetUrlText}`
         })
       });
 
       if (!emailResponse.ok) {
         const emailError = await emailResponse.text();
         console.error('Password reset email send failed:', emailError);
-        return c.json({ error: 'Failed to send reset email' }, 500);
+        // Keep the public response generic. Do not reveal account or delivery state.
+        return c.json(resetRequestSuccess());
       }
-
-      return c.json({ message: 'Reset email sent' });
-    } else {
-      // Dev mode: return token (NOT for production)
-      return c.json({ 
-        message: 'Reset token generated (dev mode)',
-        resetToken: token,
-        expiresAt,
-        note: 'In production, this would be sent via email'
-      });
     }
+
+    return c.json(resetRequestSuccess());
   } catch (error: any) {
     console.error('Forgot password error:', error);
-    return c.json({ error: 'Failed to process request' }, 500);
+    // Generic public response protects account existence even on transient delivery/storage errors.
+    return c.json(resetRequestSuccess());
   }
-});
+}
+
+// POST /api/auth/forgot-password
+app.post('/api/auth/forgot-password', handlePasswordResetRequest);
+
+// POST /api/auth/reset-password/request
+app.post('/api/auth/reset-password/request', handlePasswordResetRequest);
 
 
 // GET /api/auth/reset-password
@@ -1266,7 +1381,7 @@ app.get('/api/auth/reset-password', async (c) => {
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Change Password | Jamiaati</title>
+  <title>Change Password | Talaba</title>
   <style>
     body{margin:0;min-height:100vh;display:flex;align-items:center;justify-content:center;background:#0f172a;font-family:Arial,sans-serif;padding:20px;color:#111827}
     .card{width:100%;max-width:430px;background:#fffaf3;border:2px solid #fdba74;border-radius:28px;padding:28px;box-shadow:0 30px 80px rgba(0,0,0,.35)}
@@ -1282,7 +1397,7 @@ app.get('/api/auth/reset-password', async (c) => {
 <body>
   <div class="card">
     <h1>Change your password</h1>
-    <p>Choose a new password for your Jamiaati account.</p>
+    <p>Choose a new password for your Talaba account.</p>
     <form id="resetForm">
       <input id="token" type="hidden" value="${safeToken}" />
       <label>New password</label>
@@ -1292,7 +1407,7 @@ app.get('/api/auth/reset-password', async (c) => {
       <button type="submit">Save new password</button>
     </form>
     <div id="message" class="msg"></div>
-    <p style="font-size:13px;margin-top:22px;"><a href="https://jamiaati.kaniq.org">Back to Jamiaati</a></p>
+    <p style="font-size:13px;margin-top:22px;"><a href="https://talaba.kaniq.org">Back to Talaba</a></p>
   </div>
   <script>
     const form=document.getElementById('resetForm');
@@ -1307,12 +1422,12 @@ app.get('/api/auth/reset-password', async (c) => {
       if(newPassword!==confirmPassword){message.className='msg error';message.textContent='Passwords do not match.';return;}
       message.className='msg';message.textContent='Saving...';
       try{
-        const response=await fetch('/api/auth/reset-password',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,newPassword})});
+        const response=await fetch('/api/auth/reset-password/confirm',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({token,newPassword})});
         const data=await response.json().catch(()=>({}));
         if(!response.ok) throw new Error(data.error || 'Failed to reset password');
-        localStorage.removeItem('jamiaati_token');localStorage.removeItem('admin_token');localStorage.removeItem('jamiaati_auth_user');
+        localStorage.removeItem('Talaba_token');localStorage.removeItem('talaba_token');localStorage.removeItem('admin_token');localStorage.removeItem('Talaba_auth_user');localStorage.removeItem('jamiaati_token');localStorage.removeItem('jamiaati_auth_user');
         message.className='msg success';message.textContent='Password changed successfully. Redirecting...';
-        setTimeout(()=>{window.location.href='https://jamiaati.kaniq.org?passwordReset=success';},1600);
+        setTimeout(()=>{window.location.href='https://talaba.kaniq.org?passwordReset=success';},1600);
       }catch(error){message.className='msg error';message.textContent=error.message || 'Failed to reset password.';}
     });
   </script>
@@ -1321,43 +1436,71 @@ app.get('/api/auth/reset-password', async (c) => {
 });
 
 
-// POST /api/auth/reset-password
-app.post('/api/auth/reset-password', async (c) => {
+async function handlePasswordResetConfirm(c: any) {
   try {
     const { token, newPassword } = await c.req.json();
     
     if (!token || !newPassword) {
-      return c.json({ error: 'Token and new password are required' }, 400);
+      const err = authError('VALIDATION_ERROR', 'Token and new password are required', 400);
+      return c.json(err.body, err.status);
     }
+
+    if (String(newPassword).length < 6) {
+      const err = authError('WEAK_PASSWORD', 'Password must be at least 6 characters.', 400);
+      return c.json(err.body, err.status);
+    }
+
+    const tokenHash = await sha256HexText(String(token));
     
-    // Find valid token in password_resets table
+    // Find valid token in password_resets table. New tokens are hashed; legacy raw tokens are accepted once.
     const resetToken = await c.env.DB.prepare(
-      'SELECT * FROM password_resets WHERE token = ? AND expires_at > ?'
-    ).bind(token, new Date().toISOString()).first() as any;
+      'SELECT * FROM password_resets WHERE token IN (?, ?) AND expires_at > ?'
+    ).bind(tokenHash, token, new Date().toISOString()).first() as any;
     
-    if (!resetToken) {
-      return c.json({ error: 'Invalid or expired token' }, 400);
+    if (!resetToken || resetToken.used_at) {
+      const err = authError('INVALID_RESET_TOKEN', 'Invalid or expired token', 400);
+      return c.json(err.body, err.status);
     }
     
     // Hash new password
     const passwordHash = await hashPassword(newPassword);
+    const now = new Date().toISOString();
     
     // Update user password in profiles table
-    await c.env.DB.prepare(
+    const updateResult = await c.env.DB.prepare(
       'UPDATE profiles SET password_hash = ?, updated_at = ? WHERE LOWER(TRIM(email)) = ?'
-    ).bind(passwordHash, new Date().toISOString(), normalizeEmail(resetToken.email)).run();
+    ).bind(passwordHash, now, normalizeEmail(resetToken.email)).run() as any;
     
-    // Delete the reset token
-    await c.env.DB.prepare(
-      'DELETE FROM password_resets WHERE token = ?'
-    ).bind(token).run();
+    const changed = Number(updateResult?.meta?.changes || updateResult?.changes || 0);
+    if (changed < 1) {
+      const err = authError('USER_NOT_FOUND', 'Invalid or expired token', 400);
+      return c.json(err.body, err.status);
+    }
+
+    try {
+      await c.env.DB.prepare(
+        'UPDATE password_resets SET used_at = ? WHERE token = ?'
+      ).bind(now, resetToken.token).run();
+    } catch (_) {
+      // Older schema fallback: mutate the token key so it cannot be reused, without deleting data.
+      await c.env.DB.prepare(
+        'UPDATE password_resets SET token = ? WHERE token = ?'
+      ).bind(`used:${resetToken.token}:${Date.now()}`, resetToken.token).run();
+    }
     
-    return c.json({ message: 'Password reset successfully' });
+    return c.json(authOk({ message: 'Password reset successfully' }));
   } catch (error: any) {
     console.error('Reset password error:', error);
-    return c.json({ error: 'Failed to reset password' }, 500);
+    const err = authError('RESET_PASSWORD_FAILED', 'Failed to reset password', 500);
+    return c.json(err.body, err.status);
   }
-});
+}
+
+// POST /api/auth/reset-password
+app.post('/api/auth/reset-password', handlePasswordResetConfirm);
+
+// POST /api/auth/reset-password/confirm
+app.post('/api/auth/reset-password/confirm', handlePasswordResetConfirm);
 
 // ============================================================================
 // SOCIAL FEED ENDPOINTS

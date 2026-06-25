@@ -16,6 +16,146 @@ export const BACKEND_URL =
     : 'https://rafid-api.mahdialmuntadhar1.workers.dev';
 const API_BASE = `${BACKEND_URL}/api`;
 
+export type ApiResult<T> =
+  | { ok: true; data: T }
+  | { ok: false; code: string; message: string; fieldErrors?: Record<string, string> };
+
+export interface AuthUser {
+  id: string;
+  email: string;
+  full_name?: string;
+  username?: string;
+  role?: string;
+  governorate?: string;
+  institution?: string;
+  institution_id?: string;
+  avatar_url?: string;
+  is_verified?: boolean;
+}
+
+export interface AuthSession {
+  expiresAt?: string;
+}
+
+export interface AuthPayload {
+  token?: string;
+  user: AuthUser;
+  session?: AuthSession;
+}
+
+function storeAuthSession(payload: AuthPayload) {
+  if (!payload?.user) return;
+
+  if (payload.token) {
+    localStorage.setItem('Talaba_token', payload.token);
+    localStorage.setItem('talaba_token', payload.token);
+  }
+
+  localStorage.setItem('Talaba_logged_in', 'true');
+  localStorage.setItem('Talaba_auth_user', JSON.stringify(payload.user));
+  localStorage.setItem('Talaba_user_email', payload.user.email || '');
+
+  const email = String(payload.user.email || '').trim().toLowerCase();
+  if (payload.token && (payload.user.role === 'admin' || payload.user.role === 'staff' || email === 'mahdialmuntadhar1@gmail.com')) {
+    localStorage.setItem('admin_token', payload.token);
+  } else {
+    localStorage.removeItem('admin_token');
+  }
+}
+
+function clearAuthSession() {
+  [
+    'Talaba_token',
+    'talaba_token',
+    'Talaba_logged_in',
+    'Talaba_auth_user',
+    'Talaba_user_email',
+    'admin_token',
+    'jamiaati_token',
+    'jamiaati_auth_user',
+    'rafid_token',
+    'auth_token'
+  ].forEach(key => localStorage.removeItem(key));
+}
+
+async function parseApiResult<T>(response: Response): Promise<T> {
+  const data = await response.json().catch(() => ({}));
+  if (!response.ok || data?.ok === false) {
+    throw new Error(data?.message || data?.error || 'Request failed');
+  }
+  return (data?.data || data) as T;
+}
+
+export const authApi = {
+  async register(input: { email: string; password: string; full_name: string; privacy_consent: boolean; privacy_version?: string; terms_version?: string }) {
+    const response = await fetch(`${API_BASE}/auth/register`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    const payload = await parseApiResult<AuthPayload>(response);
+    storeAuthSession(payload);
+    return payload;
+  },
+
+  async login(input: { email: string; password: string }) {
+    const response = await fetch(`${API_BASE}/auth/login`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(input),
+    });
+    const payload = await parseApiResult<AuthPayload>(response);
+    storeAuthSession(payload);
+    return payload;
+  },
+
+  async logout() {
+    try {
+      await fetch(`${API_BASE}/auth/logout`, {
+        method: 'POST',
+        headers: getHeaders(),
+      });
+    } finally {
+      clearAuthSession();
+    }
+  },
+
+  async refreshMe() {
+    const response = await fetch(`${API_BASE}/auth/me`, {
+      headers: getHeaders(),
+    });
+    const payload = await parseApiResult<{ user: AuthUser } | AuthUser>(response);
+    const user = 'user' in payload ? payload.user : payload;
+    if (user) {
+      localStorage.setItem('Talaba_auth_user', JSON.stringify(user));
+      localStorage.setItem('Talaba_user_email', user.email || '');
+    }
+    return user;
+  },
+
+  async requestPasswordReset(email: string) {
+    const response = await fetch(`${API_BASE}/auth/reset-password/request`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ email }),
+    });
+    return parseApiResult<{ message: string }>(response);
+  },
+
+  async confirmPasswordReset(token: string, newPassword: string) {
+    const response = await fetch(`${API_BASE}/auth/reset-password/confirm`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ token, newPassword }),
+    });
+    const payload = await parseApiResult<{ message: string }>(response);
+    clearAuthSession();
+    return payload;
+  },
+
+  clearLocalSession: clearAuthSession,
+};
+
 export interface HeroImageRecord {
   id: string;
   image_url: string;

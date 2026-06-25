@@ -17,7 +17,7 @@ import AdminModeration from './components/AdminModeration';
 import SocialHub from './components/SocialHub';
 import UserProfileModal from './components/UserProfileModal';
 import UniversitiesList from './components/UniversitiesList';
-import { BACKEND_URL, socialApi } from './lib/api';
+import { BACKEND_URL, authApi, socialApi } from './lib/api';
 import { motion, AnimatePresence } from 'motion/react';
 import { Home, Sparkles, HelpCircle, User, Compass, Info, FileText } from 'lucide-react';
 
@@ -113,6 +113,27 @@ export default function App() {
     return Boolean(token) && notLoggedOut;
   });
   const [isAuthModalOpen, setIsAuthModalOpen] = useState(false);
+
+  useEffect(() => {
+    if (!isLoggedIn) return;
+
+    authApi.refreshMe()
+      .then((authUser) => {
+        if (!authUser) return;
+        setUserProfile(prev => ({
+          ...prev,
+          id: authUser.id || prev.id,
+          name: authUser.full_name || authUser.username || prev.name,
+          role: authUser.role === 'admin' || authUser.role === 'staff' ? authUser.role : prev.role,
+          avatar: authUser.avatar_url || prev.avatar,
+        }));
+      })
+      .catch(() => {
+        authApi.clearLocalSession();
+        setIsLoggedIn(false);
+        setUserProfile(prev => ({ ...prev, role: 'student' }));
+      });
+  }, []);
 
   // Social Badge Counts (Friend/Connection Requests & Messages)
   const [friendRequestsCount, setFriendRequestsCount] = useState<number>(0);
@@ -1344,15 +1365,8 @@ export default function App() {
             onToggleUserRole={handleRoleToggle}
             isLoggedIn={isLoggedIn}
             onLogout={() => {
+              authApi.logout().catch(() => undefined);
               setIsLoggedIn(false);
-              localStorage.setItem('Talaba_logged_in', 'false');
-              localStorage.removeItem('Talaba_token');
-              localStorage.removeItem('admin_token');
-              localStorage.removeItem('jamiaati_user_email');
-              localStorage.removeItem('jamiaati_auth_user');
-              localStorage.removeItem('jamiaati_token');
-              localStorage.removeItem('Talaba_auth_user');
-              localStorage.removeItem('Talaba_user_email');
               setUserProfile(prev => ({ ...prev, role: 'student' }));
               showToast(
                 language === 'ar' ? 'تم تسجيل خروجك بنجاح. نراك قريباً! 👋' : language === 'ku' ? 'خۆتۆمارکردنەکەت کۆتایی پێهات. بە هیوای دیدار! 👋' : 'Logged out successfully. See you! 👋', 

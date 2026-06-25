@@ -11,6 +11,7 @@ declare global {
 
 function getStoredAuthToken(): string {
   return (
+    localStorage.getItem('Talaba_token') ||
     localStorage.getItem('rafid_token') ||
     localStorage.getItem('talaba_token') ||
     localStorage.getItem('jamiaati_token') ||

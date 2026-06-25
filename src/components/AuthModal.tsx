@@ -3,7 +3,7 @@ import { Language } from '../types';
 import { getTranslation } from '../data/translations';
 import { motion, AnimatePresence } from 'motion/react';
 import { X, Mail, Lock, User, ShieldCheck, Eye, EyeOff, AlertCircle, CheckCircle } from 'lucide-react';
-import { BACKEND_URL } from '../lib/api';
+import { authApi } from '../lib/api';
 
 interface AuthModalProps {
   isOpen: boolean;
@@ -111,37 +111,22 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     }
 
     try {
-      const endpoint = mode === 'forgot' ? '/api/auth/forgot-password' : mode === 'register' ? '/api/auth/register' : '/api/auth/login';
-      const payload = mode === 'forgot'
-        ? { email: email.trim().toLowerCase() }
-        : mode === 'register'
-          ? { email: email.trim().toLowerCase(), password, full_name: username.trim(), privacy_consent: privacyConsent, privacy_version: 'privacy_v1', terms_version: 'terms_v1' }
-          : { email: email.trim().toLowerCase(), password };
-      const response = await fetch(`${BACKEND_URL}${endpoint}`, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
-      });
-      const data = await response.json().catch(() => ({}));
-      if (!response.ok) throw new Error(data.error || data.message || 'Authentication failed');
-
       if (mode === 'forgot') {
-        setSuccess(getLabel('emailSentDesc'));
+        const result = await authApi.requestPasswordReset(email.trim().toLowerCase());
+        setSuccess(result.message || getLabel('emailSentDesc'));
       } else {
-        if (!data.token || !data.user) throw new Error('The server did not return a valid session.');
-        localStorage.setItem('Talaba_token', data.token);
-        localStorage.setItem('Talaba_token', data.token);
-        localStorage.setItem('Talaba_logged_in', 'true');
-        localStorage.setItem('Talaba_logged_in', 'true');
-        if (data.user.role === 'admin' || data.user.role === 'staff' || email.trim().toLowerCase() === 'mahdialmuntadhar1@gmail.com') {
-          localStorage.setItem('admin_token', data.token);
-        } else {
-          localStorage.removeItem('admin_token');
-        }
-        localStorage.setItem('Talaba_auth_user', JSON.stringify(data.user));
-        localStorage.setItem('Talaba_auth_user', JSON.stringify(data.user));
-        localStorage.setItem('Talaba_user_email', data.user.email || email.trim().toLowerCase());
-        localStorage.setItem('Talaba_user_email', data.user.email || email.trim().toLowerCase());
+        const data = mode === 'register'
+          ? await authApi.register({
+              email: email.trim().toLowerCase(),
+              password,
+              full_name: username.trim(),
+              privacy_consent: privacyConsent,
+              privacy_version: 'privacy_v1',
+              terms_version: 'terms_v1',
+            })
+          : await authApi.login({ email: email.trim().toLowerCase(), password });
+
+        if (!data.user) throw new Error('The server did not return a valid session.');
         setSuccess(mode === 'register' ? getLabel('registerSuccess') : getLabel('loginSuccess'));
         onAuthSuccess(data.user.full_name || data.user.username || username || 'Student', data.user.email || email);
         onClose();
@@ -394,7 +379,6 @@ export default function AuthModal({ isOpen, onClose, language, onAuthSuccess }: 
     </AnimatePresence>
   );
 }
-
 
 
 
