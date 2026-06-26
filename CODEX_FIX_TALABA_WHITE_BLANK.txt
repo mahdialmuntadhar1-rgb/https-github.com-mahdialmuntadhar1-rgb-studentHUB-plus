@@ -1,0 +1,66 @@
+﻿You are working inside Talaba / Jamiaati / StudentHUB Plus.
+
+Problem:
+https://talaba.kaniq.org/ is white blank.
+
+Fix it safely.
+
+Rules:
+- Do NOT mix with Halal/Zawaj or Shaku Maku.
+- Do NOT rewrite the whole app.
+- Find the first real runtime error and fix it.
+- Build must pass.
+- Live site must never be white blank. Show visible error if crash remains.
+
+Known suspicion:
+src/App.tsx has:
+import { motion, AnimatePresence } from 'motion/react';
+
+Check if this is valid. If not, replace with:
+import { motion, AnimatePresence } from 'framer-motion';
+
+Tasks:
+1. Run:
+npm install
+npm ls motion
+npm ls framer-motion
+npm run build
+
+2. Inspect these files:
+src/main.tsx
+src/App.tsx
+src/lib/registerServiceWorker.ts
+src/lib/session.ts
+src/lib/authSession.ts
+src/lib/api.ts
+
+3. Disable service worker registration temporarily:
+Do not call registerServiceWorker() until app is stable.
+
+4. Wrap unsafe startup code:
+- localStorage
+- sessionStorage
+- JSON.parse
+- window/document usage
+- auth session guard
+- backend/API initialization
+
+5. Add emergency visible fallback in index.html:
+Show "Talaba is loading..."
+If React crashes, show a visible red error screen, not white blank.
+
+6. Make React confirm mount by hiding the loading fallback only after App renders.
+
+7. Verify:
+npm run build
+npx vite --host 0.0.0.0
+
+8. Deploy:
+npx wrangler pages deploy dist --project-name talaba --commit-dirty=true
+
+Final output:
+- Explain exact cause found.
+- List files changed.
+- Give latest Pages deployment link.
+- Confirm custom domain test:
+https://talaba.kaniq.org/?fresh=20260626
