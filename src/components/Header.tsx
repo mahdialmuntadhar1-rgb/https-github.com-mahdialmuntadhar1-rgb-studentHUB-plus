@@ -86,7 +86,7 @@ export default function Header({
 
   return (
     <>
-      <header className="relative z-40 bg-white border-b border-[#E6E1F5] px-3 py-2 shadow-sm" id="app-header-container">
+      <header translate="no" className="notranslate" data-no-translate="true" data-gt-no-translate="true" className="relative z-40 bg-white border-b border-[#E6E1F5] px-3 py-2 shadow-sm" id="app-header-container">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between gap-2" id="header-top-row">
             <div className="flex items-center gap-2 min-w-0" id="header-brand-logo">
@@ -209,7 +209,7 @@ export default function Header({
           </div>
 
           <div
-            id="language-row-under-header"
+            id="language-row-under-header" translate="no" data-no-translate="true" data-gt-no-translate="true"
             className="mt-2 rounded-2xl bg-gradient-to-r from-[#6B25C9] via-[#7C3AED] to-[#F59E0B] p-1.5 shadow-md"
           >
             <div className="grid grid-cols-3 gap-1.5">
@@ -249,4 +249,5 @@ export default function Header({
     </>
   );
 }
+
 
