@@ -86,7 +86,7 @@ export default function Header({
 
   return (
     <>
-      <header translate="no" className="notranslate" data-no-translate="true" data-gt-no-translate="true" className="relative z-40 bg-white border-b border-[#E6E1F5] px-3 py-2 shadow-sm" id="app-header-container">
+      <header translate="no" data-no-translate="true" data-gt-no-translate="true" className="notranslate relative z-40 bg-white border-b border-[#E6E1F5] px-3 py-2 shadow-sm" id="app-header-container">
         <div className="max-w-lg mx-auto">
           <div className="flex items-center justify-between gap-2" id="header-top-row">
             <div className="flex items-center gap-2 min-w-0" id="header-brand-logo">
@@ -249,5 +249,6 @@ export default function Header({
     </>
   );
 }
+
 
 
