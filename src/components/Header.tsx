@@ -70,10 +70,10 @@ export default function Header({
 
   const brandSubline =
     language === 'ar'
-      ? 'حياة الجامعة والفرص في مكان واحد'
+      ? 'حياة الجامعة والفرص في مكان واحد • UI FIX 20260626'
       : language === 'ku'
-        ? 'ژیانی زانکۆ و هەلەکان لە یەک شوێندا'
-        : 'University life and opportunities in one place';
+        ? 'ژیانی زانکۆ و هەلەکان لە یەک شوێندا • UI FIX 20260626'
+        : 'University life and opportunities in one place • UI FIX 20260626';
 
   const handleAuthSuccess = (username: string, email: string) => {
     localStorage.setItem('jamiaati_logged_in', 'true');
@@ -249,3 +249,4 @@ export default function Header({
     </>
   );
 }
+
