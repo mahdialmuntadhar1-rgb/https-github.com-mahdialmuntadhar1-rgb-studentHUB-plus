@@ -69,7 +69,23 @@ export default function PWAInstallPrompt({ language }: PWAInstallPromptProps) {
       return;
     }
 
-    setShowGuide(true);
+    const url = window.location.href.replace(/^https?:\/\//, '');
+const chromeIntent = `intent://${url}#Intent;scheme=https;package=com.android.chrome;end`;
+const isAndroid = /Android/i.test(navigator.userAgent);
+const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+
+if (isAndroid) {
+  window.location.href = chromeIntent;
+  window.setTimeout(() => setShowGuide(true), 1200);
+  return;
+}
+
+if (isIOS) {
+  setShowGuide(true);
+  return;
+}
+
+setShowGuide(true);
   };
 
   if (installed || closed) return null;
@@ -108,3 +124,4 @@ export default function PWAInstallPrompt({ language }: PWAInstallPromptProps) {
     </div>
   );
 }
+
