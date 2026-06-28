@@ -86,9 +86,9 @@ export default function Header({
 
   return (
     <>
-      <header translate="no" data-no-translate="true" data-gt-no-translate="true" className="notranslate relative z-40 bg-white/95 border-b border-orange-100 px-3 py-2 shadow-sm" id="app-header-container">
+      <header translate="no" data-no-translate="true" data-gt-no-translate="true" className="notranslate relative z-40 bg-white border-b border-[#E6E1F5] px-3 py-2 shadow-sm" id="app-header-container">
         <div className="max-w-lg mx-auto">
-          <div className="flex w-full items-center justify-between gap-3" id="header-top-row">
+          <div className="flex items-center justify-between gap-2" id="header-top-row">
             <div className="flex items-center gap-2 min-w-0" id="header-brand-logo">
               <div className="w-9 h-9 rounded-xl bg-orange-500 flex items-center justify-center text-white font-bold shadow-sm shrink-0">
                 <BookOpen className="w-5 h-5 text-white" />
@@ -96,13 +96,13 @@ export default function Header({
 
               <div className="flex flex-col min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="text-[15px] text-orange-600 font-black tracking-tight leading-none">Talaba</span>
+                  <span className="text-[16px] text-orange-600 font-black tracking-tight leading-none">Talaba</span>
                   <span className="text-[11px] text-slate-300 font-bold leading-none">|</span>
-                  <h1 className="text-[13px] font-black tracking-tight leading-none text-[#1E293B]">
+                  <h1 className="text-[14px] font-black tracking-tight leading-none text-[#1E293B]">
                     طلبة
                   </h1>
                 </div>
-                <p className="text-[10px] text-slate-500 font-semibold leading-tight mt-1 truncate max-w-[150px] sm:max-w-[220px]">
+                <p className="text-[10px] text-slate-500 font-semibold leading-tight mt-1 truncate max-w-[210px]">
                   {brandSubline}
                 </p>
               </div>
@@ -210,7 +210,7 @@ export default function Header({
 
           <div
             id="language-row-under-header" translate="no" data-no-translate="true" data-gt-no-translate="true"
-            className="mt-3 w-full rounded-2xl bg-slate-50 border border-orange-100 p-1.5 shadow-sm"
+            className="mt-2 rounded-2xl bg-gradient-to-r from-[#6B25C9] via-[#7C3AED] to-[#F59E0B] p-1.5 shadow-md"
           >
             <div className="grid grid-cols-3 gap-1.5">
               {(['ar', 'ku', 'en'] as Language[]).map(lang => {
@@ -222,10 +222,10 @@ export default function Header({
                     key={lang}
                     type="button"
                     onClick={() => setLanguage(lang)}
-                    className={`min-h-9 rounded-xl px-2 py-1.5 text-[11px] font-black cursor-pointer transition-all duration-150 flex items-center justify-center gap-1 ${
+                    className={`min-h-10 rounded-xl px-2 py-2 text-[12px] font-black cursor-pointer transition-all duration-150 flex items-center justify-center gap-1.5 ${
                       active
-                        ? 'bg-orange-500 text-white shadow-sm ring-1 ring-orange-300'
-                        : 'bg-white text-slate-700 border border-slate-200 hover:bg-orange-50'
+                        ? 'bg-white text-[#5B21B6] shadow-[0_0_16px_rgba(255,210,31,0.85)] ring-2 ring-[#FFD21F]'
+                        : 'bg-white/15 text-white hover:bg-white/25'
                     }`}
                     title={meta.label}
                     aria-label={`Switch language to ${meta.label}`}
@@ -249,7 +249,6 @@ export default function Header({
     </>
   );
 }
-
 
 
 

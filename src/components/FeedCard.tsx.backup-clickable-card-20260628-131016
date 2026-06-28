@@ -241,11 +241,6 @@ export default function FeedCard({
   const opportunityUrl = getOpportunityUrl(item);
   const finalOpportunityUrl = opportunityUrl;
 
-  const handleOpportunityCardClick = () => {
-    if (!isOpportunity || !finalOpportunityUrl) return;
-    window.open(finalOpportunityUrl, '_blank', 'noopener,noreferrer');
-  };
-
   const tags = (() => {
     const rawTags = getSafeTags(item.tags)
       .map(tag => tag.replace(/^#/, '').trim())
@@ -486,10 +481,7 @@ export default function FeedCard({
     <article
       id={`feed-card-${item.id}`}
       dir={isRtl ? 'rtl' : 'ltr'}
-      onClick={handleOpportunityCardClick}
-      className={`opportunity-readable-card relative mb-4 overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm transition-all ${
-        isOpportunity && finalOpportunityUrl ? 'cursor-pointer hover:shadow-xl hover:scale-[1.01]' : ''
-      }`}
+      className="opportunity-readable-card relative mb-4 overflow-hidden rounded-3xl border border-orange-100 bg-white shadow-sm"
     >
       {isMockCampusPost && (
         <div className="flex items-center gap-3 overflow-hidden border-b border-orange-50 px-4 py-3" dir="auto">
@@ -727,10 +719,7 @@ export default function FeedCard({
         {isOpportunity && (
           <button
             type="button"
-            onClick={(event) => {
-              event.stopPropagation();
-              openOpportunity();
-            }}
+            onClick={openOpportunity}
             disabled={!finalOpportunityUrl}
             className={`mt-4 w-full rounded-2xl px-4 py-3 text-center text-[13px] font-black text-slate-900 shadow-sm active:scale-[0.99] ${
               finalOpportunityUrl ? 'bg-orange-500' : 'cursor-not-allowed bg-slate-300'
@@ -766,10 +755,7 @@ export default function FeedCard({
 
             <button
               type="button"
-              onClick={(event) => {
-                event.stopPropagation();
-                sharePost();
-              }}
+              onClick={sharePost}
               className="flex items-center gap-1.5 text-[12px] font-black"
               aria-label="Share"
             >
@@ -799,7 +785,7 @@ export default function FeedCard({
                 <div className="mt-0.5 text-[11px] font-semibold leading-relaxed text-slate-600">{comment.content}</div>
               </div>
             ))}
-          <form onClick={(event) => event.stopPropagation()} onSubmit={submitComment} className="flex gap-2">
+          <form onSubmit={submitComment} className="flex gap-2">
             <input
               value={commentText}
               onChange={(event) => setCommentText(event.target.value)}
@@ -854,7 +840,6 @@ export default function FeedCard({
     </article>
   );
 }
-
 
 
 
